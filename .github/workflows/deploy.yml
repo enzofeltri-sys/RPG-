@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/medieval-fantasy-rpg-cgclva
   workflow_dispatch:
 
 permissions:

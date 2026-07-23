@@ -6,9 +6,9 @@ Document vivant : mis à jour à chaque incrément. Sert de mémoire du projet e
 
 - Moteur : Phaser 3, TypeScript, Vite
 - Vue : top-down 2D classique (façon Zelda/Pokémon), pas isométrique
-- Style graphique : rétro 16-bit façon SNES (résolution interne 384×216, `pixelArt: true`)
+- Style graphique : rétro 16-bit façon SNES (résolution interne 216×384 portrait, `pixelArt: true`)
 - Combat : tour par tour (menu d'actions), écran de combat dédié
-- Contrôles : joystick virtuel tactile + boutons d'action (priorité tactile, mobile en landscape), clavier flèches en support secondaire pour les tests
+- Contrôles : joystick virtuel tactile + boutons d'action (priorité tactile, mobile en **portrait**, quasi plein écran via CSS `100dvh` + bouton plein écran natif où disponible), clavier flèches en support secondaire pour les tests
 - Hors-ligne : PWA (service worker via `vite-plugin-pwa`), sauvegarde locale IndexedDB
 - Hébergement de test : GitHub Pages (déploiement auto sur push via `.github/workflows/deploy.yml`), à l'URL `https://enzofeltri-sys.github.io/RPG-/`
 

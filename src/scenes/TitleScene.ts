@@ -10,10 +10,11 @@ export class TitleScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.add
-      .text(width / 2, height * 0.3, 'Le Sceau de Vaeloria', {
+      .text(width / 2, height * 0.28, 'Le Sceau\nde Vaeloria', {
         fontFamily: 'Georgia, serif',
-        fontSize: '18px',
+        fontSize: '20px',
         color: '#e8d9b5',
+        align: 'center',
       })
       .setOrigin(0.5);
 
@@ -25,7 +26,7 @@ export class TitleScene extends Phaser.Scene {
     });
 
     if (hasSave) {
-      this.createButton(width / 2, height * 0.68, 'Continuer', async () => {
+      this.createButton(width / 2, height * 0.63, 'Continuer', async () => {
         const data = await SaveManager.load();
         this.showStatus(`Sauvegarde chargée (créée le ${new Date(data!.createdAt).toLocaleDateString()}).`);
       });
@@ -50,12 +51,12 @@ export class TitleScene extends Phaser.Scene {
   private showStatus(message: string): void {
     this.children.getAll('name', 'status').forEach((obj) => obj.destroy());
     this.add
-      .text(this.scale.width / 2, this.scale.height * 0.85, message, {
+      .text(this.scale.width / 2, this.scale.height * 0.75, message, {
         fontFamily: 'Georgia, serif',
         fontSize: '9px',
         color: '#9aa0a6',
         align: 'center',
-        wordWrap: { width: this.scale.width * 0.8 },
+        wordWrap: { width: this.scale.width * 0.85 },
       })
       .setName('status')
       .setOrigin(0.5);

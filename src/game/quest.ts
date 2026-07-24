@@ -66,6 +66,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'goblin_brute', count: 3 },
     reward: { xp: 80, itemBaseId: 'simple_amulet', itemRarity: 'common' },
   },
+  faubourg_smugglers: {
+    id: 'faubourg_smugglers',
+    title: 'Contrebande au Faubourg',
+    description:
+      "Des contrebandiers déchargent des caisses suspectes au Faubourg des quais, à l'est d'Aiglemont. Éliminez-en 3 pour y mettre fin.",
+    objective: { type: 'defeat', monsterId: 'smuggler_thug', count: 3 },
+    reward: { xp: 85, itemBaseId: 'leather_legs', itemRarity: 'common' },
+  },
   city_road_patrol: {
     id: 'city_road_patrol',
     title: 'Patrouille de la route commerciale',

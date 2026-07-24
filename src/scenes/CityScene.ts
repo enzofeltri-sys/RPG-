@@ -143,6 +143,18 @@ export class CityScene extends Phaser.Scene {
       color: MUTED,
     }).setOrigin(0.5);
 
+    // East exit — optional detour, first Acte 2 side content outside the
+    // city walls proper (see FaubourgScene).
+    const faubourgZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
+    this.physics.add.existing(faubourgZone, true);
+    this.physics.add.overlap(this.player, faubourgZone, () => this.enterFaubourg());
+
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Faubourg des quais →', {
+      fontSize: '9px',
+      color: MUTED,
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },
       { x: this.mage.x, y: this.mage.y, radius: 24, onTap: () => this.talkToMage() },
@@ -378,6 +390,15 @@ export class CityScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Catacombs');
+    });
+  }
+
+  private enterFaubourg(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Faubourg');
     });
   }
 }

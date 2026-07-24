@@ -4,6 +4,7 @@ import { TitleScene } from './scenes/TitleScene';
 import { CharacterCreationScene } from './scenes/CharacterCreationScene';
 import { VillageScene } from './scenes/VillageScene';
 import { FieldScene } from './scenes/FieldScene';
+import { DungeonScene } from './scenes/DungeonScene';
 import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
 
@@ -81,7 +82,15 @@ async function boot(): Promise<void> {
         debug: false,
       },
     },
-    scene: [TitleScene, CharacterCreationScene, VillageScene, FieldScene, CombatScene, InventoryScene],
+    scene: [
+      TitleScene,
+      CharacterCreationScene,
+      VillageScene,
+      FieldScene,
+      DungeonScene,
+      CombatScene,
+      InventoryScene,
+    ],
   });
 
   setupFullscreenToggle();

@@ -42,7 +42,11 @@ export class FieldScene extends Phaser.Scene {
     this.physics.add.existing(returnZone, true);
     this.physics.add.overlap(this.player, returnZone, () => this.returnToVillage());
 
-    addCrispText(this, WORLD_WIDTH / 2, 30, 'Chemin vers le monde\n(à venir)', {
+    const dungeonZone = this.add.zone(WORLD_WIDTH / 2, 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(dungeonZone, true);
+    this.physics.add.overlap(this.player, dungeonZone, () => this.enterDungeon());
+
+    addCrispText(this, WORLD_WIDTH / 2, 30, 'Repaire du Loup ↑', {
       fontSize: '11px',
       color: '#e8d9b5',
       align: 'center',
@@ -93,6 +97,15 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Village');
+    });
+  }
+
+  private enterDungeon(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Dungeon');
     });
   }
 }

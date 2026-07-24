@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Character, grantXp, getEffectiveStats } from '../game/character';
-import { Monster, createTestMonster } from '../game/monster';
+import { Monster, createTestMonster, createMonster } from '../game/monster';
 import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -12,12 +12,14 @@ const BAR_WIDTH = 160;
 
 interface CombatData {
   returnScene?: string;
+  monsterId?: string;
 }
 
 export class CombatScene extends Phaser.Scene {
   private character!: Character;
   private monster!: Monster;
   private returnScene = 'Field';
+  private monsterId?: string;
   private busy = false;
   private ended = false;
 
@@ -37,6 +39,7 @@ export class CombatScene extends Phaser.Scene {
 
   init(data: CombatData): void {
     this.returnScene = data?.returnScene ?? 'Field';
+    this.monsterId = data?.monsterId;
     this.busy = false;
     this.ended = false;
     this.actionButtons = [];
@@ -50,7 +53,7 @@ export class CombatScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     this.character = save!.character!;
-    this.monster = createTestMonster();
+    this.monster = this.monsterId ? createMonster(this.monsterId) : createTestMonster();
 
     addCrispText(this, width / 2, 34, this.monster.name, {
       fontSize: '15px',
@@ -192,7 +195,9 @@ export class CombatScene extends Phaser.Scene {
     this.hideActions();
     const levelsGained = grantXp(this.character, this.monster.xpReward);
 
-    const loot: Item | null = rollLootItem();
+    const loot: Item | null = this.monster.isBoss
+      ? rollLootItem({ guaranteed: true, rareChance: 0.5 })
+      : rollLootItem();
     if (loot) {
       this.character.inventory.push(loot);
     }
@@ -234,7 +239,12 @@ export class CombatScene extends Phaser.Scene {
   private leaveTo(sceneKey: string): void {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start(sceneKey);
+      // { resume: true } lets DungeonScene tell a genuine re-entry (from Field)
+      // apart from a round trip back from a fight — Phaser reuses the same
+      // scene instance across scene.start() calls, so without this the dungeon
+      // would silently reset (respawning already-cleared encounters) every
+      // time a fight ends. Harmless no-op for scenes that ignore init data.
+      this.scene.start(sceneKey, { resume: true });
     });
   }
 }

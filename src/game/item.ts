@@ -167,12 +167,21 @@ export function compareItemStats(next: Item, current?: Item): string[] {
   return lines;
 }
 
-// Loot roll for the current single test monster: modest drop chance, mostly
-// common with a smaller chance of rare. Real per-dungeon loot tables (with the
-// very rare unique drops described in the design doc) come with actual dungeons.
-export function rollLootItem(): Item | null {
-  if (Math.random() > 0.4) return null;
+interface LootOptions {
+  // Boss fights guarantee a drop instead of rolling the base chance.
+  guaranteed?: boolean;
+  // Base chance of rolling rare instead of common, when a drop happens.
+  rareChance?: number;
+}
+
+// Modest drop chance, mostly common with a smaller chance of rare — bosses
+// pass { guaranteed: true } for a sure drop with better odds. Real per-dungeon
+// loot tables (with the very rare unique drops described in DESIGN.md) come
+// as more dungeons are added; this one pool covers the current single dungeon.
+export function rollLootItem(options: LootOptions = {}): Item | null {
+  const { guaranteed = false, rareChance = 0.2 } = options;
+  if (!guaranteed && Math.random() > 0.4) return null;
   const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
-  const rarity: Rarity = Math.random() < 0.2 ? 'rare' : 'common';
+  const rarity: Rarity = Math.random() < rareChance ? 'rare' : 'common';
   return createItem(template.baseId, rarity);
 }

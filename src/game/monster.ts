@@ -45,6 +45,7 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     xpReward: 50,
     goldReward: 14,
   },
+  marsh_serpent: { id: 'marsh_serpent', name: 'Serpent des marais', maxHp: 24, attack: 6, xpReward: 45, goldReward: 12 },
   corrupted_tome: {
     id: 'corrupted_tome',
     name: 'Grimoire corrompu',

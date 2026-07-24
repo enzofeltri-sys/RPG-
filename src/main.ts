@@ -16,6 +16,8 @@ import { CityScene } from './scenes/CityScene';
 import { FaubourgScene } from './scenes/FaubourgScene';
 import { WarehouseScene } from './scenes/WarehouseScene';
 import { ArchivesScene } from './scenes/ArchivesScene';
+import { RiverRoadScene } from './scenes/RiverRoadScene';
+import { HunterOutpostScene } from './scenes/HunterOutpostScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -118,6 +120,8 @@ async function boot(): Promise<void> {
       FaubourgScene,
       WarehouseScene,
       ArchivesScene,
+      RiverRoadScene,
+      HunterOutpostScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

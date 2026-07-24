@@ -19,7 +19,9 @@ export type ReturnSceneKey =
   | 'OldWell'
   | 'Faubourg'
   | 'Warehouse'
-  | 'Archives';
+  | 'Archives'
+  | 'RiverRoad'
+  | 'HunterOutpost';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;

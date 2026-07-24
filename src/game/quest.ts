@@ -82,6 +82,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'smuggler_captain', count: 1 },
     reward: { xp: 130, itemBaseId: 'leather_chest', itemRarity: 'rare' },
   },
+  marsh_patrol: {
+    id: 'marsh_patrol',
+    title: 'Patrouille des marais',
+    description:
+      "Des serpents des marais s'en prennent aux pièges et aux chasseurs le long de la route fluviale. Éliminez-en 3 pour sécuriser le relais.",
+    objective: { type: 'defeat', monsterId: 'marsh_serpent', count: 3 },
+    reward: { xp: 95, itemBaseId: 'wooden_shield', itemRarity: 'common' },
+  },
   city_road_patrol: {
     id: 'city_road_patrol',
     title: 'Patrouille de la route commerciale',

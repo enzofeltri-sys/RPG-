@@ -123,6 +123,18 @@ export class FaubourgScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // East zone — the water's edge continues into the route fluviale
+    // (VISION.md), Aiglemont's first connection toward the région 3.
+    const riverZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, 320);
+    this.physics.add.existing(riverZone, true);
+    this.physics.add.overlap(this.player, riverZone, () => this.enterRiverRoad());
+
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Route fluviale →', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.informant.x, y: this.informant.y, radius: 24, onTap: () => this.talkToInformant() },
     ];
@@ -333,6 +345,15 @@ export class FaubourgScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Warehouse');
+    });
+  }
+
+  private enterRiverRoad(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('RiverRoad', { x: 40, y: 200 });
     });
   }
 

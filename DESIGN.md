@@ -48,7 +48,7 @@ Ton : sérieux, pas de comique. Conflits politiques entre cités, ambiguïté mo
 2. ✅ Overworld : déplacement (joystick tactile + flèches), 1re map (village de départ, formes géométriques en attendant les vrais tilesets), collisions, transition de zone avec fondu
 3. ✅ Combat tour par tour (menu Attaquer/Fuir, 1 monstre test — loup corrompu), rencontres aléatoires en explorant le Champ, XP/niveau désormais fonctionnels (gain d'XP, montée de niveau avec points de stat, restauration PV/PM)
 4. ✅ Création de personnage : choix race/classe (Humain/Elfe × Guerrier/Mage), stats dérivées, PV/PM, fiche consultable en jeu. XP/niveaux/points de compétence : structure de données en place (niveau 1, XP 0), sans encore de combat pour les faire progresser (arrive à l'incrément 3)
-5. ✅ Inventaire + équipement complet (10 emplacements, stats variables, rareté commun/rare), butin de combat, stats effectives (base + équipement) utilisées en combat
+5. ✅ Inventaire + équipement complet (10 emplacements, stats variables, rareté commun/rare), butin de combat, stats effectives (base + équipement) utilisées en combat. Bouton "Menu" (fiche personnage/inventaire/quitter) disponible à la fois au Village et au Champ.
 6. 1er donjon jouable avec butin + boss
 7. Système de quêtes + PNJ/dialogues
 8. Artisanat de base + économie (or, marchand)

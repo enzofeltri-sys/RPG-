@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { SaveManager } from '../save/SaveManager';
+import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 320;
@@ -20,7 +22,7 @@ export class FieldScene extends Phaser.Scene {
     super('Field');
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.isTransitioning = false;
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
@@ -50,6 +52,13 @@ export class FieldScene extends Phaser.Scene {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
+
+    const save = await SaveManager.load();
+    if (save?.character) {
+      new CharacterSheetPanel(this, save.character, (open) => {
+        this.joystick.setEnabled(!open);
+      });
+    }
   }
 
   update(_time: number, delta: number): void {

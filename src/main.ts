@@ -42,8 +42,14 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Canvas instead of AUTO/WebGL: this game is simple 2D geometry and text with no
+// shader effects, and iOS Safari has a very low cap on concurrent WebGL contexts
+// (shared across all tabs). Repeated reloads during testing/updates can exhaust it,
+// causing new WebGL context creation to fail silently — a blank screen with no error,
+// since it isn't a thrown exception. Canvas rendering sidesteps that failure mode
+// entirely for content this simple.
 new Phaser.Game({
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,
   parent: 'game',
   width: GAME_WIDTH,
   height: GAME_HEIGHT,

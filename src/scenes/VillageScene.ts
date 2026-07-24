@@ -3,9 +3,12 @@ import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
+import { createTouchButton } from '../ui/TouchButton';
+import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
+const INTERACT_RADIUS = 60;
 
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
@@ -13,6 +16,7 @@ export class VillageScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
+  private messageText?: Phaser.GameObjects.Text;
 
   constructor() {
     super('Village');
@@ -43,17 +47,21 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveVillage());
 
-    this.add
-      .text(WORLD_WIDTH / 2, 40, 'Sortie du village ↑', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '9px',
-        color: '#9aa0a6',
-      })
-      .setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH / 2, 40, 'Sortie du village ↑', {
+      fontSize: '11px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
+    const actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
+      this.handleAction(),
+    );
 
     const save = await SaveManager.load();
     if (save?.character) {
-      new CharacterSheetPanel(this, save.character);
+      new CharacterSheetPanel(this, save.character, (open) => {
+        this.joystick.setEnabled(!open);
+        actionButton.input!.enabled = !open;
+      });
     }
   }
 
@@ -79,6 +87,33 @@ export class VillageScene extends Phaser.Scene {
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
+  }
+
+  private handleAction(): void {
+    const nearBuilding = this.buildings.find(
+      (b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y) < INTERACT_RADIUS,
+    );
+    this.showMessage(nearBuilding ? 'Une maison du village. Personne ne répond.' : 'Rien à proximité.');
+  }
+
+  private showMessage(message: string): void {
+    this.messageText?.destroy();
+    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
+      fontSize: '10px',
+      color: '#e8d9b5',
+      backgroundColor: '#0b0c10',
+      padding: { x: 8, y: 5 },
+      align: 'center',
+      wordWrap: { width: this.scale.width - 20 },
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001);
+
+    this.time.delayedCall(1800, () => {
+      this.messageText?.destroy();
+      this.messageText = undefined;
+    });
   }
 
   private leaveVillage(): void {

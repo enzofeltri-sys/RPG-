@@ -9,6 +9,7 @@ export class VirtualJoystick {
   private activePointerId: number | null = null;
   private vector = { x: 0, y: 0 };
   private readonly graphics: Phaser.GameObjects.Graphics;
+  private readonly zone: Phaser.GameObjects.Zone;
 
   constructor(private readonly scene: Phaser.Scene) {
     const { width, height } = scene.scale;
@@ -17,13 +18,13 @@ export class VirtualJoystick {
     this.graphics = scene.add.graphics().setScrollFactor(0).setDepth(1000);
     this.drawIdle();
 
-    const zone = scene.add
+    this.zone = scene.add
       .zone(0, height * 0.45, width * 0.55, height * 0.55)
       .setOrigin(0, 0)
       .setScrollFactor(0)
       .setInteractive();
 
-    zone.on('pointerdown', this.handlePointerDown);
+    this.zone.on('pointerdown', this.handlePointerDown);
     scene.input.on('pointermove', this.handlePointerMove);
     scene.input.on('pointerup', this.handlePointerUp);
     scene.input.on('pointerupoutside', this.handlePointerUp);
@@ -32,6 +33,18 @@ export class VirtualJoystick {
 
   getVector(): { x: number; y: number } {
     return this.vector;
+  }
+
+  // Disabled while a menu/panel overlay is open, since its invisible touch zone
+  // (bottom-left ~55% of the screen) would otherwise intercept taps meant for
+  // UI underneath it.
+  setEnabled(enabled: boolean): void {
+    this.zone.input!.enabled = enabled;
+    if (!enabled) {
+      this.activePointerId = null;
+      this.vector = { x: 0, y: 0 };
+      this.drawIdle();
+    }
   }
 
   private handlePointerDown = (pointer: Phaser.Input.Pointer): void => {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { RACES, CLASSES, Race, CharClass, computeStats, createCharacter } from '../game/character';
 import { SaveManager } from '../save/SaveManager';
+import { addCrispText } from '../ui/text';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -21,53 +22,46 @@ export class CharacterCreationScene extends Phaser.Scene {
   create(): void {
     const { width } = this.scale;
 
-    this.add
-      .text(width / 2, 18, 'Création de personnage', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '13px',
-        color: GOLD,
-      })
-      .setOrigin(0.5);
+    addCrispText(this, width / 2, 14, 'Création de personnage', {
+      fontSize: '16px',
+      color: GOLD,
+    }).setOrigin(0.5);
 
-    this.add.text(14, 42, 'Race', { fontFamily: 'Georgia, serif', fontSize: '10px', color: MUTED });
+    addCrispText(this, 14, 32, 'Race', { fontSize: '11px', color: MUTED });
     (Object.keys(RACES) as Race[]).forEach((race, i) => {
-      this.raceButtons[race] = this.createOption(14 + i * 105, 56, RACES[race].label, () => {
+      this.raceButtons[race] = this.createOption(14 + i * 105, 46, RACES[race].label, () => {
         this.race = race;
         this.refresh();
       });
     });
 
-    this.add.text(14, 92, 'Classe', { fontFamily: 'Georgia, serif', fontSize: '10px', color: MUTED });
+    addCrispText(this, 14, 84, 'Classe', { fontSize: '11px', color: MUTED });
     (Object.keys(CLASSES) as CharClass[]).forEach((charClass, i) => {
-      this.classButtons[charClass] = this.createOption(14 + i * 105, 106, CLASSES[charClass].label, () => {
+      this.classButtons[charClass] = this.createOption(14 + i * 105, 98, CLASSES[charClass].label, () => {
         this.charClass = charClass;
         this.refresh();
       });
     });
 
-    this.statsText = this.add.text(14, 148, '', {
-      fontFamily: 'Georgia, serif',
-      fontSize: '9px',
+    this.statsText = addCrispText(this, 14, 140, '', {
+      fontSize: '11px',
       color: GOLD,
-      lineSpacing: 4,
+      lineSpacing: 5,
     });
 
-    this.skillsText = this.add.text(14, 260, '', {
-      fontFamily: 'Georgia, serif',
-      fontSize: '8px',
+    this.skillsText = addCrispText(this, 14, 200, '', {
+      fontSize: '9px',
       color: MUTED,
       wordWrap: { width: width - 28 },
       lineSpacing: 4,
     });
 
-    const startButton = this.add
-      .text(width / 2, 350, "Commencer l'aventure", {
-        fontFamily: 'Georgia, serif',
-        fontSize: '12px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 10, y: 6 },
-      })
+    const startButton = addCrispText(this, width / 2, 328, "Commencer l'aventure", {
+      fontSize: '13px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 8, y: 6 },
+    })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -77,15 +71,12 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   private createOption(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
-    const text = this.add
-      .text(x, y, label, {
-        fontFamily: 'Georgia, serif',
-        fontSize: '10px',
-        color: GOLD,
-        backgroundColor: '#1c2b1c',
-        padding: { x: 8, y: 5 },
-      })
-      .setInteractive({ useHandCursor: true });
+    const text = addCrispText(this, x, y, label, {
+      fontSize: '12px',
+      color: GOLD,
+      backgroundColor: '#1c2b1c',
+      padding: { x: 8, y: 5 },
+    }).setInteractive({ useHandCursor: true });
 
     text.on('pointerdown', onClick);
     return text;

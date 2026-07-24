@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 320;
 const WORLD_HEIGHT = 240;
@@ -33,14 +34,11 @@ export class FieldScene extends Phaser.Scene {
     this.physics.add.existing(returnZone, true);
     this.physics.add.overlap(this.player, returnZone, () => this.returnToVillage());
 
-    this.add
-      .text(WORLD_WIDTH / 2, 30, 'Chemin vers le monde\n(à venir)', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '9px',
-        color: '#e8d9b5',
-        align: 'center',
-      })
-      .setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH / 2, 30, 'Chemin vers le monde\n(à venir)', {
+      fontSize: '11px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
   }
 
   update(): void {

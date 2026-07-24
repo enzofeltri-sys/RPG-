@@ -25,9 +25,17 @@ window.addEventListener('unhandledrejection', (e) => showFatalError(`Erreur : ${
 // The guard lives in sessionStorage (not a JS variable) because it must survive the reload
 // it triggers — otherwise a flapping service worker (e.g. during CDN propagation right after
 // a deploy) can reload the page in an infinite loop instead of settling on the new version.
+//
+// 'controllerchange' also fires the very first time a service worker ever claims a page
+// (clientsClaim), not just on updates — e.g. right after a fresh install or after clearing
+// site data. That's not a stale-content situation, so reloading there just interrupts
+// whatever the player is mid-doing for no reason. Only reload when this page was already
+// under an active worker's control at load time and that control just changed hands.
 if ('serviceWorker' in navigator) {
+  const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller);
   const RELOAD_GUARD_KEY = 'sw-reloaded-once';
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadControllerAtLoad) return;
     if (sessionStorage.getItem(RELOAD_GUARD_KEY)) return;
     sessionStorage.setItem(RELOAD_GUARD_KEY, '1');
     window.location.reload();

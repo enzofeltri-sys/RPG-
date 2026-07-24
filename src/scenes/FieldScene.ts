@@ -45,6 +45,11 @@ export class FieldScene extends Phaser.Scene {
       color: '#e8d9b5',
       align: 'center',
     }).setOrigin(0.5);
+
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Retour au village ↓', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
   }
 
   update(_time: number, delta: number): void {

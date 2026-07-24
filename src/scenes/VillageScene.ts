@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Character } from '../game/character';
+import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { createTouchButton } from '../ui/TouchButton';
@@ -9,6 +11,10 @@ import { addCrispText } from '../ui/text';
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
 const INTERACT_RADIUS = 60;
+const GOLD = '#e8d9b5';
+const DARK = '#0b0c10';
+
+const VILLAGER_QUEST_ID = 'wolves_threat';
 
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
@@ -17,6 +23,10 @@ export class VillageScene extends Phaser.Scene {
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
   private messageText?: Phaser.GameObjects.Text;
+  private character!: Character;
+  private npc!: Phaser.GameObjects.Rectangle;
+  private actionButton!: Phaser.GameObjects.Text;
+  private dialogElements: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super('Village');
@@ -25,6 +35,7 @@ export class VillageScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
+    this.dialogElements = [];
     this.drawGround();
 
     this.addBuilding(120, 160, 70, 50);
@@ -32,8 +43,13 @@ export class VillageScene extends Phaser.Scene {
     this.addBuilding(190, 360, 90, 50);
     this.addBuilding(340, 460, 60, 70);
 
+    this.npc = this.add.rectangle(120, 225, 14, 20, 0x3a5a7a).setStrokeStyle(1, 0x0b0c10);
+    this.physics.add.existing(this.npc, true);
+    addCrispText(this, 120, 205, 'Villageois', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
+    this.physics.add.collider(this.player, this.npc);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -52,15 +68,16 @@ export class VillageScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    const actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
+    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
       this.handleAction(),
     );
 
     const save = await SaveManager.load();
     if (save?.character) {
+      this.character = save.character;
       new CharacterSheetPanel(this, save.character, (open) => {
         this.joystick.setEnabled(!open);
-        actionButton.input!.enabled = !open;
+        this.actionButton.input!.enabled = !open;
       });
     }
   }
@@ -90,10 +107,109 @@ export class VillageScene extends Phaser.Scene {
   }
 
   private handleAction(): void {
+    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.npc.x, this.npc.y) < INTERACT_RADIUS) {
+      this.talkToNpc();
+      return;
+    }
+
     const nearBuilding = this.buildings.find(
       (b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y) < INTERACT_RADIUS,
     );
     this.showMessage(nearBuilding ? 'Une maison du village. Personne ne répond.' : 'Rien à proximité.');
+  }
+
+  private talkToNpc(): void {
+    const quest = QUESTS[VILLAGER_QUEST_ID];
+    const progress = getQuestProgress(this.character, VILLAGER_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, VILLAGER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} loups vaincus.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nMerci d'avoir écarté cette menace. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, VILLAGER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.openDialog("Merci encore pour votre aide contre les loups corrompus.", [
+      { label: 'Fermer', onClick: () => this.closeDialog() },
+    ]);
+  }
+
+  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+    this.closeDialog();
+    this.joystick.setEnabled(false);
+    this.actionButton.input!.enabled = false;
+
+    const { width, height } = this.scale;
+    const bg = this.add
+      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(800)
+      .setStrokeStyle(1, 0xe8d9b5);
+
+    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
+      fontSize: '10px',
+      color: GOLD,
+      align: 'center',
+      lineSpacing: 5,
+      wordWrap: { width: width - 44 },
+    })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(801);
+
+    this.dialogElements = [bg, label];
+
+    buttons.forEach((button, i) => {
+      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
+        fontSize: '10px',
+        color: DARK,
+        backgroundColor: GOLD,
+        padding: { x: 8, y: 5 },
+      })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(801)
+        .setInteractive({ useHandCursor: true });
+      buttonText.on('pointerdown', button.onClick);
+      this.dialogElements.push(buttonText);
+    });
+  }
+
+  private closeDialog(): void {
+    this.dialogElements.forEach((el) => el.destroy());
+    this.dialogElements = [];
+    this.joystick.setEnabled(true);
+    this.actionButton.input!.enabled = true;
   }
 
   private showMessage(message: string): void {

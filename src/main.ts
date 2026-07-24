@@ -7,6 +7,7 @@ import { FieldScene } from './scenes/FieldScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
+import { QuestLogScene } from './scenes/QuestLogScene';
 
 // Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
 const GAME_WIDTH = 216;
@@ -90,6 +91,7 @@ async function boot(): Promise<void> {
       DungeonScene,
       CombatScene,
       InventoryScene,
+      QuestLogScene,
     ],
   });
 

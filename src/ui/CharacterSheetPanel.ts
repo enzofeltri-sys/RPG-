@@ -25,6 +25,7 @@ export class CharacterSheetPanel {
   private readonly container: Phaser.GameObjects.Container;
   private readonly quitButton: Phaser.GameObjects.Text;
   private readonly inventoryButton: Phaser.GameObjects.Text;
+  private readonly questsButton: Phaser.GameObjects.Text;
   private readonly optionsButton: Phaser.GameObjects.Text;
   private readonly optionsInfoText: Phaser.GameObjects.Text;
   private readonly clearCacheButton: Phaser.GameObjects.Text;
@@ -89,6 +90,7 @@ export class CharacterSheetPanel {
     // Kept outside the container: interactive children of a Phaser Container are
     // unreliable for pointer hit-testing, so these buttons are separate top-level
     // objects toggled in lockstep with the panel instead of being nested inside it.
+    // Laid out as a 2x2 grid so a 4th action fits without growing the panel.
     this.inventoryButton = addCrispText(scene, 20, 278, 'Inventaire', {
       fontSize: '10px',
       color: DARK,
@@ -101,7 +103,7 @@ export class CharacterSheetPanel {
     this.inventoryButton.setVisible(false);
     this.inventoryButton.on('pointerdown', () => scene.scene.start('Inventory'));
 
-    this.quitButton = addCrispText(scene, 20, 306, 'Quitter vers le titre', {
+    this.questsButton = addCrispText(scene, 115, 278, 'Quêtes', {
       fontSize: '10px',
       color: DARK,
       backgroundColor: GOLD,
@@ -110,10 +112,10 @@ export class CharacterSheetPanel {
       .setScrollFactor(0)
       .setDepth(1001)
       .setInteractive({ useHandCursor: true });
-    this.quitButton.setVisible(false);
-    this.quitButton.on('pointerdown', () => scene.scene.start('Title'));
+    this.questsButton.setVisible(false);
+    this.questsButton.on('pointerdown', () => scene.scene.start('Quests'));
 
-    this.optionsButton = addCrispText(scene, 20, 334, 'Options', {
+    this.optionsButton = addCrispText(scene, 20, 306, 'Options', {
       fontSize: '10px',
       color: DARK,
       backgroundColor: GOLD,
@@ -124,6 +126,18 @@ export class CharacterSheetPanel {
       .setInteractive({ useHandCursor: true });
     this.optionsButton.setVisible(false);
     this.optionsButton.on('pointerdown', () => this.showOptions());
+
+    this.quitButton = addCrispText(scene, 115, 306, 'Quitter', {
+      fontSize: '10px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 6, y: 5 },
+    })
+      .setScrollFactor(0)
+      .setDepth(1001)
+      .setInteractive({ useHandCursor: true });
+    this.quitButton.setVisible(false);
+    this.quitButton.on('pointerdown', () => scene.scene.start('Title'));
 
     this.optionsInfoText = addCrispText(
       scene,
@@ -167,7 +181,13 @@ export class CharacterSheetPanel {
       .setVisible(false);
     this.backFromOptionsButton.on('pointerdown', () => this.showMain());
 
-    this.mainViewObjects = [panelText, this.inventoryButton, this.quitButton, this.optionsButton];
+    this.mainViewObjects = [
+      panelText,
+      this.inventoryButton,
+      this.questsButton,
+      this.quitButton,
+      this.optionsButton,
+    ];
     this.optionsViewObjects = [this.optionsInfoText, this.clearCacheButton, this.backFromOptionsButton];
 
     this.container = scene.add.container(0, 0, [panelBg]).setScrollFactor(0).setDepth(999);

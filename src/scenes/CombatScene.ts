@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Character, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, createTestMonster, createMonster } from '../game/monster';
 import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
+import { advanceQuestsOnDefeat } from '../game/quest';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -202,6 +203,8 @@ export class CombatScene extends Phaser.Scene {
       this.character.inventory.push(loot);
     }
 
+    const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
+
     await SaveManager.saveCharacter(this.character);
     this.refreshBars();
 
@@ -210,7 +213,9 @@ export class CombatScene extends Phaser.Scene {
         ? `Victoire ! +${this.monster.xpReward} XP — niveau supérieur !`
         : `Victoire ! +${this.monster.xpReward} XP`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
-    this.logText.setText(xpPart + lootPart);
+    const questPart =
+      completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
+    this.logText.setText(xpPart + lootPart + questPart);
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 

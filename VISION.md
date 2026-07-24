@@ -21,11 +21,61 @@ Ce document est la ligne de conduite long terme du jeu dans son ambition complè
 - Type : monde ouvert délimité par zones
 - Paysages : champs, forêts, rivières avec ponts, lacs, grottes, montagnes, cascades
 - Lieux : villages, camps de bandits, camps de gobelins, châteaux, manoirs, fermes autour des châteaux
+- Structure : découpé en régions séparées, chacune avec une ville principale, plusieurs villages, des routes de transit et des zones sauvages entre les deux — lisible mais avec de vraies possibilités d'exploration (grand RPG à régions contrôlées, pas un continent uniforme). Certaines routes passent par des ponts, cols de montagne, forêts épaisses ou zones dangereuses : de vrais choix de trajet, pas juste un couloir.
 
 ## Carte
 
 - Type : carte par régions séparées
 - Doit afficher : zones découvertes, points de quête, villes, donjons, camps, sanctuaires
+
+## Régions
+
+Progression géographique qui suit le scénario ; chaque région débloque de nouvelles routes, de nouveaux villages, une nouvelle faction dominante (ou un nouveau rapport de force), de nouveaux biomes et de nouveaux donjons.
+
+1. **Région de départ** — zone frontalière verte : champs, petites forêts, rivières, collines. Village natal du héros, bourg marchand, ferme isolée, petit sanctuaire, route principale vers la 1re cité-État. Zone d'apprentissage : chasse, récolte, combat simple, premiers coffres, 1er donjon rituel corrompu.
+2. **Première cité-État**
+3. **Région forestière** — dense et humide : bois profonds, lacs cachés, marécages légers, chemins sinueux. Hameaux de bûcherons, relais de chasseurs, campements de gardes chargés de surveiller les routes. Route principale étroite (ponts en bois, passages entre les arbres, clairières, zones de corruption bloquées par quête). Donjons rares mais marquants : grottes anciennes, sanctuaires enterrés, tombeaux perdus.
+4. **Région minière** — sèche et rocheuse : falaises, carrières, mines, campements de mineurs, routes taillées à flanc de montagne. Ville principale industrielle et fortifiée, entourée de villages d'ouvriers, de forges, de postes de garde. Routes dangereuses (éboulements, bandits, monstres souterrains). Donjons = mines abandonnées, galeries rituelles, tunnels effondrés.
+5. **Région montagneuse** — la plus hostile visuellement : sommets enneigés, cols, cascades, vallées encaissées, ponts suspendus, villages accrochés à la roche. Routes rares, souvent bloquées par des portes naturelles, ponts de pierre, tunnels ou passages gardés. Villages isolés et très soudés, souvent liés à des factions, des cultes ou des traditions anciennes. Donjons peu nombreux mais puissants : forteresses, tombeaux, sanctuaires oubliés, sites de scellement secondaires.
+6. **Capitale** — grande cité-État au centre politique du monde connu : routes pavées, quartiers nobles, marché, casernes, tour de mages, port ou grande porte d'accès. Fermes et villages satellites autour, routes protégées par des garnisons, quelques zones de tension avec les autres factions. Les enjeux politiques y deviennent visibles (alliance, réputation, accès à des maîtres d'armes, sanctuaires de soins, marchands rares, donjons majeurs). Peut être liée à un sanctuaire majeur ou au site final de l'histoire.
+7. **Royaume final / site originel du scellement**
+
+## Types de villages
+
+- **Frontalier** : petit, pauvre, exposé aux monstres, souvent le point de départ
+- **Bûcherons** : proche des forêts, centré sur le bois et la chasse
+- **Minier** : proche des montagnes/carrières, centré sur le minerai
+- **Agricole** : entouré de champs, moulins, granges, fermes
+- **Religieux** : autour d'un sanctuaire, d'un temple ou d'un lieu sacré
+- **Marchand** : sur une route importante, avec auberge, marché, caravanes
+- **Caché** : débloqué par quête, lié à une faction ou à un mystère
+
+## Routes entre villes
+
+Chaque route a une identité visuelle et narrative propre — certaines sûres et pavées, d'autres sauvages, boueuses ou coupées par la corruption.
+
+- **Commerciale** : relie deux grandes villes, caravanes, relais, péages, bandits
+- **Forestière** : bois, clairières, ponts en bois
+- **Fluviale** : longe une rivière, gués, ponts, moulins, petits ports
+- **De montagne** : cols, gorges, tunnels
+- **Sacrée** : mène à un sanctuaire ou une ville religieuse
+- **Interdite** : fermée au départ, débloquée par quête ou niveau
+- **De corruption** : zone contaminée, plus dangereuse, parfois optionnelle
+
+## Biomes
+
+Plaine agricole, forêt tempérée, forêt profonde, marais, rivière et vallée, lacs et zones humides, collines, montagnes rocheuses, montagnes enneigées, canyons/falaises, ruines anciennes, terres corrompues, zones de cendre (site final).
+
+## Donjons — répartition
+
+Pas dans toutes les zones : placés comme des points forts du monde, pas uniformément.
+
+- Donjons de départ dans la région frontalière
+- Tombeaux et sanctuaires dans la forêt
+- Mines abandonnées et galeries rituelles dans la région minière
+- Forteresses, colosses, grottes glacées dans les montagnes
+- Donjons majeurs dans la capitale ou les cités-États
+- Donjons cachés débloqués par quête ou réputation
 
 ## Races
 

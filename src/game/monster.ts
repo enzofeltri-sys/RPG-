@@ -45,6 +45,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     xpReward: 50,
     goldReward: 14,
   },
+  corrupted_tome: {
+    id: 'corrupted_tome',
+    name: 'Grimoire corrompu',
+    maxHp: 16,
+    attack: 4,
+    xpReward: 28,
+    goldReward: 6,
+  },
+  archive_wisp: { id: 'archive_wisp', name: 'Feu-follet des archives', maxHp: 20, attack: 5, xpReward: 35, goldReward: 8 },
   smuggler_captain: {
     id: 'smuggler_captain',
     name: 'Capitaine des contrebandiers',

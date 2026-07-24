@@ -18,7 +18,8 @@ export type ReturnSceneKey =
   | 'Catacombs'
   | 'OldWell'
   | 'Faubourg'
-  | 'Warehouse';
+  | 'Warehouse'
+  | 'Archives';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -40,6 +41,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'OldWell',
   'Faubourg',
   'Warehouse',
+  'Archives',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

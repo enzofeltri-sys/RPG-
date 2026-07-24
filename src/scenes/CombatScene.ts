@@ -25,7 +25,7 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
 // A low-stakes optional dungeon's final encounter always drops something —
 // but without a real boss's higher rare/epic odds, since it's meant to stay
 // a minor, "inutile" reward rather than compete with actual boss loot.
-const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian']);
+const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian', 'archive_wisp']);
 
 // Beast-type monsters can additionally drop leather alongside their normal
 // item loot — a modest chance on a regular kill, a better chance at the rare

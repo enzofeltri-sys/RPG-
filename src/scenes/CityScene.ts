@@ -155,6 +155,18 @@ export class CityScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // North exit — a low-stakes detour behind the Tour des Mages, same idea
+    // as Le vieux puits: no gate, no quest, always a bit of loot at the end.
+    const archivesZone = this.add.zone(WORLD_WIDTH / 2, 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(archivesZone, true);
+    this.physics.add.overlap(this.player, archivesZone, () => this.enterArchives());
+
+    addCrispText(this, WORLD_WIDTH / 2, 30, 'Archives scellées ↑', {
+      fontSize: '9px',
+      color: MUTED,
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },
       { x: this.mage.x, y: this.mage.y, radius: 24, onTap: () => this.talkToMage() },
@@ -390,6 +402,15 @@ export class CityScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Catacombs');
+    });
+  }
+
+  private enterArchives(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Archives');
     });
   }
 

@@ -168,6 +168,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 - **Artisanat** (`src/game/recipe.ts`) : 3 nouvelles recettes consommant la ressource rare *en plus de* la commune (pas à sa place, pour que les deux paliers restent utiles) : épée courte de qualité supérieure, gants de cuir de qualité supérieure (tous deux en rareté rare plutôt que commune), et une potion de soin supérieure (nouveau consommable, soigne 50 PV contre 25). `CraftingScene` gagne une pagination (2 recettes par page) pour ne pas déborder de l'écran avec 5 recettes désormais listées — au passage, corrige un bug préexistant où les boutons "Fabriquer" s'accumulaient sans jamais être vidés d'une visite à l'autre (invisible pour un joueur réel, qui ne clique jamais que ce qui est affiché, mais un vrai accroc de gestion d'état).
 - Le Sac colore désormais les ressources rares en bleu (même palette que la rareté des objets) dans l'onglet Ressources.
 
+**Les Archives scellées — cinquième donjon (suite immédiate)** : `ArchivesScene` (clé `Archives`), accessible depuis une nouvelle sortie nord d'Aiglemont (derrière la Tour des Mages). Même gabarit que Le vieux puits : pas de porte, pas de quête, un combat régulier puis une rencontre finale au butin garanti. Complète l'échelle de difficulté avec un deuxième détour "facile" (le premier, Le vieux puits, est en région 1) — 5 donjons au total désormais, de facile à difficile.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

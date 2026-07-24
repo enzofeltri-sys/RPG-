@@ -6,7 +6,10 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
-const WORLD_WIDTH = 200;
+// Wide enough to fill the portrait canvas (216px) at every camera position —
+// see HamletScene's WORLD_HEIGHT comment for why a narrower world leaves a
+// black band down the side of the screen.
+const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 400;
 
 interface EncounterMarker {

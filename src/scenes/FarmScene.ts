@@ -8,7 +8,10 @@ import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 220;
-const WORLD_HEIGHT = 200;
+// Tall enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment for why a shorter world leaves a black
+// band at the bottom of the screen.
+const WORLD_HEIGHT = 400;
 const MIN_ENCOUNTER_DISTANCE = 150;
 const MAX_ENCOUNTER_DISTANCE = 300;
 const GOLD = '#e8d9b5';
@@ -66,6 +69,13 @@ export class FarmScene extends Phaser.Scene {
     for (let row = 0; row < 3; row += 1) {
       for (let col = 0; col < 4; col += 1) {
         this.add.rectangle(110 + col * 22, 40 + row * 26, 16, 10, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
+      }
+    }
+
+    // More crop rows further south, on the approach to the farmhouse.
+    for (let row = 0; row < 3; row += 1) {
+      for (let col = 0; col < 4; col += 1) {
+        this.add.rectangle(30 + col * 22, 250 + row * 26, 16, 10, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
       }
     }
 

@@ -9,7 +9,11 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 240;
-const WORLD_HEIGHT = 220;
+// Tall enough to fill the portrait canvas (216x384) at every camera
+// position — a world shorter than the viewport leaves a solid black band at
+// the bottom (the camera can't scroll past its bounds, so there's nothing
+// left to draw there). Same fix applied to every other undersized scene.
+const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 
@@ -73,6 +77,10 @@ export class HamletScene extends Phaser.Scene {
     // automated and real movement equally unreliable).
     this.addBuilding(50, 90, 44, 36);
     this.addBuilding(190, 90, 44, 36);
+    // A third hut further south, off the x=120 centerline — keeps the
+    // extended hamlet from reading as an empty stretch of grass while
+    // staying "deliberately sparse" (see the class doc comment).
+    this.addBuilding(190, 300, 40, 32);
 
     this.mentor = this.add.rectangle(150, 130, 14, 20, 0x5a4a3a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.mentor, true);
@@ -107,16 +115,21 @@ export class HamletScene extends Phaser.Scene {
 
     // Two more region-1 landmarks from VISION.md ("ferme isolée", "petit
     // sanctuaire"), kept clear of the north exit zone and both buildings.
-    const farmZone = this.add.zone(10, 140, 20, 160);
+    // Span from just below the buildings down to the new south edge, so
+    // they stay reachable from anywhere along the hamlet's extended length.
+    const sideZoneHeight = WORLD_HEIGHT - 60;
+    const sideZoneCenterY = 60 + sideZoneHeight / 2;
+    const farmZone = this.add.zone(10, sideZoneCenterY, 20, sideZoneHeight);
     this.physics.add.existing(farmZone, true);
     this.physics.add.overlap(this.player, farmZone, () => this.leaveToFarm());
 
-    const shrineZone = this.add.zone(WORLD_WIDTH - 10, 140, 20, 160);
+    const shrineZone = this.add.zone(WORLD_WIDTH - 10, sideZoneCenterY, 20, sideZoneHeight);
     this.physics.add.existing(shrineZone, true);
     this.physics.add.overlap(this.player, shrineZone, () => this.leaveToShrine());
 
     addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
+
 
     // A local const (not `this.villager.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would

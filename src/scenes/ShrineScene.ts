@@ -6,8 +6,11 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
-const WORLD_WIDTH = 200;
-const WORLD_HEIGHT = 180;
+// Large enough to fill the portrait canvas (216x384) at every camera
+// position — see HamletScene's WORLD_HEIGHT comment for why a smaller world
+// leaves a black band showing through.
+const WORLD_WIDTH = 220;
+const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 
@@ -65,6 +68,11 @@ export class ShrineScene extends Phaser.Scene {
     this.add.rectangle(100, 50, 30, 20, 0x8a8a9a).setStrokeStyle(1, 0x4a4a5a);
     this.add.rectangle(60, 70, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
     this.add.rectangle(140, 70, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
+
+    // A couple more standing stones lining the path up to the altar.
+    this.add.rectangle(70, 220, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
+    this.add.rectangle(150, 280, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
+    this.add.rectangle(90, 340, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);

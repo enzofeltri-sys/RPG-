@@ -8,7 +8,10 @@ import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 260;
-const WORLD_HEIGHT = 220;
+// Tall enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment for why a shorter world leaves a black
+// band at the bottom of the screen.
+const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'bandit_camp_threat';
@@ -75,6 +78,11 @@ export class BanditCampScene extends Phaser.Scene {
     this.add.rectangle(60, 150, 40, 30, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
     this.add.rectangle(200, 140, 40, 30, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
     this.add.circle(130, 150, 8, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
+
+    // A few crates along the approach south of the camp proper, purely
+    // decorative, no collision.
+    this.add.rectangle(80, 270, 20, 14, 0x5a4a38).setStrokeStyle(1, 0x2e2419);
+    this.add.rectangle(190, 310, 20, 14, 0x5a4a38).setStrokeStyle(1, 0x2e2419);
 
     // Off the x=130 centerline (spawn sits on it), matching the lesson from
     // Basse-Combe's mentor placement — nothing should block the straight

@@ -8,7 +8,10 @@ import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 400;
-const WORLD_HEIGHT = 300;
+// Tall enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment for why a shorter world leaves a black
+// band at the bottom of the screen.
+const WORLD_HEIGHT = 400;
 const MIN_ENCOUNTER_DISTANCE = 200;
 const MAX_ENCOUNTER_DISTANCE = 380;
 const FOREST_MONSTERS = ['corrupted_wolf', 'goblin_scout'];
@@ -33,6 +36,11 @@ const TREES: { x: number; y: number }[] = [
   { x: 380, y: 190 },
   { x: 220, y: 280 },
   { x: 60, y: 280 },
+  { x: 100, y: 350 },
+  { x: 300, y: 340 },
+  { x: 200, y: 380 },
+  { x: 40, y: 370 },
+  { x: 360, y: 380 },
 ];
 
 const MUSHROOMS: { x: number; y: number }[] = [

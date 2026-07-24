@@ -8,7 +8,10 @@ import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 260;
-const WORLD_HEIGHT = 220;
+// Tall enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment for why a shorter world leaves a black
+// band at the bottom of the screen.
+const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'goblin_camp_threat';
@@ -75,6 +78,11 @@ export class GoblinCampScene extends Phaser.Scene {
     this.add.rectangle(70, 140, 36, 28, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
     this.add.rectangle(190, 130, 36, 28, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
     this.add.circle(130, 145, 8, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
+
+    // A few crude totems along the approach south of the camp proper, purely
+    // decorative, no collision.
+    this.add.rectangle(90, 280, 10, 24, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
+    this.add.rectangle(180, 320, 10, 24, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
 
     // Off the x=130 centerline (spawn sits on it) — see BanditCampScene.
     this.scout = this.add.rectangle(190, 185, 14, 20, 0x3a5a3a).setStrokeStyle(1, 0x0b0c10);

@@ -8,7 +8,10 @@ import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
-const WORLD_HEIGHT = 220;
+// Tall enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment for why a shorter world leaves a black
+// band at the bottom of the screen.
+const WORLD_HEIGHT = 400;
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 400;
 
@@ -24,6 +27,9 @@ const WAGONS: { x: number; y: number }[] = [
   { x: 90, y: 60 },
   { x: 380, y: 150 },
   { x: 220, y: 180 },
+  { x: 130, y: 300 },
+  { x: 400, y: 330 },
+  { x: 280, y: 360 },
 ];
 
 interface RoadData {

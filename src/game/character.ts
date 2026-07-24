@@ -103,3 +103,23 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
 export function xpToNextLevel(level: number): number {
   return 100 * level;
 }
+
+// Mutates and returns the character; also returns how many levels were gained
+// (0 if the XP wasn't enough to level up).
+export function grantXp(character: Character, xp: number): number {
+  character.xp += xp;
+  let levelsGained = 0;
+
+  while (character.xp >= xpToNextLevel(character.level)) {
+    character.xp -= xpToNextLevel(character.level);
+    character.level += 1;
+    character.statPoints += 3;
+    character.maxHp += 5;
+    character.maxMp += 3;
+    character.hp = character.maxHp;
+    character.mp = character.maxMp;
+    levelsGained += 1;
+  }
+
+  return levelsGained;
+}

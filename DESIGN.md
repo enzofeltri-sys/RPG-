@@ -46,7 +46,7 @@ Ton : sérieux, pas de comique. Conflits politiques entre cités, ambiguïté mo
 
 1. ✅ Setup projet (Phaser3+TS+Vite+PWA), écran titre, sauvegarde/chargement
 2. ✅ Overworld : déplacement (joystick tactile + flèches), 1re map (village de départ, formes géométriques en attendant les vrais tilesets), collisions, transition de zone avec fondu
-3. Combat tour par tour (menu d'action, 1 monstre test)
+3. ✅ Combat tour par tour (menu Attaquer/Fuir, 1 monstre test — loup corrompu), rencontres aléatoires en explorant le Champ, XP/niveau désormais fonctionnels (gain d'XP, montée de niveau avec points de stat, restauration PV/PM)
 4. ✅ Création de personnage : choix race/classe (Humain/Elfe × Guerrier/Mage), stats dérivées, PV/PM, fiche consultable en jeu. XP/niveaux/points de compétence : structure de données en place (niveau 1, XP 0), sans encore de combat pour les faire progresser (arrive à l'incrément 3)
 5. Inventaire + équipement complet (slots, stats variables, rareté)
 6. 1er donjon jouable avec butin + boss

@@ -5,12 +5,16 @@ import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 320;
 const WORLD_HEIGHT = 240;
+const MIN_ENCOUNTER_DISTANCE = 220;
+const MAX_ENCOUNTER_DISTANCE = 420;
 
 export class FieldScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private joystick!: VirtualJoystick;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
+  private distanceWalked = 0;
+  private encounterThreshold = 0;
 
   constructor() {
     super('Field');
@@ -18,6 +22,8 @@ export class FieldScene extends Phaser.Scene {
 
   create(): void {
     this.isTransitioning = false;
+    this.distanceWalked = 0;
+    this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
 
     this.player = createPlayer(this, WORLD_WIDTH / 2, 40);
@@ -41,8 +47,30 @@ export class FieldScene extends Phaser.Scene {
     }).setOrigin(0.5);
   }
 
-  update(): void {
+  update(_time: number, delta: number): void {
     updatePlayerMovement(this.player, this.cursors, this.joystick);
+
+    if (this.isTransitioning) return;
+
+    const speed = this.player.body.velocity.length();
+    if (speed > 0) {
+      this.distanceWalked += (speed * delta) / 1000;
+      if (this.distanceWalked >= this.encounterThreshold) {
+        this.startEncounter();
+      }
+    }
+  }
+
+  private rollNextEncounterThreshold(): void {
+    this.encounterThreshold = Phaser.Math.Between(MIN_ENCOUNTER_DISTANCE, MAX_ENCOUNTER_DISTANCE);
+  }
+
+  private startEncounter(): void {
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(250, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Combat', { returnScene: 'Field' });
+    });
   }
 
   private returnToVillage(): void {

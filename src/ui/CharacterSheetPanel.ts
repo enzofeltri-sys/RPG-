@@ -26,7 +26,7 @@ export class CharacterSheetPanel {
     const { stats } = character;
 
     const panelBg = scene.add
-      .rectangle(10, 44, 190, 232, 0x0b0c10, 0.97)
+      .rectangle(10, 44, 190, 270, 0x0b0c10, 0.97)
       .setOrigin(0, 0)
       .setStrokeStyle(1, 0xe8d9b5);
 
@@ -43,6 +43,8 @@ export class CharacterSheetPanel {
         '',
         `PV ${character.hp}/${character.maxHp}`,
         `PM ${character.mp}/${character.maxMp}`,
+        '',
+        `Points de stat : ${character.statPoints}`,
       ].join('\n'),
       {
         fontSize: '11px',
@@ -54,7 +56,7 @@ export class CharacterSheetPanel {
     // Kept outside the container: interactive children of a Phaser Container are
     // unreliable for pointer hit-testing, so the quit button is a separate top-level
     // object toggled in lockstep with the panel instead of being nested inside it.
-    this.quitButton = addCrispText(scene, 20, 240, 'Quitter vers le titre', {
+    this.quitButton = addCrispText(scene, 20, 278, 'Quitter vers le titre', {
       fontSize: '10px',
       color: DARK,
       backgroundColor: GOLD,

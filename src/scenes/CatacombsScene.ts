@@ -6,11 +6,13 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
 // Wide enough to fill the portrait canvas (216px) at every camera position —
-// see HamletScene's WORLD_HEIGHT comment for why a narrower world leaves a
-// black band down the side of the screen.
+// see HamletScene's WORLD_HEIGHT comment. Taller and with one more regular
+// fight than DungeonScene ("Repaire du Loup") — the first hard dungeon,
+// deliberately tougher, with a signature reward on top of normal loot (see
+// CombatScene's SIGNATURE_REWARDS).
 const WORLD_WIDTH = 220;
-const WORLD_HEIGHT = 520;
-const GATE_Y = 190;
+const WORLD_HEIGHT = 620;
+const GATE_Y = 220;
 
 interface EncounterMarker {
   monsterId: string;
@@ -20,35 +22,31 @@ interface EncounterMarker {
   color: number;
 }
 
-// Both regular fights sit dead-center in the only walkable corridor (decorative
-// walls stay well clear of it), and a gate blocks the boss room until both are
-// triggered — belt and suspenders against a player just walking around them
-// and hitting a level-70 boss at level 1. First real dungeon (increment 6);
-// later dungeons in v1's scope reuse this same scene shape.
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'cave_rat', x: WORLD_WIDTH / 2, y: 420, label: 'Rats', color: 0x5a3a2a },
-  { monsterId: 'corrupted_wolf', x: WORLD_WIDTH / 2, y: 300, label: 'Loups', color: 0x5a3a2a },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 520, label: 'Chevaliers', color: 0x3a2a3a },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 400, label: 'Chevaliers', color: 0x3a2a3a },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 300, label: 'Chevaliers', color: 0x3a2a3a },
 ];
 
-const BOSS_MONSTER_ID = 'alpha_wolf';
+const BOSS_MONSTER_ID = 'fallen_guardian';
 
-interface DungeonData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the Field's dungeon zone.
+interface CatacombsData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via Aiglemont's south zone.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class DungeonScene extends Phaser.Scene {
+export class CatacombsScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
-  // Phaser reuses the same Scene instance across scene.start() calls, so these
-  // survive a Dungeon -> Combat -> Dungeon round trip as long as init() doesn't
-  // wipe them on a resume.
+  // Phaser reuses the same Scene instance across scene.start() calls, so
+  // these survive a Catacombs -> Combat -> Catacombs round trip as long as
+  // init() doesn't wipe them on a resume.
   private clearedMonsterIds = new Set<string>();
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
@@ -57,10 +55,10 @@ export class DungeonScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('Dungeon');
+    super('Catacombs');
   }
 
-  init(data: DungeonData): void {
+  init(data: CatacombsData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -70,7 +68,15 @@ export class DungeonScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#1c1c22');
+    this.cameras.main.setBackgroundColor('#161018');
+
+    addCrispText(this, this.scale.width / 2, 12, 'Catacombes d\'Aiglemont', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(500);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
 
@@ -83,7 +89,7 @@ export class DungeonScene extends Phaser.Scene {
     this.tapControl = new TapController(this, this.player);
 
     this.addWalls();
-    const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId));
+    const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
     if (remaining.length > 0) {
       this.addGate();
       remaining.forEach((encounter) => this.addEncounterZone(encounter));
@@ -94,7 +100,7 @@ export class DungeonScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveDungeon());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveCatacombs());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
@@ -111,7 +117,7 @@ export class DungeonScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'Dungeon',
+        'Catacombs',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -127,23 +133,22 @@ export class DungeonScene extends Phaser.Scene {
   }
 
   private addWalls(): void {
-    // Purely decorative, kept well clear of the center corridor (x=100) that
+    // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const wall = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x37373f).setStrokeStyle(1, 0x18181c);
+      const rect = this.add.rectangle(x, y, w, h, 0x2a2530).setStrokeStyle(1, 0x141018);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    wall(20, 440, 30, 60);
-    wall(WORLD_WIDTH - 20, 340, 30, 80);
-    wall(20, 260, 30, 60);
-    wall(WORLD_WIDTH - 20, 120, 30, 60);
+    wall(20, 560, 30, 60);
+    wall(WORLD_WIDTH - 20, 460, 30, 80);
+    wall(20, 360, 30, 60);
+    wall(WORLD_WIDTH - 20, 260, 30, 60);
+    wall(20, 140, 30, 60);
   }
 
   private addGate(): void {
-    this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x37373f)
-      .setStrokeStyle(1, 0x18181c);
+    this.gate = this.add.rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2a2530).setStrokeStyle(1, 0x141018);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
     this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Barrière scellée', {
@@ -176,7 +181,7 @@ export class DungeonScene extends Phaser.Scene {
       marker.destroy();
       label.destroy();
       zone.destroy();
-      this.clearedMonsterIds.add(encounter.monsterId);
+      this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
       this.openGateIfCleared();
       this.startCombat(encounter.monsterId);
     });
@@ -185,8 +190,8 @@ export class DungeonScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x6b1f1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'Antre du Loup alpha', {
+    this.add.rectangle(x, y, 50, 50, 0x4a1f3a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Antre du Gardien déchu', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -206,16 +211,16 @@ export class DungeonScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'Dungeon', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'Catacombs', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
-  private leaveDungeon(): void {
+  private leaveCatacombs(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Field', { x: 240, y: 40 });
+      this.scene.start('City', { x: 260, y: 430 });
     });
   }
 }

@@ -85,7 +85,12 @@ export class ForestScene extends Phaser.Scene {
     TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b));
     MUSHROOMS.forEach((m) => this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10));
 
-    addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Champ', '→ Grotte', '↑ Camp de gobelins']);
+    addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
+      '← Champ',
+      '→ Grotte',
+      '↑ Camp de gobelins',
+      '↓ Vieux puits',
+    ]);
 
     // A shy bit of wildlife — clear of both zones and the signpost.
     this.deer = new Wanderer(this, 150, 220, 0x9a7a52, 35);
@@ -114,12 +119,22 @@ export class ForestScene extends Phaser.Scene {
     this.physics.add.existing(goblinCampZone, true);
     this.physics.add.overlap(this.player, goblinCampZone, () => this.leaveTo('GoblinCamp', { x: 130, y: 180 }));
 
+    // Another optional, low-stakes detour — no quest attached, see OldWellScene.
+    const oldWellZone = this.add.zone(200, WORLD_HEIGHT - 10, 100, 20);
+    this.physics.add.existing(oldWellZone, true);
+    this.physics.add.overlap(this.player, oldWellZone, () => this.leaveTo('OldWell', { x: 110, y: 260 }));
+
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Champ', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Grotte →', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
     addCrispText(this, 200, 30, 'Camp de gobelins ↑', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+    addCrispText(this, 200, WORLD_HEIGHT - 22, 'Vieux puits ↓', {
       fontSize: '9px',
       color: '#9aa0a6',
       align: 'center',

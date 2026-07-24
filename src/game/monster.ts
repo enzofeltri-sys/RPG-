@@ -37,6 +37,24 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 40,
     isBoss: true,
   },
+  corrupted_knight: {
+    id: 'corrupted_knight',
+    name: 'Chevalier corrompu',
+    maxHp: 34,
+    attack: 8,
+    xpReward: 70,
+    goldReward: 20,
+  },
+  well_guardian: { id: 'well_guardian', name: 'Gardien du puits', maxHp: 22, attack: 5, xpReward: 45, goldReward: 12 },
+  fallen_guardian: {
+    id: 'fallen_guardian',
+    name: 'Gardien déchu',
+    maxHp: 100,
+    attack: 11,
+    xpReward: 260,
+    goldReward: 75,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

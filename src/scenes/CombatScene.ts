@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Character, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, createTestMonster, createMonster } from '../game/monster';
-import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
+import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { CONSUMABLES, useConsumable } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
@@ -12,6 +12,18 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const BAR_WIDTH = 160;
+
+// A hard-dungeon boss can grant its own exclusive item on top of the normal
+// loot roll — a guaranteed, always-the-same "special reward" distinct from
+// the random pool (see item.ts's `signature` flag on ItemTemplate).
+const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
+  fallen_guardian: { baseId: 'guardian_amulet', rarity: 'epic' },
+};
+
+// A low-stakes optional dungeon's final encounter always drops something —
+// but without a real boss's higher rare/epic odds, since it's meant to stay
+// a minor, "inutile" reward rather than compete with actual boss loot.
+const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian']);
 
 interface CombatData {
   returnScene?: ReturnSceneKey;
@@ -228,10 +240,18 @@ export class CombatScene extends Phaser.Scene {
     this.character.gold += this.monster.goldReward;
 
     const loot: Item | null = this.monster.isBoss
-      ? rollLootItem({ guaranteed: true, rareChance: 0.5 })
-      : rollLootItem();
+      ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
+      : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)
+        ? rollLootItem({ guaranteed: true, rareChance: 0.3 })
+        : rollLootItem();
     if (loot) {
       this.character.inventory.push(loot);
+    }
+
+    const signature = SIGNATURE_REWARDS[this.monster.id];
+    const signatureItem = signature ? createItem(signature.baseId, signature.rarity) : null;
+    if (signatureItem) {
+      this.character.inventory.push(signatureItem);
     }
 
     const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
@@ -244,9 +264,10 @@ export class CombatScene extends Phaser.Scene {
         ? `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or — niveau supérieur !`
         : `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
+    const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
-    this.logText.setText(xpPart + lootPart + questPart);
+    this.logText.setText(xpPart + lootPart + signaturePart + questPart);
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 

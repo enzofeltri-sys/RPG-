@@ -12,7 +12,10 @@ export type EquipSlot =
 
 export type ItemCategory = EquipSlot | 'ring';
 
-export type Rarity = 'common' | 'rare';
+// 'epic' is the first step beyond rare, reserved for hard-dungeon boss
+// rewards — légendaire/unique (per VISION.md's full rarity ladder) come
+// later as more of that high-end content exists to place them in.
+export type Rarity = 'common' | 'rare' | 'epic';
 
 export interface ItemStats {
   strength?: number;
@@ -50,6 +53,11 @@ interface ItemTemplate {
   // the "special effect" flavor described in DESIGN.md's loot rules, e.g. a
   // sword that only catches fire once it's a rare drop.
   rareOnlyStats?: ItemStats;
+  // Never appears in the general rollLootItem() pool — granted directly by a
+  // specific hard-dungeon boss (see CombatScene's SIGNATURE_REWARDS), so it
+  // stays a genuinely special, exclusive find rather than diluting the
+  // common loot table.
+  signature?: boolean;
 }
 
 const TEMPLATES: ItemTemplate[] = [
@@ -73,26 +81,38 @@ const TEMPLATES: ItemTemplate[] = [
   { baseId: 'leather_gloves', name: 'Gants de cuir', category: 'gloves', baseStats: { strength: 1, armor: 1 } },
   { baseId: 'simple_ring', name: 'Anneau simple', category: 'ring', baseStats: { intelligence: 1 } },
   { baseId: 'simple_amulet', name: 'Amulette simple', category: 'amulet', baseStats: { intelligence: 2 } },
+  {
+    baseId: 'guardian_amulet',
+    name: 'Amulette du Gardien déchu',
+    category: 'amulet',
+    baseStats: { intelligence: 3, vitality: 2 },
+    rareOnlyStats: { armor: 3 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Commun',
   rare: 'Rare',
+  epic: 'Épique',
 };
 
 export const RARITY_COLORS: Record<Rarity, string> = {
   common: '#9aa0a6',
   rare: '#4fa3e3',
+  epic: '#a855f7',
 };
 
 const RARITY_MULTIPLIER: Record<Rarity, number> = {
   common: 1,
   rare: 2,
+  epic: 3,
 };
 
 const RARITY_SELL_PRICE: Record<Rarity, number> = {
   common: 10,
   rare: 25,
+  epic: 60,
 };
 
 export function sellPrice(item: Item): number {
@@ -214,16 +234,23 @@ interface LootOptions {
   guaranteed?: boolean;
   // Base chance of rolling rare instead of common, when a drop happens.
   rareChance?: number;
+  // Chance of rolling epic instead of rare/common — 0 by default, so only
+  // hard-dungeon bosses that explicitly opt in can drop one from the pool
+  // (on top of any signature reward they grant directly).
+  epicChance?: number;
 }
 
-// Modest drop chance, mostly common with a smaller chance of rare — bosses
-// pass { guaranteed: true } for a sure drop with better odds. Real per-dungeon
-// loot tables (with the very rare unique drops described in DESIGN.md) come
-// as more dungeons are added; this one pool covers the current single dungeon.
+const LOOTABLE_TEMPLATES = TEMPLATES.filter((t) => !t.signature);
+
+// Modest drop chance, mostly common with a smaller chance of rare/epic —
+// bosses pass { guaranteed: true } for a sure drop with better odds. Real
+// per-dungeon loot tables come as more dungeons are added; difficulty tiers
+// currently differ via rareChance/epicChance, not separate tables.
 export function rollLootItem(options: LootOptions = {}): Item | null {
-  const { guaranteed = false, rareChance = 0.2 } = options;
+  const { guaranteed = false, rareChance = 0.2, epicChance = 0 } = options;
   if (!guaranteed && Math.random() > 0.4) return null;
-  const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
-  const rarity: Rarity = Math.random() < rareChance ? 'rare' : 'common';
+  const template = LOOTABLE_TEMPLATES[Math.floor(Math.random() * LOOTABLE_TEMPLATES.length)];
+  const roll = Math.random();
+  const rarity: Rarity = roll < epicChance ? 'epic' : roll < epicChance + rareChance ? 'rare' : 'common';
   return createItem(template.baseId, rarity);
 }

@@ -14,7 +14,9 @@ export type ReturnSceneKey =
   | 'Farm'
   | 'Shrine'
   | 'Road'
-  | 'City';
+  | 'City'
+  | 'Catacombs'
+  | 'OldWell';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -27,7 +29,14 @@ export interface ReturnContext {
 // into one of these must set that flag, or a fled/won fight's encounter zone
 // respawns right under the player's feet (Dungeon: also re-locks the boss
 // gate).
-const RESUMABLE_SCENES = new Set<ReturnSceneKey>(['Dungeon', 'Cave', 'BanditCamp', 'GoblinCamp']);
+const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
+  'Dungeon',
+  'Cave',
+  'BanditCamp',
+  'GoblinCamp',
+  'Catacombs',
+  'OldWell',
+]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {
   const data: Record<string, unknown> = { x, y };

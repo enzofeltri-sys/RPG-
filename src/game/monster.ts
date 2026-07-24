@@ -5,6 +5,7 @@ export interface Monster {
   maxHp: number;
   attack: number;
   xpReward: number;
+  goldReward: number;
   isBoss: boolean;
 }
 
@@ -14,18 +15,20 @@ interface MonsterTemplate {
   maxHp: number;
   attack: number;
   xpReward: number;
+  goldReward: number;
   isBoss?: boolean;
 }
 
 const TEMPLATES: Record<string, MonsterTemplate> = {
-  corrupted_wolf: { id: 'corrupted_wolf', name: 'Loup corrompu', maxHp: 18, attack: 4, xpReward: 40 },
-  cave_rat: { id: 'cave_rat', name: 'Rat des cavernes', maxHp: 14, attack: 3, xpReward: 25 },
+  corrupted_wolf: { id: 'corrupted_wolf', name: 'Loup corrompu', maxHp: 18, attack: 4, xpReward: 40, goldReward: 8 },
+  cave_rat: { id: 'cave_rat', name: 'Rat des cavernes', maxHp: 14, attack: 3, xpReward: 25, goldReward: 5 },
   alpha_wolf: {
     id: 'alpha_wolf',
     name: 'Loup alpha corrompu',
     maxHp: 70,
     attack: 8,
     xpReward: 150,
+    goldReward: 40,
     isBoss: true,
   },
 };

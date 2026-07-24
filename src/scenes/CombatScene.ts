@@ -3,6 +3,7 @@ import { Character, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, createTestMonster, createMonster } from '../game/monster';
 import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
+import { CONSUMABLES, useConsumable } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -33,6 +34,7 @@ export class CombatScene extends Phaser.Scene {
   private playerMpText!: Phaser.GameObjects.Text;
   private actionButtons: Phaser.GameObjects.Text[] = [];
   private continueButton?: Phaser.GameObjects.Text;
+  private potionButton?: Phaser.GameObjects.Text;
 
   constructor() {
     super('Combat');
@@ -100,6 +102,10 @@ export class CombatScene extends Phaser.Scene {
     this.createActionButton(width / 2 - 55, 330, 'Attaquer', () => this.playerAttack());
     this.createActionButton(width / 2 + 55, 330, 'Fuir', () => this.flee());
 
+    if ((this.character.consumables.health_potion ?? 0) > 0) {
+      this.potionButton = this.createActionButton(width / 2, 302, 'Potion de soin', () => this.usePotion());
+    }
+
     this.refreshBars();
   }
 
@@ -107,7 +113,7 @@ export class CombatScene extends Phaser.Scene {
     return `Niveau ${this.character.level}`;
   }
 
-  private createActionButton(x: number, y: number, label: string, onClick: () => void): void {
+  private createActionButton(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
     const button = addCrispText(this, x, y, label, {
       fontSize: '12px',
       color: DARK,
@@ -119,6 +125,7 @@ export class CombatScene extends Phaser.Scene {
 
     button.on('pointerdown', onClick);
     this.actionButtons.push(button);
+    return button;
   }
 
   private setActionsEnabled(enabled: boolean): void {
@@ -183,6 +190,22 @@ export class CombatScene extends Phaser.Scene {
     this.setActionsEnabled(true);
   }
 
+  private usePotion(): void {
+    if (this.busy || this.ended) return;
+    if ((this.character.consumables.health_potion ?? 0) <= 0) return;
+    this.busy = true;
+    this.setActionsEnabled(false);
+
+    useConsumable(this.character, 'health_potion');
+    this.refreshBars();
+    this.logText.setText(`Vous buvez une ${CONSUMABLES.health_potion.name.toLowerCase()}.`);
+    if ((this.character.consumables.health_potion ?? 0) <= 0) {
+      this.potionButton?.setVisible(false);
+    }
+
+    this.time.delayedCall(900, () => this.enemyTurn());
+  }
+
   private flee(): void {
     if (this.busy || this.ended) return;
     this.busy = true;
@@ -195,6 +218,7 @@ export class CombatScene extends Phaser.Scene {
     this.ended = true;
     this.hideActions();
     const levelsGained = grantXp(this.character, this.monster.xpReward);
+    this.character.gold += this.monster.goldReward;
 
     const loot: Item | null = this.monster.isBoss
       ? rollLootItem({ guaranteed: true, rareChance: 0.5 })
@@ -210,8 +234,8 @@ export class CombatScene extends Phaser.Scene {
 
     const xpPart =
       levelsGained > 0
-        ? `Victoire ! +${this.monster.xpReward} XP — niveau supérieur !`
-        : `Victoire ! +${this.monster.xpReward} XP`;
+        ? `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or — niveau supérieur !`
+        : `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';

@@ -3,6 +3,7 @@ import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { materialLabel, MaterialId } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { createTouchButton } from '../ui/TouchButton';
@@ -16,6 +17,18 @@ const DARK = '#0b0c10';
 
 const VILLAGER_QUEST_ID = 'wolves_threat';
 
+interface GatherNode {
+  x: number;
+  y: number;
+  materialId: MaterialId;
+  label: string;
+}
+
+const GATHER_NODES: GatherNode[] = [
+  { x: 400, y: 300, materialId: 'iron_ore', label: 'Gisement de fer' },
+  { x: 250, y: 480, materialId: 'herb', label: 'Herbes sauvages' },
+];
+
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private joystick!: VirtualJoystick;
@@ -25,6 +38,8 @@ export class VillageScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
   private character!: Character;
   private npc!: Phaser.GameObjects.Rectangle;
+  private merchantNpc!: Phaser.GameObjects.Rectangle;
+  private forgeBuilding!: Phaser.GameObjects.Rectangle;
   private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
 
@@ -40,16 +55,27 @@ export class VillageScene extends Phaser.Scene {
 
     this.addBuilding(120, 160, 70, 50);
     this.addBuilding(300, 210, 60, 60);
-    this.addBuilding(190, 360, 90, 50);
+    this.forgeBuilding = this.addBuilding(190, 360, 90, 50);
+    addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     this.addBuilding(340, 460, 60, 70);
 
     this.npc = this.add.rectangle(120, 225, 14, 20, 0x3a5a7a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.npc, true);
     addCrispText(this, 120, 205, 'Villageois', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
+    this.physics.add.existing(this.merchantNpc, true);
+    addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
+    GATHER_NODES.forEach((node) => {
+      this.add.rectangle(node.x, node.y, 16, 16, 0x6b5a3a).setStrokeStyle(1, 0x0b0c10);
+      addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    });
+
     this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.npc);
+    this.physics.add.collider(this.player, this.merchantNpc);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -86,10 +112,11 @@ export class VillageScene extends Phaser.Scene {
     updatePlayerMovement(this.player, this.cursors, this.joystick);
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number): void {
+  private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
+    return rect;
   }
 
   private drawGround(): void {
@@ -106,16 +133,40 @@ export class VillageScene extends Phaser.Scene {
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
   }
 
+  private distanceTo(x: number, y: number): number {
+    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
+  }
+
   private handleAction(): void {
-    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.npc.x, this.npc.y) < INTERACT_RADIUS) {
+    if (this.distanceTo(this.npc.x, this.npc.y) < INTERACT_RADIUS) {
       this.talkToNpc();
       return;
     }
 
-    const nearBuilding = this.buildings.find(
-      (b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y) < INTERACT_RADIUS,
-    );
+    if (this.distanceTo(this.merchantNpc.x, this.merchantNpc.y) < INTERACT_RADIUS) {
+      this.scene.start('Merchant');
+      return;
+    }
+
+    if (this.distanceTo(this.forgeBuilding.x, this.forgeBuilding.y) < INTERACT_RADIUS) {
+      this.scene.start('Crafting');
+      return;
+    }
+
+    const node = GATHER_NODES.find((n) => this.distanceTo(n.x, n.y) < INTERACT_RADIUS);
+    if (node) {
+      this.gather(node);
+      return;
+    }
+
+    const nearBuilding = this.buildings.find((b) => this.distanceTo(b.x, b.y) < INTERACT_RADIUS);
     this.showMessage(nearBuilding ? 'Une maison du village. Personne ne répond.' : 'Rien à proximité.');
+  }
+
+  private async gather(node: GatherNode): Promise<void> {
+    this.character.materials[node.materialId] = (this.character.materials[node.materialId] ?? 0) + 1;
+    await SaveManager.saveCharacter(this.character);
+    this.showMessage(`+1 ${materialLabel(node.materialId)}`);
   }
 
   private talkToNpc(): void {

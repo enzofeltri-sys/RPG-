@@ -44,6 +44,9 @@ export interface Character {
   equipment: Partial<Record<EquipSlot, Item>>;
   inventory: Item[];
   quests: Record<string, QuestProgress>;
+  gold: number;
+  materials: Record<string, number>;
+  consumables: Record<string, number>;
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -112,15 +115,21 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     equipment: {},
     inventory: [],
     quests: {},
+    gold: 0,
+    materials: {},
+    consumables: {},
   };
 }
 
-// Saves created before equipment/inventory/quests (or armor/fireDamage stats)
-// existed won't have these fields.
+// Saves created before equipment/inventory/quests/economy (or armor/fireDamage
+// stats) existed won't have these fields.
 export function ensureCharacterDefaults(character: Character): Character {
   if (!character.equipment) character.equipment = {};
   if (!character.inventory) character.inventory = [];
   if (!character.quests) character.quests = {};
+  if (character.gold === undefined) character.gold = 0;
+  if (!character.materials) character.materials = {};
+  if (!character.consumables) character.consumables = {};
   if (character.stats.armor === undefined) character.stats.armor = 0;
   if (character.stats.fireDamage === undefined) character.stats.fireDamage = 0;
   return character;

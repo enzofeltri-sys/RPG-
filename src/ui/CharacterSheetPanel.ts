@@ -75,6 +75,7 @@ export class CharacterSheetPanel {
         `PV ${character.hp}/${character.maxHp}`,
         `PM ${character.mp}/${character.maxMp}`,
         '',
+        `Or : ${character.gold}`,
         `Points de stat : ${character.statPoints}`,
       ].join('\n'),
       {

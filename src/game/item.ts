@@ -90,6 +90,15 @@ const RARITY_MULTIPLIER: Record<Rarity, number> = {
   rare: 2,
 };
 
+const RARITY_SELL_PRICE: Record<Rarity, number> = {
+  common: 10,
+  rare: 25,
+};
+
+export function sellPrice(item: Item): number {
+  return RARITY_SELL_PRICE[item.rarity];
+}
+
 const SLOT_LABELS: Record<EquipSlot, string> = {
   weapon: 'Arme',
   shield: 'Bouclier',

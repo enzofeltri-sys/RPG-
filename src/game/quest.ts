@@ -42,6 +42,22 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'corrupted_wolf', count: 3 },
     reward: { xp: 60, itemBaseId: 'leather_gloves', itemRarity: 'common' },
   },
+  bandit_camp_threat: {
+    id: 'bandit_camp_threat',
+    title: 'Bandits sur la route',
+    description:
+      "Une bande de bandits s'en prend aux voyageurs depuis leur camp à l'ouest du Champ. Éliminez-en 3 pour sécuriser la route.",
+    objective: { type: 'defeat', monsterId: 'bandit_thug', count: 3 },
+    reward: { xp: 70, itemBaseId: 'wooden_shield', itemRarity: 'common' },
+  },
+  goblin_camp_threat: {
+    id: 'goblin_camp_threat',
+    title: 'Repaire de gobelins',
+    description:
+      "Des gobelins ont établi un camp au nord de la Forêt et s'en prennent aux voyageurs. Éliminez-en 3 pour y mettre fin.",
+    objective: { type: 'defeat', monsterId: 'goblin_brute', count: 3 },
+    reward: { xp: 80, itemBaseId: 'simple_amulet', itemRarity: 'common' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

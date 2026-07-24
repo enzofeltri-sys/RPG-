@@ -60,7 +60,7 @@ export class ForestScene extends Phaser.Scene {
 
     TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b));
 
-    addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['↓ Champ', '↑ Grotte']);
+    addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Champ', '→ Grotte', '↑ Camp de gobelins']);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
 
@@ -80,10 +80,20 @@ export class ForestScene extends Phaser.Scene {
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('Cave', { x: 100, y: 360 }));
 
+    // Optional detour, a branch off the main west-east road.
+    const goblinCampZone = this.add.zone(200, 10, 100, 20);
+    this.physics.add.existing(goblinCampZone, true);
+    this.physics.add.overlap(this.player, goblinCampZone, () => this.leaveTo('GoblinCamp', { x: 130, y: 180 }));
+
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Champ', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Grotte →', {
       fontSize: '10px',
       color: '#9aa0a6',
+    }).setOrigin(0.5);
+    addCrispText(this, 200, 30, 'Camp de gobelins ↑', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
     }).setOrigin(0.5);
 
     // A zone overlap can fire and call scene.start() while this load is still

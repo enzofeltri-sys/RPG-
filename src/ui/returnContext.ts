@@ -2,7 +2,7 @@
 // the player back to exactly where they were — the scene they came from, at the
 // exact spot they stood — instead of always landing back at that scene's default
 // spawn point.
-export type ReturnSceneKey = 'Village' | 'Field' | 'Dungeon' | 'Hamlet' | 'Forest' | 'Cave';
+export type ReturnSceneKey = 'Village' | 'Field' | 'Dungeon' | 'Hamlet' | 'Forest' | 'Cave' | 'BanditCamp' | 'GoblinCamp';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -10,12 +10,15 @@ export interface ReturnContext {
   y?: number;
 }
 
-// DungeonScene and CaveScene both track cleared encounters across
-// scene.start() round trips via a `resume` flag — any return trip into
-// either must set that flag, or a fled/won fight's encounter zone respawns
-// right under the player's feet (Dungeon: also re-locks the boss gate).
+// Scenes with fixed (non-random) encounters track which ones are cleared
+// across scene.start() round trips via a `resume` flag — any return trip
+// into one of these must set that flag, or a fled/won fight's encounter zone
+// respawns right under the player's feet (Dungeon: also re-locks the boss
+// gate).
+const RESUMABLE_SCENES = new Set<ReturnSceneKey>(['Dungeon', 'Cave', 'BanditCamp', 'GoblinCamp']);
+
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {
   const data: Record<string, unknown> = { x, y };
-  if (returnScene === 'Dungeon' || returnScene === 'Cave') data.resume = true;
+  if (RESUMABLE_SCENES.has(returnScene)) data.resume = true;
   return data;
 }

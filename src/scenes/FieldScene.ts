@@ -112,6 +112,11 @@ export class FieldScene extends Phaser.Scene {
     this.physics.add.existing(forestZone, true);
     this.physics.add.overlap(this.player, forestZone, () => this.enterForest());
 
+    // Optional detour, south of the river so it needs no bridge crossing.
+    const banditCampZone = this.add.zone(10, 300, 20, 140);
+    this.physics.add.existing(banditCampZone, true);
+    this.physics.add.overlap(this.player, banditCampZone, () => this.enterBanditCamp());
+
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Repaire du Loup ↑', {
       fontSize: '11px',
       color: '#e8d9b5',
@@ -129,12 +134,19 @@ export class FieldScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    addCrispText(this, 20, 300, '← Camp de bandits', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     // Crossroads landmark near the bridge, the natural meeting point of the
-    // three roads (hameau/Repaire du Loup/Forêt vers Valombre).
+    // four roads (hameau/Repaire du Loup/Forêt vers Valombre/camp de bandits).
     addSignpost(this, BRIDGE_X + BRIDGE_WIDTH / 2, RIVER_Y + 50, [
       '↓ Basse-Combe',
       '↑ Repaire du Loup',
       '→ Forêt (vers Valombre)',
+      '← Camp de bandits',
     ]);
 
     GATHER_NODES.forEach((node) => {
@@ -243,6 +255,15 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Forest', { x: 40, y: 150 });
+    });
+  }
+
+  private enterBanditCamp(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('BanditCamp', { x: 130, y: 180 });
     });
   }
 

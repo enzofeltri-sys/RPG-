@@ -43,7 +43,7 @@ Ton : sérieux, pas de comique. Conflits politiques entre cités, ambiguïté mo
 ## Roadmap par incréments
 
 1. ✅ Setup projet (Phaser3+TS+Vite+PWA), écran titre, sauvegarde/chargement
-2. Overworld : déplacement, 1re map (village de départ), collisions, transitions
+2. ✅ Overworld : déplacement (joystick tactile + flèches), 1re map (village de départ, formes géométriques en attendant les vrais tilesets), collisions, transition de zone avec fondu
 3. Combat tour par tour (menu d'action, 1 monstre test)
 4. Création de personnage : race/classe, stats, XP/niveaux, points de compétence
 5. Inventaire + équipement complet (slots, stats variables, rareté)

@@ -22,13 +22,13 @@ export class TitleScene extends Phaser.Scene {
 
     this.createButton(width / 2, height * 0.55, 'Nouvelle partie', async () => {
       await SaveManager.createNewGame();
-      this.showStatus('Partie créée. Le monde arrive au prochain incrément.');
+      this.scene.start('Village');
     });
 
     if (hasSave) {
       this.createButton(width / 2, height * 0.63, 'Continuer', async () => {
-        const data = await SaveManager.load();
-        this.showStatus(`Sauvegarde chargée (créée le ${new Date(data!.createdAt).toLocaleDateString()}).`);
+        await SaveManager.load();
+        this.scene.start('Village');
       });
     }
   }
@@ -46,19 +46,5 @@ export class TitleScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     text.on('pointerdown', onClick);
-  }
-
-  private showStatus(message: string): void {
-    this.children.getAll('name', 'status').forEach((obj) => obj.destroy());
-    this.add
-      .text(this.scale.width / 2, this.scale.height * 0.75, message, {
-        fontFamily: 'Georgia, serif',
-        fontSize: '9px',
-        color: '#9aa0a6',
-        align: 'center',
-        wordWrap: { width: this.scale.width * 0.85 },
-      })
-      .setName('status')
-      .setOrigin(0.5);
   }
 }

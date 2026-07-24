@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { TitleScene } from './scenes/TitleScene';
+import { VillageScene } from './scenes/VillageScene';
+import { FieldScene } from './scenes/FieldScene';
 
 // Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
 const GAME_WIDTH = 216;
@@ -28,7 +30,13 @@ new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [TitleScene],
+  physics: {
+    default: 'arcade',
+    arcade: {
+      debug: false,
+    },
+  },
+  scene: [TitleScene, VillageScene, FieldScene],
 });
 
 setupFullscreenToggle();

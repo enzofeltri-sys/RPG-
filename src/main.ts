@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import './fonts.css';
 import { TitleScene } from './scenes/TitleScene';
 import { CharacterCreationScene } from './scenes/CharacterCreationScene';
 import { VillageScene } from './scenes/VillageScene';
@@ -44,33 +45,49 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Reverted from CANVAS back to AUTO (WebGL, falling back to Canvas only if
-// unavailable): Canvas rendering caused visible seams/shimmer on the tiled ground
-// while the camera scrolled, plus a noticeable performance drop — worse tradeoffs
-// than the WebGL-context-exhaustion theory it was meant to guard against, which
-// was never actually confirmed as the real cause of the earlier blank-screen bug.
-new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: 'game',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
-  pixelArt: true,
-  roundPixels: true,
-  backgroundColor: '#0b0c10',
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-  },
-  physics: {
-    default: 'arcade',
-    arcade: {
-      debug: false,
-    },
-  },
-  scene: [TitleScene, CharacterCreationScene, VillageScene, FieldScene, CombatScene, InventoryScene],
-});
+// Phaser draws text onto a canvas synchronously at creation time — if the
+// custom UI font (VT323, see fonts.css) hasn't finished loading yet, the
+// first frame of text bakes in with a fallback font and never gets redrawn
+// once VT323 arrives. Waiting here (the boot-status placeholder is still
+// showing) guarantees every scene's text uses the right font from frame one.
+async function boot(): Promise<void> {
+  try {
+    await document.fonts.load('16px VT323');
+  } catch {
+    // Font failed to load (e.g. offline on first-ever visit, before the SW
+    // has cached it) — fall back to the generic monospace in the font stack.
+  }
 
-setupFullscreenToggle();
+  // Reverted from CANVAS back to AUTO (WebGL, falling back to Canvas only if
+  // unavailable): Canvas rendering caused visible seams/shimmer on the tiled ground
+  // while the camera scrolled, plus a noticeable performance drop — worse tradeoffs
+  // than the WebGL-context-exhaustion theory it was meant to guard against, which
+  // was never actually confirmed as the real cause of the earlier blank-screen bug.
+  new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: 'game',
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    pixelArt: true,
+    roundPixels: true,
+    backgroundColor: '#0b0c10',
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+    physics: {
+      default: 'arcade',
+      arcade: {
+        debug: false,
+      },
+    },
+    scene: [TitleScene, CharacterCreationScene, VillageScene, FieldScene, CombatScene, InventoryScene],
+  });
+
+  setupFullscreenToggle();
+}
+
+boot();
 
 function setupFullscreenToggle(): void {
   const el = document.documentElement;

@@ -1,0 +1,12 @@
+/* Self-hosted so it works fully offline as a precached PWA asset (no Google
+   Fonts CDN dependency, which would break the game outside a network). VT323
+   is a monospaced terminal/pixel font (OFL-licensed) — legible at small
+   sizes on a scaled-up phone screen, unlike the previous serif (Georgia)
+   which read as illegible once shrunk to fit the retro internal resolution. */
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./assets/fonts/VT323-Regular.woff2') format('woff2');
+}

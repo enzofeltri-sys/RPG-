@@ -302,7 +302,9 @@ export class CityScene extends Phaser.Scene {
   }
 
   private talkToMage(): void {
-    if (getMainQuestStage(this.character) === 'aiglemont') {
+    const stage = getMainQuestStage(this.character);
+
+    if (stage === 'aiglemont') {
       this.openDialog(
         "Sélène examine votre marque avec une attention presque inquiète. « Je l'ai déjà vue, en théorie — dans les textes sur le rituel de scellement originel. Si elle s'éveille chez vous, c'est qu'un déséquilibre progresse quelque part. » Elle marque une pause. « Des rapports nous parviennent de plusieurs cités : des éclats du sceau disparaissent de leurs lieux de garde, un par un. Ce n'est pas le hasard qui répand la corruption. Quelqu'un l'orchestre. »",
         [
@@ -316,6 +318,55 @@ export class CityScene extends Phaser.Scene {
           },
         ],
       );
+      return;
+    }
+
+    if (stage === 'complete') {
+      this.openDialog(
+        "Sélène déroule une carte usée sur la table. « Les catacombes sous la ville abritent d'anciens sceaux mineurs — le genre de lieu qu'on visiterait en premier pour effacer ses traces. Si quelqu'un s'en est pris à un éclat local, il y a de bonnes chances qu'on en trouve la marque là-dessous. Voulez-vous vérifier ? »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'catacombs');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'catacombs') {
+      this.openDialog('Les Catacombes d\'Aiglemont, au sud de la ville. Cherchez ce qui a été profané.', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'trail_found') {
+      this.openDialog(
+        "Sélène examine ce que vous avez trouvé dans les catacombes, le visage grave. « Ce n'est qu'un début, mais au moins nous savons désormais par où chercher. Reposez-vous, voyageur — la route sera longue. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'debriefed');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'debriefed') {
+      this.openDialog('« Restez prudent. Nous reprendrons cette enquête bientôt. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
       return;
     }
 

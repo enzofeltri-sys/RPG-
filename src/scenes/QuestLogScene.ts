@@ -25,7 +25,22 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Trouvez la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
-  complete: { label: 'Terminée', color: DONE_COLOR, description: 'Le mystère de la marque ne fait que commencer...' },
+  complete: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  catacombs: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Fouillez les Catacombes d'Aiglemont.",
+  },
+  trail_found: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  debriefed: { label: 'Terminée', color: DONE_COLOR, description: 'Le mystère de la marque ne fait que commencer...' },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

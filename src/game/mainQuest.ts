@@ -12,7 +12,10 @@ export type MainQuestStage =
   | 'dungeon'
   | 'revelation'
   | 'aiglemont'
-  | 'complete';
+  | 'complete'
+  | 'catacombs'
+  | 'trail_found'
+  | 'debriefed';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -27,12 +30,13 @@ interface StageReward {
 }
 
 // Reward granted the moment the character *enters* this stage (i.e. at the
-// dialogue that advances it) — 'dungeon' and 'complete' below intentionally
-// have none: 'dungeon' is just accepting the quest, and 'complete' is the
-// story beat itself, not a fetch-quest payout.
+// dialogue that advances it) — stages reached by accepting a dialogue offer
+// or by a combat trigger intentionally have none; only a dialogue that
+// *concludes* a beat pays out (mirrors 'aiglemont'/'complete' below).
 const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   aiglemont: { xp: 60, itemBaseId: 'simple_ring', itemRarity: 'rare' },
   complete: { xp: 120, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
+  debriefed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -46,13 +50,19 @@ export function advanceMainQuestStage(character: Character, next: MainQuestStage
   }
 }
 
-// Called from CombatScene.victory() on every kill — advances 'dungeon' ->
-// 'revelation' the moment the Repaire du Loup's boss falls, regardless of
-// which scene the fight happened in. No-op (and no reward — the payoff comes
-// from the following dialogue) if the stage doesn't match.
+// Called from CombatScene.victory() on every kill — advances the stage the
+// moment the matching dungeon boss falls, regardless of which scene the
+// fight happened in. No-op (and no reward — the payoff comes from the
+// following dialogue) if the stage/monster don't match.
+const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: MainQuestStage }> = {
+  alpha_wolf: { fromStage: 'dungeon', toStage: 'revelation' },
+  fallen_guardian: { fromStage: 'catacombs', toStage: 'trail_found' },
+};
+
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {
-  if (monsterId !== 'alpha_wolf') return false;
-  if (getMainQuestStage(character) !== 'dungeon') return false;
-  character.mainQuestStage = 'revelation';
+  const transition = BOSS_TRANSITIONS[monsterId];
+  if (!transition) return false;
+  if (getMainQuestStage(character) !== transition.fromStage) return false;
+  character.mainQuestStage = transition.toStage;
   return true;
 }

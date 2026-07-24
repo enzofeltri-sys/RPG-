@@ -22,11 +22,14 @@ window.addEventListener('unhandledrejection', (e) => showFatalError(`Erreur : ${
 // A new deploy's service worker activates in the background (skipWaiting + clientsClaim).
 // Without this, an already-open or just-opened tab keeps running the previous build until
 // reloaded a second time, which reads as "nothing happened" after a deploy.
+// The guard lives in sessionStorage (not a JS variable) because it must survive the reload
+// it triggers — otherwise a flapping service worker (e.g. during CDN propagation right after
+// a deploy) can reload the page in an infinite loop instead of settling on the new version.
 if ('serviceWorker' in navigator) {
-  let hasReloaded = false;
+  const RELOAD_GUARD_KEY = 'sw-reloaded-once';
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hasReloaded) return;
-    hasReloaded = true;
+    if (sessionStorage.getItem(RELOAD_GUARD_KEY)) return;
+    sessionStorage.setItem(RELOAD_GUARD_KEY, '1');
     window.location.reload();
   });
 }

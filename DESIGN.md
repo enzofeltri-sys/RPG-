@@ -2,6 +2,8 @@
 
 Document vivant : mis à jour à chaque incrément. Sert de mémoire du projet entre les sessions.
 
+Portée : ce document couvre la v1 (voir "Portée v1" ci-dessous) et sa roadmap d'implémentation par incréments. Pour la vision long terme du jeu dans son ambition complète (au-delà de la v1), voir `VISION.md`.
+
 ## Décisions techniques
 
 - Moteur : Phaser 3, TypeScript, Vite

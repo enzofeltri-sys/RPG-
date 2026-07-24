@@ -111,6 +111,17 @@ export class FaubourgScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // North zone — a medium-difficulty dungeon behind the smugglers'
+    // operation, between Le vieux puits (easy) and Catacombes (hard).
+    const warehouseZone = this.add.zone(WORLD_WIDTH / 2, 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(warehouseZone, true);
+    this.physics.add.overlap(this.player, warehouseZone, () => this.enterWarehouse());
+
+    addCrispText(this, WORLD_WIDTH / 2, 30, 'Entrepôt ↑', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.informant.x, y: this.informant.y, radius: 24, onTap: () => this.talkToInformant() },
     ];
@@ -266,6 +277,15 @@ export class FaubourgScene extends Phaser.Scene {
         x: this.player.x,
         y: this.player.y,
       });
+    });
+  }
+
+  private enterWarehouse(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Warehouse');
     });
   }
 

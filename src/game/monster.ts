@@ -45,6 +45,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     xpReward: 50,
     goldReward: 14,
   },
+  smuggler_captain: {
+    id: 'smuggler_captain',
+    name: 'Capitaine des contrebandiers',
+    maxHp: 45,
+    attack: 9,
+    xpReward: 110,
+    goldReward: 30,
+    isBoss: true,
+  },
   corrupted_knight: {
     id: 'corrupted_knight',
     name: 'Chevalier corrompu',

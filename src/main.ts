@@ -14,6 +14,7 @@ import { ShrineScene } from './scenes/ShrineScene';
 import { RoadScene } from './scenes/RoadScene';
 import { CityScene } from './scenes/CityScene';
 import { FaubourgScene } from './scenes/FaubourgScene';
+import { WarehouseScene } from './scenes/WarehouseScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -114,6 +115,7 @@ async function boot(): Promise<void> {
       RoadScene,
       CityScene,
       FaubourgScene,
+      WarehouseScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

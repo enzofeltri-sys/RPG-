@@ -160,6 +160,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Faubourg des quais — premier contenu annexe de l'Acte 2 (suite immédiate)** : Aiglemont gagne une sortie est (`FaubourgScene`, clé `Faubourg`), même gabarit que le Camp de bandits/Camp de gobelins (cul-de-sac, 2 rencontres fixes farmables, pas de porte). Un nouveau PNJ ("Renn") donne `faubourg_smugglers` (vaincre 3 `smuggler_thug`, nouveau monstre), quête libre (non bloquée par la quête principale, conformément à la règle de `DESIGN.md` sur les quêtes annexes de l'Acte 2), avec un clin d'œil discret au fil principal (caisses suspectes) sans le nommer explicitement.
 
+**Entrepôt abandonné — troisième palier de difficulté (suite immédiate)** : `WarehouseScene` (clé `Warehouse`), accessible depuis une nouvelle sortie nord du Faubourg des quais. Même mécanique de porte que Catacombes/Repaire du Loup (2 rencontres régulières avant que la porte ne s'ouvre), mais sans récompense signature — juste un boss (`smuggler_captain`, nouveau) au butin garanti, positionné entre Le vieux puits (facile) et les Catacombes d'Aiglemont (difficile) sur l'échelle de difficulté demandée par le joueur. Au passage, corrige la même zone de boss jamais retirée après victoire que Catacombes/Repaire du Loup (voir plus haut) — implémentée ici dès le départ avec le correctif.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

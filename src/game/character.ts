@@ -1,5 +1,6 @@
 import { EquipSlot, Item, ItemStats } from './item';
 import type { QuestProgress } from './quest';
+import type { QuestItem } from './questItem';
 
 export type Race = 'human' | 'elf';
 export type CharClass = 'warrior' | 'mage';
@@ -47,6 +48,7 @@ export interface Character {
   gold: number;
   materials: Record<string, number>;
   consumables: Record<string, number>;
+  questItems: QuestItem[];
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -118,6 +120,7 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     gold: 0,
     materials: {},
     consumables: {},
+    questItems: [],
   };
 }
 
@@ -130,6 +133,7 @@ export function ensureCharacterDefaults(character: Character): Character {
   if (character.gold === undefined) character.gold = 0;
   if (!character.materials) character.materials = {};
   if (!character.consumables) character.consumables = {};
+  if (!character.questItems) character.questItems = [];
   if (character.stats.armor === undefined) character.stats.armor = 0;
   if (character.stats.fireDamage === undefined) character.stats.fireDamage = 0;
   return character;

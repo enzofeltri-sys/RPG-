@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, compareItemStats } from '../game/item';
+import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
+import { materialLabel } from '../game/material';
+import { QuestItem } from '../game/questItem';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -9,7 +12,18 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const SLOT_BG = '#1c2b1c';
+const TAB_ACTIVE_BG = '#e8d9b5';
+const TAB_INACTIVE_BG = '#3a3428';
 const DISCARD_CONFIRM_COLOR = '#c0392b';
+
+type BagTab = 'items' | 'materials' | 'consumables' | 'quest';
+
+const TABS: { id: BagTab; label: string; x: number }[] = [
+  { id: 'items', label: 'Objets', x: 10 },
+  { id: 'materials', label: 'Ress.', x: 62 },
+  { id: 'consumables', label: 'Potions', x: 108 },
+  { id: 'quest', label: 'Quête', x: 166 },
+];
 
 export class BagScene extends Phaser.Scene {
   private character!: Character;
@@ -17,7 +31,11 @@ export class BagScene extends Phaser.Scene {
   private returnX?: number;
   private returnY?: number;
 
-  private itemTexts: Phaser.GameObjects.Text[] = [];
+  private activeTab: BagTab = 'items';
+  private tabButtons: Partial<Record<BagTab, Phaser.GameObjects.Text>> = {};
+  private rowTexts: Phaser.GameObjects.Text[] = [];
+  private statusText!: Phaser.GameObjects.Text;
+
   private detailContext?: Item;
   private discardArmed = false;
 
@@ -36,6 +54,7 @@ export class BagScene extends Phaser.Scene {
     this.returnScene = data?.returnScene ?? 'Village';
     this.returnX = data?.x;
     this.returnY = data?.y;
+    this.activeTab = 'items';
     this.discardArmed = false;
   }
 
@@ -45,8 +64,9 @@ export class BagScene extends Phaser.Scene {
     this.character = save!.character!;
 
     addCrispText(this, width / 2, 14, 'Sac', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
-    addCrispText(this, 12, 38, 'Objets non équipés :', { fontSize: '10px', color: MUTED });
-    this.renderList();
+    this.createTabs();
+
+    this.statusText = addCrispText(this, width / 2, 340, '', { fontSize: '9px', color: GOLD }).setOrigin(0.5);
 
     const backButton = addCrispText(this, width / 2, 362, 'Retour', {
       fontSize: '13px',
@@ -59,22 +79,58 @@ export class BagScene extends Phaser.Scene {
     backButton.on('pointerdown', () => this.goBack());
 
     this.createDetailOverlay();
+    this.renderList();
   }
 
   private goBack(): void {
     this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY));
   }
 
-  private renderList(): void {
-    this.itemTexts.forEach((t) => t.destroy());
-    this.itemTexts = [];
+  private createTabs(): void {
+    TABS.forEach((tab) => {
+      const button = addCrispText(this, tab.x, 32, tab.label, {
+        fontSize: '8px',
+        color: DARK,
+        backgroundColor: tab.id === this.activeTab ? TAB_ACTIVE_BG : TAB_INACTIVE_BG,
+        padding: { x: 4, y: 3 },
+      }).setInteractive({ useHandCursor: true });
+      button.on('pointerdown', () => this.switchTab(tab.id));
+      this.tabButtons[tab.id] = button;
+    });
+  }
 
+  private switchTab(tab: BagTab): void {
+    if (tab === this.activeTab) return;
+    this.activeTab = tab;
+    this.hideDetail();
+    this.statusText.setText('');
+    TABS.forEach((t) => {
+      this.tabButtons[t.id]?.setBackgroundColor(t.id === this.activeTab ? TAB_ACTIVE_BG : TAB_INACTIVE_BG);
+    });
+    this.renderList();
+  }
+
+  private renderList(): void {
+    this.rowTexts.forEach((t) => t.destroy());
+    this.rowTexts = [];
+
+    if (this.activeTab === 'items') this.renderItems();
+    else if (this.activeTab === 'materials') this.renderMaterials();
+    else if (this.activeTab === 'consumables') this.renderConsumables();
+    else this.renderQuestItems();
+  }
+
+  private addEmptyRow(label: string): void {
+    this.rowTexts.push(addCrispText(this, 12, 56, label, { fontSize: '9px', color: MUTED }));
+  }
+
+  private renderItems(): void {
     if (this.character.inventory.length === 0) {
-      this.itemTexts.push(addCrispText(this, 12, 56, 'Aucun objet.', { fontSize: '9px', color: MUTED }));
+      this.addEmptyRow('Aucun objet.');
       return;
     }
 
-    const MAX_VISIBLE = 12;
+    const MAX_VISIBLE = 10;
     this.character.inventory.slice(0, MAX_VISIBLE).forEach((item, index) => {
       const y = 56 + index * 20;
       const text = addCrispText(this, 12, y, `${item.name} (${RARITY_LABELS[item.rarity]})`, {
@@ -84,16 +140,84 @@ export class BagScene extends Phaser.Scene {
         padding: { x: 6, y: 3 },
       }).setInteractive({ useHandCursor: true });
 
-      text.on('pointerdown', () => this.showDetail(item));
-      this.itemTexts.push(text);
+      text.on('pointerdown', () => this.showItemDetail(item));
+      this.rowTexts.push(text);
     });
 
     const overflow = this.character.inventory.length - MAX_VISIBLE;
     if (overflow > 0) {
-      this.itemTexts.push(
+      this.rowTexts.push(
         addCrispText(this, 12, 56 + MAX_VISIBLE * 20, `+ ${overflow} de plus`, { fontSize: '9px', color: MUTED }),
       );
     }
+  }
+
+  private renderMaterials(): void {
+    const entries = Object.entries(this.character.materials).filter(([, count]) => count > 0);
+    if (entries.length === 0) {
+      this.addEmptyRow('Aucune ressource.');
+      return;
+    }
+
+    entries.forEach(([materialId, count], index) => {
+      const y = 56 + index * 20;
+      this.rowTexts.push(
+        addCrispText(this, 12, y, `${materialLabel(materialId)} : ${count}`, {
+          fontSize: '9px',
+          color: GOLD,
+          backgroundColor: SLOT_BG,
+          padding: { x: 6, y: 3 },
+        }),
+      );
+    });
+  }
+
+  private renderConsumables(): void {
+    const entries = Object.entries(this.character.consumables).filter(([, count]) => count > 0);
+    if (entries.length === 0) {
+      this.addEmptyRow('Aucun consommable.');
+      return;
+    }
+
+    entries.forEach(([id, count], index) => {
+      const y = 56 + index * 20;
+      const def = CONSUMABLES[id as ConsumableId];
+      const text = addCrispText(this, 12, y, `${def.name} x${count} — Utiliser`, {
+        fontSize: '9px',
+        color: GOLD,
+        backgroundColor: SLOT_BG,
+        padding: { x: 6, y: 3 },
+      }).setInteractive({ useHandCursor: true });
+      text.on('pointerdown', () => this.handleUseConsumable(id as ConsumableId));
+      this.rowTexts.push(text);
+    });
+  }
+
+  private renderQuestItems(): void {
+    if (this.character.questItems.length === 0) {
+      this.addEmptyRow('Aucun objet de quête.');
+      return;
+    }
+
+    this.character.questItems.forEach((questItem, index) => {
+      const y = 56 + index * 20;
+      const text = addCrispText(this, 12, y, questItem.name, {
+        fontSize: '9px',
+        color: GOLD,
+        backgroundColor: SLOT_BG,
+        padding: { x: 6, y: 3 },
+      }).setInteractive({ useHandCursor: true });
+      text.on('pointerdown', () => this.showQuestItemDetail(questItem));
+      this.rowTexts.push(text);
+    });
+  }
+
+  private async handleUseConsumable(id: ConsumableId): Promise<void> {
+    const used = useConsumable(this.character, id);
+    if (!used) return;
+    await SaveManager.saveCharacter(this.character);
+    this.statusText.setText(`${CONSUMABLES[id].name} utilisée (PV ${this.character.hp}/${this.character.maxHp}).`);
+    this.renderList();
   }
 
   private resolveEquipSlot(item: Item): EquipSlot {
@@ -183,7 +307,7 @@ export class BagScene extends Phaser.Scene {
     this.closeButton.on('pointerdown', () => this.hideDetail());
   }
 
-  private showDetail(item: Item): void {
+  private showItemDetail(item: Item): void {
     this.detailContext = item;
     this.discardArmed = false;
 
@@ -197,6 +321,24 @@ export class BagScene extends Phaser.Scene {
     this.detailStats.setVisible(true);
     this.equipButton.setVisible(true);
     this.discardButton.setVisible(true);
+    this.closeButton.setVisible(true);
+  }
+
+  // Quest items are view-only: no Équiper/Jeter, just the description and a
+  // way to close — they're released by whatever quest logic grants/claims
+  // them, not by the player choosing to drop them.
+  private showQuestItemDetail(questItem: QuestItem): void {
+    this.detailContext = undefined;
+    this.discardArmed = false;
+
+    this.detailTitle.setText(questItem.name).setColor(GOLD);
+    this.detailStats.setText(questItem.description);
+
+    this.detailBg.setVisible(true);
+    this.detailTitle.setVisible(true);
+    this.detailStats.setVisible(true);
+    this.equipButton.setVisible(false);
+    this.discardButton.setVisible(false);
     this.closeButton.setVisible(true);
   }
 

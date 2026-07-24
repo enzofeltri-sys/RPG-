@@ -22,7 +22,7 @@ export class TitleScene extends Phaser.Scene {
 
     this.createButton(width / 2, height * 0.55, 'Nouvelle partie', async () => {
       await SaveManager.createNewGame();
-      this.scene.start('Village');
+      this.scene.start('CharacterCreation');
     });
 
     if (hasSave) {

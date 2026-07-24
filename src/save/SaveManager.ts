@@ -1,3 +1,5 @@
+import { Character } from '../game/character';
+
 const DB_NAME = 'vaeloria-save';
 const DB_VERSION = 1;
 const STORE_NAME = 'saves';
@@ -7,6 +9,7 @@ export interface SaveData {
   version: number;
   createdAt: number;
   updatedAt: number;
+  character?: Character;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -54,5 +57,14 @@ export class SaveManager {
     const data: SaveData = { version: 1, createdAt: now, updatedAt: now };
     await SaveManager.save(data);
     return data;
+  }
+
+  static async saveCharacter(character: Character): Promise<void> {
+    const now = Date.now();
+    const existing = await SaveManager.load();
+    const data: SaveData = existing ?? { version: 1, createdAt: now, updatedAt: now };
+    data.character = character;
+    data.updatedAt = now;
+    await SaveManager.save(data);
   }
 }

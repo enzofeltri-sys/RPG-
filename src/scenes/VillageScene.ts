@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { SaveManager } from '../save/SaveManager';
+import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
@@ -16,7 +18,7 @@ export class VillageScene extends Phaser.Scene {
     super('Village');
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
     this.drawGround();
@@ -48,6 +50,11 @@ export class VillageScene extends Phaser.Scene {
         color: '#9aa0a6',
       })
       .setOrigin(0.5);
+
+    const save = await SaveManager.load();
+    if (save?.character) {
+      new CharacterSheetPanel(this, save.character);
+    }
   }
 
   update(): void {

@@ -19,14 +19,42 @@ Portée : ce document couvre la v1 (voir "Portée v1" ci-dessous) et sa roadmap 
 
 ## Scénario (pitch validé)
 
-Il y a 300 ans, une confrérie de mages a scellé une entité primordiale — **le Roi Creux** — au prix de leur vie. Le sceau a fracturé les royaumes unifiés en cités-États rivales et dispersé des éclats de corruption qui pervertissent peu à peu faune, flore et parfois hommes.
+Il y a 300 ans, une confrérie de mages a scellé une entité primordiale — **le Roi Démon** — au prix de leur vie. Le sceau a fracturé les royaumes unifiés en cités-États rivales et dispersé des éclats de corruption qui pervertissent peu à peu faune, flore et parfois hommes.
 
-Le héros/l'héroïne, originaire d'un village frontalier, survit à une attaque de créature corrompue et découvre qu'il/elle porte une marque liée au rituel de scellement originel. Il/elle part enquêter sur la recrudescence des corruptions à travers les royaumes, et découvre que quelqu'un cherche activement à briser le sceau.
+Ton : sérieux pour la trame principale, pas de comique. Conflits politiques entre cités, ambiguïté morale de certaines factions et de l'antagoniste. Le registre "drôle et étrange" façon Daedra (voir `VISION.md`) est réservé aux quêtes secondaires, en contraste volontaire avec le sérieux de la trame principale.
 
-Ton : sérieux, pas de comique. Conflits politiques entre cités, ambiguïté morale de certaines factions.
+### Trame principale (3 actes)
 
+**Acte 1 — L'Éveil de la Marque**
+Le héros/l'héroïne, originaire d'un village frontalier, survit à une attaque de créature corrompue et découvre une marque liée au rituel de scellement originel. Un aîné du village (mentor) la reconnaît et pousse le héros à enquêter — première quête dans un site rituel voisin corrompu (1er donjon). Fin d'acte : la corruption ne se répand pas au hasard, quelqu'un arrache activement des éclats du sceau quelque part dans les cités.
+
+**Acte 2 — Les Cités Rivales**
+Monde ouvert guidé : le héros voyage entre plusieurs cités-États, chacune dominée par une des 3 factions (voir "Factions" ci-dessous). Le héros apprend que sa marque lui permet de s'accorder aux éclats du sceau (les sentir, les extraire, les renforcer) — il/elle devient une cible pour ceux qui veulent protéger le sceau *et* pour ceux qui veulent le briser. Fin d'acte : un donjon majeur (tombeau de la confrérie fondatrice) est pillé par l'antagoniste, qui vole un éclat majeur — une région entière tombe en corruption.
+
+**Acte 3 — Rupture ou Rédemption**
+Poursuite de l'antagoniste jusqu'au site originel du scellement (donjon final, version corrompue/miroir d'un lieu déjà visité). Révélation : la confrérie originelle n'a jamais vaincu le Roi Démon, elle n'a fait que le contenir, et le sceau était condamné à s'affaiblir depuis le début — la marque du héros est un fragment de son essence, lié par le sang à la lignée d'un des mages fondateurs (le héros en est un descendant). L'antagoniste n'est pas un simple méchant caricatural : convaincu que le confinement est voué à l'échec, il/elle veut soit détruire le Roi Démon pour de bon, soit absorber son pouvoir avant que quelqu'un de pire ne le fasse.
+
+**Fins multiples**, déterminées par les alliances de faction construites en acte 2 :
+1. **Nouveau Sceau** — le héros se lie lui-même comme ancre vivante : le monde est stabilisé, à un prix personnel (sacrifice, fin douce-amère).
+2. **Destruction** — avec l'aide des factions alliées, destruction complète du Roi Démon (fin "victoire", avec pertes selon les alliances ratées).
+3. **Corruption/Ascension** — le héros absorbe le pouvoir du Roi Démon et devient une nouvelle puissance dominante sur les royaumes fracturés (fin sombre/ambiguë).
+
+### Quêtes secondaires — répartition
+
+- **Acte 1** : quêtes locales au village de départ et alentours (ambiance, premiers PNJ excentriques).
+- **Acte 2** (le plus long) : gros de la production de quêtes secondaires et de faction, dispersées librement dans les cités/camps/donjons annexes, pas bloquées derrière la trame principale.
+- **Acte 3** : peu de nouvelles quêtes secondaires (rythme resserré vers le climax) ; certaines quêtes de l'acte 2 peuvent s'y conclure selon les choix faits.
+- **Post-jeu** : lot dédié de quêtes secondaires débloquées après la fin de la trame principale — contenu supplémentaire jouable après le générique, terrain privilégié pour les quêtes les plus étranges/Daedra-like.
+
+### Factions
+
+Poids volontairement simple (même philosophie que l'artisanat — pas de micro-gestion) :
+- **Réputation par faction** → accès à des marchands/objets/recettes exclusifs à cette faction + tarifs préférentiels.
+- **Quêtes de faction** → chaînes courtes dédiées, récompensent de l'équipement unique à la faction.
+- **Poids sur la fin** → l'aide disponible en acte 3 (qui accompagne le héros dans l'affrontement final, quelle fin est réellement accessible) dépend des factions aidées en acte 2. Pas de jauge complexe : juste "aidée ou pas", qui ouvre/ferme des portes plus tard.
+
+Autres éléments actés :
 - Donjons = anciens sites rituels/tombeaux contenant des artefacts uniques
-- Quêtes secondaires = conflits locaux causés par la corruption montante
 - Artisanat = redécouverte de techniques perdues depuis la Rupture
 - Races : Humains (royaumes fracturés) et Elfes (gardiens reclus) au lancement ; Nains (mineurs souterrains) et Orcs (exilés en rédemption) en extension
 

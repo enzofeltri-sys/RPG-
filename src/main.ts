@@ -27,6 +27,7 @@ import { InventoryScene } from './scenes/InventoryScene';
 import { BagScene } from './scenes/BagScene';
 import { StatsScene } from './scenes/StatsScene';
 import { QuestLogScene } from './scenes/QuestLogScene';
+import { MapScene } from './scenes/MapScene';
 import { CraftingScene } from './scenes/CraftingScene';
 import { MerchantScene } from './scenes/MerchantScene';
 
@@ -132,6 +133,7 @@ async function boot(): Promise<void> {
       BagScene,
       StatsScene,
       QuestLogScene,
+      MapScene,
       CraftingScene,
       MerchantScene,
     ],

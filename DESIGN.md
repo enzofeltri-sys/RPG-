@@ -178,6 +178,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **La Tanière des marais — sixième donjon (suite immédiate)** : `MarshLairScene` (clé `MarshLair`), accessible depuis une nouvelle sortie nord du Relais des chasseurs. Même gabarit "moyen" que l'Entrepôt abandonné (porte à deux rencontres, boss au butin garanti, pas de récompense signature), avec le monstre de biome de la région 3 (`marsh_serpent`) plus une nouvelle matriarche (`marsh_matriarch`, boss). La quête du relais (`marsh_patrol`) devient elle aussi une chaîne à deux étapes — même schéma que le Faubourg/Entrepôt : une fois rendue, la chasseuse pointe vers ce donjon plutôt que de le laisser sans quête associée.
 
+**Carte accessible depuis le Menu (suite immédiate)** : nouveau bouton "Carte" (`MapScene`, clé `Map`) dans le Menu, désormais une grille 4×2 (Quitter seul sur la dernière ligne). Schématique, pas à l'échelle — vu le nombre de lieux (20), une vraie carte géographique aurait demandé un canvas déplaçable/zoomable ; à la place, deux onglets ("Région 1" / "Aiglemont", même mécanisme d'onglets que le Sac) affichent chacun leurs lieux sur une grille fixe reliée par des lignes selon les connexions réelles entre scènes (`src/game/worldMap.ts`). Le point où se trouve le joueur est mis en évidence, ainsi que tout lieu concerné par une quête non terminée (quête principale à l'étape en cours + quêtes secondaires acceptées ou complétées mais pas encore rendues) — l'onglet qui s'ouvre par défaut est celui de la région où le joueur se trouve actuellement.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

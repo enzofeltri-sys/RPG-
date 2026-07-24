@@ -29,6 +29,7 @@ export class CharacterSheetPanel {
   private readonly bagButton: Phaser.GameObjects.Text;
   private readonly statsButton: Phaser.GameObjects.Text;
   private readonly questsButton: Phaser.GameObjects.Text;
+  private readonly mapButton: Phaser.GameObjects.Text;
   private readonly optionsButton: Phaser.GameObjects.Text;
   private readonly optionsInfoText: Phaser.GameObjects.Text;
   private readonly clearCacheButton: Phaser.GameObjects.Text;
@@ -81,13 +82,14 @@ export class CharacterSheetPanel {
     // Kept outside the container: interactive children of a Phaser Container are
     // unreliable for pointer hit-testing, so these buttons are separate top-level
     // objects toggled in lockstep with the panel instead of being nested inside it.
-    // Laid out as a 3x2 grid.
+    // Laid out as a 4x2 grid (Quitter alone on the last row).
     this.inventoryButton = this.makeNavButton(scene, 20, 90, 'Inventaire', () => navigateTo('Inventory'));
     this.bagButton = this.makeNavButton(scene, 115, 90, 'Sac', () => navigateTo('Bag'));
     this.statsButton = this.makeNavButton(scene, 20, 120, 'Stats', () => navigateTo('Stats'));
     this.questsButton = this.makeNavButton(scene, 115, 120, 'Quêtes', () => navigateTo('Quests'));
-    this.optionsButton = this.makeNavButton(scene, 20, 150, 'Options', () => this.showOptions());
-    this.quitButton = this.makeNavButton(scene, 115, 150, 'Quitter', () => scene.scene.start('Title'));
+    this.mapButton = this.makeNavButton(scene, 20, 150, 'Carte', () => navigateTo('Map'));
+    this.optionsButton = this.makeNavButton(scene, 115, 150, 'Options', () => this.showOptions());
+    this.quitButton = this.makeNavButton(scene, 20, 180, 'Quitter', () => scene.scene.start('Title'));
 
     this.optionsInfoText = addCrispText(
       scene,
@@ -137,6 +139,7 @@ export class CharacterSheetPanel {
       this.bagButton,
       this.statsButton,
       this.questsButton,
+      this.mapButton,
       this.quitButton,
       this.optionsButton,
     ];

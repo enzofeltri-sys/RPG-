@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { materialLabel, MaterialId } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
@@ -67,6 +68,7 @@ export class FieldScene extends Phaser.Scene {
   private spawnX?: number;
   private spawnY?: number;
   private character!: Character;
+  private sheep: Wanderer[] = [];
   private messageText?: Phaser.GameObjects.Text;
 
   constructor() {
@@ -86,7 +88,13 @@ export class FieldScene extends Phaser.Scene {
 
     this.drawDecorations();
 
+    // A bit of grazing livestock — pure ambiance, south bank only (river
+    // colliders aren't set up yet at this point, so keep clear of the
+    // gather nodes/zones instead of relying on them for placement).
+    this.sheep = [new Wanderer(this, 220, 280, 0xd8cbb0, 25), new Wanderer(this, 350, 320, 0xc8bba0, 20)];
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    this.sheep.forEach((s) => this.physics.add.collider(this.player, s.sprite));
     this.addRiver();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -151,12 +159,30 @@ export class FieldScene extends Phaser.Scene {
       addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     });
 
-    const interactables: Interactable[] = GATHER_NODES.map((node) => ({
-      x: node.x,
-      y: node.y,
-      radius: 22,
-      onTap: () => this.gather(node),
-    }));
+    const interactables: Interactable[] = [
+      ...GATHER_NODES.map((node) => ({
+        x: node.x,
+        y: node.y,
+        radius: 22,
+        onTap: () => this.gather(node),
+      })),
+      // Local consts (not `this.sheep[i].sprite` inline) so the getters
+      // below are plain closures — an object literal's get x()/get y() would
+      // otherwise bind `this` to the literal itself, not the scene.
+      ...this.sheep.map((s) => {
+        const sprite = s.sprite;
+        return {
+          get x() {
+            return sprite.x;
+          },
+          get y() {
+            return sprite.y;
+          },
+          radius: 18,
+          onTap: () => this.showMessage('Bêêê !'),
+        };
+      }),
+    ];
     this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
@@ -183,6 +209,7 @@ export class FieldScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.sheep.forEach((s) => s.update());
 
     if (this.isTransitioning) return;
 

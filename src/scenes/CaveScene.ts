@@ -31,6 +31,20 @@ const ROCKS: { x: number; y: number }[] = [
   { x: 160, y: 200 },
   { x: 30, y: 90 },
   { x: 170, y: 60 },
+  { x: 45, y: 380 },
+  { x: 155, y: 380 },
+  { x: 45, y: 20 },
+  { x: 155, y: 20 },
+];
+
+// A little glow in the dark — purely decorative, no collision, no real art
+// yet (increment 10).
+const CRYSTALS: { x: number; y: number }[] = [
+  { x: 55, y: 300 },
+  { x: 150, y: 250 },
+  { x: 55, y: 180 },
+  { x: 145, y: 110 },
+  { x: 60, y: 50 },
 ];
 
 interface CaveData {
@@ -71,6 +85,7 @@ export class CaveScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#20202a');
 
     ROCKS.forEach((rock) => this.add.rectangle(rock.x, rock.y, 18, 12, 0x35353f).setStrokeStyle(1, 0x18181c));
+    CRYSTALS.forEach((c) => this.add.circle(c.x, c.y, 5, 0x5a8ac5, 0.8).setStrokeStyle(1, 0x2e4a6a));
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 40, ['↓ Forêt', '↑ Valombre']);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

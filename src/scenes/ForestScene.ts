@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { TapController } from '../input/TapController';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -26,6 +27,19 @@ const TREES: { x: number; y: number }[] = [
   { x: 270, y: 260 },
   { x: 90, y: 150 },
   { x: 310, y: 160 },
+  { x: 30, y: 100 },
+  { x: 180, y: 40 },
+  { x: 370, y: 60 },
+  { x: 380, y: 190 },
+  { x: 220, y: 280 },
+  { x: 60, y: 280 },
+];
+
+const MUSHROOMS: { x: number; y: number }[] = [
+  { x: 100, y: 60 },
+  { x: 250, y: 190 },
+  { x: 160, y: 130 },
+  { x: 330, y: 260 },
 ];
 
 interface ForestData {
@@ -40,6 +54,8 @@ export class ForestScene extends Phaser.Scene {
   private isTransitioning = false;
   private distanceWalked = 0;
   private encounterThreshold = 0;
+  private deer!: Wanderer;
+  private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -59,10 +75,15 @@ export class ForestScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#24401f');
 
     TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b));
+    MUSHROOMS.forEach((m) => this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10));
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Champ', '→ Grotte', '↑ Camp de gobelins']);
 
+    // A shy bit of wildlife — clear of both zones and the signpost.
+    this.deer = new Wanderer(this, 150, 220, 0x9a7a52, 35);
+
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
+    this.physics.add.collider(this.player, this.deer.sprite);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -96,6 +117,24 @@ export class ForestScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // Local const (not `this.deer.sprite` inline) so the getters below are
+    // plain closures — an object literal's get x()/get y() would otherwise
+    // bind `this` to the literal itself, not the scene.
+    const deerSprite = this.deer.sprite;
+    const interactables: Interactable[] = [
+      {
+        get x() {
+          return deerSprite.x;
+        },
+        get y() {
+          return deerSprite.y;
+        },
+        radius: 18,
+        onTap: () => this.showMessage('Un cerf détale dans les fourrés.'),
+      },
+    ];
+    this.tapControl.setInteractables(interactables);
+
     // A zone overlap can fire and call scene.start() while this load is still
     // pending (Arcade Physics keeps ticking regardless of async create()'s
     // progress) — if that happened, this scene has already been stopped by
@@ -121,6 +160,7 @@ export class ForestScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.deer.update();
 
     if (this.isTransitioning) return;
 
@@ -143,6 +183,26 @@ export class ForestScene extends Phaser.Scene {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', { returnScene: 'Forest', monsterId, x: this.player.x, y: this.player.y });
+    });
+  }
+
+  private showMessage(message: string): void {
+    this.messageText?.destroy();
+    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
+      fontSize: '10px',
+      color: '#e8d9b5',
+      backgroundColor: '#0b0c10',
+      padding: { x: 8, y: 5 },
+      align: 'center',
+      wordWrap: { width: this.scale.width - 20 },
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001);
+
+    this.time.delayedCall(1800, () => {
+      this.messageText?.destroy();
+      this.messageText = undefined;
     });
   }
 

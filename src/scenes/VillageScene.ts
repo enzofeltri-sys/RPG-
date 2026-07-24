@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -8,6 +9,12 @@ import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
+
+const VILLAGER_LINES = [
+  'Valombre reçoit pas mal de voyageurs ces temps-ci.',
+  'La forge tourne à plein régime, allez donc voir le forgeron.',
+  'On dit qu\'une route commerciale relie maintenant la ville à Aiglemont.',
+];
 
 interface VillageData {
   x?: number;
@@ -28,6 +35,8 @@ export class VillageScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
+  private villagers: Wanderer[] = [];
+  private villagerLineIndex = 0;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -63,9 +72,20 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // Market stalls near the merchant + a well further south — purely
+    // decorative, no collision, no real art yet (increment 10).
+    this.add.rectangle(260, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    this.add.rectangle(340, 250, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    this.add.circle(240, 550, 16, 0x4a4a52).setStrokeStyle(2, 0x2e2b3a);
+    this.add.circle(240, 550, 8, 0x2e5a7a).setStrokeStyle(1, 0x1a3a50);
+
+    // Ambient villagers, clear of every building/zone/signpost.
+    this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15), new Wanderer(this, 400, 150, 0x7a8a6a, 25)];
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.merchantNpc);
+    this.villagers.forEach((v) => this.physics.add.collider(this.player, v.sprite));
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -119,6 +139,22 @@ export class VillageScene extends Phaser.Scene {
           radius: 35,
           onTap: () => this.showMessage('Une maison du village. Personne ne répond.'),
         })),
+      // Local consts (not `this.villagers[i].sprite` inline) so the getters
+      // below are plain closures — an object literal's get x()/get y() would
+      // otherwise bind `this` to the literal itself, not the scene.
+      ...this.villagers.map((villager) => {
+        const sprite = villager.sprite;
+        return {
+          get x() {
+            return sprite.x;
+          },
+          get y() {
+            return sprite.y;
+          },
+          radius: 20,
+          onTap: () => this.talkToVillager(),
+        };
+      }),
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -145,6 +181,13 @@ export class VillageScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.villagers.forEach((v) => v.update());
+  }
+
+  private talkToVillager(): void {
+    const line = VILLAGER_LINES[this.villagerLineIndex % VILLAGER_LINES.length];
+    this.villagerLineIndex += 1;
+    this.showMessage(line);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {

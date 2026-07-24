@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -18,6 +19,12 @@ const MAGE_LINES = [
   "La Guilde des Mages étudie la corruption depuis des décennies. Votre marque n'est pas passée inaperçue, voyageur.",
   "Aiglemont n'est que la première des cités-États. Chacune a ses propres intérêts — et ses propres secrets.",
   "Si vous croisez des runes que vous ne comprenez pas, n'y touchez pas. Venez plutôt m'en parler.",
+];
+
+const CITIZEN_LINES = [
+  'Aiglemont ne dort jamais vraiment, il y a toujours du monde sur les pavés.',
+  "La garnison patrouille plus souvent qu'avant sur la route commerciale.",
+  'Un jour, peut-être, je verrai les autres cités-États de mes propres yeux.',
 ];
 
 interface CityData {
@@ -40,8 +47,10 @@ export class CityScene extends Phaser.Scene {
   private captain!: Phaser.GameObjects.Rectangle;
   private mage!: Phaser.GameObjects.Rectangle;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
+  private citizens: Wanderer[] = [];
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private mageLineIndex = 0;
+  private citizenLineIndex = 0;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -92,11 +101,17 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
+    // Stall near the market + a couple of ambient citizens — no collision on
+    // the stall, no real art yet (increment 10).
+    this.add.rectangle(230, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15), new Wanderer(this, 150, 420, 0x8a7a8a, 20)];
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, [garrison, tower, market]);
     this.physics.add.collider(this.player, this.captain);
     this.physics.add.collider(this.player, this.mage);
     this.physics.add.collider(this.player, this.merchantNpc);
+    this.citizens.forEach((c) => this.physics.add.collider(this.player, c.sprite));
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -131,6 +146,22 @@ export class CityScene extends Phaser.Scene {
         radius: 40,
         onTap: () => this.showMessage('Un bâtiment fermé pour le moment.'),
       })),
+      // Local consts (not `this.citizens[i].sprite` inline) so the getters
+      // below are plain closures — an object literal's get x()/get y() would
+      // otherwise bind `this` to the literal itself, not the scene.
+      ...this.citizens.map((citizen) => {
+        const sprite = citizen.sprite;
+        return {
+          get x() {
+            return sprite.x;
+          },
+          get y() {
+            return sprite.y;
+          },
+          radius: 20,
+          onTap: () => this.talkToCitizen(),
+        };
+      }),
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -158,6 +189,13 @@ export class CityScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.citizens.forEach((c) => c.update());
+  }
+
+  private talkToCitizen(): void {
+    const line = CITIZEN_LINES[this.citizenLineIndex % CITIZEN_LINES.length];
+    this.citizenLineIndex += 1;
+    this.showMessage(line);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {

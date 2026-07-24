@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -10,6 +11,12 @@ const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 220;
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 400;
+
+const TRAVELER_LINES = [
+  'Je fais la navette entre Valombre et Aiglemont depuis des années.',
+  'Les caravanes se font escorter depuis que les sangliers corrompus rôdent.',
+  'Bon vent, voyageur. La route est longue mais sûre en plein jour.',
+];
 
 // Purely decorative — parked wagons/crates along the roadside, no collision,
 // no real art yet (increment 10).
@@ -38,6 +45,8 @@ export class RoadScene extends Phaser.Scene {
   private distanceWalked = 0;
   private encounterThreshold = 0;
   private guard!: Phaser.GameObjects.Rectangle;
+  private traveler!: Wanderer;
+  private travelerLineIndex = 0;
   private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
@@ -66,8 +75,12 @@ export class RoadScene extends Phaser.Scene {
     this.physics.add.existing(this.guard, true);
     addCrispText(this, 150, 40, 'Garde de caravane', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // Ambient traveler, clear of both the guard and the wagon decorations.
+    this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30);
+
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.guard);
+    this.physics.add.collider(this.player, this.traveler.sprite);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -93,6 +106,10 @@ export class RoadScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // Local const (not `this.traveler.sprite` inline) so the getters below
+    // are plain closures — an object literal's get x()/get y() would
+    // otherwise bind `this` to the literal itself, not the scene.
+    const travelerSprite = this.traveler.sprite;
     const interactables: Interactable[] = [
       {
         x: this.guard.x,
@@ -100,6 +117,16 @@ export class RoadScene extends Phaser.Scene {
         radius: 24,
         onTap: () =>
           this.showMessage("« Aiglemont n'est plus très loin. Restez sur vos gardes, la route attire les bêtes. »"),
+      },
+      {
+        get x() {
+          return travelerSprite.x;
+        },
+        get y() {
+          return travelerSprite.y;
+        },
+        radius: 20,
+        onTap: () => this.talkToTraveler(),
       },
     ];
     this.tapControl.setInteractables(interactables);
@@ -127,6 +154,7 @@ export class RoadScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.traveler.update();
 
     if (this.isTransitioning) return;
 
@@ -154,6 +182,12 @@ export class RoadScene extends Phaser.Scene {
         y: this.player.y,
       });
     });
+  }
+
+  private talkToTraveler(): void {
+    const line = TRAVELER_LINES[this.travelerLineIndex % TRAVELER_LINES.length];
+    this.travelerLineIndex += 1;
+    this.showMessage(line);
   }
 
   private showMessage(message: string): void {

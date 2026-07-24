@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { SaveManager } from '../save/SaveManager';
@@ -13,6 +14,12 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 
 const MENTOR_QUEST_ID = 'wolves_threat';
+
+const VILLAGER_LINES = [
+  'Encore une belle journée à Basse-Combe, calme comme toujours.',
+  "Les récoltes ont été bonnes cette année, la ferme s'en sort bien.",
+  'On dit que le petit sanctuaire à l\'est porte chance aux voyageurs.',
+];
 
 interface HamletData {
   x?: number;
@@ -31,6 +38,8 @@ export class HamletScene extends Phaser.Scene {
   private isTransitioning = false;
   private character!: Character;
   private mentor!: Phaser.GameObjects.Rectangle;
+  private villager!: Wanderer;
+  private villagerLineIndex = 0;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
@@ -69,9 +78,15 @@ export class HamletScene extends Phaser.Scene {
     this.physics.add.existing(this.mentor, true);
     addCrispText(this, 150, 110, 'Aldric', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // Purely ambient — makes the hamlet read as lived-in rather than a
+    // backdrop. Small patrol range, kept clear of the x=120 centerline and
+    // every building/zone.
+    this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.mentor);
+    this.physics.add.collider(this.player, this.villager.sprite);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -103,8 +118,22 @@ export class HamletScene extends Phaser.Scene {
     addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // A local const (not `this.villager.sprite` inline) so the getters below
+    // are plain closures — an object literal's get x()/get y() would
+    // otherwise bind `this` to the literal itself, not the scene.
+    const villagerSprite = this.villager.sprite;
     const interactables: Interactable[] = [
       { x: this.mentor.x, y: this.mentor.y, radius: 24, onTap: () => this.talkToMentor() },
+      {
+        get x() {
+          return villagerSprite.x;
+        },
+        get y() {
+          return villagerSprite.y;
+        },
+        radius: 20,
+        onTap: () => this.talkToVillager(),
+      },
       ...this.buildings.map((b) => ({
         x: b.x,
         y: b.y,
@@ -138,6 +167,7 @@ export class HamletScene extends Phaser.Scene {
     const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
+    this.villager.update();
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): void {
@@ -158,6 +188,12 @@ export class HamletScene extends Phaser.Scene {
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
+  }
+
+  private talkToVillager(): void {
+    const line = VILLAGER_LINES[this.villagerLineIndex % VILLAGER_LINES.length];
+    this.villagerLineIndex += 1;
+    this.showMessage(line);
   }
 
   private talkToMentor(): void {

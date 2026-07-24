@@ -131,6 +131,16 @@ Panneau du Champ mis à jour (`['↓ Basse-Combe', '↑ Repaire du Loup', '→ F
 `src/entities/player.ts` expose maintenant `updatePlayerMovement(player, cursors, moveTarget)` (accepte un point `{x,y} | null` au lieu d'une référence au joystick, retourne si le joueur est toujours en déplacement) au lieu de lire un vecteur de joystick. Les 12 scènes de déplacement (Basse-Combe, Valombre, Champ, Forêt, Grotte, Camp de bandits, Camp de gobelins, Ferme, Sanctuaire, Route commerciale, Aiglemont, Donjon) ont toutes été migrées vers ce nouveau contrôleur. `MerchantScene` a été généralisée avec un `returnScene` paramétrable (déjà fait pour Aiglemont) — sans lien direct avec ce changement mais dans le même lot de commits.
 
 **Accroc réel trouvé en testant (pas un artefact)** : un test tapait un point de sortie calculé au pixel près, et le joueur restait bloqué en boucle contre le coin d'un bâtiment ou du PNJ mentor — plusieurs fois de suite avec des cibles différentes. Confirmé qu'il s'agit bien de la limite "pas de pathfinding" annoncée et acceptée avant ce chantier (une diagonale calculée exactement peut raser un obstacle), pas d'un bug du contrôleur : viser un point clairement dégagé (ex. la ligne centrale x=120 de Basse-Combe, déjà maintenue libre par conception) résout systématiquement le blocage. Un autre "faux positif" similaire : un tap calculé près du coin supérieur gauche de l'écran ne déplaçait jamais le joueur — normal, il tombait pile sur la zone du bouton "Menu" (fixe à l'écran), donc correctement absorbé comme un tap d'interface plutôt que comme un déplacement.
+**Densité et vie ambiante (suite immédiate)** : passe dédiée à faire en sorte qu'aucun lieu entre Basse-Combe et Aiglemont ne se lise comme vide, sans toucher au contenu narratif (aucune nouvelle quête dans ce lot). `src/entities/wanderer.ts` (nouveau) : petit PNJ qui fait des allers-retours automatiques entre deux bornes — villageois, citadins, voyageur, animaux de pâture. Compatible avec `TapController` via des getters `x`/`y` sur l'objet `Interactable` (au lieu de valeurs figées), pour que le point taper-pour-interagir suive bien le PNJ en mouvement plutôt que sa position de spawn.
+- **Basse-Combe** : 1 villageois ambiant (lignes tournantes, pas de quête).
+- **Valombre** : 2 villageois, un puits, deux étals de marché près de la marchande.
+- **Aiglemont** : 2 citadins, un étal près du Marché.
+- **Route commerciale** : 1 voyageur ambiant en plus du garde de caravane.
+- **Le Champ** : 2 moutons qui paissent (interaction légère, pas de dialogue).
+- **La Forêt** : densité d'arbres augmentée (+6), champignons décoratifs, 1 cerf craintif.
+- **La Grotte** : rochers augmentés, cristaux lumineux décoratifs.
+
+Camp de bandits/gobelins, Ferme et Sanctuaire laissés tels quels dans ce lot (déjà denses pour leur taille, cul-de-sacs courts) — prochain candidat si besoin d'aller plus loin.
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

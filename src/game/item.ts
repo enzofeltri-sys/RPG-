@@ -19,7 +19,18 @@ export interface ItemStats {
   intelligence?: number;
   agility?: number;
   vitality?: number;
+  armor?: number;
+  fireDamage?: number;
 }
+
+const STAT_LABELS: Record<keyof ItemStats, string> = {
+  strength: 'Force',
+  intelligence: 'Intelligence',
+  agility: 'Agilité',
+  vitality: 'Vitalité',
+  armor: 'Armure',
+  fireDamage: 'Dégâts de feu',
+};
 
 export interface Item {
   id: string;
@@ -35,16 +46,31 @@ interface ItemTemplate {
   name: string;
   category: ItemCategory;
   baseStats: ItemStats;
+  // Extra stats only granted when the item rolls rare (or above later on) —
+  // the "special effect" flavor described in DESIGN.md's loot rules, e.g. a
+  // sword that only catches fire once it's a rare drop.
+  rareOnlyStats?: ItemStats;
 }
 
 const TEMPLATES: ItemTemplate[] = [
-  { baseId: 'short_sword', name: 'Épée courte', category: 'weapon', baseStats: { strength: 2 } },
-  { baseId: 'wooden_shield', name: 'Bouclier en bois', category: 'shield', baseStats: { vitality: 2 } },
-  { baseId: 'leather_helmet', name: 'Casque de cuir', category: 'helmet', baseStats: { vitality: 1 } },
-  { baseId: 'leather_chest', name: 'Plastron de cuir', category: 'chest', baseStats: { vitality: 2 } },
-  { baseId: 'leather_legs', name: 'Jambières de cuir', category: 'legs', baseStats: { vitality: 1, agility: 1 } },
-  { baseId: 'leather_boots', name: 'Bottes de cuir', category: 'boots', baseStats: { agility: 2 } },
-  { baseId: 'leather_gloves', name: 'Gants de cuir', category: 'gloves', baseStats: { strength: 1 } },
+  {
+    baseId: 'short_sword',
+    name: 'Épée courte',
+    category: 'weapon',
+    baseStats: { strength: 2 },
+    rareOnlyStats: { fireDamage: 3 },
+  },
+  { baseId: 'wooden_shield', name: 'Bouclier en bois', category: 'shield', baseStats: { vitality: 2, armor: 3 } },
+  { baseId: 'leather_helmet', name: 'Casque de cuir', category: 'helmet', baseStats: { vitality: 1, armor: 2 } },
+  { baseId: 'leather_chest', name: 'Plastron de cuir', category: 'chest', baseStats: { vitality: 2, armor: 3 } },
+  {
+    baseId: 'leather_legs',
+    name: 'Jambières de cuir',
+    category: 'legs',
+    baseStats: { vitality: 1, agility: 1, armor: 2 },
+  },
+  { baseId: 'leather_boots', name: 'Bottes de cuir', category: 'boots', baseStats: { agility: 2, armor: 1 } },
+  { baseId: 'leather_gloves', name: 'Gants de cuir', category: 'gloves', baseStats: { strength: 1, armor: 1 } },
   { baseId: 'simple_ring', name: 'Anneau simple', category: 'ring', baseStats: { intelligence: 1 } },
   { baseId: 'simple_amulet', name: 'Amulette simple', category: 'amulet', baseStats: { intelligence: 2 } },
 ];
@@ -99,14 +125,46 @@ export function createItem(baseId: string, rarity: Rarity): Item {
   if (!template) {
     throw new Error(`Unknown item template: ${baseId}`);
   }
+  const stats = scaleStats(template.baseStats, RARITY_MULTIPLIER[rarity]);
+  if (rarity !== 'common' && template.rareOnlyStats) {
+    (Object.keys(template.rareOnlyStats) as (keyof ItemStats)[]).forEach((key) => {
+      stats[key] = (stats[key] ?? 0) + (template.rareOnlyStats![key] ?? 0);
+    });
+  }
   return {
     id: `item-${nextItemId++}`,
     baseId: template.baseId,
     name: template.name,
     category: template.category,
     rarity,
-    stats: scaleStats(template.baseStats, RARITY_MULTIPLIER[rarity]),
+    stats,
   };
+}
+
+// Human-readable stat lines for a single item, e.g. ["Force +2", "Armure +3"].
+export function describeItemStats(item: Item): string[] {
+  return (Object.keys(item.stats) as (keyof ItemStats)[])
+    .filter((key) => item.stats[key])
+    .map((key) => `${STAT_LABELS[key]} +${item.stats[key]}`);
+}
+
+// Stat-by-stat comparison against the item currently occupying the slot (if
+// any), so the player can see exactly what equipping `next` would change.
+export function compareItemStats(next: Item, current?: Item): string[] {
+  const keys = new Set<keyof ItemStats>([
+    ...(Object.keys(next.stats) as (keyof ItemStats)[]),
+    ...(current ? (Object.keys(current.stats) as (keyof ItemStats)[]) : []),
+  ]);
+  const lines: string[] = [];
+  keys.forEach((key) => {
+    const nextValue = next.stats[key] ?? 0;
+    const currentValue = current?.stats[key] ?? 0;
+    if (nextValue === 0 && currentValue === 0) return;
+    const diff = nextValue - currentValue;
+    const diffLabel = diff > 0 ? `+${diff}` : `${diff}`;
+    lines.push(`${STAT_LABELS[key]} : ${currentValue} → ${nextValue} (${diffLabel})`);
+  });
+  return lines;
 }
 
 // Loot roll for the current single test monster: modest drop chance, mostly

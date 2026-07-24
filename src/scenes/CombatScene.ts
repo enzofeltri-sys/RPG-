@@ -145,10 +145,15 @@ export class CombatScene extends Phaser.Scene {
     this.setActionsEnabled(false);
 
     const stats = getEffectiveStats(this.character);
-    const damage = Phaser.Math.Between(2, 5) + Math.floor(stats.strength / 2);
+    const baseDamage = Phaser.Math.Between(2, 5) + Math.floor(stats.strength / 2);
+    const damage = baseDamage + stats.fireDamage;
     this.monster.hp -= damage;
     this.refreshBars();
-    this.logText.setText(`Vous infligez ${damage} dégâts.`);
+    this.logText.setText(
+      stats.fireDamage > 0
+        ? `Vous infligez ${damage} dégâts (dont ${stats.fireDamage} de feu).`
+        : `Vous infligez ${damage} dégâts.`,
+    );
 
     if (this.monster.hp <= 0) {
       this.time.delayedCall(600, () => this.victory());
@@ -159,7 +164,8 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private enemyTurn(): void {
-    const damage = Math.max(1, this.monster.attack + Phaser.Math.Between(-1, 2));
+    const armor = getEffectiveStats(this.character).armor;
+    const damage = Math.max(1, this.monster.attack + Phaser.Math.Between(-1, 2) - armor);
     this.character.hp = Math.max(0, this.character.hp - damage);
     this.refreshBars();
     this.logText.setText(`${this.monster.name} vous inflige ${damage} dégâts.`);

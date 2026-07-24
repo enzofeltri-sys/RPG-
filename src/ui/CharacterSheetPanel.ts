@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Character, RACES, CLASSES, xpToNextLevel } from '../game/character';
+import { Character, RACES, CLASSES, xpToNextLevel, getEffectiveStats } from '../game/character';
 import { addCrispText } from './text';
 
 const GOLD = '#e8d9b5';
@@ -24,12 +24,20 @@ export class CharacterSheetPanel {
 
     const raceLabel = RACES[character.race].label;
     const classLabel = CLASSES[character.class].label;
-    const { stats } = character;
+    const stats = getEffectiveStats(character);
 
     const panelBg = scene.add
       .rectangle(10, 44, 190, 300, 0x0b0c10, 0.97)
       .setOrigin(0, 0)
       .setStrokeStyle(1, 0xe8d9b5);
+
+    const statLines = [
+      `Force ${stats.strength}   Int ${stats.intelligence}`,
+      `Agilité ${stats.agility}   Vit ${stats.vitality}`,
+    ];
+    if (stats.armor > 0 || stats.fireDamage > 0) {
+      statLines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
+    }
 
     const panelText = addCrispText(
       scene,
@@ -39,8 +47,7 @@ export class CharacterSheetPanel {
         `${raceLabel} ${classLabel}`,
         `Niveau ${character.level}  (XP ${character.xp}/${xpToNextLevel(character.level)})`,
         '',
-        `Force ${stats.strength}   Int ${stats.intelligence}`,
-        `Agilité ${stats.agility}   Vit ${stats.vitality}`,
+        ...statLines,
         '',
         `PV ${character.hp}/${character.maxHp}`,
         `PM ${character.mp}/${character.maxMp}`,

@@ -8,6 +8,10 @@ export interface CharacterStats {
   intelligence: number;
   agility: number;
   vitality: number;
+  // Always 0 on the base race/class stat block below — these only ever come
+  // from equipped gear, via getEffectiveStats().
+  armor: number;
+  fireDamage: number;
 }
 
 export interface RaceDefinition {
@@ -45,14 +49,14 @@ export const RACES: Record<Race, RaceDefinition> = {
     id: 'human',
     label: 'Humain',
     description: "Royaumes fracturés depuis la Rupture, mais un tempérament robuste et polyvalent.",
-    statBonuses: { strength: 1, intelligence: 1, agility: 1, vitality: 1 },
+    statBonuses: { strength: 1, intelligence: 1, agility: 1, vitality: 1, armor: 0, fireDamage: 0 },
     skills: ['Détermination — une fois par combat, survit à un coup fatal avec 1 PV.'],
   },
   elf: {
     id: 'elf',
     label: 'Elfe',
     description: 'Gardiens reclus du savoir ancien : agiles et perspicaces, mais moins résistants.',
-    statBonuses: { strength: -1, intelligence: 2, agility: 2, vitality: -1 },
+    statBonuses: { strength: -1, intelligence: 2, agility: 2, vitality: -1, armor: 0, fireDamage: 0 },
     skills: [
       'Vue perçante — chance de coup critique augmentée.',
       'Affinité naturelle — régénération de mana plus rapide.',
@@ -65,13 +69,13 @@ export const CLASSES: Record<CharClass, ClassDefinition> = {
     id: 'warrior',
     label: 'Guerrier',
     description: 'Combattant robuste, en première ligne au corps à corps.',
-    baseStats: { strength: 8, intelligence: 3, agility: 5, vitality: 8 },
+    baseStats: { strength: 8, intelligence: 3, agility: 5, vitality: 8, armor: 0, fireDamage: 0 },
   },
   mage: {
     id: 'mage',
     label: 'Mage',
     description: 'Lanceur de sorts fragile mais dévastateur à distance.',
-    baseStats: { strength: 3, intelligence: 9, agility: 4, vitality: 4 },
+    baseStats: { strength: 3, intelligence: 9, agility: 4, vitality: 4, armor: 0, fireDamage: 0 },
   },
 };
 
@@ -83,6 +87,8 @@ export function computeStats(race: Race, charClass: CharClass): CharacterStats {
     intelligence: base.intelligence + bonus.intelligence,
     agility: base.agility + bonus.agility,
     vitality: base.vitality + bonus.vitality,
+    armor: base.armor + bonus.armor,
+    fireDamage: base.fireDamage + bonus.fireDamage,
   };
 }
 
@@ -106,10 +112,13 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
   };
 }
 
-// Saves created before equipment/inventory existed won't have these fields.
+// Saves created before equipment/inventory (or armor/fireDamage stats) existed
+// won't have these fields.
 export function ensureCharacterDefaults(character: Character): Character {
   if (!character.equipment) character.equipment = {};
   if (!character.inventory) character.inventory = [];
+  if (character.stats.armor === undefined) character.stats.armor = 0;
+  if (character.stats.fireDamage === undefined) character.stats.fireDamage = 0;
   return character;
 }
 

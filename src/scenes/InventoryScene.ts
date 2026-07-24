@@ -1,6 +1,14 @@
 import Phaser from 'phaser';
 import { Character, getEffectiveStats } from '../game/character';
-import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, equipSlotLabel } from '../game/item';
+import {
+  Item,
+  EquipSlot,
+  RARITY_LABELS,
+  RARITY_COLORS,
+  equipSlotLabel,
+  describeItemStats,
+  compareItemStats,
+} from '../game/item';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -22,11 +30,23 @@ const SLOT_ORDER: EquipSlot[] = [
   'amulet',
 ];
 
+interface DetailContext {
+  item: Item;
+  fromSlot?: EquipSlot;
+}
+
 export class InventoryScene extends Phaser.Scene {
   private character!: Character;
   private slotTexts: Partial<Record<EquipSlot, Phaser.GameObjects.Text>> = {};
   private inventoryTexts: Phaser.GameObjects.Text[] = [];
   private statsText!: Phaser.GameObjects.Text;
+
+  private detailContext?: DetailContext;
+  private detailBg!: Phaser.GameObjects.Rectangle;
+  private detailTitle!: Phaser.GameObjects.Text;
+  private detailStats!: Phaser.GameObjects.Text;
+  private detailActionButton!: Phaser.GameObjects.Text;
+  private detailCloseButton!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Inventory');
@@ -66,6 +86,8 @@ export class InventoryScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
     backButton.on('pointerdown', () => this.scene.start('Village'));
+
+    this.createDetailOverlay();
   }
 
   private renderSlot(slot: EquipSlot, x: number, y: number): void {
@@ -79,7 +101,10 @@ export class InventoryScene extends Phaser.Scene {
       wordWrap: { width: 92 },
     }).setInteractive({ useHandCursor: true });
 
-    text.on('pointerdown', () => this.unequip(slot));
+    text.on('pointerdown', () => {
+      const equipped = this.character.equipment[slot];
+      if (equipped) this.showDetail(equipped, slot);
+    });
     this.slotTexts[slot] = text;
   }
 
@@ -106,7 +131,7 @@ export class InventoryScene extends Phaser.Scene {
         padding: { x: 6, y: 3 },
       }).setInteractive({ useHandCursor: true });
 
-      text.on('pointerdown', () => this.equip(item));
+      text.on('pointerdown', () => this.showDetail(item));
       this.inventoryTexts.push(text);
     });
 
@@ -121,16 +146,17 @@ export class InventoryScene extends Phaser.Scene {
     }
   }
 
-  private async equip(item: Item): Promise<void> {
-    const slot: EquipSlot =
-      item.category === 'ring'
-        ? !this.character.equipment.ring1
-          ? 'ring1'
-          : !this.character.equipment.ring2
-            ? 'ring2'
-            : 'ring1'
-        : item.category;
+  // Where equip() would place this item — used both to actually equip it and
+  // to know which currently-equipped item to compare it against.
+  private resolveEquipSlot(item: Item): EquipSlot {
+    if (item.category !== 'ring') return item.category;
+    if (!this.character.equipment.ring1) return 'ring1';
+    if (!this.character.equipment.ring2) return 'ring2';
+    return 'ring1';
+  }
 
+  private async equip(item: Item): Promise<void> {
+    const slot = this.resolveEquipSlot(item);
     const previous = this.character.equipment[slot];
     this.character.equipment[slot] = item;
     this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
@@ -166,10 +192,98 @@ export class InventoryScene extends Phaser.Scene {
 
   private refreshStats(): void {
     const stats = getEffectiveStats(this.character);
-    this.statsText.setText(
-      [`Force ${stats.strength}   Int ${stats.intelligence}`, `Agilité ${stats.agility}   Vit ${stats.vitality}`].join(
-        '\n',
-      ),
-    );
+    const lines = [
+      `Force ${stats.strength}   Int ${stats.intelligence}`,
+      `Agilité ${stats.agility}   Vit ${stats.vitality}`,
+    ];
+    if (stats.armor > 0 || stats.fireDamage > 0) {
+      lines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
+    }
+    this.statsText.setText(lines.join('\n'));
+  }
+
+  // Detail/comparison overlay: tapping any item (equipped or not) opens this
+  // instead of acting immediately, so stats can be checked before committing.
+  // Buttons are kept top-level per the project's Container-hit-testing rule.
+  private createDetailOverlay(): void {
+    const { width } = this.scale;
+
+    this.detailBg = this.add
+      .rectangle(10, 48, width - 20, 276, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setStrokeStyle(1, 0xe8d9b5)
+      .setDepth(900)
+      .setVisible(false);
+
+    this.detailTitle = addCrispText(this, 20, 58, '', { fontSize: '12px', color: GOLD })
+      .setDepth(901)
+      .setVisible(false);
+
+    this.detailStats = addCrispText(this, 20, 80, '', {
+      fontSize: '9px',
+      color: GOLD,
+      lineSpacing: 6,
+      wordWrap: { width: width - 40 },
+    })
+      .setDepth(901)
+      .setVisible(false);
+
+    this.detailActionButton = addCrispText(this, 20, 272, 'Équiper', {
+      fontSize: '11px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 8, y: 5 },
+    })
+      .setDepth(901)
+      .setInteractive({ useHandCursor: true })
+      .setVisible(false);
+    this.detailActionButton.on('pointerdown', () => this.handleDetailAction());
+
+    this.detailCloseButton = addCrispText(this, 20, 300, 'Fermer', {
+      fontSize: '11px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 8, y: 5 },
+    })
+      .setDepth(901)
+      .setInteractive({ useHandCursor: true })
+      .setVisible(false);
+    this.detailCloseButton.on('pointerdown', () => this.hideDetail());
+  }
+
+  private showDetail(item: Item, fromSlot?: EquipSlot): void {
+    this.detailContext = { item, fromSlot };
+
+    const lines = fromSlot ? describeItemStats(item) : compareItemStats(item, this.character.equipment[this.resolveEquipSlot(item)]);
+
+    this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
+    this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
+    this.detailActionButton.setText(fromSlot ? 'Déséquiper' : 'Équiper');
+
+    this.detailBg.setVisible(true);
+    this.detailTitle.setVisible(true);
+    this.detailStats.setVisible(true);
+    this.detailActionButton.setVisible(true);
+    this.detailCloseButton.setVisible(true);
+  }
+
+  private hideDetail(): void {
+    this.detailContext = undefined;
+    this.detailBg.setVisible(false);
+    this.detailTitle.setVisible(false);
+    this.detailStats.setVisible(false);
+    this.detailActionButton.setVisible(false);
+    this.detailCloseButton.setVisible(false);
+  }
+
+  private async handleDetailAction(): Promise<void> {
+    if (!this.detailContext) return;
+    const { item, fromSlot } = this.detailContext;
+    this.hideDetail();
+    if (fromSlot) {
+      await this.unequip(fromSlot);
+    } else {
+      await this.equip(item);
+    }
   }
 }

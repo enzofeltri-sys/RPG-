@@ -90,6 +90,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'marsh_serpent', count: 3 },
     reward: { xp: 95, itemBaseId: 'wooden_shield', itemRarity: 'common' },
   },
+  marsh_patrol_matriarch: {
+    id: 'marsh_patrol_matriarch',
+    title: 'La mère des marais',
+    description:
+      "Les serpents ne faisaient qu'obéir à leur instinct — quelque chose de bien plus gros les rassemble, tapi au fond des marais. Traquez-la.",
+    objective: { type: 'defeat', monsterId: 'marsh_matriarch', count: 1 },
+    reward: { xp: 140, itemBaseId: 'wooden_shield', itemRarity: 'rare' },
+  },
   city_road_patrol: {
     id: 'city_road_patrol',
     title: 'Patrouille de la route commerciale',

@@ -46,6 +46,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 14,
   },
   marsh_serpent: { id: 'marsh_serpent', name: 'Serpent des marais', maxHp: 24, attack: 6, xpReward: 45, goldReward: 12 },
+  marsh_matriarch: {
+    id: 'marsh_matriarch',
+    name: 'Matriarche des marais',
+    maxHp: 50,
+    attack: 10,
+    xpReward: 120,
+    goldReward: 35,
+    isBoss: true,
+  },
   corrupted_tome: {
     id: 'corrupted_tome',
     name: 'Grimoire corrompu',

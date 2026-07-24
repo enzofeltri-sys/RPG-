@@ -1,0 +1,220 @@
+import Phaser from 'phaser';
+import { TapController } from '../input/TapController';
+import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { SaveManager } from '../save/SaveManager';
+import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
+import { addCrispText } from '../ui/text';
+
+// Wide enough to fill the portrait canvas at every camera position — see
+// HamletScene's WORLD_HEIGHT comment. Same medium-difficulty gabarit as
+// WarehouseScene: a gate, guaranteed boss loot, no signature reward —
+// région 3's own first "moyen" dungeon.
+const WORLD_WIDTH = 220;
+const WORLD_HEIGHT = 420;
+const GATE_Y = 190;
+
+interface EncounterMarker {
+  monsterId: string;
+  x: number;
+  y: number;
+  label: string;
+}
+
+const ENCOUNTERS: EncounterMarker[] = [
+  { monsterId: 'marsh_serpent', x: WORLD_WIDTH / 2, y: 320, label: 'Serpents' },
+  { monsterId: 'marsh_serpent', x: WORLD_WIDTH / 2, y: 250, label: 'Serpents' },
+];
+
+const BOSS_MONSTER_ID = 'marsh_matriarch';
+
+interface MarshLairData {
+  // Set by CombatScene when handing control back after a fight, or by the Menu
+  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
+  // mid-run" from a genuine fresh entry via the Relais's north zone.
+  resume?: boolean;
+  x?: number;
+  y?: number;
+}
+
+export class MarshLairScene extends Phaser.Scene {
+  private player!: PlayerSprite;
+  private tapControl!: TapController;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private isTransitioning = false;
+  private clearedMonsterIds = new Set<string>();
+  private gate?: Phaser.GameObjects.Rectangle;
+  private gateCollider?: Phaser.Physics.Arcade.Collider;
+  private gateLabel?: Phaser.GameObjects.Text;
+  private spawnX?: number;
+  private spawnY?: number;
+
+  constructor() {
+    super('MarshLair');
+  }
+
+  init(data: MarshLairData): void {
+    if (!data?.resume) {
+      this.clearedMonsterIds = new Set();
+    }
+    this.spawnX = data?.x;
+    this.spawnY = data?.y;
+  }
+
+  async create(): Promise<void> {
+    this.isTransitioning = false;
+    this.cameras.main.setBackgroundColor('#243020');
+
+    addCrispText(this, this.scale.width / 2, 12, 'La Tanière des marais', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(500);
+
+    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.fadeIn(300);
+
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.tapControl = new TapController(this, this.player);
+
+    this.addReedPatches();
+    const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
+    if (remaining.length > 0) {
+      this.addGate();
+      remaining.forEach((encounter) => this.addEncounterZone(encounter));
+    }
+    if (!this.clearedMonsterIds.has(BOSS_MONSTER_ID)) {
+      this.addBossZone();
+    }
+
+    const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(exitZone, true);
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveMarshLair());
+
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
+    const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
+    if (save?.character) {
+      new CharacterSheetPanel(
+        this,
+        save.character,
+        'MarshLair',
+        () => ({ x: this.player.x, y: this.player.y }),
+        (open) => {
+          this.tapControl.setEnabled(!open);
+        },
+      );
+    }
+  }
+
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
+  }
+
+  private addReedPatches(): void {
+    // Purely decorative, kept well clear of the center corridor (x=110) that
+    // the encounters, gate, and boss zone all sit on.
+    const patch = (x: number, y: number, w: number, h: number) => {
+      const rect = this.add.rectangle(x, y, w, h, 0x2e3a22).setStrokeStyle(1, 0x141a10);
+      this.physics.add.existing(rect, true);
+      this.physics.add.collider(this.player, rect);
+    };
+    patch(20, 360, 30, 60);
+    patch(WORLD_WIDTH - 20, 280, 30, 60);
+    patch(20, 140, 30, 60);
+  }
+
+  private addGate(): void {
+    this.gate = this.add
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2e3a22)
+      .setStrokeStyle(1, 0x141a10);
+    this.physics.add.existing(this.gate, true);
+    this.gateCollider = this.physics.add.collider(this.player, this.gate);
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Racines entremêlées', {
+      fontSize: '8px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+  }
+
+  private openGateIfCleared(): void {
+    if (this.clearedMonsterIds.size < ENCOUNTERS.length) return;
+    this.gateCollider?.destroy();
+    this.gate?.destroy();
+    this.gateLabel?.destroy();
+  }
+
+  private addEncounterZone(encounter: EncounterMarker): void {
+    const marker = this.add
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x3a4a2a, 0.8)
+      .setStrokeStyle(1, 0x0b0c10);
+    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
+      fontSize: '8px',
+      color: '#e8d9b5',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
+    this.physics.add.existing(zone, true);
+
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      marker.destroy();
+      label.destroy();
+      zone.destroy();
+      this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
+      this.openGateIfCleared();
+      this.startCombat(encounter.monsterId);
+    });
+  }
+
+  private addBossZone(): void {
+    const x = WORLD_WIDTH / 2;
+    const y = 70;
+    this.add.rectangle(x, y, 50, 50, 0x1f4a2a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Antre de la Matriarche', {
+      fontSize: '9px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(x, y, 50, 50);
+    this.physics.add.existing(zone, true);
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      this.clearedMonsterIds.add(BOSS_MONSTER_ID);
+      this.startCombat(BOSS_MONSTER_ID);
+    });
+  }
+
+  private startCombat(monsterId: string): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(250, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Combat', { returnScene: 'MarshLair', monsterId, x: this.player.x, y: this.player.y });
+    });
+  }
+
+  private leaveMarshLair(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('HunterOutpost', { x: 190, y: 40 });
+    });
+  }
+}

@@ -14,6 +14,7 @@ const WORLD_HEIGHT = 300;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'marsh_patrol';
+const MATRIARCH_QUEST_ID = 'marsh_patrol_matriarch';
 
 interface HunterOutpostData {
   x?: number;
@@ -85,6 +86,18 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, westZone, () => this.leaveOutpost());
 
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Route fluviale', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    // North zone — région 3's own first dungeon, tracked down by the second
+    // half of the hunter's quest chain.
+    const marshLairZone = this.add.zone(WORLD_WIDTH / 2, 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(marshLairZone, true);
+    this.physics.add.overlap(this.player, marshLairZone, () => this.enterMarshLair());
+
+    addCrispText(this, WORLD_WIDTH / 2, 30, 'Tanière des marais ↑', {
       fontSize: '9px',
       color: '#9aa0a6',
       align: 'center',
@@ -162,6 +175,52 @@ export class HunterOutpostScene extends Phaser.Scene {
       return;
     }
 
+    this.talkToHunterAboutMatriarch();
+  }
+
+  // Reached only once marsh_patrol is turned in — a short local follow-up
+  // pointing at la Tanière des marais (MarshLairScene), tying that dungeon
+  // into this quest rather than leaving it a standalone fight.
+  private talkToHunterAboutMatriarch(): void {
+    const quest = QUESTS[MATRIARCH_QUEST_ID];
+    const progress = getQuestProgress(this.character, MATRIARCH_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, MATRIARCH_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nElle est tapie quelque part au nord, dans la tanière.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLes marais respirent enfin. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, MATRIARCH_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
     this.openDialog('Les pièges rapportent de nouveau, grâce à vous.', [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
@@ -212,6 +271,15 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
     this.tapControl.setEnabled(true);
+  }
+
+  private enterMarshLair(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('MarshLair');
+    });
   }
 
   private leaveOutpost(): void {

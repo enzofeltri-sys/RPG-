@@ -3,6 +3,7 @@ import { Character, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, createTestMonster, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
+import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { CONSUMABLES, useConsumable } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -255,6 +256,7 @@ export class CombatScene extends Phaser.Scene {
     }
 
     const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
+    const mainQuestAdvanced = advanceMainQuestOnBossDefeat(this.character, this.monster.id);
 
     await SaveManager.saveCharacter(this.character);
     this.refreshBars();
@@ -267,7 +269,8 @@ export class CombatScene extends Phaser.Scene {
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
-    this.logText.setText(xpPart + lootPart + signaturePart + questPart);
+    const mainQuestPart = mainQuestAdvanced ? ' La marque à votre poignet palpite soudain...' : '';
+    this.logText.setText(xpPart + lootPart + signaturePart + questPart + mainQuestPart);
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 

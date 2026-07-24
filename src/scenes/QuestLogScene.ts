@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress } from '../game/quest';
+import { MAIN_QUEST_TITLE, MainQuestStage, getMainQuestStage } from '../game/mainQuest';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -10,6 +11,22 @@ const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const ACTIVE_COLOR = '#4fa3e3';
 const DONE_COLOR = '#5fbf6a';
+
+const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; description: string }> = {
+  not_started: { label: 'Non commencée', color: MUTED, description: 'Parlez à Aldric, à Basse-Combe.' },
+  dungeon: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez au Repaire du Loup et affrontez ce qui commande à la meute.',
+  },
+  revelation: { label: 'En cours', color: ACTIVE_COLOR, description: 'Retournez voir Aldric, à Basse-Combe.' },
+  aiglemont: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Trouvez la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  complete: { label: 'Terminée', color: DONE_COLOR, description: 'Le mystère de la marque ne fait que commencer...' },
+};
 
 export class QuestLogScene extends Phaser.Scene {
   private character!: Character;
@@ -35,6 +52,21 @@ export class QuestLogScene extends Phaser.Scene {
     addCrispText(this, width / 2, 14, 'Quêtes', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
 
     let y = 40;
+
+    const mainStage = getMainQuestStage(this.character);
+    const mainStatus = MAIN_QUEST_STATUS[mainStage];
+    addCrispText(this, 12, y, MAIN_QUEST_TITLE, { fontSize: '12px', color: GOLD }).setOrigin(0, 0);
+    y += 18;
+    addCrispText(this, 12, y, mainStatus.label, { fontSize: '9px', color: mainStatus.color }).setOrigin(0, 0);
+    y += 16;
+    addCrispText(this, 12, y, mainStatus.description, {
+      fontSize: '9px',
+      color: MUTED,
+      wordWrap: { width: width - 24 },
+      lineSpacing: 3,
+    }).setOrigin(0, 0);
+    y += 50;
+
     Object.values(QUESTS).forEach((quest) => {
       const progress = getQuestProgress(this.character, quest.id);
 

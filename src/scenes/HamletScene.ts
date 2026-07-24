@@ -4,6 +4,7 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
@@ -249,7 +250,64 @@ export class HamletScene extends Phaser.Scene {
       return;
     }
 
-    this.openDialog("Merci encore pour votre aide contre les loups corrompus.", [
+    this.talkToMentorAboutMark();
+  }
+
+  // Reached only once wolves_threat is turned in — the main quest thread
+  // (Acte 1 de DESIGN.md) picks up from there.
+  private talkToMentorAboutMark(): void {
+    const stage = getMainQuestStage(this.character);
+
+    if (stage === 'not_started') {
+      this.openDialog(
+        "Aldric fronce les sourcils. « Ces loups n'agissaient pas comme des bêtes ordinaires. Il y a autre chose dans leur repaire — quelque chose qui les pousse à cette folie. Retournez-y, et affrontez ce qui commande à la meute. Je crains que cela ne vous concerne plus que vous ne le pensez. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'dungeon');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'dungeon') {
+      this.openDialog('Le Repaire du Loup, au nord du Champ. Trouvez ce qui commande à la meute.', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'revelation') {
+      this.openDialog(
+        "Vous racontez à Aldric ce que vous avez trouvé dans l'antre du loup alpha. Son regard s'assombrit en voyant la marque qui luit faiblement sur votre peau depuis le combat. « Ce n'est pas une simple morsure, mon enfant... cette marque appelle quelque chose de très ancien. Je ne peux pas t'aider davantage — mais à Aiglemont, la Guilde des Mages étudie ce genre de choses depuis des décennies. Trouve leur mage, Sélène. Elle saura, elle. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'aiglemont');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'aiglemont') {
+      this.openDialog('Rendez-vous à la Tour des Mages, à Aiglemont, et trouvez Sélène.', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    this.openDialog('Faites attention à vous, à Aiglemont. Basse-Combe pense à vous.', [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
   }

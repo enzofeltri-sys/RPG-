@@ -148,6 +148,16 @@ Camp de bandits/gobelins, Ferme et Sanctuaire laissés tels quels dans ce lot (d
 
 **Bug réel trouvé en testant (corrigé dans les deux donjons à boss existants)** : la zone de déclenchement du combat de boss n'était jamais retirée après la victoire (contrairement aux rencontres régulières, qui se détruisent une fois déclenchées) — et le point de retour après un combat est exactement la position où le joueur se tenait en le déclenchant. Revenir dans la scène juste après avoir vaincu le boss retombait donc instantanément dans la même zone et relançait aussitôt un nouveau combat, en boucle. Corrigé dans `DungeonScene` (bug préexistant, jamais remarqué jusqu'ici) et `CatacombsScene` : la zone de boss suit maintenant le même principe que les rencontres régulières (détruite au premier déclenchement, suivie dans `clearedMonsterIds`, ne réapparaît pas après un `resume`).
 
+**Quête principale — pont Acte 1 → Acte 2 (suite immédiate)** : jusqu'ici, aucune quête ne reliait le village de départ à Aiglemont — seulement des quêtes locales indépendantes. `src/game/mainQuest.ts` (nouveau) introduit ce fil narrateur, volontairement à part du moteur générique `quest.ts` (conçu pour de simples quêtes "vaincre N monstres" — un fil unique et linéaire n'a pas besoin d'un moteur multi-objectifs générique). `character.mainQuestStage` (`'not_started' | 'dungeon' | 'revelation' | 'aiglemont' | 'complete'`) suit la progression, avec récompense (XP + objet) à chaque étape franchie.
+- **Basse-Combe (Aldric)** — une fois la quête locale des loups rendue, une nouvelle conversation avec Aldric démarre le fil principal et pointe vers le Repaire du Loup.
+- **Repaire du Loup** — vaincre le boss fait avancer l'étape, quelle que soit la scène de départ du combat (`CombatScene.victory()`, même mécanisme que `advanceQuestsOnDefeat`).
+- **Basse-Combe (Aldric)** — retour obligé pour la suite : dialogue de révélation, récompense, et renvoi vers Aiglemont.
+- **Aiglemont (Mage Sélène)** — dialogue de conclusion de l'Acte 1, récompense finale ; les lignes de lore habituelles de Sélène reprennent normalement après.
+
+La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLogScene`), avec son propre statut par étape — séparée de la liste générique des quêtes secondaires.
+
+**Non-bug/limite connue notée en testant** : l'écran Quêtes n'a pas de défilement — avec 6 entrées maintenant listées (la quête principale + 5 secondaires), le bas de la liste dépasse déjà la hauteur de l'écran et chevauche le bouton "Retour". Ce n'était pas non plus parfaitement propre avant cet ajout (5 quêtes suffisaient presque à déborder) ; pas corrigé dans ce lot pour rester concentré sur la quête principale, mais à traiter avant d'ajouter encore plus de quêtes secondaires.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

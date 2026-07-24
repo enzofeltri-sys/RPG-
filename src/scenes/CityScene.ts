@@ -4,6 +4,7 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -277,6 +278,23 @@ export class CityScene extends Phaser.Scene {
   }
 
   private talkToMage(): void {
+    if (getMainQuestStage(this.character) === 'aiglemont') {
+      this.openDialog(
+        "Sélène examine votre marque avec une attention presque inquiète. « Je l'ai déjà vue, en théorie — dans les textes sur le rituel de scellement originel. Si elle s'éveille chez vous, c'est qu'un déséquilibre progresse quelque part. » Elle marque une pause. « Des rapports nous parviennent de plusieurs cités : des éclats du sceau disparaissent de leurs lieux de garde, un par un. Ce n'est pas le hasard qui répand la corruption. Quelqu'un l'orchestre. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'complete');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
     const text = MAGE_LINES[this.mageLineIndex % MAGE_LINES.length];
     this.mageLineIndex += 1;
     this.openDialog(text, [{ label: 'Fermer', onClick: () => this.closeDialog() }]);

@@ -1,6 +1,7 @@
 import { EquipSlot, Item, ItemStats } from './item';
 import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
+import type { MainQuestStage } from './mainQuest';
 
 export type Race = 'human' | 'elf';
 export type CharClass = 'warrior' | 'mage';
@@ -49,6 +50,8 @@ export interface Character {
   materials: Record<string, number>;
   consumables: Record<string, number>;
   questItems: QuestItem[];
+  // Undefined on older saves and treated as 'not_started' — see mainQuest.ts.
+  mainQuestStage?: MainQuestStage;
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -121,6 +124,7 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     materials: {},
     consumables: {},
     questItems: [],
+    mainQuestStage: 'not_started',
   };
 }
 

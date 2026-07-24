@@ -97,7 +97,12 @@ export class HamletScene extends Phaser.Scene {
       this.handleAction(),
     );
 
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
     const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
     if (save?.character) {
       this.character = save.character;
       new CharacterSheetPanel(

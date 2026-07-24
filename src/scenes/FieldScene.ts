@@ -6,6 +6,7 @@ import { materialLabel, MaterialId } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { createTouchButton } from '../ui/TouchButton';
+import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
@@ -107,9 +108,9 @@ export class FieldScene extends Phaser.Scene {
     this.physics.add.existing(dungeonZone, true);
     this.physics.add.overlap(this.player, dungeonZone, () => this.enterDungeon());
 
-    const townZone = this.add.zone(WORLD_WIDTH - 10, 340, 20, 140);
-    this.physics.add.existing(townZone, true);
-    this.physics.add.overlap(this.player, townZone, () => this.enterTown());
+    const forestZone = this.add.zone(WORLD_WIDTH - 10, 340, 20, 140);
+    this.physics.add.existing(forestZone, true);
+    this.physics.add.overlap(this.player, forestZone, () => this.enterForest());
 
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Repaire du Loup ↑', {
       fontSize: '11px',
@@ -122,11 +123,19 @@ export class FieldScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    addCrispText(this, WORLD_WIDTH - 20, 340, 'Valombre →', {
+    addCrispText(this, WORLD_WIDTH - 20, 340, 'Forêt →', {
       fontSize: '10px',
       color: '#9aa0a6',
       align: 'center',
     }).setOrigin(0.5);
+
+    // Crossroads landmark near the bridge, the natural meeting point of the
+    // three roads (hameau/Repaire du Loup/Forêt vers Valombre).
+    addSignpost(this, BRIDGE_X + BRIDGE_WIDTH / 2, RIVER_Y + 50, [
+      '↓ Basse-Combe',
+      '↑ Repaire du Loup',
+      '→ Forêt (vers Valombre)',
+    ]);
 
     GATHER_NODES.forEach((node) => {
       this.add.rectangle(node.x, node.y, 16, 16, 0x6b5a3a).setStrokeStyle(1, 0x0b0c10);
@@ -137,7 +146,12 @@ export class FieldScene extends Phaser.Scene {
       this.handleAction(),
     );
 
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
     const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
     if (save?.character) {
       this.character = save.character;
       new CharacterSheetPanel(
@@ -223,12 +237,12 @@ export class FieldScene extends Phaser.Scene {
     });
   }
 
-  private enterTown(): void {
+  private enterForest(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Village', { x: 240, y: 60 });
+      this.scene.start('Forest', { x: 40, y: 150 });
     });
   }
 

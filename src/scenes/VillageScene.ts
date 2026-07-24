@@ -81,7 +81,7 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveVillage());
 
-    addCrispText(this, WORLD_WIDTH / 2, 40, 'Vers le Champ ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 40, 'Vers la Grotte ↑', {
       fontSize: '11px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -90,7 +90,12 @@ export class VillageScene extends Phaser.Scene {
       this.handleAction(),
     );
 
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
     const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
     if (save?.character) {
       new CharacterSheetPanel(
         this,
@@ -174,7 +179,7 @@ export class VillageScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Field', { x: 430, y: 340 });
+      this.scene.start('Cave', { x: 100, y: 40 });
     });
   }
 }

@@ -96,7 +96,12 @@ export class DungeonScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
     const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
     if (save?.character) {
       new CharacterSheetPanel(
         this,

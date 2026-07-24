@@ -5,6 +5,8 @@ import { CharacterCreationScene } from './scenes/CharacterCreationScene';
 import { HamletScene } from './scenes/HamletScene';
 import { VillageScene } from './scenes/VillageScene';
 import { FieldScene } from './scenes/FieldScene';
+import { ForestScene } from './scenes/ForestScene';
+import { CaveScene } from './scenes/CaveScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
@@ -94,6 +96,8 @@ async function boot(): Promise<void> {
       HamletScene,
       VillageScene,
       FieldScene,
+      ForestScene,
+      CaveScene,
       DungeonScene,
       CombatScene,
       InventoryScene,

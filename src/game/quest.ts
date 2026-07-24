@@ -42,6 +42,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'corrupted_wolf', count: 3 },
     reward: { xp: 60, itemBaseId: 'leather_gloves', itemRarity: 'common' },
   },
+  crop_pests: {
+    id: 'crop_pests',
+    title: 'Rongeurs dans les récoltes',
+    description:
+      "Des rats des champs saccagent les récoltes depuis quelques nuits. Éliminez-en 3 pour protéger la ferme.",
+    objective: { type: 'defeat', monsterId: 'field_rat', count: 3 },
+    reward: { xp: 50, itemBaseId: 'leather_boots', itemRarity: 'common' },
+  },
   bandit_camp_threat: {
     id: 'bandit_camp_threat',
     title: 'Bandits sur la route',

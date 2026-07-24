@@ -2,7 +2,17 @@
 // the player back to exactly where they were — the scene they came from, at the
 // exact spot they stood — instead of always landing back at that scene's default
 // spawn point.
-export type ReturnSceneKey = 'Village' | 'Field' | 'Dungeon' | 'Hamlet' | 'Forest' | 'Cave' | 'BanditCamp' | 'GoblinCamp';
+export type ReturnSceneKey =
+  | 'Village'
+  | 'Field'
+  | 'Dungeon'
+  | 'Hamlet'
+  | 'Forest'
+  | 'Cave'
+  | 'BanditCamp'
+  | 'GoblinCamp'
+  | 'Farm'
+  | 'Shrine';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;

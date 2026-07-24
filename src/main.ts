@@ -9,6 +9,8 @@ import { ForestScene } from './scenes/ForestScene';
 import { CaveScene } from './scenes/CaveScene';
 import { BanditCampScene } from './scenes/BanditCampScene';
 import { GoblinCampScene } from './scenes/GoblinCampScene';
+import { FarmScene } from './scenes/FarmScene';
+import { ShrineScene } from './scenes/ShrineScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
@@ -102,6 +104,8 @@ async function boot(): Promise<void> {
       CaveScene,
       BanditCampScene,
       GoblinCampScene,
+      FarmScene,
+      ShrineScene,
       DungeonScene,
       CombatScene,
       InventoryScene,

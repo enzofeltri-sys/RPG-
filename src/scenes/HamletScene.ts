@@ -93,6 +93,19 @@ export class HamletScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // Two more region-1 landmarks from VISION.md ("ferme isolée", "petit
+    // sanctuaire"), kept clear of the north exit zone and both buildings.
+    const farmZone = this.add.zone(10, 140, 20, 160);
+    this.physics.add.existing(farmZone, true);
+    this.physics.add.overlap(this.player, farmZone, () => this.leaveToFarm());
+
+    const shrineZone = this.add.zone(WORLD_WIDTH - 10, 140, 20, 160);
+    this.physics.add.existing(shrineZone, true);
+    this.physics.add.overlap(this.player, shrineZone, () => this.leaveToShrine());
+
+    addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
       this.handleAction(),
     );
@@ -272,6 +285,24 @@ export class HamletScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Field', { x: 240, y: 440 });
+    });
+  }
+
+  private leaveToFarm(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Farm');
+    });
+  }
+
+  private leaveToShrine(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Shrine');
     });
   }
 }

@@ -190,7 +190,7 @@ export class DungeonScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'Dungeon', monsterId });
+      this.scene.start('Combat', { returnScene: 'Dungeon', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -199,7 +199,7 @@ export class DungeonScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Field');
+      this.scene.start('Field', { x: 240, y: 40 });
     });
   }
 }

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './fonts.css';
 import { TitleScene } from './scenes/TitleScene';
 import { CharacterCreationScene } from './scenes/CharacterCreationScene';
+import { HamletScene } from './scenes/HamletScene';
 import { VillageScene } from './scenes/VillageScene';
 import { FieldScene } from './scenes/FieldScene';
 import { DungeonScene } from './scenes/DungeonScene';
@@ -90,6 +91,7 @@ async function boot(): Promise<void> {
     scene: [
       TitleScene,
       CharacterCreationScene,
+      HamletScene,
       VillageScene,
       FieldScene,
       DungeonScene,

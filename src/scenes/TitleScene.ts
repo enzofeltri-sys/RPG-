@@ -28,7 +28,7 @@ export class TitleScene extends Phaser.Scene {
     if (hasSave) {
       this.createButton(width / 2, height * 0.63, 'Continuer', async () => {
         await SaveManager.load();
-        this.scene.start('Village');
+        this.scene.start('Hamlet');
       });
     }
   }

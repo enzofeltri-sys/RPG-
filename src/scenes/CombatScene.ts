@@ -5,6 +5,7 @@ import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { CONSUMABLES, useConsumable } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
+import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
 
 const GOLD = '#e8d9b5';
@@ -13,15 +14,19 @@ const MUTED = '#9aa0a6';
 const BAR_WIDTH = 160;
 
 interface CombatData {
-  returnScene?: string;
+  returnScene?: ReturnSceneKey;
   monsterId?: string;
+  x?: number;
+  y?: number;
 }
 
 export class CombatScene extends Phaser.Scene {
   private character!: Character;
   private monster!: Monster;
-  private returnScene = 'Field';
+  private returnScene: ReturnSceneKey = 'Field';
   private monsterId?: string;
+  private returnX?: number;
+  private returnY?: number;
   private busy = false;
   private ended = false;
 
@@ -43,6 +48,8 @@ export class CombatScene extends Phaser.Scene {
   init(data: CombatData): void {
     this.returnScene = data?.returnScene ?? 'Field';
     this.monsterId = data?.monsterId;
+    this.returnX = data?.x;
+    this.returnY = data?.y;
     this.busy = false;
     this.ended = false;
     this.actionButtons = [];
@@ -248,8 +255,8 @@ export class CombatScene extends Phaser.Scene {
     this.hideActions();
     this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
     await SaveManager.saveCharacter(this.character);
-    this.logText.setText('Vous avez été vaincu... et ramené au village.');
-    this.showContinue(() => this.leaveTo('Village'));
+    this.logText.setText('Vous avez été vaincu... et ramené au hameau.');
+    this.showContinue(() => this.leaveTo('Hamlet'));
   }
 
   private showContinue(onClick: () => void): void {
@@ -265,15 +272,20 @@ export class CombatScene extends Phaser.Scene {
     this.continueButton.on('pointerdown', onClick);
   }
 
-  private leaveTo(sceneKey: string): void {
+  private leaveTo(sceneKey: ReturnSceneKey): void {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      // { resume: true } lets DungeonScene tell a genuine re-entry (from Field)
-      // apart from a round trip back from a fight — Phaser reuses the same
-      // scene instance across scene.start() calls, so without this the dungeon
-      // would silently reset (respawning already-cleared encounters) every
-      // time a fight ends. Harmless no-op for scenes that ignore init data.
-      this.scene.start(sceneKey, { resume: true });
+      // Only carry the pre-fight position back when returning to the same
+      // scene the fight started in (Field/Dungeon) — on defeat we're sent to
+      // a different scene entirely (Hamlet), where that position is
+      // meaningless, so it falls back to that scene's own default spawn.
+      // returnSceneStartData also sets resume:true for Dungeon, so a fight
+      // round trip there doesn't wipe cleared-encounter progress.
+      const data =
+        sceneKey === this.returnScene
+          ? returnSceneStartData(sceneKey, this.returnX, this.returnY)
+          : returnSceneStartData(sceneKey);
+      this.scene.start(sceneKey, data);
     });
   }
 }

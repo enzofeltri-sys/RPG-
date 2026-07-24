@@ -112,6 +112,6 @@ export class CharacterCreationScene extends Phaser.Scene {
   private async confirm(): Promise<void> {
     const character = createCharacter(this.race, this.charClass);
     await SaveManager.saveCharacter(character);
-    this.scene.start('Village');
+    this.scene.start('Hamlet');
   }
 }

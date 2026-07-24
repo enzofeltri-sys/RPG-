@@ -1,9 +1,6 @@
 import Phaser from 'phaser';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
-import { Character } from '../game/character';
-import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
-import { materialLabel, MaterialId } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { createTouchButton } from '../ui/TouchButton';
@@ -12,28 +9,17 @@ import { addCrispText } from '../ui/text';
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
 const INTERACT_RADIUS = 60;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-
-const VILLAGER_QUEST_ID = 'wolves_threat';
 
 interface VillageData {
   x?: number;
   y?: number;
 }
 
-interface GatherNode {
-  x: number;
-  y: number;
-  materialId: MaterialId;
-  label: string;
-}
-
-const GATHER_NODES: GatherNode[] = [
-  { x: 400, y: 300, materialId: 'iron_ore', label: 'Gisement de fer' },
-  { x: 250, y: 480, materialId: 'herb', label: 'Herbes sauvages' },
-];
-
+// Valombre — the full-service town (forge, marchande), reached by crossing
+// the Champ from the player's home hamlet (Basse-Combe, HamletScene). No
+// quest-giver or gathering here anymore (increment 9 world pass) — those
+// live in the hamlet and the Champ respectively, so Valombre reads as a real
+// town you travel to rather than the same small starting point.
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private joystick!: VirtualJoystick;
@@ -41,12 +27,9 @@ export class VillageScene extends Phaser.Scene {
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
   private messageText?: Phaser.GameObjects.Text;
-  private character!: Character;
-  private npc!: Phaser.GameObjects.Rectangle;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
   private actionButton!: Phaser.GameObjects.Text;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
 
@@ -62,8 +45,15 @@ export class VillageScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
-    this.dialogElements = [];
     this.drawGround();
+
+    addCrispText(this, this.scale.width / 2, 12, 'Valombre', {
+      fontSize: '11px',
+      color: '#9aa0a6',
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(500);
 
     this.addBuilding(120, 160, 70, 50);
     this.addBuilding(300, 210, 60, 60);
@@ -71,22 +61,12 @@ export class VillageScene extends Phaser.Scene {
     addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     this.addBuilding(340, 460, 60, 70);
 
-    this.npc = this.add.rectangle(120, 225, 14, 20, 0x3a5a7a).setStrokeStyle(1, 0x0b0c10);
-    this.physics.add.existing(this.npc, true);
-    addCrispText(this, 120, 205, 'Villageois', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
-
     this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
-    GATHER_NODES.forEach((node) => {
-      this.add.rectangle(node.x, node.y, 16, 16, 0x6b5a3a).setStrokeStyle(1, 0x0b0c10);
-      addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
-    });
-
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
-    this.physics.add.collider(this.player, this.npc);
     this.physics.add.collider(this.player, this.merchantNpc);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -101,7 +81,7 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveVillage());
 
-    addCrispText(this, WORLD_WIDTH / 2, 40, 'Sortie du village ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 40, 'Vers le Champ ↑', {
       fontSize: '11px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -112,7 +92,6 @@ export class VillageScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     if (save?.character) {
-      this.character = save.character;
       new CharacterSheetPanel(
         this,
         save.character,
@@ -156,11 +135,6 @@ export class VillageScene extends Phaser.Scene {
   }
 
   private handleAction(): void {
-    if (this.distanceTo(this.npc.x, this.npc.y) < INTERACT_RADIUS) {
-      this.talkToNpc();
-      return;
-    }
-
     if (this.distanceTo(this.merchantNpc.x, this.merchantNpc.y) < INTERACT_RADIUS) {
       this.scene.start('Merchant', { x: this.player.x, y: this.player.y });
       return;
@@ -171,114 +145,8 @@ export class VillageScene extends Phaser.Scene {
       return;
     }
 
-    const node = GATHER_NODES.find((n) => this.distanceTo(n.x, n.y) < INTERACT_RADIUS);
-    if (node) {
-      this.gather(node);
-      return;
-    }
-
     const nearBuilding = this.buildings.find((b) => this.distanceTo(b.x, b.y) < INTERACT_RADIUS);
     this.showMessage(nearBuilding ? 'Une maison du village. Personne ne répond.' : 'Rien à proximité.');
-  }
-
-  private async gather(node: GatherNode): Promise<void> {
-    this.character.materials[node.materialId] = (this.character.materials[node.materialId] ?? 0) + 1;
-    await SaveManager.saveCharacter(this.character);
-    this.showMessage(`+1 ${materialLabel(node.materialId)}`);
-  }
-
-  private talkToNpc(): void {
-    const quest = QUESTS[VILLAGER_QUEST_ID];
-    const progress = getQuestProgress(this.character, VILLAGER_QUEST_ID);
-
-    if (!progress) {
-      this.openDialog(quest.description, [
-        {
-          label: 'Accepter',
-          onClick: async () => {
-            startQuest(this.character, VILLAGER_QUEST_ID);
-            await SaveManager.saveCharacter(this.character);
-            this.closeDialog();
-          },
-        },
-        { label: 'Plus tard', onClick: () => this.closeDialog() },
-      ]);
-      return;
-    }
-
-    if (progress.state === 'active') {
-      this.openDialog(`${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} loups vaincus.`, [
-        { label: 'Fermer', onClick: () => this.closeDialog() },
-      ]);
-      return;
-    }
-
-    if (progress.state === 'completed') {
-      this.openDialog(`${quest.title} — terminée !\n\nMerci d'avoir écarté cette menace. Voici votre récompense.`, [
-        {
-          label: 'Récupérer la récompense',
-          onClick: async () => {
-            turnInQuest(this.character, VILLAGER_QUEST_ID);
-            await SaveManager.saveCharacter(this.character);
-            this.closeDialog();
-          },
-        },
-      ]);
-      return;
-    }
-
-    this.openDialog("Merci encore pour votre aide contre les loups corrompus.", [
-      { label: 'Fermer', onClick: () => this.closeDialog() },
-    ]);
-  }
-
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
-    this.closeDialog();
-    this.joystick.setEnabled(false);
-    this.actionButton.input!.enabled = false;
-
-    const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    this.dialogElements = [bg, label];
-
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
-  }
-
-  private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
-    this.joystick.setEnabled(true);
-    this.actionButton.input!.enabled = true;
   }
 
   private showMessage(message: string): void {
@@ -306,7 +174,7 @@ export class VillageScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Field');
+      this.scene.start('Field', { x: 430, y: 340 });
     });
   }
 }

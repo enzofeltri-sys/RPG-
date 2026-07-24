@@ -66,6 +66,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'goblin_brute', count: 3 },
     reward: { xp: 80, itemBaseId: 'simple_amulet', itemRarity: 'common' },
   },
+  city_road_patrol: {
+    id: 'city_road_patrol',
+    title: 'Patrouille de la route commerciale',
+    description:
+      "Des sangliers corrompus attaquent les caravanes sur la route commerciale entre Valombre et Aiglemont. Éliminez-en 3 pour sécuriser le passage.",
+    objective: { type: 'defeat', monsterId: 'corrupted_boar', count: 3 },
+    reward: { xp: 100, itemBaseId: 'leather_chest', itemRarity: 'common' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

@@ -4,6 +4,7 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { createTouchButton } from '../ui/TouchButton';
+import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
@@ -85,6 +86,20 @@ export class VillageScene extends Phaser.Scene {
       fontSize: '11px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
+
+    // Second exit south — the "route commerciale" toward Aiglemont (région
+    // 2, VISION.md). Well clear of every building (bottommost building ends
+    // around y=495).
+    const roadZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(roadZone, true);
+    this.physics.add.overlap(this.player, roadZone, () => this.leaveToRoad());
+
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Route commerciale ↓', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
+    addSignpost(this, 240, 300, ['↑ Grotte (vers Basse-Combe)', '↓ Route commerciale (vers Aiglemont)']);
 
     this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
       this.handleAction(),
@@ -180,6 +195,15 @@ export class VillageScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Cave', { x: 100, y: 40 });
+    });
+  }
+
+  private leaveToRoad(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Road', { x: 40, y: 110 });
     });
   }
 }

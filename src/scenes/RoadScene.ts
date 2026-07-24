@@ -1,0 +1,194 @@
+import Phaser from 'phaser';
+import { VirtualJoystick } from '../input/VirtualJoystick';
+import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { SaveManager } from '../save/SaveManager';
+import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
+import { createTouchButton } from '../ui/TouchButton';
+import { addSignpost } from '../ui/signpost';
+import { addCrispText } from '../ui/text';
+
+const WORLD_WIDTH = 480;
+const WORLD_HEIGHT = 220;
+const MIN_ENCOUNTER_DISTANCE = 220;
+const MAX_ENCOUNTER_DISTANCE = 400;
+const INTERACT_RADIUS = 60;
+
+// Purely decorative — parked wagons/crates along the roadside, no collision,
+// no real art yet (increment 10).
+const WAGONS: { x: number; y: number }[] = [
+  { x: 90, y: 60 },
+  { x: 380, y: 150 },
+  { x: 220, y: 180 },
+];
+
+interface RoadData {
+  x?: number;
+  y?: number;
+}
+
+// La "route commerciale" de VISION.md — relie Valombre (région de départ) à
+// Aiglemont, la première cité-État (région 2). Un garde de caravane offre un
+// peu de mise en contexte ; rencontres aléatoires façon Forêt/Ferme, en
+// réutilisant corrupted_wolf plutôt qu'un nouveau monstre (la route elle-même
+// n'a pas besoin d'identité de menace propre — c'est Aiglemont qui l'apporte
+// via city_road_patrol).
+export class RoadScene extends Phaser.Scene {
+  private player!: PlayerSprite;
+  private joystick!: VirtualJoystick;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private isTransitioning = false;
+  private distanceWalked = 0;
+  private encounterThreshold = 0;
+  private guard!: Phaser.GameObjects.Rectangle;
+  private actionButton!: Phaser.GameObjects.Text;
+  private messageText?: Phaser.GameObjects.Text;
+  private spawnX?: number;
+  private spawnY?: number;
+
+  constructor() {
+    super('Road');
+  }
+
+  init(data: RoadData): void {
+    this.spawnX = data?.x;
+    this.spawnY = data?.y;
+  }
+
+  async create(): Promise<void> {
+    this.isTransitioning = false;
+    this.distanceWalked = 0;
+    this.rollNextEncounterThreshold();
+    this.cameras.main.setBackgroundColor('#6b5a42');
+
+    WAGONS.forEach((wagon) => this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810));
+
+    addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Valombre', '→ Aiglemont']);
+
+    // Off the horizontal centerline, same lesson as every NPC this session.
+    this.guard = this.add.rectangle(150, 60, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
+    this.physics.add.existing(this.guard, true);
+    addCrispText(this, 150, 40, 'Garde de caravane', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
+    this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
+    this.physics.add.collider(this.player, this.guard);
+
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.fadeIn(300);
+
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.joystick = new VirtualJoystick(this);
+
+    const westZone = this.add.zone(10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
+    this.physics.add.existing(westZone, true);
+    this.physics.add.overlap(this.player, westZone, () => this.leaveTo('Village', { x: 240, y: 600 }));
+
+    const eastZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
+    this.physics.add.existing(eastZone, true);
+    this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('City', { x: 40, y: 280 }));
+
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Valombre', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(
+      0.5,
+    );
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Aiglemont →', {
+      fontSize: '10px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
+    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
+      this.handleAction(),
+    );
+
+    // See ForestScene.create() for why this must bail if the scene was
+    // stopped while the load was pending (a zone overlap can fire and start
+    // a new scene mid-await).
+    const save = await SaveManager.load();
+    if (!this.scene.isActive()) return;
+
+    if (save?.character) {
+      new CharacterSheetPanel(
+        this,
+        save.character,
+        'Road',
+        () => ({ x: this.player.x, y: this.player.y }),
+        (open) => {
+          this.joystick.setEnabled(!open);
+          this.actionButton.input!.enabled = !open;
+        },
+      );
+    }
+  }
+
+  update(_time: number, delta: number): void {
+    updatePlayerMovement(this.player, this.cursors, this.joystick);
+
+    if (this.isTransitioning) return;
+
+    const speed = this.player.body.velocity.length();
+    if (speed > 0) {
+      this.distanceWalked += (speed * delta) / 1000;
+      if (this.distanceWalked >= this.encounterThreshold) {
+        this.startEncounter();
+      }
+    }
+  }
+
+  private rollNextEncounterThreshold(): void {
+    this.encounterThreshold = Phaser.Math.Between(MIN_ENCOUNTER_DISTANCE, MAX_ENCOUNTER_DISTANCE);
+  }
+
+  private startEncounter(): void {
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(250, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Combat', {
+        returnScene: 'Road',
+        monsterId: 'corrupted_wolf',
+        x: this.player.x,
+        y: this.player.y,
+      });
+    });
+  }
+
+  private distanceTo(x: number, y: number): number {
+    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
+  }
+
+  private handleAction(): void {
+    if (this.distanceTo(this.guard.x, this.guard.y) < INTERACT_RADIUS) {
+      this.showMessage("« Aiglemont n'est plus très loin. Restez sur vos gardes, la route attire les bêtes. »");
+      return;
+    }
+    this.showMessage('Rien à proximité.');
+  }
+
+  private showMessage(message: string): void {
+    this.messageText?.destroy();
+    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
+      fontSize: '10px',
+      color: '#e8d9b5',
+      backgroundColor: '#0b0c10',
+      padding: { x: 8, y: 5 },
+      align: 'center',
+      wordWrap: { width: this.scale.width - 20 },
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001);
+
+    this.time.delayedCall(2200, () => {
+      this.messageText?.destroy();
+      this.messageText = undefined;
+    });
+  }
+
+  private leaveTo(sceneKey: string, data: { x: number; y: number }): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start(sceneKey, data);
+    });
+  }
+}

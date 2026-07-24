@@ -4,6 +4,7 @@ import { Item, RARITY_COLORS, sellPrice } from '../game/item';
 import { materialLabel } from '../game/material';
 import { CONSUMABLES } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
+import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
 
 const GOLD = '#e8d9b5';
@@ -30,6 +31,7 @@ const SHOP_CATALOG: ShopEntry[] = [
 interface MerchantData {
   x?: number;
   y?: number;
+  returnScene?: ReturnSceneKey;
 }
 
 export class MerchantScene extends Phaser.Scene {
@@ -39,6 +41,7 @@ export class MerchantScene extends Phaser.Scene {
   private sellTexts: Phaser.GameObjects.Text[] = [];
   private returnX?: number;
   private returnY?: number;
+  private returnScene: ReturnSceneKey = 'Village';
 
   constructor() {
     super('Merchant');
@@ -47,6 +50,7 @@ export class MerchantScene extends Phaser.Scene {
   init(data: MerchantData): void {
     this.returnX = data?.x;
     this.returnY = data?.y;
+    this.returnScene = data?.returnScene ?? 'Village';
   }
 
   async create(): Promise<void> {
@@ -82,7 +86,9 @@ export class MerchantScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village', { x: this.returnX, y: this.returnY }));
+    backButton.on('pointerdown', () =>
+      this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY)),
+    );
 
     this.refreshGold();
   }

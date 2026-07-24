@@ -12,7 +12,9 @@ export type ReturnSceneKey =
   | 'BanditCamp'
   | 'GoblinCamp'
   | 'Farm'
-  | 'Shrine';
+  | 'Shrine'
+  | 'Road'
+  | 'City';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;

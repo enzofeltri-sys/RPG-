@@ -4,6 +4,7 @@ import { CharacterCreationScene } from './scenes/CharacterCreationScene';
 import { VillageScene } from './scenes/VillageScene';
 import { FieldScene } from './scenes/FieldScene';
 import { CombatScene } from './scenes/CombatScene';
+import { InventoryScene } from './scenes/InventoryScene';
 
 // Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
 const GAME_WIDTH = 216;
@@ -66,7 +67,7 @@ new Phaser.Game({
       debug: false,
     },
   },
-  scene: [TitleScene, CharacterCreationScene, VillageScene, FieldScene, CombatScene],
+  scene: [TitleScene, CharacterCreationScene, VillageScene, FieldScene, CombatScene, InventoryScene],
 });
 
 setupFullscreenToggle();

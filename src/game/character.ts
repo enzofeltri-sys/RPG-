@@ -1,3 +1,5 @@
+import { EquipSlot, Item, ItemStats } from './item';
+
 export type Race = 'human' | 'elf';
 export type CharClass = 'warrior' | 'mage';
 
@@ -34,6 +36,8 @@ export interface Character {
   maxHp: number;
   mp: number;
   maxMp: number;
+  equipment: Partial<Record<EquipSlot, Item>>;
+  inventory: Item[];
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -97,7 +101,27 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     maxHp,
     mp: maxMp,
     maxMp,
+    equipment: {},
+    inventory: [],
   };
+}
+
+// Saves created before equipment/inventory existed won't have these fields.
+export function ensureCharacterDefaults(character: Character): Character {
+  if (!character.equipment) character.equipment = {};
+  if (!character.inventory) character.inventory = [];
+  return character;
+}
+
+export function getEffectiveStats(character: Character): CharacterStats {
+  const total: CharacterStats = { ...character.stats };
+  Object.values(character.equipment).forEach((item) => {
+    if (!item) return;
+    (Object.keys(item.stats) as (keyof ItemStats)[]).forEach((key) => {
+      total[key] = (total[key] ?? 0) + (item.stats[key] ?? 0);
+    });
+  });
+  return total;
 }
 
 export function xpToNextLevel(level: number): number {

@@ -1,4 +1,4 @@
-import { Character } from '../game/character';
+import { Character, ensureCharacterDefaults } from '../game/character';
 
 const DB_NAME = 'vaeloria-save';
 const DB_VERSION = 1;
@@ -34,12 +34,16 @@ export class SaveManager {
 
   static async load(): Promise<SaveData | undefined> {
     const db = await openDatabase();
-    return new Promise((resolve, reject) => {
+    const data = await new Promise<SaveData | undefined>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const request = tx.objectStore(STORE_NAME).get(SLOT_KEY);
       request.onsuccess = () => resolve(request.result as SaveData | undefined);
       request.onerror = () => reject(request.error);
     });
+    if (data?.character) {
+      ensureCharacterDefaults(data.character);
+    }
+    return data;
   }
 
   static async save(data: SaveData): Promise<void> {

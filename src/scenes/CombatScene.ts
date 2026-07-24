@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { Character, grantXp } from '../game/character';
+import { Character, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, createTestMonster } from '../game/monster';
+import { Item, RARITY_LABELS, rollLootItem } from '../game/item';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -143,7 +144,8 @@ export class CombatScene extends Phaser.Scene {
     this.busy = true;
     this.setActionsEnabled(false);
 
-    const damage = Phaser.Math.Between(2, 5) + Math.floor(this.character.stats.strength / 2);
+    const stats = getEffectiveStats(this.character);
+    const damage = Phaser.Math.Between(2, 5) + Math.floor(stats.strength / 2);
     this.monster.hp -= damage;
     this.refreshBars();
     this.logText.setText(`Vous infligez ${damage} dégâts.`);
@@ -183,14 +185,21 @@ export class CombatScene extends Phaser.Scene {
     this.ended = true;
     this.hideActions();
     const levelsGained = grantXp(this.character, this.monster.xpReward);
+
+    const loot: Item | null = rollLootItem();
+    if (loot) {
+      this.character.inventory.push(loot);
+    }
+
     await SaveManager.saveCharacter(this.character);
     this.refreshBars();
 
-    const message =
+    const xpPart =
       levelsGained > 0
         ? `Victoire ! +${this.monster.xpReward} XP — niveau supérieur !`
         : `Victoire ! +${this.monster.xpReward} XP`;
-    this.logText.setText(message);
+    const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
+    this.logText.setText(xpPart + lootPart);
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 

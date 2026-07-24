@@ -28,11 +28,22 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
   complete: { label: 'Terminée', color: DONE_COLOR, description: 'Le mystère de la marque ne fait que commencer...' },
 };
 
+// Just below the title and just above the "Retour" button — the list scrolls
+// inside this band instead of overflowing under the button once there are
+// enough quests to exceed it (6 already do, more are coming).
+const VIEWPORT_TOP = 32;
+const VIEWPORT_BOTTOM = 345;
+
 export class QuestLogScene extends Phaser.Scene {
   private character!: Character;
   private returnScene: ReturnSceneKey = 'Village';
   private returnX?: number;
   private returnY?: number;
+  private listContainer!: Phaser.GameObjects.Container;
+  private minScrollY = 0;
+  private dragging = false;
+  private dragStartY = 0;
+  private containerStartY = 0;
 
   constructor() {
     super('Quests');
@@ -51,20 +62,25 @@ export class QuestLogScene extends Phaser.Scene {
 
     addCrispText(this, width / 2, 14, 'Quêtes', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
 
-    let y = 40;
+    this.listContainer = this.add.container(0, 0);
+    let y = VIEWPORT_TOP + 8;
+
+    const addToList = (obj: Phaser.GameObjects.GameObject) => this.listContainer.add(obj);
 
     const mainStage = getMainQuestStage(this.character);
     const mainStatus = MAIN_QUEST_STATUS[mainStage];
-    addCrispText(this, 12, y, MAIN_QUEST_TITLE, { fontSize: '12px', color: GOLD }).setOrigin(0, 0);
+    addToList(addCrispText(this, 12, y, MAIN_QUEST_TITLE, { fontSize: '12px', color: GOLD }).setOrigin(0, 0));
     y += 18;
-    addCrispText(this, 12, y, mainStatus.label, { fontSize: '9px', color: mainStatus.color }).setOrigin(0, 0);
+    addToList(addCrispText(this, 12, y, mainStatus.label, { fontSize: '9px', color: mainStatus.color }).setOrigin(0, 0));
     y += 16;
-    addCrispText(this, 12, y, mainStatus.description, {
-      fontSize: '9px',
-      color: MUTED,
-      wordWrap: { width: width - 24 },
-      lineSpacing: 3,
-    }).setOrigin(0, 0);
+    addToList(
+      addCrispText(this, 12, y, mainStatus.description, {
+        fontSize: '9px',
+        color: MUTED,
+        wordWrap: { width: width - 24 },
+        lineSpacing: 3,
+      }).setOrigin(0, 0),
+    );
     y += 50;
 
     Object.values(QUESTS).forEach((quest) => {
@@ -83,22 +99,26 @@ export class QuestLogScene extends Phaser.Scene {
         color = DONE_COLOR;
       }
 
-      addCrispText(this, 12, y, quest.title, { fontSize: '12px', color: GOLD }).setOrigin(0, 0);
+      addToList(addCrispText(this, 12, y, quest.title, { fontSize: '12px', color: GOLD }).setOrigin(0, 0));
       y += 18;
-      addCrispText(this, 12, y, statusLabel, { fontSize: '9px', color }).setOrigin(0, 0);
+      addToList(addCrispText(this, 12, y, statusLabel, { fontSize: '9px', color }).setOrigin(0, 0));
       y += 16;
-      addCrispText(this, 12, y, quest.description, {
-        fontSize: '9px',
-        color: MUTED,
-        wordWrap: { width: width - 24 },
-        lineSpacing: 3,
-      }).setOrigin(0, 0);
+      addToList(
+        addCrispText(this, 12, y, quest.description, {
+          fontSize: '9px',
+          color: MUTED,
+          wordWrap: { width: width - 24 },
+          lineSpacing: 3,
+        }).setOrigin(0, 0),
+      );
       y += 50;
     });
 
     if (Object.keys(QUESTS).length === 0) {
-      addCrispText(this, 12, y, 'Aucune quête pour le moment.', { fontSize: '10px', color: MUTED });
+      addToList(addCrispText(this, 12, y, 'Aucune quête pour le moment.', { fontSize: '10px', color: MUTED }));
     }
+
+    this.setupScrolling(y);
 
     const backButton = addCrispText(this, width / 2, 362, 'Retour', {
       fontSize: '13px',
@@ -109,6 +129,42 @@ export class QuestLogScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
     backButton.on('pointerdown', () => this.goBack());
+  }
+
+  // contentBottom is the y just past the last entry drawn into listContainer.
+  // Only the list scrolls (drag up/down) — the title and "Retour" button stay
+  // fixed, since they're plain scene-level objects, not container children.
+  private setupScrolling(contentBottom: number): void {
+    const { width } = this.scale;
+    const viewportHeight = VIEWPORT_BOTTOM - VIEWPORT_TOP;
+    const contentHeight = contentBottom - VIEWPORT_TOP;
+    this.minScrollY = Math.min(0, viewportHeight - contentHeight);
+
+    const maskShape = this.make.graphics({}, false);
+    maskShape.fillRect(0, VIEWPORT_TOP, width, viewportHeight);
+    this.listContainer.setMask(maskShape.createGeometryMask());
+
+    if (this.minScrollY === 0) return; // Everything fits — no need to drag.
+
+    const dragZone = this.add
+      .zone(width / 2, VIEWPORT_TOP + viewportHeight / 2, width, viewportHeight)
+      .setInteractive();
+    dragZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.dragging = true;
+      this.dragStartY = pointer.y;
+      this.containerStartY = this.listContainer.y;
+    });
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (!this.dragging) return;
+      const newY = this.containerStartY + (pointer.y - this.dragStartY);
+      this.listContainer.y = Phaser.Math.Clamp(newY, this.minScrollY, 0);
+    });
+    this.input.on('pointerup', () => {
+      this.dragging = false;
+    });
+    this.input.on('pointerupoutside', () => {
+      this.dragging = false;
+    });
   }
 
   private goBack(): void {

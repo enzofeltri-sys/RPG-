@@ -156,7 +156,7 @@ Camp de bandits/gobelins, Ferme et Sanctuaire laissés tels quels dans ce lot (d
 
 La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLogScene`), avec son propre statut par étape — séparée de la liste générique des quêtes secondaires.
 
-**Non-bug/limite connue notée en testant** : l'écran Quêtes n'a pas de défilement — avec 6 entrées maintenant listées (la quête principale + 5 secondaires), le bas de la liste dépasse déjà la hauteur de l'écran et chevauche le bouton "Retour". Ce n'était pas non plus parfaitement propre avant cet ajout (5 quêtes suffisaient presque à déborder) ; pas corrigé dans ce lot pour rester concentré sur la quête principale, mais à traiter avant d'ajouter encore plus de quêtes secondaires.
+**Correctif : écran Quêtes défilant (suite immédiate)** : la limite notée ci-dessus (liste débordant sous le bouton "Retour" dès 6 entrées) est corrigée. Les entrées de quêtes vivent maintenant dans un `Phaser.GameObjects.Container` dédié (`QuestLogScene.listContainer`), masqué à la zone visible entre le titre et le bouton "Retour" (`createGeometryMask`), avec défilement au glisser tactile (suivi manuel du delta du pointeur, `container.y` borné). Le bouton "Retour" reste un objet de scène indépendant, hors du container — conforme à la règle déjà notée plus haut (les objets interactifs ne doivent jamais être enfants d'un `Container`) puisque seul le contenu texte, non interactif, est déplacé dedans.
 
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 

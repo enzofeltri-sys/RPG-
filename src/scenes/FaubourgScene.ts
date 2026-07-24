@@ -14,6 +14,7 @@ const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'faubourg_smugglers';
+const LEADER_QUEST_ID = 'faubourg_smugglers_leader';
 
 interface EncounterMarker {
   id: string;
@@ -186,6 +187,52 @@ export class FaubourgScene extends Phaser.Scene {
           label: 'Récupérer la récompense',
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.talkToInformantAboutLeader();
+  }
+
+  // Reached only once faubourg_smugglers is turned in — a short local
+  // follow-up pointing at the Entrepôt (WarehouseScene) boss, tying that
+  // dungeon into this side quest rather than leaving it a standalone fight.
+  private talkToInformantAboutLeader(): void {
+    const quest = QUESTS[LEADER_QUEST_ID];
+    const progress = getQuestProgress(this.character, LEADER_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nToujours pas de nouvelles du capitaine.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLe trafic s'arrête ici. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, LEADER_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
             this.closeDialog();
           },

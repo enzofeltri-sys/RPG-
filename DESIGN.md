@@ -170,6 +170,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Les Archives scellées — cinquième donjon (suite immédiate)** : `ArchivesScene` (clé `Archives`), accessible depuis une nouvelle sortie nord d'Aiglemont (derrière la Tour des Mages). Même gabarit que Le vieux puits : pas de porte, pas de quête, un combat régulier puis une rencontre finale au butin garanti. Complète l'échelle de difficulté avec un deuxième détour "facile" (le premier, Le vieux puits, est en région 1) — 5 donjons au total désormais, de facile à difficile.
 
+**Le Faubourg des quais devient une chaîne à deux étapes (suite immédiate)** : plutôt que de forcer une nouvelle direction cardinale à Aiglemont (les quatre côtés sont désormais occupés : route commerciale à l'ouest, Catacombes au sud, Faubourg à l'est, Archives au nord), ce lot approfondit ce qui existe déjà. Une fois `faubourg_smugglers` rendue, Renn (l'informateur) propose une suite (`faubourg_smugglers_leader`) pointant vers le boss de l'Entrepôt abandonné (`smuggler_captain`, déjà en jeu) — le moteur de quêtes générique suffisait tel quel (objectif "vaincre 1 fois"), aucune extension nécessaire. Ça donne enfin une vraie raison narrative à l'Entrepôt au-delà d'être un donjon isolé, chaîne courte cohérente avec la note de `DESIGN.md` sur les quêtes de faction de l'Acte 2.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

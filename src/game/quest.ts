@@ -74,6 +74,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'smuggler_thug', count: 3 },
     reward: { xp: 85, itemBaseId: 'leather_legs', itemRarity: 'common' },
   },
+  faubourg_smugglers_leader: {
+    id: 'faubourg_smugglers_leader',
+    title: 'Le capitaine des quais',
+    description:
+      "Les contrebandiers obéissaient à un supérieur, retranché dans un entrepôt au nord des quais. Affrontez-le pour couper court à ce trafic.",
+    objective: { type: 'defeat', monsterId: 'smuggler_captain', count: 1 },
+    reward: { xp: 130, itemBaseId: 'leather_chest', itemRarity: 'rare' },
+  },
   city_road_patrol: {
     id: 'city_road_patrol',
     title: 'Patrouille de la route commerciale',

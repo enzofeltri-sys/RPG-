@@ -43,13 +43,13 @@ export class CharacterCreationScene extends Phaser.Scene {
       });
     });
 
-    this.statsText = addCrispText(this, 14, 140, '', {
+    this.statsText = addCrispText(this, 14, 140, ' ', {
       fontSize: '11px',
       color: GOLD,
       lineSpacing: 5,
     });
 
-    this.skillsText = addCrispText(this, 14, 200, '', {
+    this.skillsText = addCrispText(this, 14, 200, ' ', {
       fontSize: '9px',
       color: MUTED,
       wordWrap: { width: width - 28 },

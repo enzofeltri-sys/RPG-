@@ -8,6 +8,8 @@ export class TitleScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    document.getElementById('boot-status')?.remove();
+
     const { width, height } = this.scale;
 
     addCrispText(this, width / 2, height * 0.28, 'Le Sceau\nde Vaeloria', {

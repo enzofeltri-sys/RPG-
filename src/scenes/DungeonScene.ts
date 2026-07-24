@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -40,7 +40,7 @@ interface DungeonData {
 
 export class DungeonScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   // Phaser reuses the same Scene instance across scene.start() calls, so these
@@ -77,7 +77,7 @@ export class DungeonScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     this.addWalls();
     const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId));
@@ -109,14 +109,16 @@ export class DungeonScene extends Phaser.Scene {
         'Dungeon',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
-  update(): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
   }
 
   private addWalls(): void {

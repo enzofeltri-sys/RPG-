@@ -1,16 +1,14 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 240;
 const WORLD_HEIGHT = 220;
-const INTERACT_RADIUS = 60;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 
@@ -27,13 +25,12 @@ interface HamletData {
 // Valombre (VillageScene), reached by crossing the Champ.
 export class HamletScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
   private character!: Character;
   private mentor!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
@@ -82,7 +79,7 @@ export class HamletScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, 20, WORLD_WIDTH, 24);
     this.physics.add.existing(exitZone, true);
@@ -106,9 +103,16 @@ export class HamletScene extends Phaser.Scene {
     addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      { x: this.mentor.x, y: this.mentor.y, radius: 24, onTap: () => this.talkToMentor() },
+      ...this.buildings.map((b) => ({
+        x: b.x,
+        y: b.y,
+        radius: 30,
+        onTap: () => this.showMessage('Une cabane du hameau. Personne ne répond.'),
+      })),
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -124,15 +128,16 @@ export class HamletScene extends Phaser.Scene {
         'Hamlet',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
-  update(): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): void {
@@ -153,20 +158,6 @@ export class HamletScene extends Phaser.Scene {
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.mentor.x, this.mentor.y) < INTERACT_RADIUS) {
-      this.talkToMentor();
-      return;
-    }
-
-    const nearBuilding = this.buildings.find((b) => this.distanceTo(b.x, b.y) < INTERACT_RADIUS);
-    this.showMessage(nearBuilding ? 'Une cabane du hameau. Personne ne répond.' : 'Rien à proximité.');
   }
 
   private talkToMentor(): void {
@@ -216,8 +207,7 @@ export class HamletScene extends Phaser.Scene {
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
     this.closeDialog();
-    this.joystick.setEnabled(false);
-    this.actionButton.input!.enabled = false;
+    this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
     const bg = this.add
@@ -259,8 +249,7 @@ export class HamletScene extends Phaser.Scene {
   private closeDialog(): void {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
-    this.joystick.setEnabled(true);
-    this.actionButton.input!.enabled = true;
+    this.tapControl.setEnabled(true);
   }
 
   private showMessage(message: string): void {

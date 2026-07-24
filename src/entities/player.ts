@@ -1,9 +1,14 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
 
 const SPEED = 70;
+const ARRIVE_THRESHOLD = 4;
 
 export type PlayerSprite = Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
+
+export interface MoveTarget {
+  x: number;
+  y: number;
+}
 
 export function createPlayer(scene: Phaser.Scene, x: number, y: number): PlayerSprite {
   const player = scene.add
@@ -15,27 +20,41 @@ export function createPlayer(scene: Phaser.Scene, x: number, y: number): PlayerS
   return player;
 }
 
+// Keyboard (still supported as a desktop fallback) always overrides an
+// in-flight tap target. Returns whether the player is still travelling
+// toward moveTarget — false means "arrived" (or no target/keyboard took
+// over), the caller's own tap controller should clear its target then.
 export function updatePlayerMovement(
   player: PlayerSprite,
   cursors: Phaser.Types.Input.Keyboard.CursorKeys,
-  joystick: VirtualJoystick,
-): void {
-  const joy = joystick.getVector();
-  let dx = joy.x;
-  let dy = joy.y;
+  moveTarget: MoveTarget | null,
+): boolean {
+  let dx = 0;
+  let dy = 0;
+  if (cursors.left.isDown) dx = -1;
+  else if (cursors.right.isDown) dx = 1;
+  if (cursors.up.isDown) dy = -1;
+  else if (cursors.down.isDown) dy = 1;
 
-  if (dx === 0 && dy === 0) {
-    if (cursors.left.isDown) dx = -1;
-    else if (cursors.right.isDown) dx = 1;
-    if (cursors.up.isDown) dy = -1;
-    else if (cursors.down.isDown) dy = 1;
+  if (dx !== 0 || dy !== 0) {
+    const length = Math.hypot(dx, dy);
+    player.body.setVelocity((dx / length) * SPEED, (dy / length) * SPEED);
+    return false;
   }
 
-  const length = Math.hypot(dx, dy);
-  if (length > 1) {
-    dx /= length;
-    dy /= length;
+  if (!moveTarget) {
+    player.body.setVelocity(0, 0);
+    return false;
   }
 
-  player.body.setVelocity(dx * SPEED, dy * SPEED);
+  const tx = moveTarget.x - player.x;
+  const ty = moveTarget.y - player.y;
+  const dist = Math.hypot(tx, ty);
+  if (dist < ARRIVE_THRESHOLD) {
+    player.body.setVelocity(0, 0);
+    return false;
+  }
+
+  player.body.setVelocity((tx / dist) * SPEED, (ty / dist) * SPEED);
+  return true;
 }

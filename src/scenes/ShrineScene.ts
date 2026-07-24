@@ -1,15 +1,13 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 200;
 const WORLD_HEIGHT = 180;
-const INTERACT_RADIUS = 60;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 
@@ -30,12 +28,11 @@ interface ShrineData {
 // plus a bit of world lore, no quest attached yet.
 export class ShrineScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private character!: Character;
   private hermit!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private loreIndex = 0;
   private spawnX?: number;
@@ -83,7 +80,7 @@ export class ShrineScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
@@ -94,9 +91,10 @@ export class ShrineScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      { x: this.hermit.x, y: this.hermit.y, radius: 24, onTap: () => this.talkToHermit() },
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -112,25 +110,16 @@ export class ShrineScene extends Phaser.Scene {
         'Shrine',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
-  update(): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.hermit.x, this.hermit.y) < INTERACT_RADIUS) {
-      this.talkToHermit();
-    }
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
   }
 
   private talkToHermit(): void {
@@ -157,8 +146,7 @@ export class ShrineScene extends Phaser.Scene {
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
     this.closeDialog();
-    this.joystick.setEnabled(false);
-    this.actionButton.input!.enabled = false;
+    this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
     const bg = this.add
@@ -200,8 +188,7 @@ export class ShrineScene extends Phaser.Scene {
   private closeDialog(): void {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
-    this.joystick.setEnabled(true);
-    this.actionButton.input!.enabled = true;
+    this.tapControl.setEnabled(true);
   }
 
   private leaveShrine(): void {

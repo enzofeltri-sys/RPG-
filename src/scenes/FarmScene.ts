@@ -1,16 +1,14 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 200;
-const INTERACT_RADIUS = 60;
 const MIN_ENCOUNTER_DISTANCE = 150;
 const MAX_ENCOUNTER_DISTANCE = 300;
 const GOLD = '#e8d9b5';
@@ -28,14 +26,13 @@ interface FarmData {
 // encounter zones, so no cleared/resume tracking needed here.
 export class FarmScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private distanceWalked = 0;
   private encounterThreshold = 0;
   private character!: Character;
   private farmer!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
@@ -86,7 +83,7 @@ export class FarmScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
@@ -97,9 +94,10 @@ export class FarmScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      { x: this.farmer.x, y: this.farmer.y, radius: 24, onTap: () => this.talkToFarmer() },
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -115,15 +113,16 @@ export class FarmScene extends Phaser.Scene {
         'Farm',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
   update(_time: number, delta: number): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
 
     if (this.isTransitioning) return;
 
@@ -151,16 +150,6 @@ export class FarmScene extends Phaser.Scene {
         y: this.player.y,
       });
     });
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.farmer.x, this.farmer.y) < INTERACT_RADIUS) {
-      this.talkToFarmer();
-    }
   }
 
   private talkToFarmer(): void {
@@ -210,8 +199,7 @@ export class FarmScene extends Phaser.Scene {
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
     this.closeDialog();
-    this.joystick.setEnabled(false);
-    this.actionButton.input!.enabled = false;
+    this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
     const bg = this.add
@@ -253,8 +241,7 @@ export class FarmScene extends Phaser.Scene {
   private closeDialog(): void {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
-    this.joystick.setEnabled(true);
-    this.actionButton.input!.enabled = true;
+    this.tapControl.setEnabled(true);
   }
 
   private leaveFarm(): void {

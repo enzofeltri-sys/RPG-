@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -35,7 +35,7 @@ interface ForestData {
 
 export class ForestScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private distanceWalked = 0;
@@ -70,7 +70,7 @@ export class ForestScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const westZone = this.add.zone(10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
     this.physics.add.existing(westZone, true);
@@ -111,14 +111,16 @@ export class ForestScene extends Phaser.Scene {
         'Forest',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
   update(_time: number, delta: number): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
 
     if (this.isTransitioning) return;
 

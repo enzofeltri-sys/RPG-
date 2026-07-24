@@ -1,15 +1,13 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
-const INTERACT_RADIUS = 60;
 
 interface VillageData {
   x?: number;
@@ -23,14 +21,13 @@ interface VillageData {
 // town you travel to rather than the same small starting point.
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
   private messageText?: Phaser.GameObjects.Text;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -76,7 +73,7 @@ export class VillageScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, 20, WORLD_WIDTH, 24);
     this.physics.add.existing(exitZone, true);
@@ -101,9 +98,29 @@ export class VillageScene extends Phaser.Scene {
 
     addSignpost(this, 240, 300, ['↑ Grotte (vers Basse-Combe)', '↓ Route commerciale (vers Aiglemont)']);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      {
+        x: this.merchantNpc.x,
+        y: this.merchantNpc.y,
+        radius: 24,
+        onTap: () => this.scene.start('Merchant', { x: this.player.x, y: this.player.y }),
+      },
+      {
+        x: this.forgeBuilding.x,
+        y: this.forgeBuilding.y,
+        radius: 35,
+        onTap: () => this.scene.start('Crafting', { x: this.player.x, y: this.player.y }),
+      },
+      ...this.buildings
+        .filter((b) => b !== this.forgeBuilding)
+        .map((b) => ({
+          x: b.x,
+          y: b.y,
+          radius: 35,
+          onTap: () => this.showMessage('Une maison du village. Personne ne répond.'),
+        })),
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -118,15 +135,16 @@ export class VillageScene extends Phaser.Scene {
         'Village',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
-  update(): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
@@ -148,25 +166,6 @@ export class VillageScene extends Phaser.Scene {
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.merchantNpc.x, this.merchantNpc.y) < INTERACT_RADIUS) {
-      this.scene.start('Merchant', { x: this.player.x, y: this.player.y });
-      return;
-    }
-
-    if (this.distanceTo(this.forgeBuilding.x, this.forgeBuilding.y) < INTERACT_RADIUS) {
-      this.scene.start('Crafting', { x: this.player.x, y: this.player.y });
-      return;
-    }
-
-    const nearBuilding = this.buildings.find((b) => this.distanceTo(b.x, b.y) < INTERACT_RADIUS);
-    this.showMessage(nearBuilding ? 'Une maison du village. Personne ne répond.' : 'Rien à proximité.');
   }
 
   private showMessage(message: string): void {

@@ -1,16 +1,14 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 520;
 const WORLD_HEIGHT = 480;
-const INTERACT_RADIUS = 60;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
@@ -34,7 +32,7 @@ interface CityData {
 // l'acte 2 dans DESIGN.md, sans encore de vrai système de réputation.
 export class CityScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
@@ -42,7 +40,6 @@ export class CityScene extends Phaser.Scene {
   private captain!: Phaser.GameObjects.Rectangle;
   private mage!: Phaser.GameObjects.Rectangle;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private mageLineIndex = 0;
   private spawnX?: number;
@@ -107,7 +104,7 @@ export class CityScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const westZone = this.add.zone(10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
     this.physics.add.existing(westZone, true);
@@ -119,9 +116,23 @@ export class CityScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },
+      { x: this.mage.x, y: this.mage.y, radius: 24, onTap: () => this.talkToMage() },
+      {
+        x: this.merchantNpc.x,
+        y: this.merchantNpc.y,
+        radius: 24,
+        onTap: () => this.scene.start('Merchant', { x: this.player.x, y: this.player.y, returnScene: 'City' }),
+      },
+      ...this.buildings.map((b) => ({
+        x: b.x,
+        y: b.y,
+        radius: 40,
+        onTap: () => this.showMessage('Un bâtiment fermé pour le moment.'),
+      })),
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -137,15 +148,16 @@ export class CityScene extends Phaser.Scene {
         'City',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
-  update(): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+  update(_time: number, delta: number): void {
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
@@ -167,30 +179,6 @@ export class CityScene extends Phaser.Scene {
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'stoneTile').setOrigin(0, 0);
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.captain.x, this.captain.y) < INTERACT_RADIUS) {
-      this.talkToCaptain();
-      return;
-    }
-
-    if (this.distanceTo(this.mage.x, this.mage.y) < INTERACT_RADIUS) {
-      this.talkToMage();
-      return;
-    }
-
-    if (this.distanceTo(this.merchantNpc.x, this.merchantNpc.y) < INTERACT_RADIUS) {
-      this.scene.start('Merchant', { x: this.player.x, y: this.player.y, returnScene: 'City' });
-      return;
-    }
-
-    const nearBuilding = this.buildings.find((b) => this.distanceTo(b.x, b.y) < INTERACT_RADIUS);
-    this.showMessage(nearBuilding ? 'Un bâtiment fermé pour le moment.' : 'Rien à proximité.');
   }
 
   private talkToCaptain(): void {
@@ -247,8 +235,7 @@ export class CityScene extends Phaser.Scene {
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
     this.closeDialog();
-    this.joystick.setEnabled(false);
-    this.actionButton.input!.enabled = false;
+    this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
     const bg = this.add
@@ -290,8 +277,7 @@ export class CityScene extends Phaser.Scene {
   private closeDialog(): void {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
-    this.joystick.setEnabled(true);
-    this.actionButton.input!.enabled = true;
+    this.tapControl.setEnabled(true);
   }
 
   private showMessage(message: string): void {

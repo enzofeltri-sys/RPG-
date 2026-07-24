@@ -1,11 +1,10 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { materialLabel, MaterialId } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
@@ -13,7 +12,6 @@ const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 480;
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 420;
-const INTERACT_RADIUS = 60;
 
 // The river splits the Champ roughly in half; only the bridge gap is
 // crossable, so reaching the dungeon (north bank) takes a real detour from
@@ -61,7 +59,7 @@ interface FieldData {
 
 export class FieldScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private distanceWalked = 0;
@@ -69,7 +67,6 @@ export class FieldScene extends Phaser.Scene {
   private spawnX?: number;
   private spawnY?: number;
   private character!: Character;
-  private actionButton!: Phaser.GameObjects.Text;
   private messageText?: Phaser.GameObjects.Text;
 
   constructor() {
@@ -98,7 +95,7 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const hamletZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(hamletZone, true);
@@ -154,9 +151,13 @@ export class FieldScene extends Phaser.Scene {
       addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     });
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = GATHER_NODES.map((node) => ({
+      x: node.x,
+      y: node.y,
+      radius: 22,
+      onTap: () => this.gather(node),
+    }));
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -172,15 +173,16 @@ export class FieldScene extends Phaser.Scene {
         'Field',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
   update(_time: number, delta: number): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
 
     if (this.isTransitioning) return;
 
@@ -265,20 +267,6 @@ export class FieldScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('BanditCamp', { x: 130, y: 180 });
     });
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    const node = GATHER_NODES.find((n) => this.distanceTo(n.x, n.y) < INTERACT_RADIUS);
-    if (node) {
-      this.gather(node);
-      return;
-    }
-
-    this.showMessage('Rien à proximité.');
   }
 
   private async gather(node: GatherNode): Promise<void> {

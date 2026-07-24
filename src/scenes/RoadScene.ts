@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { VirtualJoystick } from '../input/VirtualJoystick';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
-import { createTouchButton } from '../ui/TouchButton';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 
@@ -11,7 +10,6 @@ const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 220;
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 400;
-const INTERACT_RADIUS = 60;
 
 // Purely decorative — parked wagons/crates along the roadside, no collision,
 // no real art yet (increment 10).
@@ -34,13 +32,12 @@ interface RoadData {
 // via city_road_patrol).
 export class RoadScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private joystick!: VirtualJoystick;
+  private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private distanceWalked = 0;
   private encounterThreshold = 0;
   private guard!: Phaser.GameObjects.Rectangle;
-  private actionButton!: Phaser.GameObjects.Text;
   private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
@@ -78,7 +75,7 @@ export class RoadScene extends Phaser.Scene {
     this.cameras.main.fadeIn(300);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.joystick = new VirtualJoystick(this);
+    this.tapControl = new TapController(this, this.player);
 
     const westZone = this.add.zone(10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
     this.physics.add.existing(westZone, true);
@@ -96,9 +93,16 @@ export class RoadScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    this.actionButton = createTouchButton(this, this.scale.width - 34, this.scale.height - 56, 'Action', () =>
-      this.handleAction(),
-    );
+    const interactables: Interactable[] = [
+      {
+        x: this.guard.x,
+        y: this.guard.y,
+        radius: 24,
+        onTap: () =>
+          this.showMessage("« Aiglemont n'est plus très loin. Restez sur vos gardes, la route attire les bêtes. »"),
+      },
+    ];
+    this.tapControl.setInteractables(interactables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -113,15 +117,16 @@ export class RoadScene extends Phaser.Scene {
         'Road',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
-          this.joystick.setEnabled(!open);
-          this.actionButton.input!.enabled = !open;
+          this.tapControl.setEnabled(!open);
         },
       );
     }
   }
 
   update(_time: number, delta: number): void {
-    updatePlayerMovement(this.player, this.cursors, this.joystick);
+    const arrived = !updatePlayerMovement(this.player, this.cursors, this.tapControl.getMoveTarget());
+    if (arrived) this.tapControl.clearMoveTarget();
+    this.tapControl.update(delta);
 
     if (this.isTransitioning) return;
 
@@ -149,18 +154,6 @@ export class RoadScene extends Phaser.Scene {
         y: this.player.y,
       });
     });
-  }
-
-  private distanceTo(x: number, y: number): number {
-    return Phaser.Math.Distance.Between(this.player.x, this.player.y, x, y);
-  }
-
-  private handleAction(): void {
-    if (this.distanceTo(this.guard.x, this.guard.y) < INTERACT_RADIUS) {
-      this.showMessage("« Aiglemont n'est plus très loin. Restez sur vos gardes, la route attire les bêtes. »");
-      return;
-    }
-    this.showMessage('Rien à proximité.');
   }
 
   private showMessage(message: string): void {

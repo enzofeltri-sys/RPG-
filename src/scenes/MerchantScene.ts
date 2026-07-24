@@ -27,14 +27,26 @@ const SHOP_CATALOG: ShopEntry[] = [
   },
 ];
 
+interface MerchantData {
+  x?: number;
+  y?: number;
+}
+
 export class MerchantScene extends Phaser.Scene {
   private character!: Character;
   private goldText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private sellTexts: Phaser.GameObjects.Text[] = [];
+  private returnX?: number;
+  private returnY?: number;
 
   constructor() {
     super('Merchant');
+  }
+
+  init(data: MerchantData): void {
+    this.returnX = data?.x;
+    this.returnY = data?.y;
   }
 
   async create(): Promise<void> {
@@ -70,7 +82,7 @@ export class MerchantScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village'));
+    backButton.on('pointerdown', () => this.scene.start('Village', { x: this.returnX, y: this.returnY }));
 
     this.refreshGold();
   }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { Character, RACES, CLASSES, xpToNextLevel, getEffectiveStats } from '../game/character';
+import { Character, RACES, CLASSES } from '../game/character';
+import { ReturnSceneKey, returnSceneStartData } from './returnContext';
 import { addCrispText } from './text';
 
 const GOLD = '#e8d9b5';
@@ -25,6 +26,8 @@ export class CharacterSheetPanel {
   private readonly container: Phaser.GameObjects.Container;
   private readonly quitButton: Phaser.GameObjects.Text;
   private readonly inventoryButton: Phaser.GameObjects.Text;
+  private readonly bagButton: Phaser.GameObjects.Text;
+  private readonly statsButton: Phaser.GameObjects.Text;
   private readonly questsButton: Phaser.GameObjects.Text;
   private readonly optionsButton: Phaser.GameObjects.Text;
   private readonly optionsInfoText: Phaser.GameObjects.Text;
@@ -34,7 +37,16 @@ export class CharacterSheetPanel {
   private readonly optionsViewObjects: Phaser.GameObjects.GameObject[];
   private visible = false;
 
-  constructor(scene: Phaser.Scene, character: Character, onToggle?: (open: boolean) => void) {
+  // returnScene/getPlayerPosition let the panel send the player to Inventaire,
+  // Sac, Stats or Quêtes and have "Retour" land back at this exact spot in this
+  // exact scene, instead of always resetting to the Village's default spawn.
+  constructor(
+    scene: Phaser.Scene,
+    character: Character,
+    returnScene: ReturnSceneKey,
+    getPlayerPosition: () => { x: number; y: number },
+    onToggle?: (open: boolean) => void,
+  ) {
     const button = addCrispText(scene, 10, 10, 'Menu', {
       fontSize: '13px',
       color: DARK,
@@ -47,98 +59,35 @@ export class CharacterSheetPanel {
 
     const raceLabel = RACES[character.race].label;
     const classLabel = CLASSES[character.class].label;
-    const stats = getEffectiveStats(character);
 
     const panelBg = scene.add
       .rectangle(10, 44, 190, 326, 0x0b0c10, 0.97)
       .setOrigin(0, 0)
       .setStrokeStyle(1, 0xe8d9b5);
 
-    const statLines = [
-      `Force ${stats.strength}   Int ${stats.intelligence}`,
-      `Agilité ${stats.agility}   Vit ${stats.vitality}`,
-    ];
-    if (stats.armor > 0 || stats.fireDamage > 0) {
-      statLines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
-    }
-
-    const panelText = addCrispText(
-      scene,
-      20,
-      54,
-      [
-        `${raceLabel} ${classLabel}`,
-        `Niveau ${character.level}  (XP ${character.xp}/${xpToNextLevel(character.level)})`,
-        '',
-        ...statLines,
-        '',
-        `PV ${character.hp}/${character.maxHp}`,
-        `PM ${character.mp}/${character.maxMp}`,
-        '',
-        `Or : ${character.gold}`,
-        `Points de stat : ${character.statPoints}`,
-      ].join('\n'),
-      {
-        fontSize: '11px',
-        color: GOLD,
-        lineSpacing: 5,
-      },
-    )
+    const headerText = addCrispText(scene, 20, 58, `${raceLabel} ${classLabel} — Niveau ${character.level}`, {
+      fontSize: '11px',
+      color: GOLD,
+    })
       .setScrollFactor(0)
       .setDepth(1001)
       .setVisible(false);
 
+    const navigateTo = (sceneKey: string): void => {
+      const pos = getPlayerPosition();
+      scene.scene.start(sceneKey, { returnScene, ...returnSceneStartData(returnScene, pos.x, pos.y) });
+    };
+
     // Kept outside the container: interactive children of a Phaser Container are
     // unreliable for pointer hit-testing, so these buttons are separate top-level
     // objects toggled in lockstep with the panel instead of being nested inside it.
-    // Laid out as a 2x2 grid so a 4th action fits without growing the panel.
-    this.inventoryButton = addCrispText(scene, 20, 278, 'Inventaire', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    })
-      .setScrollFactor(0)
-      .setDepth(1001)
-      .setInteractive({ useHandCursor: true });
-    this.inventoryButton.setVisible(false);
-    this.inventoryButton.on('pointerdown', () => scene.scene.start('Inventory'));
-
-    this.questsButton = addCrispText(scene, 115, 278, 'Quêtes', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    })
-      .setScrollFactor(0)
-      .setDepth(1001)
-      .setInteractive({ useHandCursor: true });
-    this.questsButton.setVisible(false);
-    this.questsButton.on('pointerdown', () => scene.scene.start('Quests'));
-
-    this.optionsButton = addCrispText(scene, 20, 306, 'Options', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    })
-      .setScrollFactor(0)
-      .setDepth(1001)
-      .setInteractive({ useHandCursor: true });
-    this.optionsButton.setVisible(false);
-    this.optionsButton.on('pointerdown', () => this.showOptions());
-
-    this.quitButton = addCrispText(scene, 115, 306, 'Quitter', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    })
-      .setScrollFactor(0)
-      .setDepth(1001)
-      .setInteractive({ useHandCursor: true });
-    this.quitButton.setVisible(false);
-    this.quitButton.on('pointerdown', () => scene.scene.start('Title'));
+    // Laid out as a 3x2 grid.
+    this.inventoryButton = this.makeNavButton(scene, 20, 90, 'Inventaire', () => navigateTo('Inventory'));
+    this.bagButton = this.makeNavButton(scene, 115, 90, 'Sac', () => navigateTo('Bag'));
+    this.statsButton = this.makeNavButton(scene, 20, 120, 'Stats', () => navigateTo('Stats'));
+    this.questsButton = this.makeNavButton(scene, 115, 120, 'Quêtes', () => navigateTo('Quests'));
+    this.optionsButton = this.makeNavButton(scene, 20, 150, 'Options', () => this.showOptions());
+    this.quitButton = this.makeNavButton(scene, 115, 150, 'Quitter', () => scene.scene.start('Title'));
 
     this.optionsInfoText = addCrispText(
       scene,
@@ -183,8 +132,10 @@ export class CharacterSheetPanel {
     this.backFromOptionsButton.on('pointerdown', () => this.showMain());
 
     this.mainViewObjects = [
-      panelText,
+      headerText,
       this.inventoryButton,
+      this.bagButton,
+      this.statsButton,
       this.questsButton,
       this.quitButton,
       this.optionsButton,
@@ -205,6 +156,27 @@ export class CharacterSheetPanel {
       }
       onToggle?.(this.visible);
     });
+  }
+
+  private makeNavButton(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    label: string,
+    onClick: () => void,
+  ): Phaser.GameObjects.Text {
+    const button = addCrispText(scene, x, y, label, {
+      fontSize: '10px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 6, y: 5 },
+    })
+      .setScrollFactor(0)
+      .setDepth(1001)
+      .setInteractive({ useHandCursor: true })
+      .setVisible(false);
+    button.on('pointerdown', onClick);
+    return button;
   }
 
   private showMain(): void {

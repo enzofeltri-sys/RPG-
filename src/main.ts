@@ -7,6 +7,8 @@ import { FieldScene } from './scenes/FieldScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
+import { BagScene } from './scenes/BagScene';
+import { StatsScene } from './scenes/StatsScene';
 import { QuestLogScene } from './scenes/QuestLogScene';
 import { CraftingScene } from './scenes/CraftingScene';
 import { MerchantScene } from './scenes/MerchantScene';
@@ -93,6 +95,8 @@ async function boot(): Promise<void> {
       DungeonScene,
       CombatScene,
       InventoryScene,
+      BagScene,
+      StatsScene,
       QuestLogScene,
       CraftingScene,
       MerchantScene,

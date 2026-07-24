@@ -1,14 +1,7 @@
 import Phaser from 'phaser';
 import { Character, getEffectiveStats } from '../game/character';
-import {
-  Item,
-  EquipSlot,
-  RARITY_LABELS,
-  RARITY_COLORS,
-  equipSlotLabel,
-  describeItemStats,
-  compareItemStats,
-} from '../game/item';
+import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, equipSlotLabel, describeItemStats } from '../game/item';
+import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -30,18 +23,16 @@ const SLOT_ORDER: EquipSlot[] = [
   'amulet',
 ];
 
-interface DetailContext {
-  item: Item;
-  fromSlot?: EquipSlot;
-}
-
 export class InventoryScene extends Phaser.Scene {
   private character!: Character;
+  private returnScene: ReturnSceneKey = 'Village';
+  private returnX?: number;
+  private returnY?: number;
+
   private slotTexts: Partial<Record<EquipSlot, Phaser.GameObjects.Text>> = {};
-  private inventoryTexts: Phaser.GameObjects.Text[] = [];
   private statsText!: Phaser.GameObjects.Text;
 
-  private detailContext?: DetailContext;
+  private detailContext?: EquipSlot;
   private detailBg!: Phaser.GameObjects.Rectangle;
   private detailTitle!: Phaser.GameObjects.Text;
   private detailStats!: Phaser.GameObjects.Text;
@@ -52,12 +43,18 @@ export class InventoryScene extends Phaser.Scene {
     super('Inventory');
   }
 
+  init(data: ReturnContext): void {
+    this.returnScene = data?.returnScene ?? 'Village';
+    this.returnX = data?.x;
+    this.returnY = data?.y;
+  }
+
   async create(): Promise<void> {
     const { width } = this.scale;
     const save = await SaveManager.load();
     this.character = save!.character!;
 
-    addCrispText(this, width / 2, 14, 'Inventaire', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
+    addCrispText(this, width / 2, 14, 'Équipement', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
 
     SLOT_ORDER.forEach((slot, i) => {
       const col = i % 2;
@@ -74,8 +71,11 @@ export class InventoryScene extends Phaser.Scene {
     });
     this.refreshStats();
 
-    addCrispText(this, 12, 246, 'Objets non équipés :', { fontSize: '10px', color: MUTED });
-    this.renderInventoryList();
+    addCrispText(this, 12, 246, 'Astuce : équipe des objets depuis le Sac.', {
+      fontSize: '9px',
+      color: MUTED,
+      wordWrap: { width: width - 24 },
+    });
 
     const backButton = addCrispText(this, width / 2, 362, 'Retour', {
       fontSize: '13px',
@@ -85,9 +85,13 @@ export class InventoryScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village'));
+    backButton.on('pointerdown', () => this.goBack());
 
     this.createDetailOverlay();
+  }
+
+  private goBack(): void {
+    this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY));
   }
 
   private renderSlot(slot: EquipSlot, x: number, y: number): void {
@@ -103,69 +107,13 @@ export class InventoryScene extends Phaser.Scene {
 
     text.on('pointerdown', () => {
       const equipped = this.character.equipment[slot];
-      if (equipped) this.showDetail(equipped, slot);
+      if (equipped) this.showDetail(slot, equipped);
     });
     this.slotTexts[slot] = text;
   }
 
   private slotLabel(slot: EquipSlot, item?: Item): string {
     return `${equipSlotLabel(slot)}\n${item ? item.name : 'Vide'}`;
-  }
-
-  private renderInventoryList(): void {
-    this.inventoryTexts.forEach((t) => t.destroy());
-    this.inventoryTexts = [];
-
-    if (this.character.inventory.length === 0) {
-      this.inventoryTexts.push(addCrispText(this, 12, 262, 'Aucun objet.', { fontSize: '9px', color: MUTED }));
-      return;
-    }
-
-    const MAX_VISIBLE = 5;
-    this.character.inventory.slice(0, MAX_VISIBLE).forEach((item, index) => {
-      const y = 262 + index * 18;
-      const text = addCrispText(this, 12, y, `${item.name} (${RARITY_LABELS[item.rarity]})`, {
-        fontSize: '9px',
-        color: RARITY_COLORS[item.rarity],
-        backgroundColor: SLOT_BG,
-        padding: { x: 6, y: 3 },
-      }).setInteractive({ useHandCursor: true });
-
-      text.on('pointerdown', () => this.showDetail(item));
-      this.inventoryTexts.push(text);
-    });
-
-    const overflow = this.character.inventory.length - MAX_VISIBLE;
-    if (overflow > 0) {
-      this.inventoryTexts.push(
-        addCrispText(this, 12, 262 + MAX_VISIBLE * 18, `+ ${overflow} de plus`, {
-          fontSize: '9px',
-          color: MUTED,
-        }),
-      );
-    }
-  }
-
-  // Where equip() would place this item — used both to actually equip it and
-  // to know which currently-equipped item to compare it against.
-  private resolveEquipSlot(item: Item): EquipSlot {
-    if (item.category !== 'ring') return item.category;
-    if (!this.character.equipment.ring1) return 'ring1';
-    if (!this.character.equipment.ring2) return 'ring2';
-    return 'ring1';
-  }
-
-  private async equip(item: Item): Promise<void> {
-    const slot = this.resolveEquipSlot(item);
-    const previous = this.character.equipment[slot];
-    this.character.equipment[slot] = item;
-    this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
-    if (previous) {
-      this.character.inventory.push(previous);
-    }
-
-    await SaveManager.saveCharacter(this.character);
-    this.refreshAll();
   }
 
   private async unequip(slot: EquipSlot): Promise<void> {
@@ -187,7 +135,6 @@ export class InventoryScene extends Phaser.Scene {
       text.setColor(item ? RARITY_COLORS[item.rarity] : MUTED);
     });
     this.refreshStats();
-    this.renderInventoryList();
   }
 
   private refreshStats(): void {
@@ -202,8 +149,7 @@ export class InventoryScene extends Phaser.Scene {
     this.statsText.setText(lines.join('\n'));
   }
 
-  // Detail/comparison overlay: tapping any item (equipped or not) opens this
-  // instead of acting immediately, so stats can be checked before committing.
+  // Detail overlay for an equipped slot: view its stats and unequip it.
   // Buttons are kept top-level per the project's Container-hit-testing rule.
   private createDetailOverlay(): void {
     const { width } = this.scale;
@@ -228,7 +174,7 @@ export class InventoryScene extends Phaser.Scene {
       .setDepth(901)
       .setVisible(false);
 
-    this.detailActionButton = addCrispText(this, 20, 272, 'Équiper', {
+    this.detailActionButton = addCrispText(this, 20, 272, 'Déséquiper', {
       fontSize: '11px',
       color: DARK,
       backgroundColor: GOLD,
@@ -251,14 +197,12 @@ export class InventoryScene extends Phaser.Scene {
     this.detailCloseButton.on('pointerdown', () => this.hideDetail());
   }
 
-  private showDetail(item: Item, fromSlot?: EquipSlot): void {
-    this.detailContext = { item, fromSlot };
+  private showDetail(slot: EquipSlot, item: Item): void {
+    this.detailContext = slot;
 
-    const lines = fromSlot ? describeItemStats(item) : compareItemStats(item, this.character.equipment[this.resolveEquipSlot(item)]);
-
+    const lines = describeItemStats(item);
     this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
     this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
-    this.detailActionButton.setText(fromSlot ? 'Déséquiper' : 'Équiper');
 
     this.detailBg.setVisible(true);
     this.detailTitle.setVisible(true);
@@ -278,12 +222,8 @@ export class InventoryScene extends Phaser.Scene {
 
   private async handleDetailAction(): Promise<void> {
     if (!this.detailContext) return;
-    const { item, fromSlot } = this.detailContext;
+    const slot = this.detailContext;
     this.hideDetail();
-    if (fromSlot) {
-      await this.unequip(fromSlot);
-    } else {
-      await this.equip(item);
-    }
+    await this.unequip(slot);
   }
 }

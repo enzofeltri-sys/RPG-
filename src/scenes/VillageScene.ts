@@ -17,6 +17,11 @@ const DARK = '#0b0c10';
 
 const VILLAGER_QUEST_ID = 'wolves_threat';
 
+interface VillageData {
+  x?: number;
+  y?: number;
+}
+
 interface GatherNode {
   x: number;
   y: number;
@@ -42,9 +47,16 @@ export class VillageScene extends Phaser.Scene {
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
   private actionButton!: Phaser.GameObjects.Text;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private spawnX?: number;
+  private spawnY?: number;
 
   constructor() {
     super('Village');
+  }
+
+  init(data: VillageData): void {
+    this.spawnX = data?.x;
+    this.spawnY = data?.y;
   }
 
   async create(): Promise<void> {
@@ -72,7 +84,7 @@ export class VillageScene extends Phaser.Scene {
       addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     });
 
-    this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 80);
+    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.npc);
     this.physics.add.collider(this.player, this.merchantNpc);
@@ -101,10 +113,16 @@ export class VillageScene extends Phaser.Scene {
     const save = await SaveManager.load();
     if (save?.character) {
       this.character = save.character;
-      new CharacterSheetPanel(this, save.character, (open) => {
-        this.joystick.setEnabled(!open);
-        this.actionButton.input!.enabled = !open;
-      });
+      new CharacterSheetPanel(
+        this,
+        save.character,
+        'Village',
+        () => ({ x: this.player.x, y: this.player.y }),
+        (open) => {
+          this.joystick.setEnabled(!open);
+          this.actionButton.input!.enabled = !open;
+        },
+      );
     }
   }
 
@@ -144,12 +162,12 @@ export class VillageScene extends Phaser.Scene {
     }
 
     if (this.distanceTo(this.merchantNpc.x, this.merchantNpc.y) < INTERACT_RADIUS) {
-      this.scene.start('Merchant');
+      this.scene.start('Merchant', { x: this.player.x, y: this.player.y });
       return;
     }
 
     if (this.distanceTo(this.forgeBuilding.x, this.forgeBuilding.y) < INTERACT_RADIUS) {
-      this.scene.start('Crafting');
+      this.scene.start('Crafting', { x: this.player.x, y: this.player.y });
       return;
     }
 

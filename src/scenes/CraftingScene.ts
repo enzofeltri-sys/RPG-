@@ -10,13 +10,25 @@ const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const OK_COLOR = '#5fbf6a';
 
+interface CraftingData {
+  x?: number;
+  y?: number;
+}
+
 export class CraftingScene extends Phaser.Scene {
   private character!: Character;
   private statusText!: Phaser.GameObjects.Text;
   private craftButtons: Phaser.GameObjects.Text[] = [];
+  private returnX?: number;
+  private returnY?: number;
 
   constructor() {
     super('Crafting');
+  }
+
+  init(data: CraftingData): void {
+    this.returnX = data?.x;
+    this.returnY = data?.y;
   }
 
   async create(): Promise<void> {
@@ -73,7 +85,7 @@ export class CraftingScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village'));
+    backButton.on('pointerdown', () => this.scene.start('Village', { x: this.returnX, y: this.returnY }));
   }
 
   private async handleCraft(recipeId: string): Promise<void> {
@@ -84,6 +96,6 @@ export class CraftingScene extends Phaser.Scene {
     }
     await SaveManager.saveCharacter(this.character);
     this.statusText.setText(`${RECIPES[recipeId].name} fabriqué(e) !`).setColor(OK_COLOR);
-    this.time.delayedCall(600, () => this.scene.restart());
+    this.time.delayedCall(600, () => this.scene.restart({ x: this.returnX, y: this.returnY }));
   }
 }

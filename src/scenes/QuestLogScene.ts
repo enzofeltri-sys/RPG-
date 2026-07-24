@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress } from '../game/quest';
+import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -12,9 +13,18 @@ const DONE_COLOR = '#5fbf6a';
 
 export class QuestLogScene extends Phaser.Scene {
   private character!: Character;
+  private returnScene: ReturnSceneKey = 'Village';
+  private returnX?: number;
+  private returnY?: number;
 
   constructor() {
     super('Quests');
+  }
+
+  init(data: ReturnContext): void {
+    this.returnScene = data?.returnScene ?? 'Village';
+    this.returnX = data?.x;
+    this.returnY = data?.y;
   }
 
   async create(): Promise<void> {
@@ -66,6 +76,10 @@ export class QuestLogScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village'));
+    backButton.on('pointerdown', () => this.goBack());
+  }
+
+  private goBack(): void {
+    this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY));
   }
 }

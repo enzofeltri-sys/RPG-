@@ -30,9 +30,12 @@ const ENCOUNTERS: EncounterMarker[] = [
 const BOSS_MONSTER_ID = 'alpha_wolf';
 
 interface DungeonData {
-  // Set by CombatScene when handing control back after a fight — distinguishes
-  // "returning mid-run" from a genuine fresh entry via the Field's dungeon zone.
+  // Set by CombatScene when handing control back after a fight, or by the Menu
+  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
+  // mid-run" from a genuine fresh entry via the Field's dungeon zone.
   resume?: boolean;
+  x?: number;
+  y?: number;
 }
 
 export class DungeonScene extends Phaser.Scene {
@@ -47,6 +50,8 @@ export class DungeonScene extends Phaser.Scene {
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
   private gateLabel?: Phaser.GameObjects.Text;
+  private spawnX?: number;
+  private spawnY?: number;
 
   constructor() {
     super('Dungeon');
@@ -56,13 +61,15 @@ export class DungeonScene extends Phaser.Scene {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
+    this.spawnX = data?.x;
+    this.spawnY = data?.y;
   }
 
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#1c1c22');
 
-    this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 40);
+    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -91,9 +98,15 @@ export class DungeonScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     if (save?.character) {
-      new CharacterSheetPanel(this, save.character, (open) => {
-        this.joystick.setEnabled(!open);
-      });
+      new CharacterSheetPanel(
+        this,
+        save.character,
+        'Dungeon',
+        () => ({ x: this.player.x, y: this.player.y }),
+        (open) => {
+          this.joystick.setEnabled(!open);
+        },
+      );
     }
   }
 

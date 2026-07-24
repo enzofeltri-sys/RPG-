@@ -10,6 +10,11 @@ const WORLD_HEIGHT = 240;
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 420;
 
+interface FieldData {
+  x?: number;
+  y?: number;
+}
+
 export class FieldScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private joystick!: VirtualJoystick;
@@ -17,9 +22,16 @@ export class FieldScene extends Phaser.Scene {
   private isTransitioning = false;
   private distanceWalked = 0;
   private encounterThreshold = 0;
+  private spawnX?: number;
+  private spawnY?: number;
 
   constructor() {
     super('Field');
+  }
+
+  init(data: FieldData): void {
+    this.spawnX = data?.x;
+    this.spawnY = data?.y;
   }
 
   async create(): Promise<void> {
@@ -28,7 +40,7 @@ export class FieldScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
 
-    this.player = createPlayer(this, WORLD_WIDTH / 2, 40);
+    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? 40);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -59,9 +71,15 @@ export class FieldScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     if (save?.character) {
-      new CharacterSheetPanel(this, save.character, (open) => {
-        this.joystick.setEnabled(!open);
-      });
+      new CharacterSheetPanel(
+        this,
+        save.character,
+        'Field',
+        () => ({ x: this.player.x, y: this.player.y }),
+        (open) => {
+          this.joystick.setEnabled(!open);
+        },
+      );
     }
   }
 

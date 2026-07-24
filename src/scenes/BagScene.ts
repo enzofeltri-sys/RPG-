@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
-import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, compareItemStats } from '../game/item';
+import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, categoryIcon, compareItemStats, isUpgrade } from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
 import { materialLabel } from '../game/material';
 import { QuestItem } from '../game/questItem';
@@ -15,6 +15,19 @@ const SLOT_BG = '#1c2b1c';
 const TAB_ACTIVE_BG = '#e8d9b5';
 const TAB_INACTIVE_BG = '#3a3428';
 const DISCARD_CONFIRM_COLOR = '#c0392b';
+const UPGRADE_COLOR = '#5fbf6a';
+const DOWNGRADE_COLOR = '#9aa0a6';
+
+const GRID_COLS = 4;
+const GRID_CELL = 44;
+const GRID_GAP = 6;
+const GRID_START_X = 14;
+const GRID_START_Y = 56;
+const GRID_MAX_VISIBLE = 12;
+
+function hexToNumber(hex: string): number {
+  return parseInt(hex.replace('#', ''), 16);
+}
 
 type BagTab = 'items' | 'materials' | 'consumables' | 'quest';
 
@@ -33,7 +46,7 @@ export class BagScene extends Phaser.Scene {
 
   private activeTab: BagTab = 'items';
   private tabButtons: Partial<Record<BagTab, Phaser.GameObjects.Text>> = {};
-  private rowTexts: Phaser.GameObjects.Text[] = [];
+  private rowObjects: Phaser.GameObjects.GameObject[] = [];
   private statusText!: Phaser.GameObjects.Text;
 
   private detailContext?: Item;
@@ -41,6 +54,7 @@ export class BagScene extends Phaser.Scene {
 
   private detailBg!: Phaser.GameObjects.Rectangle;
   private detailTitle!: Phaser.GameObjects.Text;
+  private detailUpgradeText!: Phaser.GameObjects.Text;
   private detailStats!: Phaser.GameObjects.Text;
   private equipButton!: Phaser.GameObjects.Text;
   private discardButton!: Phaser.GameObjects.Text;
@@ -111,8 +125,8 @@ export class BagScene extends Phaser.Scene {
   }
 
   private renderList(): void {
-    this.rowTexts.forEach((t) => t.destroy());
-    this.rowTexts = [];
+    this.rowObjects.forEach((o) => o.destroy());
+    this.rowObjects = [];
 
     if (this.activeTab === 'items') this.renderItems();
     else if (this.activeTab === 'materials') this.renderMaterials();
@@ -121,33 +135,57 @@ export class BagScene extends Phaser.Scene {
   }
 
   private addEmptyRow(label: string): void {
-    this.rowTexts.push(addCrispText(this, 12, 56, label, { fontSize: '9px', color: MUTED }));
+    this.rowObjects.push(addCrispText(this, 12, 56, label, { fontSize: '9px', color: MUTED }));
   }
 
+  // Square icon grid instead of a name list — no real art yet (increment 10),
+  // so each cell is a rarity-colored square badge with a short category code.
+  // A brighter, thicker border (plus a soft glow behind it) marks any item
+  // that would out-power whatever's currently equipped in its slot, so the
+  // player can spot upgrades without opening every item.
   private renderItems(): void {
     if (this.character.inventory.length === 0) {
       this.addEmptyRow('Aucun objet.');
       return;
     }
 
-    const MAX_VISIBLE = 10;
-    this.character.inventory.slice(0, MAX_VISIBLE).forEach((item, index) => {
-      const y = 56 + index * 20;
-      const text = addCrispText(this, 12, y, `${item.name} (${RARITY_LABELS[item.rarity]})`, {
-        fontSize: '9px',
-        color: RARITY_COLORS[item.rarity],
-        backgroundColor: SLOT_BG,
-        padding: { x: 6, y: 3 },
-      }).setInteractive({ useHandCursor: true });
+    this.character.inventory.slice(0, GRID_MAX_VISIBLE).forEach((item, index) => {
+      const col = index % GRID_COLS;
+      const row = Math.floor(index / GRID_COLS);
+      const x = GRID_START_X + col * (GRID_CELL + GRID_GAP);
+      const y = GRID_START_Y + row * (GRID_CELL + GRID_GAP);
+      const upgrade = isUpgrade(item, this.character.equipment[this.resolveEquipSlot(item)]);
 
-      text.on('pointerdown', () => this.showItemDetail(item));
-      this.rowTexts.push(text);
+      if (upgrade) {
+        const glow = this.add
+          .rectangle(x - 3, y - 3, GRID_CELL + 6, GRID_CELL + 6, hexToNumber(UPGRADE_COLOR), 0.35)
+          .setOrigin(0, 0);
+        this.rowObjects.push(glow);
+      }
+
+      const cell = this.add
+        .rectangle(x, y, GRID_CELL, GRID_CELL, hexToNumber(SLOT_BG))
+        .setOrigin(0, 0)
+        .setStrokeStyle(upgrade ? 3 : 1, hexToNumber(upgrade ? UPGRADE_COLOR : RARITY_COLORS[item.rarity]))
+        .setInteractive({ useHandCursor: true });
+      cell.on('pointerdown', () => this.showItemDetail(item));
+      this.rowObjects.push(cell);
+
+      const label = addCrispText(this, x + GRID_CELL / 2, y + GRID_CELL / 2, categoryIcon(item.category), {
+        fontSize: '8px',
+        color: RARITY_COLORS[item.rarity],
+      }).setOrigin(0.5);
+      this.rowObjects.push(label);
     });
 
-    const overflow = this.character.inventory.length - MAX_VISIBLE;
+    const overflow = this.character.inventory.length - GRID_MAX_VISIBLE;
     if (overflow > 0) {
-      this.rowTexts.push(
-        addCrispText(this, 12, 56 + MAX_VISIBLE * 20, `+ ${overflow} de plus`, { fontSize: '9px', color: MUTED }),
+      const rows = Math.ceil(GRID_MAX_VISIBLE / GRID_COLS);
+      this.rowObjects.push(
+        addCrispText(this, GRID_START_X, GRID_START_Y + rows * (GRID_CELL + GRID_GAP), `+ ${overflow} de plus`, {
+          fontSize: '9px',
+          color: MUTED,
+        }),
       );
     }
   }
@@ -161,7 +199,7 @@ export class BagScene extends Phaser.Scene {
 
     entries.forEach(([materialId, count], index) => {
       const y = 56 + index * 20;
-      this.rowTexts.push(
+      this.rowObjects.push(
         addCrispText(this, 12, y, `${materialLabel(materialId)} : ${count}`, {
           fontSize: '9px',
           color: GOLD,
@@ -189,7 +227,7 @@ export class BagScene extends Phaser.Scene {
         padding: { x: 6, y: 3 },
       }).setInteractive({ useHandCursor: true });
       text.on('pointerdown', () => this.handleUseConsumable(id as ConsumableId));
-      this.rowTexts.push(text);
+      this.rowObjects.push(text);
     });
   }
 
@@ -208,7 +246,7 @@ export class BagScene extends Phaser.Scene {
         padding: { x: 6, y: 3 },
       }).setInteractive({ useHandCursor: true });
       text.on('pointerdown', () => this.showQuestItemDetail(questItem));
-      this.rowTexts.push(text);
+      this.rowObjects.push(text);
     });
   }
 
@@ -262,7 +300,11 @@ export class BagScene extends Phaser.Scene {
       .setDepth(901)
       .setVisible(false);
 
-    this.detailStats = addCrispText(this, 20, 80, '', {
+    this.detailUpgradeText = addCrispText(this, 20, 76, '', { fontSize: '10px', color: UPGRADE_COLOR })
+      .setDepth(901)
+      .setVisible(false);
+
+    this.detailStats = addCrispText(this, 20, 94, '', {
       fontSize: '9px',
       color: GOLD,
       lineSpacing: 6,
@@ -311,10 +353,21 @@ export class BagScene extends Phaser.Scene {
     this.detailContext = item;
     this.discardArmed = false;
 
-    const lines = compareItemStats(item, this.character.equipment[this.resolveEquipSlot(item)]);
+    const equipped = this.character.equipment[this.resolveEquipSlot(item)];
+    const lines = compareItemStats(item, equipped);
     this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
     this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
     this.resetDiscardButton();
+
+    if (equipped) {
+      const upgrade = isUpgrade(item, equipped);
+      this.detailUpgradeText
+        .setText(upgrade ? '▲ Plus puissant que l\'objet équipé' : '▼ Moins puissant que l\'objet équipé')
+        .setColor(upgrade ? UPGRADE_COLOR : DOWNGRADE_COLOR)
+        .setVisible(true);
+    } else {
+      this.detailUpgradeText.setVisible(false);
+    }
 
     this.detailBg.setVisible(true);
     this.detailTitle.setVisible(true);
@@ -332,6 +385,7 @@ export class BagScene extends Phaser.Scene {
     this.discardArmed = false;
 
     this.detailTitle.setText(questItem.name).setColor(GOLD);
+    this.detailUpgradeText.setVisible(false);
     this.detailStats.setText(questItem.description);
 
     this.detailBg.setVisible(true);
@@ -347,6 +401,7 @@ export class BagScene extends Phaser.Scene {
     this.discardArmed = false;
     this.detailBg.setVisible(false);
     this.detailTitle.setVisible(false);
+    this.detailUpgradeText.setVisible(false);
     this.detailStats.setVisible(false);
     this.equipButton.setVisible(false);
     this.discardButton.setVisible(false);

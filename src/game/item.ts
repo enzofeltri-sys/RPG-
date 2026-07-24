@@ -116,6 +116,26 @@ export function equipSlotLabel(slot: EquipSlot): string {
   return SLOT_LABELS[slot];
 }
 
+// Short square-icon labels standing in for real art (increment 10) — used by
+// the Sac's icon grid so items read at a glance instead of as full names.
+const CATEGORY_ICONS: Record<ItemCategory, string> = {
+  weapon: 'ARM',
+  shield: 'BOU',
+  helmet: 'CAS',
+  chest: 'TOR',
+  legs: 'JAM',
+  boots: 'BOT',
+  gloves: 'GAN',
+  ring1: 'ANN',
+  ring2: 'ANN',
+  ring: 'ANN',
+  amulet: 'AMU',
+};
+
+export function categoryIcon(category: ItemCategory): string {
+  return CATEGORY_ICONS[category];
+}
+
 let nextItemId = 1;
 
 function scaleStats(stats: ItemStats, multiplier: number): ItemStats {
@@ -174,6 +194,19 @@ export function compareItemStats(next: Item, current?: Item): string[] {
     lines.push(`${STAT_LABELS[key]} : ${currentValue} → ${nextValue} (${diffLabel})`);
   });
   return lines;
+}
+
+// Total stat weight of an item — rarity is already baked in here since rare
+// items roll with scaled-up (and sometimes bonus) stats, so this single
+// number captures both "stats" and "rareté" per the comparison the Sac shows.
+function powerScore(item: Item): number {
+  return Object.values(item.stats).reduce((sum: number, value) => sum + (value ?? 0), 0);
+}
+
+// Whether `next` would be a strict upgrade over `current` (or over nothing,
+// i.e. an empty slot) — drives the "meilleur objet" highlight in the Sac.
+export function isUpgrade(next: Item, current?: Item): boolean {
+  return powerScore(next) > (current ? powerScore(current) : 0);
 }
 
 interface LootOptions {

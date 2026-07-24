@@ -1,6 +1,6 @@
 import { Character } from './character';
 
-export type ConsumableId = 'health_potion';
+export type ConsumableId = 'health_potion' | 'health_potion_greater';
 
 interface ConsumableDefinition {
   id: ConsumableId;
@@ -15,6 +15,12 @@ export const CONSUMABLES: Record<ConsumableId, ConsumableDefinition> = {
     name: 'Potion de soin',
     description: 'Restaure 25 PV.',
     healAmount: 25,
+  },
+  health_potion_greater: {
+    id: 'health_potion_greater',
+    name: 'Potion de soin supérieure',
+    description: 'Restaure 50 PV.',
+    healAmount: 50,
   },
 };
 

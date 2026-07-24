@@ -5,6 +5,7 @@ import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/i
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { CONSUMABLES, useConsumable } from '../game/consumable';
+import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
@@ -25,6 +26,13 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
 // but without a real boss's higher rare/epic odds, since it's meant to stay
 // a minor, "inutile" reward rather than compete with actual boss loot.
 const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian']);
+
+// Beast-type monsters can additionally drop leather alongside their normal
+// item loot — a modest chance on a regular kill, a better chance at the rare
+// "cuir supérieur" variant when the beast is a boss.
+const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corrupted_boar']);
+const BEAST_LEATHER_CHANCE = 0.25;
+const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 
 interface CombatData {
   returnScene?: ReturnSceneKey;
@@ -255,6 +263,21 @@ export class CombatScene extends Phaser.Scene {
       this.character.inventory.push(signatureItem);
     }
 
+    let materialDrop: string | null = null;
+    if (BEAST_MONSTER_IDS.has(this.monster.id)) {
+      const materialId = this.monster.isBoss
+        ? Math.random() < BEAST_BOSS_RARE_LEATHER_CHANCE
+          ? 'leather_rare'
+          : null
+        : Math.random() < BEAST_LEATHER_CHANCE
+          ? 'leather'
+          : null;
+      if (materialId) {
+        this.character.materials[materialId] = (this.character.materials[materialId] ?? 0) + 1;
+        materialDrop = materialId;
+      }
+    }
+
     const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
     const mainQuestAdvanced = advanceMainQuestOnBossDefeat(this.character, this.monster.id);
 
@@ -267,10 +290,11 @@ export class CombatScene extends Phaser.Scene {
         : `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
+    const materialPart = materialDrop ? ` Ressource récupérée : ${materialLabel(materialDrop)}.` : '';
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
     const mainQuestPart = mainQuestAdvanced ? ' La marque à votre poignet palpite soudain...' : '';
-    this.logText.setText(xpPart + lootPart + signaturePart + questPart + mainQuestPart);
+    this.logText.setText(xpPart + lootPart + signaturePart + materialPart + questPart + mainQuestPart);
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 

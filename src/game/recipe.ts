@@ -1,7 +1,7 @@
 import { Character } from './character';
 import { MaterialId } from './material';
 import { ConsumableId } from './consumable';
-import { createItem } from './item';
+import { Rarity, createItem } from './item';
 
 interface RecipeDefinitionBase {
   id: string;
@@ -14,6 +14,7 @@ interface RecipeDefinitionBase {
 interface ItemRecipe extends RecipeDefinitionBase {
   resultType: 'item';
   resultItemBaseId: string;
+  resultItemRarity: Rarity;
 }
 
 interface ConsumableRecipe extends RecipeDefinitionBase {
@@ -23,9 +24,6 @@ interface ConsumableRecipe extends RecipeDefinitionBase {
 
 export type RecipeDefinition = ItemRecipe | ConsumableRecipe;
 
-// Just enough to validate the crafting loop (gather -> craft -> use/equip),
-// per DESIGN.md's v1 scope: one forge recipe, one alchemy recipe. More
-// recipes/materials come with content extension later.
 export const RECIPES: Record<string, RecipeDefinition> = {
   forge_short_sword: {
     id: 'forge_short_sword',
@@ -35,6 +33,7 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     materials: { iron_ore: 3 },
     resultType: 'item',
     resultItemBaseId: 'short_sword',
+    resultItemRarity: 'common',
   },
   brew_health_potion: {
     id: 'brew_health_potion',
@@ -44,6 +43,38 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     materials: { herb: 2 },
     resultType: 'consumable',
     resultConsumableId: 'health_potion',
+  },
+  // Upgraded recipes — each still needs the common material alongside its
+  // rare counterpart, so both tiers stay worth gathering/dropping rather than
+  // the rare variant simply replacing the common one outright.
+  forge_short_sword_rare: {
+    id: 'forge_short_sword_rare',
+    name: 'Épée courte (qualité supérieure)',
+    description: 'Forger une épée courte de qualité rare à partir de fer étincelant.',
+    station: 'forge',
+    materials: { iron_ore: 2, iron_ore_rare: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'short_sword',
+    resultItemRarity: 'rare',
+  },
+  forge_leather_gloves_rare: {
+    id: 'forge_leather_gloves_rare',
+    name: 'Gants de cuir (qualité supérieure)',
+    description: 'Travailler du cuir supérieur en gants de qualité rare.',
+    station: 'forge',
+    materials: { leather: 2, leather_rare: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'leather_gloves',
+    resultItemRarity: 'rare',
+  },
+  brew_health_potion_greater: {
+    id: 'brew_health_potion_greater',
+    name: 'Potion de soin supérieure',
+    description: 'Préparer une potion de soin supérieure à partir d’herbe rare.',
+    station: 'alchemy',
+    materials: { herb: 2, herb_rare: 1 },
+    resultType: 'consumable',
+    resultConsumableId: 'health_potion_greater',
   },
 };
 
@@ -66,7 +97,7 @@ export function craft(character: Character, recipeId: string): boolean {
   });
 
   if (recipe.resultType === 'item') {
-    character.inventory.push(createItem(recipe.resultItemBaseId, 'common'));
+    character.inventory.push(createItem(recipe.resultItemBaseId, recipe.resultItemRarity));
   } else {
     character.consumables[recipe.resultConsumableId] = (character.consumables[recipe.resultConsumableId] ?? 0) + 1;
   }

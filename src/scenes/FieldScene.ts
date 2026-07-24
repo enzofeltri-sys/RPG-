@@ -4,6 +4,14 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { materialLabel, MaterialId } from '../game/material';
+
+// Small chance of an extra rare find alongside the guaranteed common yield —
+// keeps gathering worth doing repeatedly without ever leaving it empty-handed.
+const RARE_FIND_CHANCE = 0.12;
+const RARE_VARIANT: Partial<Record<MaterialId, MaterialId>> = {
+  iron_ore: 'iron_ore_rare',
+  herb: 'herb_rare',
+};
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -298,8 +306,16 @@ export class FieldScene extends Phaser.Scene {
 
   private async gather(node: GatherNode): Promise<void> {
     this.character.materials[node.materialId] = (this.character.materials[node.materialId] ?? 0) + 1;
+    let message = `+1 ${materialLabel(node.materialId)}`;
+
+    const rareVariant = RARE_VARIANT[node.materialId];
+    if (rareVariant && Math.random() < RARE_FIND_CHANCE) {
+      this.character.materials[rareVariant] = (this.character.materials[rareVariant] ?? 0) + 1;
+      message += ` (+1 ${materialLabel(rareVariant)} !)`;
+    }
+
     await SaveManager.saveCharacter(this.character);
-    this.showMessage(`+1 ${materialLabel(node.materialId)}`);
+    this.showMessage(message);
   }
 
   private showMessage(message: string): void {

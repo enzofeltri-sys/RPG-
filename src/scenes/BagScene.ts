@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, categoryIcon, compareItemStats, isUpgrade } from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
-import { materialLabel } from '../game/material';
+import { materialLabel, isRareMaterial } from '../game/material';
 import { QuestItem } from '../game/questItem';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
@@ -202,7 +202,7 @@ export class BagScene extends Phaser.Scene {
       this.rowObjects.push(
         addCrispText(this, 12, y, `${materialLabel(materialId)} : ${count}`, {
           fontSize: '9px',
-          color: GOLD,
+          color: isRareMaterial(materialId) ? RARITY_COLORS.rare : GOLD,
           backgroundColor: SLOT_BG,
           padding: { x: 6, y: 3 },
         }),

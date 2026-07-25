@@ -25,7 +25,8 @@ export type MainQuestStage =
   // point into Acte 2 below instead of a dead end.
   | 'act1_complete'
   | 'crossing_marshes'
-  | 'vasenoire_arrival';
+  | 'vasenoire_arrival'
+  | 'delta_conspiracy';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -51,6 +52,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   river_lead: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   act1_complete: { xp: 260, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   vasenoire_arrival: { xp: 300, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
+  delta_conspiracy: { xp: 130, itemBaseId: 'short_sword', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

@@ -85,6 +85,11 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: 'Gagnez la confiance des Limaneux, à Vasenoire.',
   },
+  delta_conspiracy: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Discutez avec Yenn, à Vasenoire.',
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

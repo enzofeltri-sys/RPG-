@@ -214,6 +214,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Les Ruines englouties — septième donjon (suite immédiate)** : `SunkenRuinsScene` (clé `SunkenRuins`), accessible depuis une entrée dédiée sur la Route engloutie. Même gabarit "moyen" que la Tanière des marais/l'Entrepôt (porte à deux rencontres, boss au butin garanti, pas de récompense signature), réutilisant `bog_wraith` pour les rencontres derrière la porte et un nouveau boss (`ruins_delver`) au cœur du donjon. `vasenoire_ruins` gagne une suite à 2 étapes (`vasenoire_ruins_leader`, même schéma que Faubourg/Entrepôt ou Relais/Tanière) : Yenn enchaîne dessus une fois la première quête rendue. Un coffre supplémentaire au fond du donjon porte le total à 11.
 
+**La trame principale rouvre après vasenoire_arrival (suite immédiate)** : nouvelle étape `delta_conspiracy`, qui remplace `vasenoire_arrival` comme état terminal. Reprend la quête locale de Vasenoire (`vasenoire_ruins_leader`) plutôt que d'ouvrir un nouveau lieu — une fois cette chaîne rendue, reparler à Yenn déclenche la suite du fil principal au lieu de la ligne de fermeture générique, même schéma que Faubourg/Entrepôt en Acte 1 (une quête secondaire locale qui rouvre la trame principale). Récompense à l'étape finale : 130 XP + Épée courte (Rare). `QuestLogScene.MAIN_QUEST_STATUS` mis à jour ; pas d'entrée dans `worldMap.ts`'s `MAIN_QUEST_LOCATION` pour cette étape (chapitre refermé, même traitement que `debriefed`).
+
 10. Polish (effets, son, UI) + test offline complet — les effets sonores sont désormais en place (voir ci-dessus) ; il reste à intégrer de vrais assets graphiques et de la musique (voir section Assets) à la place des rectangles de couleur actuels, volontairement hors scope v1.
 
 ## Assets

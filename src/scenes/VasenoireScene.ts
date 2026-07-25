@@ -180,14 +180,23 @@ export class VasenoireScene extends Phaser.Scene {
       return;
     }
 
+    if (stage === 'delta_conspiracy') {
+      this.openDialog(
+        "« Le delta garde encore ses secrets, étranger. Mais vous nous avez donné une longueur d'avance — les Limaneux n'oublieront pas. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
     this.openDialog("« Les Terres Noyées ne pardonnent pas l'imprudence, étranger. »", [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
   }
 
   // Reached once talkToYenn() confirms the main quest is at vasenoire_arrival
-  // — same single-NPC funnel as HunterOutpostScene's hunter (side quest here,
-  // no main-quest follow-up chained after it yet).
+  // — same single-NPC funnel as HunterOutpostScene's hunter, except the local
+  // questline's payoff (talkToYennAboutConspiracy) feeds back into the main
+  // quest instead of stopping at a side reward.
   private talkToYennAboutRuins(): void {
     const quest = QUESTS[RUINS_QUEST_ID];
     const progress = getQuestProgress(this.character, RUINS_QUEST_ID);
@@ -284,9 +293,35 @@ export class VasenoireScene extends Phaser.Scene {
       return;
     }
 
+    if (getMainQuestStage(this.character) === 'vasenoire_arrival') {
+      this.talkToYennAboutConspiracy();
+      return;
+    }
+
     this.openDialog(
       "« Vous avez notre confiance, étranger. Ce n'est pas rien, par ici. »",
       [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
+  }
+
+  // Reached once vasenoire_ruins_leader is turned in and the main quest is
+  // still sitting at vasenoire_arrival — the local questline's payoff feeds
+  // straight back into the main thread, same "side quest closes, main quest
+  // reopens" shape as smuggler_captain/faubourg_lead in Act 1.
+  private talkToYennAboutConspiracy(): void {
+    this.openDialog(
+      "Yenn examine ce que vous avez rapporté du cœur des ruines en silence, plus longtemps que nécessaire. « Ce n'étaient pas des pillards ordinaires. Ils fouillaient sur ordre — quelqu'un les payait pour retrouver quelque chose de précis là-dedans, et je doute que ce soit la première fois. » Elle relève la tête vers vous. « Les Limaneux tiennent ce delta depuis trop longtemps pour laisser filer ça sans réponse. Vous avez notre confiance, étranger — et maintenant, notre attention. Ce qui se prépare ici dépasse Vasenoire. »",
+      [
+        {
+          label: 'Continuer',
+          onClick: async () => {
+            advanceMainQuestStage(this.character, 'delta_conspiracy');
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
+            this.closeDialog();
+          },
+        },
+      ],
     );
   }
 

@@ -18,7 +18,9 @@ export type MainQuestStage =
   | 'debriefed'
   | 'faubourg_lead'
   | 'shard_confirmed'
-  | 'shards_beyond';
+  | 'shards_beyond'
+  | 'trail_west'
+  | 'river_lead';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -41,6 +43,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   complete: { xp: 120, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
   debriefed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   shards_beyond: { xp: 180, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
+  river_lead: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

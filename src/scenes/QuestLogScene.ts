@@ -56,6 +56,16 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   shards_beyond: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  trail_west: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Interrogez les chasseurs, au Relais des chasseurs.',
+  },
+  river_lead: {
     label: 'Terminée',
     color: DONE_COLOR,
     description: 'Le mystère de la marque ne fait que commencer...',

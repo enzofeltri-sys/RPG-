@@ -454,7 +454,33 @@ export class CityScene extends Phaser.Scene {
     }
 
     if (stage === 'shards_beyond') {
-      this.openDialog('« Restez prêt, voyageur. La prochaine étape nous mènera hors des murs d\'Aiglemont. »', [
+      this.openDialog(
+        "Sélène a passé la nuit sur ses cartes, les traits tirés. « Le Relais des chasseurs, en aval de la route fluviale, surveille tout le trafic qui descend vers l'ouest depuis des années. S'il existe une trace récente de cette caravane, ce sont eux qui l'auront croisée en premier. Allez leur parler — discrètement, la garde du relais n'a pas besoin de s'en mêler. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'trail_west');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'trail_west') {
+      this.openDialog(
+        '« Le Relais des chasseurs, en aval de la route fluviale. Revenez me voir si vous apprenez quelque chose là-bas. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'river_lead') {
+      this.openDialog('« Le Relais garde un œil sur le fleuve. Prévenez-moi au moindre nouveau signe. »', [
         { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
       return;

@@ -198,6 +198,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Coffres dans les 3 dernières zones d'exploration sans quête (suite immédiate)** : Le vieux puits, Route fluviale et Archives scellées n'avaient jamais reçu de coffre lors du premier lot (increment 9). Complété avec le même système (`isChestOpened`/`openChest`) — ces trois scènes n'avaient pas toutes le mécanisme d'interaction tactile en place (Le vieux puits et Archives scellées n'avaient encore aucun élément tapable), donc premier ajout de `Interactable`/`tapControl.setInteractables` là où c'était absent. Le coffre des Archives et celui du Vieux puits ne nécessitent pas de suivi "cleared" par scène (contrairement aux boss) : l'état ouvert vit entièrement dans `character.openedChests`, persistant et suffisant. Les 6 donjons + ces 3 zones portent maintenant le total à 9 coffres.
 
+**Trame principale prolongée une nouvelle fois, au-delà de `shards_beyond` (suite immédiate)** : 2 nouvelles étapes (`trail_west` → `river_lead`, ce dernier remplaçant `shards_beyond` comme état terminal). Sélène (`CityScene`) envoie le joueur au Relais des chasseurs plutôt que d'ouvrir une nouvelle carte — reprend un lieu déjà bâti (région 3) et son PNJ existant (`HunterOutpostScene`, une fois la propre chaîne de quêtes du relais terminée) plutôt que d'introduire un nouveau donneur de quête. Récompense à l'étape finale : 220 XP + Plastron de cuir (Épique).
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

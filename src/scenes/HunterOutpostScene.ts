@@ -3,6 +3,7 @@ import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -217,6 +218,39 @@ export class HunterOutpostScene extends Phaser.Scene {
             this.closeDialog();
           },
         },
+      ]);
+      return;
+    }
+
+    this.talkToHunterAboutMainQuest();
+  }
+
+  // Reached only once marsh_patrol_matriarch is also turned in — a separate
+  // thread from the local quests, advancing the main story instead. Checked
+  // last so it never interrupts the relay's own quest chain.
+  private talkToHunterAboutMainQuest(): void {
+    const stage = getMainQuestStage(this.character);
+
+    if (stage === 'trail_west') {
+      this.openDialog(
+        "Le chasseur baisse la voix. « Une caravane fluviale ? Oui, on a vu passer une barge qui ne s'est arrêtée nulle part, escortée de près, il y a une dizaine de jours. Elle descendait vers les Terres Noyées, plus loin à l'ouest. On n'y va jamais — trop de marais, trop peu de raisons. Mais si votre marque vous y pousse... je ne vous envierais pas le voyage. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'river_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'river_lead') {
+      this.openDialog('« Bon vent sur le fleuve, voyageur. Restez sur vos gardes. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
       return;
     }

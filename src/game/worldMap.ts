@@ -77,6 +77,8 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   debriefed: 'City',
   faubourg_lead: 'Warehouse',
   shard_confirmed: 'City',
+  shards_beyond: 'City',
+  trail_west: 'HunterOutpost',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

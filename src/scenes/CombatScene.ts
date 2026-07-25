@@ -9,6 +9,7 @@ import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
+import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -188,6 +189,7 @@ export class CombatScene extends Phaser.Scene {
     const damage = baseDamage + stats.fireDamage;
     this.monster.hp -= damage;
     this.refreshBars();
+    playHit();
     this.logText.setText(
       stats.fireDamage > 0
         ? `Vous infligez ${damage} dégâts (dont ${stats.fireDamage} de feu).`
@@ -207,6 +209,7 @@ export class CombatScene extends Phaser.Scene {
     const damage = Math.max(1, this.monster.attack + Phaser.Math.Between(-1, 2) - armor);
     this.character.hp = Math.max(0, this.character.hp - damage);
     this.refreshBars();
+    playHit();
     this.logText.setText(`${this.monster.name} vous inflige ${damage} dégâts.`);
 
     if (this.character.hp <= 0) {
@@ -295,6 +298,11 @@ export class CombatScene extends Phaser.Scene {
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
     const mainQuestPart = mainQuestAdvanced ? ' La marque à votre poignet palpite soudain...' : '';
     this.logText.setText(xpPart + lootPart + signaturePart + materialPart + questPart + mainQuestPart);
+    if (levelsGained > 0) {
+      playLevelUp();
+    } else {
+      playVictory();
+    }
     this.showContinue(() => this.leaveTo(this.returnScene));
   }
 
@@ -303,6 +311,7 @@ export class CombatScene extends Phaser.Scene {
     this.hideActions();
     this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
     await SaveManager.saveCharacter(this.character);
+    playDefeat();
     this.logText.setText('Vous avez été vaincu... et ramené au hameau.');
     this.showContinue(() => this.leaveTo('Hamlet'));
   }

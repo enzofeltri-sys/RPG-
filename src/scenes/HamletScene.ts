@@ -6,6 +6,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
+import { playChestOpen } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
@@ -393,7 +394,10 @@ export class HamletScene extends Phaser.Scene {
     const loot = openChest(this.character, CHEST_ID);
     this.chest.setFillStyle(0x3a3428);
     await SaveManager.saveCharacter(this.character);
-    if (loot) this.showMessage(chestLootMessage(loot));
+    if (loot) {
+      playChestOpen();
+      this.showMessage(chestLootMessage(loot));
+    }
   }
 
   private leaveHamlet(): void {

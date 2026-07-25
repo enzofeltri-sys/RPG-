@@ -6,6 +6,7 @@ import { CONSUMABLES } from '../game/consumable';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
+import { playCoin } from '../ui/sound';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -127,6 +128,7 @@ export class MerchantScene extends Phaser.Scene {
     this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
     this.character.gold += sellPrice(item);
     await SaveManager.saveCharacter(this.character);
+    playCoin();
     this.statusText.setText(`Vendu : ${item.name} (+${sellPrice(item)} or).`).setColor(GOLD);
     this.renderSellList();
     this.refreshGold();
@@ -140,6 +142,7 @@ export class MerchantScene extends Phaser.Scene {
     this.character.gold -= entry.price;
     entry.onBuy(this.character);
     await SaveManager.saveCharacter(this.character);
+    playCoin();
     this.statusText.setText(`Acheté : ${entry.label}.`).setColor(GOLD);
     this.refreshGold();
   }

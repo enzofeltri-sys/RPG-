@@ -3,6 +3,7 @@ import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
+import { playChestOpen } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
@@ -234,7 +235,10 @@ export class MarshLairScene extends Phaser.Scene {
     const loot = openChest(this.character, CHEST_ID);
     this.chest.setFillStyle(0x3a3428);
     await SaveManager.saveCharacter(this.character);
-    if (loot) this.showMessage(chestLootMessage(loot));
+    if (loot) {
+      playChestOpen();
+      this.showMessage(chestLootMessage(loot));
+    }
   }
 
   private showMessage(message: string): void {

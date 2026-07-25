@@ -4,6 +4,7 @@ import { materialLabel } from '../game/material';
 import { RECIPES, RecipeDefinition, canCraft, craft } from '../game/recipe';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
+import { playCraftSuccess } from '../ui/sound';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -152,6 +153,7 @@ export class CraftingScene extends Phaser.Scene {
       return;
     }
     await SaveManager.saveCharacter(this.character);
+    playCraftSuccess();
     this.statusText.setText(`${RECIPES[recipeId].name} fabriqué(e) !`).setColor(OK_COLOR);
     this.time.delayedCall(600, () => this.scene.restart({ x: this.returnX, y: this.returnY, page: this.page }));
   }

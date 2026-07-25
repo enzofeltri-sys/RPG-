@@ -15,6 +15,8 @@ const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'bandit_camp_threat';
+const LEADER_QUEST_ID = 'bandit_camp_threat_leader';
+const LEADER_ZONE_ID = 'bandit_leader_zone';
 
 interface EncounterMarker {
   id: string;
@@ -96,6 +98,7 @@ export class BanditCampScene extends Phaser.Scene {
     ENCOUNTERS.filter((e) => !this.clearedEncounterIds.has(e.id)).forEach((encounter) =>
       this.addEncounterZone(encounter),
     );
+    this.addLeaderZone();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -185,6 +188,53 @@ export class BanditCampScene extends Phaser.Scene {
       return;
     }
 
+    this.talkToGuardAboutLeader();
+  }
+
+  // Reached only once bandit_camp_threat is turned in — a short local
+  // follow-up pointing at the camp's own leader, deeper in (see
+  // addLeaderZone()), rather than opening a new connected scene (this camp
+  // stays a dead end by design).
+  private talkToGuardAboutLeader(): void {
+    const quest = QUESTS[LEADER_QUEST_ID];
+    const progress = getQuestProgress(this.character, LEADER_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nIl se terre plus au nord, au fond du camp.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLe camp est démantelé. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
     this.openDialog('Merci encore pour votre aide contre les bandits.', [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
@@ -253,18 +303,45 @@ export class BanditCampScene extends Phaser.Scene {
       label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(encounter.id);
-      this.startCombat();
+      this.startCombat('bandit_thug');
     });
   }
 
-  private startCombat(): void {
+  // Always present (not gated behind accepting bandit_camp_threat_leader) —
+  // same precedent as the Entrepôt's smuggler_captain, fightable on its own,
+  // with the quest just tracking/rewarding the same kill.
+  private addLeaderZone(): void {
+    if (this.clearedEncounterIds.has(LEADER_ZONE_ID)) return;
+
+    const x = 130;
+    const y = 30;
+    const marker = this.add.rectangle(x, y, 34, 34, 0x3a2a20, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const label = addCrispText(this, x, y - 26, 'Chef des bandits', {
+      fontSize: '9px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(x, y, 34, 34);
+    this.physics.add.existing(zone, true);
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      marker.destroy();
+      label.destroy();
+      zone.destroy();
+      this.clearedEncounterIds.add(LEADER_ZONE_ID);
+      this.startCombat('bandit_leader');
+    });
+  }
+
+  private startCombat(monsterId: string): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'BanditCamp',
-        monsterId: 'bandit_thug',
+        monsterId,
         x: this.player.x,
         y: this.player.y,
       });

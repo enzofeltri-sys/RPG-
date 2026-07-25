@@ -186,6 +186,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Nouvelle quête secondaire au petit sanctuaire (suite immédiate)** : l'ermite (`ShrineScene`) donnait déjà un soin gratuit complet et un peu de lore, sans quête. Ajout de `shrine_pilgrims` (`src/game/quest.ts`, moteur générique existant) — des gobelins éclaireurs qui harcèlent les pèlerins en Forêt, réutilisant un monstre déjà présent (`goblin_scout`, rencontres aléatoires de la Forêt) sans en ajouter un nouveau. Le soin gratuit reste accessible à tout moment (bouton présent quel que soit l'état de la quête), pour ne pas transformer le sanctuaire en donneur de quête au prix de son rôle de havre de repos.
 
+**Chaîne de quête à 2 étapes au Camp de bandits (suite immédiate)** : `bandit_camp_threat` (existante) gagne une suite, `bandit_camp_threat_leader`, sur le même principe que Faubourg/Entrepôt — sauf que ce camp reste un cul-de-sac par conception (pas de nouvelle scène connectée) : le chef des bandits (`bandit_leader`, nouveau monstre, 40 PV/8 ATQ, boss) est simplement placé plus profondément dans le camp existant. Comme `smuggler_captain`, il est toujours affrontable indépendamment de la quête ; celle-ci ne fait que suivre/récompenser la même victoire. Récompense : 100 XP + Casque de cuir (Rare).
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

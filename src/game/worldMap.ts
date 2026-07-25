@@ -84,6 +84,7 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   wolves_threat: 'Hamlet',
   crop_pests: 'Farm',
   bandit_camp_threat: 'BanditCamp',
+  bandit_camp_threat_leader: 'BanditCamp',
   goblin_camp_threat: 'GoblinCamp',
   city_road_patrol: 'City',
   faubourg_smugglers: 'Faubourg',

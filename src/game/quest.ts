@@ -58,6 +58,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'bandit_thug', count: 3 },
     reward: { xp: 70, itemBaseId: 'wooden_shield', itemRarity: 'common' },
   },
+  bandit_camp_threat_leader: {
+    id: 'bandit_camp_threat_leader',
+    title: 'Le chef des bandits',
+    description:
+      "Le garde vous confie que le chef des bandits se terre encore plus profondément dans le camp. Affrontez-le pour mettre fin à la menace pour de bon.",
+    objective: { type: 'defeat', monsterId: 'bandit_leader', count: 1 },
+    reward: { xp: 100, itemBaseId: 'leather_helmet', itemRarity: 'rare' },
+  },
   goblin_camp_threat: {
     id: 'goblin_camp_threat',
     title: 'Repaire de gobelins',

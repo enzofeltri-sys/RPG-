@@ -90,4 +90,5 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   faubourg_smugglers_leader: 'Faubourg',
   marsh_patrol: 'HunterOutpost',
   marsh_patrol_matriarch: 'HunterOutpost',
+  shrine_pilgrims: 'Shrine',
 };

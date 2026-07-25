@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
+import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -13,6 +14,7 @@ const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
+const QUEST_ID = 'shrine_pilgrims';
 
 const LORE_LINES = [
   "Ce lieu est plus ancien que Basse-Combe elle-même. On dit qu'il fut élevé au temps du Sceau originel, pour veiller sur ceux qui portent une marque comme la vôtre.",
@@ -28,7 +30,8 @@ interface ShrineData {
 // The "petit sanctuaire" from VISION.md's region-1 description — a small
 // dead-end branch off Basse-Combe, east side. No combat here on purpose (a
 // sanctuary should read as a safe haven): a hermit offers a free full heal
-// plus a bit of world lore, no quest attached yet.
+// plus a bit of world lore, and a quest that sends the player back out to
+// the Forêt rather than breaking the no-combat rule locally.
 export class ShrineScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
@@ -131,25 +134,73 @@ export class ShrineScene extends Phaser.Scene {
   }
 
   private talkToHermit(): void {
+    const quest = QUESTS[QUEST_ID];
+    const progress = getQuestProgress(this.character, QUEST_ID);
+
+    // The free heal stays reachable no matter the quest state (a sanctuary
+    // shouldn't stop being one) — folded in as a second button everywhere
+    // except the one-shot turn-in dialog, at most 2 buttons per dialog to
+    // match every other scene's openDialog layout.
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        this.restButton(),
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(
+        `${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} gobelins éclaireurs vaincus.`,
+        [this.restButton(), { label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLes pèlerins vous en seront reconnaissants. Voici votre récompense.`, [
+        {
+          label: 'Récupérer',
+          onClick: async () => {
+            turnInQuest(this.character, QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.showLoreAndRest();
+  }
+
+  private showLoreAndRest(): void {
     const text = LORE_LINES[this.loreIndex % LORE_LINES.length];
     this.loreIndex += 1;
 
-    const alreadyFull = this.character.hp >= this.character.maxHp && this.character.mp >= this.character.maxMp;
+    this.openDialog(text, [this.restButton(), { label: 'Fermer', onClick: () => this.closeDialog() }]);
+  }
 
-    this.openDialog(text, [
-      {
-        label: alreadyFull ? 'Déjà reposé(e)' : 'Se reposer (soin complet)',
-        onClick: async () => {
-          if (!alreadyFull) {
-            this.character.hp = this.character.maxHp;
-            this.character.mp = this.character.maxMp;
-            await SaveManager.saveCharacter(this.character);
-          }
-          this.closeDialog();
-        },
+  private restButton(): { label: string; onClick: () => void } {
+    const alreadyFull = this.character.hp >= this.character.maxHp && this.character.mp >= this.character.maxMp;
+    return {
+      label: alreadyFull ? 'Déjà reposé(e)' : 'Se reposer (soin complet)',
+      onClick: async () => {
+        if (!alreadyFull) {
+          this.character.hp = this.character.maxHp;
+          this.character.mp = this.character.maxMp;
+          await SaveManager.saveCharacter(this.character);
+        }
+        this.closeDialog();
       },
-      { label: 'Fermer', onClick: () => this.closeDialog() },
-    ]);
+    };
   }
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {

@@ -106,6 +106,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'corrupted_boar', count: 3 },
     reward: { xp: 100, itemBaseId: 'leather_chest', itemRarity: 'common' },
   },
+  shrine_pilgrims: {
+    id: 'shrine_pilgrims',
+    title: 'La route du sanctuaire',
+    description:
+      "Des gobelins éclaireurs harcèlent les pèlerins qui traversent la Forêt pour rejoindre le sanctuaire. Éliminez-en 3 pour sécuriser leur chemin.",
+    objective: { type: 'defeat', monsterId: 'goblin_scout', count: 3 },
+    reward: { xp: 65, itemBaseId: 'leather_boots', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

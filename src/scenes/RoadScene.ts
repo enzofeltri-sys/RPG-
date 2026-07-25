@@ -39,10 +39,10 @@ interface RoadData {
 
 // La "route commerciale" de VISION.md — relie Valombre (région de départ) à
 // Aiglemont, la première cité-État (région 2). Un garde de caravane offre un
-// peu de mise en contexte ; rencontres aléatoires façon Forêt/Ferme, en
-// réutilisant corrupted_wolf plutôt qu'un nouveau monstre (la route elle-même
-// n'a pas besoin d'identité de menace propre — c'est Aiglemont qui l'apporte
-// via city_road_patrol).
+// peu de mise en contexte ; rencontres aléatoires façon Forêt/Ferme, avec
+// corrupted_boar comme menace propre à la route (voir city_road_patrol,
+// donné par le capitaine d'Aiglemont — sans ça, cette quête n'aurait aucun
+// endroit où trouver son objectif).
 export class RoadScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
@@ -183,7 +183,7 @@ export class RoadScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'Road',
-        monsterId: 'corrupted_wolf',
+        monsterId: 'corrupted_boar',
         x: this.player.x,
         y: this.player.y,
       });

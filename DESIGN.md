@@ -192,6 +192,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Et pour la Ferme isolée (suite immédiate)** : `crop_pests` gagne `crop_pests_king` — même principe, adapté à une scène qui n'avait jusqu'ici que des rencontres aléatoires (pas de zone fixe) : ajout d'un « Roi des rats » (`rat_king`, nouveau monstre, 26 PV/5 ATQ, boss) sur une zone fixe toujours présente dans la ferme, avec le suivi cleared/resume nécessaire (`Farm` ajoutée à `RESUMABLE_SCENES`). Récompense : 60 XP + Épée courte (Rare) — première quête secondaire à offrir une arme plutôt qu'un équipement défensif.
 
+**Correction : `city_road_patrol` était impossible à terminer** — la quête (donnée par le capitaine d'Aiglemont) demande de vaincre 3 `corrupted_boar`, mais `RoadScene` (la route commerciale où elle se déroule) tirait ses rencontres aléatoires parmi `corrupted_wolf`, jamais `corrupted_boar` : ce monstre n'était généré nulle part dans le jeu. Un audit rapide (chaque identifiant de `monster.ts` doit apparaître dans au moins une scène) a confirmé que c'était le seul cas. Corrigé en faisant tirer `RoadScene` sur `corrupted_boar` à la place — cohérent avec le texte de la quête, qui parlait déjà de sangliers sur cette route.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

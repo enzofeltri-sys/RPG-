@@ -196,6 +196,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Chaîne à 2 étapes pour `city_road_patrol` (suite immédiate)** : `city_road_patrol_alpha` — un sanglier alpha corrompu (nouveau monstre, boss, 48 PV/10 ATQ) sur une zone fixe toujours présente sur la Route commerciale (`Road` ajoutée à `RESUMABLE_SCENES`). Split identique à Faubourg/Entrepôt : le dialogue des deux étapes reste chez le capitaine (`CityScene`), le combat lui-même se déroule ailleurs (`RoadScene`). Récompense : 110 XP + Anneau simple (Rare).
 
+**Coffres dans les 3 dernières zones d'exploration sans quête (suite immédiate)** : Le vieux puits, Route fluviale et Archives scellées n'avaient jamais reçu de coffre lors du premier lot (increment 9). Complété avec le même système (`isChestOpened`/`openChest`) — ces trois scènes n'avaient pas toutes le mécanisme d'interaction tactile en place (Le vieux puits et Archives scellées n'avaient encore aucun élément tapable), donc premier ajout de `Interactable`/`tapControl.setInteractables` là où c'était absent. Le coffre des Archives et celui du Vieux puits ne nécessitent pas de suivi "cleared" par scène (contrairement aux boss) : l'état ouvert vit entièrement dans `character.openedChests`, persistant et suffisant. Les 6 donjons + ces 3 zones portent maintenant le total à 9 coffres.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

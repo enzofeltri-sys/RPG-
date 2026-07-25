@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Wanderer } from '../entities/wanderer';
+import { Character } from '../game/character';
+import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -11,6 +13,7 @@ const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
 const WORLD_HEIGHT = 400;
+const CHEST_ID = 'riverroad_chest_1';
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 400;
 
@@ -51,6 +54,8 @@ export class RiverRoadScene extends Phaser.Scene {
   private encounterThreshold = 0;
   private fisherman!: Wanderer;
   private fishermanLineIndex = 0;
+  private character!: Character;
+  private chest!: Phaser.GameObjects.Rectangle;
   private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
@@ -108,6 +113,8 @@ export class RiverRoadScene extends Phaser.Scene {
     // Local const (not `this.fisherman.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would
     // otherwise bind `this` to the literal itself, not the scene.
+    this.chest = this.add.rectangle(350, 100, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+
     const fishermanSprite = this.fisherman.sprite;
     const interactables: Interactable[] = [
       {
@@ -120,6 +127,7 @@ export class RiverRoadScene extends Phaser.Scene {
         radius: 20,
         onTap: () => this.talkToFisherman(),
       },
+      { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -130,6 +138,10 @@ export class RiverRoadScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
 
     if (save?.character) {
+      this.character = save.character;
+      if (isChestOpened(this.character, CHEST_ID)) {
+        this.chest.setFillStyle(0x3a3428);
+      }
       new CharacterSheetPanel(
         this,
         save.character,
@@ -180,6 +192,17 @@ export class RiverRoadScene extends Phaser.Scene {
     const line = FISHERMAN_LINES[this.fishermanLineIndex % FISHERMAN_LINES.length];
     this.fishermanLineIndex += 1;
     this.showMessage(line);
+  }
+
+  private async handleChestTap(): Promise<void> {
+    if (isChestOpened(this.character, CHEST_ID)) {
+      this.showMessage('Ce coffre est vide.');
+      return;
+    }
+    const loot = openChest(this.character, CHEST_ID);
+    this.chest.setFillStyle(0x3a3428);
+    await SaveManager.saveCharacter(this.character);
+    if (loot) this.showMessage(chestLootMessage(loot));
   }
 
   private showMessage(message: string): void {

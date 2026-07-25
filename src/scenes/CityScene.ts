@@ -486,7 +486,25 @@ export class CityScene extends Phaser.Scene {
     }
 
     if (stage === 'river_lead') {
-      this.openDialog('« Le Relais garde un œil sur le fleuve. Prévenez-moi au moindre nouveau signe. »', [
+      this.openDialog(
+        "Sélène range la carte, le visage grave mais résolu. « Nous savons désormais qu'une main organisée arrache les éclats du sceau, qu'elle opère depuis les cités du fleuve, et que votre marque est directement liée à tout cela. Ce n'est plus une rumeur, voyageur — c'est une menace avérée. » Elle vous regarde longuement. « Vous n'êtes plus un simple survivant d'un village frontalier. Vous êtes devenu la seule personne capable de suivre cette trace jusqu'au bout. Reposez-vous, entraînez-vous, préparez-vous — la route vers les Terres Noyées sera longue, et je ne peux pas encore vous y accompagner. Quand vous serez prêt à la reprendre, revenez me voir. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'act1_complete');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'act1_complete') {
+      this.openDialog('« Le repos avant la tempête, voyageur. Je serai là quand vous serez prêt à repartir. »', [
         { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
       return;

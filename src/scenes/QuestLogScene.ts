@@ -66,9 +66,14 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: 'Interrogez les chasseurs, au Relais des chasseurs.',
   },
   river_lead: {
-    label: 'Terminée',
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  act1_complete: {
+    label: 'Acte 1 terminé',
     color: DONE_COLOR,
-    description: 'Le mystère de la marque ne fait que commencer...',
+    description: 'La suite de l\'aventure arrive dans une prochaine mise à jour.',
   },
 };
 

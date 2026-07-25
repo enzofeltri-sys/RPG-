@@ -1,9 +1,13 @@
 import Phaser from 'phaser';
-import { TapController } from '../input/TapController';
+import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { Character } from '../game/character';
+import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
+
+const CHEST_ID = 'marshlair_chest_1';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment. Same medium-difficulty gabarit as
@@ -45,6 +49,9 @@ export class MarshLairScene extends Phaser.Scene {
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
   private gateLabel?: Phaser.GameObjects.Text;
+  private character!: Character;
+  private chest!: Phaser.GameObjects.Rectangle;
+  private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -101,6 +108,12 @@ export class MarshLairScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    const interactables: Interactable[] = [
+      { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
+    ];
+    this.tapControl.setInteractables(interactables);
+
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
     // a new scene mid-await).
@@ -108,6 +121,10 @@ export class MarshLairScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
 
     if (save?.character) {
+      this.character = save.character;
+      if (isChestOpened(this.character, CHEST_ID)) {
+        this.chest.setFillStyle(0x3a3428);
+      }
       new CharacterSheetPanel(
         this,
         save.character,
@@ -206,6 +223,37 @@ export class MarshLairScene extends Phaser.Scene {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', { returnScene: 'MarshLair', monsterId, x: this.player.x, y: this.player.y });
+    });
+  }
+
+  private async handleChestTap(): Promise<void> {
+    if (isChestOpened(this.character, CHEST_ID)) {
+      this.showMessage('Ce coffre est vide.');
+      return;
+    }
+    const loot = openChest(this.character, CHEST_ID);
+    this.chest.setFillStyle(0x3a3428);
+    await SaveManager.saveCharacter(this.character);
+    if (loot) this.showMessage(chestLootMessage(loot));
+  }
+
+  private showMessage(message: string): void {
+    this.messageText?.destroy();
+    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
+      fontSize: '10px',
+      color: '#e8d9b5',
+      backgroundColor: '#0b0c10',
+      padding: { x: 8, y: 5 },
+      align: 'center',
+      wordWrap: { width: this.scale.width - 20 },
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001);
+
+    this.time.delayedCall(1800, () => {
+      this.messageText?.destroy();
+      this.messageText = undefined;
     });
   }
 

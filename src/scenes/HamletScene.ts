@@ -5,10 +5,12 @@ import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
+import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
+const CHEST_ID = 'hamlet_chest_1';
 const WORLD_WIDTH = 240;
 // Tall enough to fill the portrait canvas (216x384) at every camera
 // position — a world shorter than the viewport leaves a solid black band at
@@ -43,6 +45,7 @@ export class HamletScene extends Phaser.Scene {
   private isTransitioning = false;
   private character!: Character;
   private mentor!: Phaser.GameObjects.Rectangle;
+  private chest!: Phaser.GameObjects.Rectangle;
   private villager!: Wanderer;
   private villagerLineIndex = 0;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
@@ -82,6 +85,9 @@ export class HamletScene extends Phaser.Scene {
     // extended hamlet from reading as an empty stretch of grass while
     // staying "deliberately sparse" (see the class doc comment).
     this.addBuilding(190, 300, 40, 32);
+
+    // An old chest stashed beside that third, mostly-abandoned hut.
+    this.chest = this.add.rectangle(150, 330, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
 
     this.mentor = this.add.rectangle(150, 130, 14, 20, 0x5a4a3a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.mentor, true);
@@ -154,6 +160,7 @@ export class HamletScene extends Phaser.Scene {
         radius: 30,
         onTap: () => this.showMessage('Une cabane du hameau. Personne ne répond.'),
       })),
+      { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -165,6 +172,9 @@ export class HamletScene extends Phaser.Scene {
 
     if (save?.character) {
       this.character = save.character;
+      if (isChestOpened(this.character, CHEST_ID)) {
+        this.chest.setFillStyle(0x3a3428);
+      }
       new CharacterSheetPanel(
         this,
         save.character,
@@ -373,6 +383,17 @@ export class HamletScene extends Phaser.Scene {
       .setDepth(1001);
 
     this.time.delayedCall(1800, () => messageText.destroy());
+  }
+
+  private async handleChestTap(): Promise<void> {
+    if (isChestOpened(this.character, CHEST_ID)) {
+      this.showMessage('Ce coffre est vide.');
+      return;
+    }
+    const loot = openChest(this.character, CHEST_ID);
+    this.chest.setFillStyle(0x3a3428);
+    await SaveManager.saveCharacter(this.character);
+    if (loot) this.showMessage(chestLootMessage(loot));
   }
 
   private leaveHamlet(): void {

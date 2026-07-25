@@ -52,6 +52,8 @@ export interface Character {
   questItems: QuestItem[];
   // Undefined on older saves and treated as 'not_started' — see mainQuest.ts.
   mainQuestStage?: MainQuestStage;
+  // Keyed by chest id (see chest.ts) — presence means opened, never re-rolls.
+  openedChests: Record<string, boolean>;
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -125,6 +127,7 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     consumables: {},
     questItems: [],
     mainQuestStage: 'not_started',
+    openedChests: {},
   };
 }
 
@@ -138,6 +141,7 @@ export function ensureCharacterDefaults(character: Character): Character {
   if (!character.materials) character.materials = {};
   if (!character.consumables) character.consumables = {};
   if (!character.questItems) character.questItems = [];
+  if (!character.openedChests) character.openedChests = {};
   if (character.stats.armor === undefined) character.stats.armor = 0;
   if (character.stats.fireDamage === undefined) character.stats.fireDamage = 0;
   return character;

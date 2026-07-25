@@ -146,6 +146,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'goblin_scout', count: 3 },
     reward: { xp: 65, itemBaseId: 'leather_boots', itemRarity: 'rare' },
   },
+  vasenoire_ruins: {
+    id: 'vasenoire_ruins',
+    title: 'La confiance des Limaneux',
+    description:
+      "Des spectres des tourbières rôdent parmi les ruines englouties au sud du delta. Éliminez-en 3 pour prouver aux Limaneux que vous n'êtes pas venu les mains vides.",
+    objective: { type: 'defeat', monsterId: 'bog_wraith', count: 3 },
+    reward: { xp: 150, itemBaseId: 'leather_chest', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

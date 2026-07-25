@@ -3,10 +3,13 @@ import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
+import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
+
+const RUINS_QUEST_ID = 'vasenoire_ruins';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -23,10 +26,11 @@ interface VasenoireData {
 
 // Première cité de l'Acte 2 (Terres Noyées) — la seule encore debout dans un
 // delta englouti depuis des générations, tenue par la guilde des Limaneux.
-// Hub sûr comme Valombre/Aiglemont (pas de rencontre aléatoire) : Yenn, une
-// Limaneux, porte la trame principale pour l'instant — pas encore de
-// marchande/forge/quêtes secondaires ici, ça viendra une fois ce premier
-// point d'ancrage posé (voir DESIGN.md, incrément Acte 2).
+// Hub sûr comme Valombre/Aiglemont (pas de rencontre aléatoire) : Yenn porte
+// la trame principale ainsi qu'une première quête secondaire locale, et la
+// cité dispose désormais de sa propre marchande et de sa forge — les deux
+// scènes globales (Merchant/Crafting) déjà utilisées ailleurs, simplement
+// rendues accessibles ici avec `returnScene: 'Vasenoire'`.
 export class VasenoireScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
@@ -34,6 +38,8 @@ export class VasenoireScene extends Phaser.Scene {
   private isTransitioning = false;
   private character!: Character;
   private yenn!: Phaser.GameObjects.Rectangle;
+  private merchantStall!: Phaser.GameObjects.Rectangle;
+  private forge!: Phaser.GameObjects.Rectangle;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
@@ -73,8 +79,18 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(this.yenn, true);
     addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    this.merchantStall = this.add.rectangle(50, 170, 28, 22, 0x5a4a30).setStrokeStyle(1, 0x241d16);
+    this.physics.add.existing(this.merchantStall, true);
+    addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
+    this.forge = this.add.rectangle(190, 230, 32, 26, 0x3a3a3a).setStrokeStyle(1, 0x161616);
+    this.physics.add.existing(this.forge, true);
+    addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.yenn);
+    this.physics.add.collider(this.player, this.merchantStall);
+    this.physics.add.collider(this.player, this.forge);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -96,6 +112,18 @@ export class VasenoireScene extends Phaser.Scene {
 
     const interactables: Interactable[] = [
       { x: this.yenn.x, y: this.yenn.y, radius: 24, onTap: () => this.talkToYenn() },
+      {
+        x: this.merchantStall.x,
+        y: this.merchantStall.y,
+        radius: 24,
+        onTap: () => this.scene.start('Merchant', { x: this.player.x, y: this.player.y, returnScene: 'Vasenoire' }),
+      },
+      {
+        x: this.forge.x,
+        y: this.forge.y,
+        radius: 26,
+        onTap: () => this.scene.start('Crafting', { x: this.player.x, y: this.player.y, returnScene: 'Vasenoire' }),
+      },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -147,16 +175,67 @@ export class VasenoireScene extends Phaser.Scene {
     }
 
     if (stage === 'vasenoire_arrival') {
-      this.openDialog(
-        "« Les ruines englouties au sud du delta, voilà par où commencer si vous voulez gagner la confiance des Limaneux. Revenez me voir quand vous aurez de quoi la prouver. »",
-        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
-      );
+      this.talkToYennAboutRuins();
       return;
     }
 
     this.openDialog("« Les Terres Noyées ne pardonnent pas l'imprudence, étranger. »", [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
+  }
+
+  // Reached once talkToYenn() confirms the main quest is at vasenoire_arrival
+  // — same single-NPC funnel as HunterOutpostScene's hunter (side quest here,
+  // no main-quest follow-up chained after it yet).
+  private talkToYennAboutRuins(): void {
+    const quest = QUESTS[RUINS_QUEST_ID];
+    const progress = getQuestProgress(this.character, RUINS_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, RUINS_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(
+        `${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} spectres des tourbières vaincus.`,
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        `${quest.title} — terminée !\n\n« Vous avez tenu parole. Les Limaneux n'oublient pas ça. » Voici votre récompense.`,
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, RUINS_QUEST_ID);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.openDialog(
+      "« Vous avez notre confiance, étranger. Ce n'est pas rien, par ici. »",
+      [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
   }
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {

@@ -106,4 +106,5 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   marsh_patrol: 'HunterOutpost',
   marsh_patrol_matriarch: 'HunterOutpost',
   shrine_pilgrims: 'Shrine',
+  vasenoire_ruins: 'Vasenoire',
 };

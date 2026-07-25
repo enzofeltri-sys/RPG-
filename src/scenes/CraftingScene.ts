@@ -3,6 +3,7 @@ import { Character } from '../game/character';
 import { materialLabel } from '../game/material';
 import { RECIPES, RecipeDefinition, canCraft, craft } from '../game/recipe';
 import { SaveManager } from '../save/SaveManager';
+import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
 import { playCraftSuccess } from '../ui/sound';
 
@@ -21,6 +22,7 @@ interface CraftingData {
   x?: number;
   y?: number;
   page?: number;
+  returnScene?: ReturnSceneKey;
 }
 
 export class CraftingScene extends Phaser.Scene {
@@ -29,6 +31,7 @@ export class CraftingScene extends Phaser.Scene {
   private craftButtons: Phaser.GameObjects.Text[] = [];
   private returnX?: number;
   private returnY?: number;
+  private returnScene: ReturnSceneKey = 'Village';
   private page = 0;
 
   constructor() {
@@ -38,6 +41,7 @@ export class CraftingScene extends Phaser.Scene {
   init(data: CraftingData): void {
     this.returnX = data?.x;
     this.returnY = data?.y;
+    this.returnScene = data?.returnScene ?? 'Village';
     this.page = data?.page ?? 0;
   }
 
@@ -103,7 +107,9 @@ export class CraftingScene extends Phaser.Scene {
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.scene.start('Village', { x: this.returnX, y: this.returnY }));
+    backButton.on('pointerdown', () =>
+      this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY)),
+    );
   }
 
   private renderRecipe(recipe: RecipeDefinition, startY: number): void {
@@ -143,7 +149,7 @@ export class CraftingScene extends Phaser.Scene {
   }
 
   private goToPage(page: number): void {
-    this.scene.start('Crafting', { x: this.returnX, y: this.returnY, page });
+    this.scene.start('Crafting', { x: this.returnX, y: this.returnY, page, returnScene: this.returnScene });
   }
 
   private async handleCraft(recipeId: string): Promise<void> {
@@ -155,6 +161,8 @@ export class CraftingScene extends Phaser.Scene {
     await SaveManager.saveCharacter(this.character);
     playCraftSuccess();
     this.statusText.setText(`${RECIPES[recipeId].name} fabriqué(e) !`).setColor(OK_COLOR);
-    this.time.delayedCall(600, () => this.scene.restart({ x: this.returnX, y: this.returnY, page: this.page }));
+    this.time.delayedCall(600, () =>
+      this.scene.restart({ x: this.returnX, y: this.returnY, page: this.page, returnScene: this.returnScene }),
+    );
   }
 }

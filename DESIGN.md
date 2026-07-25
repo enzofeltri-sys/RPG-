@@ -188,6 +188,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Chaîne de quête à 2 étapes au Camp de bandits (suite immédiate)** : `bandit_camp_threat` (existante) gagne une suite, `bandit_camp_threat_leader`, sur le même principe que Faubourg/Entrepôt — sauf que ce camp reste un cul-de-sac par conception (pas de nouvelle scène connectée) : le chef des bandits (`bandit_leader`, nouveau monstre, 40 PV/8 ATQ, boss) est simplement placé plus profondément dans le camp existant. Comme `smuggler_captain`, il est toujours affrontable indépendamment de la quête ; celle-ci ne fait que suivre/récompenser la même victoire. Récompense : 100 XP + Casque de cuir (Rare).
 
+**Même traitement pour le Camp de gobelins (suite immédiate)** : `goblin_camp_threat` gagne `goblin_camp_threat_leader`, copie conforme du schéma bandits/chef — un chef des gobelins (`goblin_chief`, nouveau monstre, 44 PV/9 ATQ, boss) placé plus profondément dans le camp, toujours affrontable indépendamment de la quête. Récompense : 105 XP + Gants de cuir (Rare). Les deux camps annexes du Champ/Forêt ont maintenant une profondeur de quête symétrique.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

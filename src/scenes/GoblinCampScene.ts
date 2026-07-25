@@ -15,6 +15,8 @@ const WORLD_HEIGHT = 400;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'goblin_camp_threat';
+const LEADER_QUEST_ID = 'goblin_camp_threat_leader';
+const LEADER_ZONE_ID = 'goblin_chief_zone';
 
 interface EncounterMarker {
   id: string;
@@ -94,6 +96,7 @@ export class GoblinCampScene extends Phaser.Scene {
     ENCOUNTERS.filter((e) => !this.clearedEncounterIds.has(e.id)).forEach((encounter) =>
       this.addEncounterZone(encounter),
     );
+    this.addLeaderZone();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -183,6 +186,52 @@ export class GoblinCampScene extends Phaser.Scene {
       return;
     }
 
+    this.talkToScoutAboutLeader();
+  }
+
+  // Reached only once goblin_camp_threat is turned in — same shape as
+  // BanditCampScene's follow-up: the leader sits deeper in this same scene
+  // rather than opening a new connected one (dead end by design).
+  private talkToScoutAboutLeader(): void {
+    const quest = QUESTS[LEADER_QUEST_ID];
+    const progress = getQuestProgress(this.character, LEADER_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nIl se terre plus au nord, au fond du camp.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLa bande est dispersée. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
     this.openDialog('Merci encore pour votre aide contre les gobelins.', [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
@@ -251,18 +300,45 @@ export class GoblinCampScene extends Phaser.Scene {
       label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(encounter.id);
-      this.startCombat();
+      this.startCombat('goblin_brute');
     });
   }
 
-  private startCombat(): void {
+  // Always present (not gated behind accepting goblin_camp_threat_leader) —
+  // same precedent as the Entrepôt's smuggler_captain and the Camp de
+  // bandits' chief: fightable on its own, the quest just tracks/rewards it.
+  private addLeaderZone(): void {
+    if (this.clearedEncounterIds.has(LEADER_ZONE_ID)) return;
+
+    const x = 130;
+    const y = 30;
+    const marker = this.add.rectangle(x, y, 34, 34, 0x2a3a20, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const label = addCrispText(this, x, y - 26, 'Chef des gobelins', {
+      fontSize: '9px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(x, y, 34, 34);
+    this.physics.add.existing(zone, true);
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      marker.destroy();
+      label.destroy();
+      zone.destroy();
+      this.clearedEncounterIds.add(LEADER_ZONE_ID);
+      this.startCombat('goblin_chief');
+    });
+  }
+
+  private startCombat(monsterId: string): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'GoblinCamp',
-        monsterId: 'goblin_brute',
+        monsterId,
         x: this.player.x,
         y: this.player.y,
       });

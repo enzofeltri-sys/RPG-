@@ -74,6 +74,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'goblin_brute', count: 3 },
     reward: { xp: 80, itemBaseId: 'simple_amulet', itemRarity: 'common' },
   },
+  goblin_camp_threat_leader: {
+    id: 'goblin_camp_threat_leader',
+    title: 'Le chef des gobelins',
+    description:
+      "L'éclaireuse vous confie que les gobelins obéissent à un chef retranché plus profondément dans le camp. Affrontez-le pour disperser la bande pour de bon.",
+    objective: { type: 'defeat', monsterId: 'goblin_chief', count: 1 },
+    reward: { xp: 105, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
+  },
   faubourg_smugglers: {
     id: 'faubourg_smugglers',
     title: 'Contrebande au Faubourg',

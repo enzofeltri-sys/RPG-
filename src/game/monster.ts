@@ -36,6 +36,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     isBoss: true,
   },
   goblin_brute: { id: 'goblin_brute', name: 'Gobelin brutal', maxHp: 24, attack: 6, xpReward: 45, goldReward: 12 },
+  goblin_chief: {
+    id: 'goblin_chief',
+    name: 'Chef des gobelins',
+    maxHp: 44,
+    attack: 9,
+    xpReward: 95,
+    goldReward: 26,
+    isBoss: true,
+  },
   corrupted_boar: { id: 'corrupted_boar', name: 'Sanglier corrompu', maxHp: 28, attack: 7, xpReward: 55, goldReward: 15 },
   alpha_wolf: {
     id: 'alpha_wolf',

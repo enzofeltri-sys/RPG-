@@ -69,6 +69,12 @@ export function playCraftSuccess(): void {
   setTimeout(() => beep(587, 0.14, 'triangle'), 90);
 }
 
+export function playQuestComplete(): void {
+  beep(523, 0.09, 'triangle');
+  setTimeout(() => beep(659, 0.09, 'triangle'), 90);
+  setTimeout(() => beep(784, 0.18, 'triangle'), 180);
+}
+
 export function playDefeat(): void {
   beep(220, 0.2, 'sawtooth');
   setTimeout(() => beep(140, 0.3, 'sawtooth'), 150);

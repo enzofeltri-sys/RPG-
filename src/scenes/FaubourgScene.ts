@@ -5,6 +5,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
+import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 // Wide enough to fill the portrait canvas at every camera position — see
@@ -200,6 +201,7 @@ export class FaubourgScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -246,6 +248,7 @@ export class FaubourgScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, LEADER_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },

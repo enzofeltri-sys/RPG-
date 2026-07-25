@@ -5,6 +5,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
+import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 220;
@@ -236,6 +237,7 @@ export class FarmScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -282,6 +284,7 @@ export class FarmScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, KING_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },

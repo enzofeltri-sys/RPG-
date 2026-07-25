@@ -6,6 +6,7 @@ import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
+import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 // Wide enough to fill the portrait canvas at every camera position — see
@@ -169,6 +170,7 @@ export class HunterOutpostScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -215,6 +217,7 @@ export class HunterOutpostScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, MATRIARCH_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -240,6 +243,7 @@ export class HunterOutpostScene extends Phaser.Scene {
             onClick: async () => {
               advanceMainQuestStage(this.character, 'river_lead');
               await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
               this.closeDialog();
             },
           },

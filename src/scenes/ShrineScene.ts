@@ -5,6 +5,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
+import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 // Large enough to fill the portrait canvas (216x384) at every camera
@@ -171,6 +172,7 @@ export class ShrineScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },

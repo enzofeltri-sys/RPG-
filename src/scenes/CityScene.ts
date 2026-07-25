@@ -7,6 +7,7 @@ import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
+import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 const WORLD_WIDTH = 520;
@@ -290,6 +291,7 @@ export class CityScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -336,6 +338,7 @@ export class CityScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, ALPHA_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -360,6 +363,7 @@ export class CityScene extends Phaser.Scene {
             onClick: async () => {
               advanceMainQuestStage(this.character, 'complete');
               await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
               this.closeDialog();
             },
           },
@@ -402,6 +406,7 @@ export class CityScene extends Phaser.Scene {
             onClick: async () => {
               advanceMainQuestStage(this.character, 'debriefed');
               await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
               this.closeDialog();
             },
           },
@@ -445,6 +450,7 @@ export class CityScene extends Phaser.Scene {
             onClick: async () => {
               advanceMainQuestStage(this.character, 'shards_beyond');
               await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
               this.closeDialog();
             },
           },

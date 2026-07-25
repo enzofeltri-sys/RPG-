@@ -6,7 +6,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
-import { playChestOpen } from '../ui/sound';
+import { playChestOpen, playQuestComplete } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
@@ -254,6 +254,7 @@ export class HamletScene extends Phaser.Scene {
           onClick: async () => {
             turnInQuest(this.character, MENTOR_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },
@@ -303,6 +304,7 @@ export class HamletScene extends Phaser.Scene {
             onClick: async () => {
               advanceMainQuestStage(this.character, 'aiglemont');
               await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
               this.closeDialog();
             },
           },

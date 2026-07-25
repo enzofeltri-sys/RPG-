@@ -15,7 +15,10 @@ export type MainQuestStage =
   | 'complete'
   | 'catacombs'
   | 'trail_found'
-  | 'debriefed';
+  | 'debriefed'
+  | 'faubourg_lead'
+  | 'shard_confirmed'
+  | 'shards_beyond';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -37,6 +40,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   aiglemont: { xp: 60, itemBaseId: 'simple_ring', itemRarity: 'rare' },
   complete: { xp: 120, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
   debriefed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'epic' },
+  shards_beyond: { xp: 180, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -57,6 +61,7 @@ export function advanceMainQuestStage(character: Character, next: MainQuestStage
 const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: MainQuestStage }> = {
   alpha_wolf: { fromStage: 'dungeon', toStage: 'revelation' },
   fallen_guardian: { fromStage: 'catacombs', toStage: 'trail_found' },
+  smuggler_captain: { fromStage: 'faubourg_lead', toStage: 'shard_confirmed' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

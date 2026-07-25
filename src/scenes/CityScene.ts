@@ -364,7 +364,50 @@ export class CityScene extends Phaser.Scene {
     }
 
     if (stage === 'debriefed') {
-      this.openDialog('« Restez prudent. Nous reprendrons cette enquête bientôt. »', [
+      this.openDialog(
+        "Sélène vous fait signe avant même que vous n'ayez parlé. « Un contact au Faubourg des quais m'a fait porter un message : des caisses débarquées ces dernières semaines portent une marque qu'on utilisait autrefois pour transporter des reliques scellées. Les contrebandiers qui les déchargent n'y comprennent sans doute rien — mais leur chef, retranché dans un entrepôt au nord des quais, pourrait en savoir plus. Voulez-vous aller y voir ? »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'faubourg_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'faubourg_lead') {
+      this.openDialog(
+        "« Le Faubourg des quais, à l'est de la ville. Trouvez ce capitaine, et ce qu'il transporte vraiment. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'shard_confirmed') {
+      this.openDialog(
+        "Sélène déballe avec précaution ce que vous avez rapporté du bureau du capitaine, et pâlit en reconnaissant la texture : un fragment scellé, minuscule mais authentique, une résine grise creusée de runes à moitié effacées. « Les contrebandiers n'étaient que des porteurs. Quelqu'un plus haut dans la chaîne organise ces transports vers... » Elle s'interrompt, le regard tourné vers la marque à votre poignet, qui s'est remise à luire faiblement. « Vers l'ouest, je pense. Vers les cités du fleuve. Ce n'est plus une affaire locale, voyageur — le sceau se déchire à une échelle que je n'avais pas imaginée. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'shards_beyond');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'shards_beyond') {
+      this.openDialog('« Restez prêt, voyageur. La prochaine étape nous mènera hors des murs d\'Aiglemont. »', [
         { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
       return;

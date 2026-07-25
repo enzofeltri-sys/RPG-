@@ -74,6 +74,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   complete: 'City',
   catacombs: 'Catacombs',
   trail_found: 'City',
+  debriefed: 'City',
+  faubourg_lead: 'Warehouse',
+  shard_confirmed: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

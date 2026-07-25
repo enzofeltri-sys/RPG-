@@ -40,7 +40,26 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
-  debriefed: { label: 'Terminée', color: DONE_COLOR, description: 'Le mystère de la marque ne fait que commencer...' },
+  debriefed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  faubourg_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Trouvez le capitaine des contrebandiers, dans un entrepôt au nord du Faubourg des quais.',
+  },
+  shard_confirmed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  shards_beyond: {
+    label: 'Terminée',
+    color: DONE_COLOR,
+    description: 'Le mystère de la marque ne fait que commencer...',
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

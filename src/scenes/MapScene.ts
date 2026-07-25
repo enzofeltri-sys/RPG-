@@ -47,8 +47,9 @@ export class MapScene extends Phaser.Scene {
     const currentLocation = MAP_LOCATIONS.find((loc) => loc.key === this.returnScene);
     this.activeRegion = currentLocation?.region ?? 'start';
 
-    this.tabButtons.start = this.makeTabButton(40, 32, 'Région 1', () => this.switchRegion('start'));
-    this.tabButtons.aiglemont = this.makeTabButton(140, 32, 'Aiglemont', () => this.switchRegion('aiglemont'));
+    this.tabButtons.start = this.makeTabButton(32, 32, 'Région 1', () => this.switchRegion('start'));
+    this.tabButtons.aiglemont = this.makeTabButton(104, 32, 'Aiglemont', () => this.switchRegion('aiglemont'));
+    this.tabButtons.terresnoyees = this.makeTabButton(180, 32, 'T. Noyées', () => this.switchRegion('terresnoyees'));
 
     this.renderRegion();
 

@@ -21,10 +21,11 @@ export type MainQuestStage =
   | 'shards_beyond'
   | 'trail_west'
   | 'river_lead'
-  // Terminal for v1: a deliberate close to Acte 1 rather than another
-  // breadcrumb — see DESIGN.md's roadmap for why the story stops here for
-  // now instead of trailing off indefinitely toward Acte 2's rival cities.
-  | 'act1_complete';
+  // Was v1's terminal stage (a deliberate close to Acte 1) — now the launch
+  // point into Acte 2 below instead of a dead end.
+  | 'act1_complete'
+  | 'crossing_marshes'
+  | 'vasenoire_arrival';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -49,6 +50,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   shards_beyond: { xp: 180, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   river_lead: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   act1_complete: { xp: 260, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
+  vasenoire_arrival: { xp: 300, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

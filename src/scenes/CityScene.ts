@@ -504,9 +504,35 @@ export class CityScene extends Phaser.Scene {
     }
 
     if (stage === 'act1_complete') {
-      this.openDialog('« Le repos avant la tempête, voyageur. Je serai là quand vous serez prêt à repartir. »', [
+      this.openDialog(
+        "Sélène range ses instruments avec la précision de quelqu'un qui s'y est préparé longtemps. « Vous voilà prêt, à ce que je vois. » Elle pose une carte usée sur la table, la dernière portion tracée à l'encre plus récente que le reste. « Vasenoire. La seule cité encore debout dans les Terres Noyées, à ce qu'on raconte — le reste du delta a sombré depuis des générations. Si votre marque vous mène vers l'ouest, c'est probablement là qu'elle vous mène en premier. » Elle marque une pause. « Au-delà d'Aiglemont, mon autorité ne vaut plus grand-chose. Vous serez seul, voyageur. Faites-en bon usage. »",
+        [
+          {
+            label: 'Partir',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'crossing_marshes');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'crossing_marshes') {
+      this.openDialog('« Vasenoire, au-delà du Relais des chasseurs. Soyez prudent, voyageur. »', [
         { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
+      return;
+    }
+
+    if (stage === 'vasenoire_arrival') {
+      this.openDialog(
+        "« Vous avez atteint Vasenoire, à ce que dit votre marque. Je ne peux plus vous guider depuis ici — la suite se jouera là-bas. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
       return;
     }
 

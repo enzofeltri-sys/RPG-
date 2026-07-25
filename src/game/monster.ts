@@ -127,6 +127,10 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 75,
     isBoss: true,
   },
+  // Terres Noyées (Acte 2) — first monster of the new region, own identity
+  // rather than reusing marsh_serpent, same precedent as marsh_serpent
+  // itself being région 3's first biome-specific monster.
+  bog_wraith: { id: 'bog_wraith', name: 'Spectre des tourbières', maxHp: 30, attack: 8, xpReward: 65, goldReward: 18 },
 };
 
 export function createMonster(id: string): Monster {

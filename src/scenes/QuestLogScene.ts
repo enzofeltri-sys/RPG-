@@ -71,9 +71,19 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   act1_complete: {
-    label: 'Acte 1 terminé',
-    color: DONE_COLOR,
-    description: 'La suite de l\'aventure arrive dans une prochaine mise à jour.',
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  crossing_marshes: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Traversez les Terres Noyées, au-delà du Relais des chasseurs, jusqu\'à Vasenoire.',
+  },
+  vasenoire_arrival: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Gagnez la confiance des Limaneux, à Vasenoire.',
   },
 };
 

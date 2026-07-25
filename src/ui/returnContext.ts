@@ -22,7 +22,9 @@ export type ReturnSceneKey =
   | 'Archives'
   | 'RiverRoad'
   | 'HunterOutpost'
-  | 'MarshLair';
+  | 'MarshLair'
+  | 'SunkenRoad'
+  | 'Vasenoire';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;

@@ -19,6 +19,8 @@ import { ArchivesScene } from './scenes/ArchivesScene';
 import { RiverRoadScene } from './scenes/RiverRoadScene';
 import { HunterOutpostScene } from './scenes/HunterOutpostScene';
 import { MarshLairScene } from './scenes/MarshLairScene';
+import { SunkenRoadScene } from './scenes/SunkenRoadScene';
+import { VasenoireScene } from './scenes/VasenoireScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -125,6 +127,8 @@ async function boot(): Promise<void> {
       RiverRoadScene,
       HunterOutpostScene,
       MarshLairScene,
+      SunkenRoadScene,
+      VasenoireScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

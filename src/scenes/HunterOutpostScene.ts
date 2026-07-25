@@ -105,6 +105,18 @@ export class HunterOutpostScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // East zone — Acte 2's opening route, further into the Terres Noyées
+    // beyond anything the hunters patrol.
+    const sunkenRoadZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
+    this.physics.add.existing(sunkenRoadZone, true);
+    this.physics.add.overlap(this.player, sunkenRoadZone, () => this.enterSunkenRoad());
+
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Terres Noyées →', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.hunter.x, y: this.hunter.y, radius: 24, onTap: () => this.talkToHunter() },
     ];
@@ -317,6 +329,15 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('MarshLair');
+    });
+  }
+
+  private enterSunkenRoad(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SunkenRoad', { x: 40, y: 200 });
     });
   }
 

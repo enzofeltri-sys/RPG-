@@ -3,9 +3,9 @@ import type { MainQuestStage } from './mainQuest';
 
 // Schematic, not to-scale — the map exists to show relative position and
 // point toward active quests, not to double as a real overworld layout.
-// Split into two tabs (see MapScene) purely to fit each region's node count
-// on screen without needing a scrollable/pannable canvas.
-export type MapRegion = 'start' | 'aiglemont';
+// Split into tabs (see MapScene) purely to fit each region's node count on
+// screen without needing a scrollable/pannable canvas.
+export type MapRegion = 'start' | 'aiglemont' | 'terresnoyees';
 
 export interface MapLocation {
   key: ReturnSceneKey;
@@ -39,6 +39,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'RiverRoad', label: 'Route fluviale', region: 'aiglemont', x: 40, y: 165 },
   { key: 'HunterOutpost', label: 'Relais chasseurs', region: 'aiglemont', x: 100, y: 165 },
   { key: 'MarshLair', label: 'Tanière marais', region: 'aiglemont', x: 160, y: 165 },
+
+  // Terres Noyées (Acte 2)
+  { key: 'SunkenRoad', label: 'Route engloutie', region: 'terresnoyees', x: 70, y: 55 },
+  { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 140, y: 55 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -61,6 +65,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['Faubourg', 'RiverRoad'],
   ['RiverRoad', 'HunterOutpost'],
   ['HunterOutpost', 'MarshLair'],
+  ['HunterOutpost', 'SunkenRoad'],
+  ['SunkenRoad', 'Vasenoire'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
@@ -80,6 +86,8 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   shards_beyond: 'City',
   trail_west: 'HunterOutpost',
   river_lead: 'City',
+  act1_complete: 'City',
+  crossing_marshes: 'Vasenoire',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

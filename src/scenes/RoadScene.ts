@@ -32,7 +32,14 @@ const WAGONS: { x: number; y: number }[] = [
   { x: 280, y: 360 },
 ];
 
+const ALPHA_ZONE_ID = 'boar_alpha_zone';
+
 interface RoadData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay — distinguishes "returning mid-run" from a genuine fresh
+  // entry, so the alpha boar zone (once cleared) doesn't respawn under the
+  // player. Ambient encounters don't need this (no fixed state).
+  resume?: boolean;
   x?: number;
   y?: number;
 }
@@ -54,6 +61,7 @@ export class RoadScene extends Phaser.Scene {
   private traveler!: Wanderer;
   private travelerLineIndex = 0;
   private messageText?: Phaser.GameObjects.Text;
+  private clearedMonsterIds = new Set<string>();
   private spawnX?: number;
   private spawnY?: number;
 
@@ -62,6 +70,9 @@ export class RoadScene extends Phaser.Scene {
   }
 
   init(data: RoadData): void {
+    if (!data?.resume) {
+      this.clearedMonsterIds = new Set();
+    }
     this.spawnX = data?.x;
     this.spawnY = data?.y;
   }
@@ -87,6 +98,7 @@ export class RoadScene extends Phaser.Scene {
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.guard);
     this.physics.add.collider(this.player, this.traveler.sprite);
+    this.addAlphaZone();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -168,7 +180,7 @@ export class RoadScene extends Phaser.Scene {
     if (speed > 0) {
       this.distanceWalked += (speed * delta) / 1000;
       if (this.distanceWalked >= this.encounterThreshold) {
-        this.startEncounter();
+        this.startEncounter('corrupted_boar');
       }
     }
   }
@@ -177,13 +189,43 @@ export class RoadScene extends Phaser.Scene {
     this.encounterThreshold = Phaser.Math.Between(MIN_ENCOUNTER_DISTANCE, MAX_ENCOUNTER_DISTANCE);
   }
 
-  private startEncounter(): void {
+  // Always present (not gated behind accepting city_road_patrol_alpha) —
+  // same precedent as every other camp/farm boss: fightable on its own, the
+  // quest (given by the City captain — see CityScene.talkToCaptainAboutAlpha)
+  // just tracks/rewards the same kill. Placed clear of every wagon, the
+  // guard, and the traveler's wander range.
+  private addAlphaZone(): void {
+    if (this.clearedMonsterIds.has(ALPHA_ZONE_ID)) return;
+
+    const x = 60;
+    const y = 250;
+    const marker = this.add.rectangle(x, y, 34, 34, 0x4a3a2a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const label = addCrispText(this, x, y - 26, 'Sanglier alpha', {
+      fontSize: '9px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(x, y, 34, 34);
+    this.physics.add.existing(zone, true);
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      marker.destroy();
+      label.destroy();
+      zone.destroy();
+      this.clearedMonsterIds.add(ALPHA_ZONE_ID);
+      this.startEncounter('corrupted_boar_alpha');
+    });
+  }
+
+  private startEncounter(monsterId: string): void {
+    if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'Road',
-        monsterId: 'corrupted_boar',
+        monsterId,
         x: this.player.x,
         y: this.player.y,
       });

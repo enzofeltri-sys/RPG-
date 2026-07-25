@@ -130,6 +130,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'corrupted_boar', count: 3 },
     reward: { xp: 100, itemBaseId: 'leather_chest', itemRarity: 'common' },
   },
+  city_road_patrol_alpha: {
+    id: 'city_road_patrol_alpha',
+    title: 'Le sanglier alpha',
+    description:
+      "Le capitaine soupçonne qu'un sanglier bien plus imposant mène les autres depuis un fourré près de la route. Traquez-le pour mettre fin aux attaques pour de bon.",
+    objective: { type: 'defeat', monsterId: 'corrupted_boar_alpha', count: 1 },
+    reward: { xp: 110, itemBaseId: 'simple_ring', itemRarity: 'rare' },
+  },
   shrine_pilgrims: {
     id: 'shrine_pilgrims',
     title: 'La route du sanctuaire',

@@ -89,6 +89,7 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   goblin_camp_threat: 'GoblinCamp',
   goblin_camp_threat_leader: 'GoblinCamp',
   city_road_patrol: 'City',
+  city_road_patrol_alpha: 'City',
   faubourg_smugglers: 'Faubourg',
   faubourg_smugglers_leader: 'Faubourg',
   marsh_patrol: 'HunterOutpost',

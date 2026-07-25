@@ -15,6 +15,7 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const QUEST_ID = 'city_road_patrol';
+const ALPHA_QUEST_ID = 'city_road_patrol_alpha';
 
 const MAGE_LINES = [
   "La Guilde des Mages étudie la corruption depuis des décennies. Votre marque n'est pas passée inaperçue, voyageur.",
@@ -288,6 +289,52 @@ export class CityScene extends Phaser.Scene {
           label: 'Récupérer la récompense',
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.talkToCaptainAboutAlpha();
+  }
+
+  // Reached only once city_road_patrol is turned in — the boss itself lives
+  // on the Route commerciale (RoadScene), not here, same split as Faubourg
+  // (quest dialogue) / Entrepôt (the fight itself).
+  private talkToCaptainAboutAlpha(): void {
+    const quest = QUESTS[ALPHA_QUEST_ID];
+    const progress = getQuestProgress(this.character, ALPHA_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, ALPHA_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nToujours aucune trace de cette bête depuis la route.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLa route commerciale est enfin sûre. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, ALPHA_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
             this.closeDialog();
           },

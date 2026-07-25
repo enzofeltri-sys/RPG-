@@ -30,7 +30,7 @@ const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian', 'archive_w
 // Beast-type monsters can additionally drop leather alongside their normal
 // item loot — a modest chance on a regular kill, a better chance at the rare
 // "cuir supérieur" variant when the beast is a boss.
-const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corrupted_boar']);
+const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corrupted_boar', 'corrupted_boar_alpha']);
 const BEAST_LEATHER_CHANCE = 0.25;
 const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 

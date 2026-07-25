@@ -194,6 +194,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Correction : `city_road_patrol` était impossible à terminer** — la quête (donnée par le capitaine d'Aiglemont) demande de vaincre 3 `corrupted_boar`, mais `RoadScene` (la route commerciale où elle se déroule) tirait ses rencontres aléatoires parmi `corrupted_wolf`, jamais `corrupted_boar` : ce monstre n'était généré nulle part dans le jeu. Un audit rapide (chaque identifiant de `monster.ts` doit apparaître dans au moins une scène) a confirmé que c'était le seul cas. Corrigé en faisant tirer `RoadScene` sur `corrupted_boar` à la place — cohérent avec le texte de la quête, qui parlait déjà de sangliers sur cette route.
 
+**Chaîne à 2 étapes pour `city_road_patrol` (suite immédiate)** : `city_road_patrol_alpha` — un sanglier alpha corrompu (nouveau monstre, boss, 48 PV/10 ATQ) sur une zone fixe toujours présente sur la Route commerciale (`Road` ajoutée à `RESUMABLE_SCENES`). Split identique à Faubourg/Entrepôt : le dialogue des deux étapes reste chez le capitaine (`CityScene`), le combat lui-même se déroule ailleurs (`RoadScene`). Récompense : 110 XP + Anneau simple (Rare).
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

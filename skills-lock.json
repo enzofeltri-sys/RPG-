@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "spritecook-animate-assets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-animate-assets/SKILL.md",
+      "computedHash": "68567c2ee3618f416a627d46f4d030a91657244790fd73575db61a206b29f726"
+    },
+    "spritecook-generate-sprites": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-generate-sprites/SKILL.md",
+      "computedHash": "3d5c5139df255b393d6556da7c08908d462775596c63001216c99a391b0b3b25"
+    },
+    "spritecook-generate-tilesets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-generate-tilesets/SKILL.md",
+      "computedHash": "71b32f8c65fe5dac40f70ed08e60d7fca21fbf76773f53ed3225240c58f3e3a9"
+    },
+    "spritecook-upload-assets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-upload-assets/SKILL.md",
+      "computedHash": "d2e8f0565c5e2b7d75d624ca3b30946b3f695fd72830fabe4c90f3d6b6b3656d"
+    },
+    "spritecook-use-assets-in-godot": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-use-assets-in-godot/SKILL.md",
+      "computedHash": "4b1dfb31a5eebcaa475bfb5dacefdae2d4ffdcfda9d99b2bbfe7eac8a0e589db"
+    },
+    "spritecook-use-dual-grid-tilesets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-use-dual-grid-tilesets/SKILL.md",
+      "computedHash": "12cf641ab69b4486c6d4765b37a2ce866ad17263e7a3d4393ca886d9a47876e1"
+    },
+    "spritecook-use-presets": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-use-presets/SKILL.md",
+      "computedHash": "d5f887d80b897921460b349aa7964e4b6eeb71cf5fb0df0728cbc37c4ae7dde6"
+    },
+    "spritecook-workflow-essentials": {
+      "source": "spritecook/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spritecook-workflow-essentials/SKILL.md",
+      "computedHash": "4928354ca05113db6fa111cc85f2f779b992bb943e65dc578c2fae86bee6f1a2"
+    }
+  }
+}

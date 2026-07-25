@@ -10,6 +10,7 @@ import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 
 const RUINS_QUEST_ID = 'vasenoire_ruins';
+const RUINS_LEADER_QUEST_ID = 'vasenoire_ruins_leader';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -222,6 +223,57 @@ export class VasenoireScene extends Phaser.Scene {
             label: 'Récupérer la récompense',
             onClick: async () => {
               turnInQuest(this.character, RUINS_QUEST_ID);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.talkToYennAboutRuinsLeader();
+  }
+
+  // Reached only once vasenoire_ruins is turned in — same local follow-up
+  // pattern as HunterOutpostScene's hunter → matriarch chain, pointant vers
+  // les Ruines englouties (SunkenRuinsScene) plutôt que de laisser la
+  // première quête sans suite.
+  private talkToYennAboutRuinsLeader(): void {
+    const quest = QUESTS[RUINS_LEADER_QUEST_ID];
+    const progress = getQuestProgress(this.character, RUINS_LEADER_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, RUINS_LEADER_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nIl se terre au cœur des ruines englouties, au sud de la route.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        `${quest.title} — terminée !\n\n« Vous l'avez retrouvé... Les Limaneux vous doivent des réponses, pas seulement une récompense. » Voici votre récompense.`,
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, RUINS_LEADER_QUEST_ID);
               await SaveManager.saveCharacter(this.character);
               playQuestComplete();
               this.closeDialog();

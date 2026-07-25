@@ -131,6 +131,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
   // rather than reusing marsh_serpent, same precedent as marsh_serpent
   // itself being région 3's first biome-specific monster.
   bog_wraith: { id: 'bog_wraith', name: 'Spectre des tourbières', maxHp: 30, attack: 8, xpReward: 65, goldReward: 18 },
+  ruins_delver: {
+    id: 'ruins_delver',
+    name: 'Pilleur des ruines',
+    maxHp: 58,
+    attack: 12,
+    xpReward: 140,
+    goldReward: 40,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

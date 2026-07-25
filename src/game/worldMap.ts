@@ -43,6 +43,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Terres Noyées (Acte 2)
   { key: 'SunkenRoad', label: 'Route engloutie', region: 'terresnoyees', x: 70, y: 55 },
   { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 140, y: 55 },
+  { key: 'SunkenRuins', label: 'Ruines englouties', region: 'terresnoyees', x: 70, y: 110 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -67,6 +68,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['HunterOutpost', 'MarshLair'],
   ['HunterOutpost', 'SunkenRoad'],
   ['SunkenRoad', 'Vasenoire'],
+  ['SunkenRoad', 'SunkenRuins'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
@@ -107,4 +109,5 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   marsh_patrol_matriarch: 'HunterOutpost',
   shrine_pilgrims: 'Shrine',
   vasenoire_ruins: 'Vasenoire',
+  vasenoire_ruins_leader: 'Vasenoire',
 };

@@ -109,6 +109,14 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     this.chest = this.add.rectangle(350, 100, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
 
+    // Entrance to the ruins dungeon (SunkenRuinsScene), tucked among the
+    // decorative RUINS cluster at (300,340)/(260,370) so it reads as part of
+    // the same rubble rather than a separate landmark.
+    const ruinsEntrance = this.add.zone(280, 355, 40, 40);
+    this.physics.add.existing(ruinsEntrance, true);
+    this.physics.add.overlap(this.player, ruinsEntrance, () => this.enterSunkenRuins());
+    addCrispText(this, 280, 335, 'Ruines ↓', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     // Local const (not `this.refugee.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would
     // otherwise bind `this` to the literal itself, not the scene.
@@ -222,6 +230,15 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.time.delayedCall(2200, () => {
       this.messageText?.destroy();
       this.messageText = undefined;
+    });
+  }
+
+  private enterSunkenRuins(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SunkenRuins', { x: 110, y: 380 });
     });
   }
 

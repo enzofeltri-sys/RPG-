@@ -154,6 +154,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'bog_wraith', count: 3 },
     reward: { xp: 150, itemBaseId: 'leather_chest', itemRarity: 'rare' },
   },
+  vasenoire_ruins_leader: {
+    id: 'vasenoire_ruins_leader',
+    title: 'Qui fouille les ruines',
+    description:
+      "Les spectres ne rôdaient pas seuls : quelqu'un dirige les fouilles depuis le cœur des ruines englouties, protégé par eux. Débusquez-le, et découvrez pour qui il travaille.",
+    objective: { type: 'defeat', monsterId: 'ruins_delver', count: 1 },
+    reward: { xp: 180, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

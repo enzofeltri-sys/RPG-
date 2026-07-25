@@ -83,6 +83,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
 export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   wolves_threat: 'Hamlet',
   crop_pests: 'Farm',
+  crop_pests_king: 'Farm',
   bandit_camp_threat: 'BanditCamp',
   bandit_camp_threat_leader: 'BanditCamp',
   goblin_camp_threat: 'GoblinCamp',

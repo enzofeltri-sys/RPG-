@@ -25,6 +25,15 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
   goblin_scout: { id: 'goblin_scout', name: 'Gobelin éclaireur', maxHp: 16, attack: 4, xpReward: 30, goldReward: 6 },
   cave_spider: { id: 'cave_spider', name: 'Araignée des cavernes', maxHp: 20, attack: 5, xpReward: 35, goldReward: 7 },
   field_rat: { id: 'field_rat', name: 'Rat des champs', maxHp: 10, attack: 3, xpReward: 18, goldReward: 4 },
+  rat_king: {
+    id: 'rat_king',
+    name: 'Roi des rats',
+    maxHp: 26,
+    attack: 5,
+    xpReward: 50,
+    goldReward: 14,
+    isBoss: true,
+  },
   bandit_thug: { id: 'bandit_thug', name: 'Bandit', maxHp: 20, attack: 5, xpReward: 35, goldReward: 10 },
   bandit_leader: {
     id: 'bandit_leader',

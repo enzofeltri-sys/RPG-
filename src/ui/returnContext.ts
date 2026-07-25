@@ -46,6 +46,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'Warehouse',
   'Archives',
   'MarshLair',
+  'Farm',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

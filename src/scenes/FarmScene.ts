@@ -17,8 +17,15 @@ const MAX_ENCOUNTER_DISTANCE = 300;
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const QUEST_ID = 'crop_pests';
+const KING_QUEST_ID = 'crop_pests_king';
+const KING_ZONE_ID = 'rat_king_zone';
 
 interface FarmData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay — distinguishes "returning mid-run" from a genuine fresh
+  // entry, so the rat king zone (once cleared) doesn't respawn under the
+  // player. Random ambient encounters don't need this (no fixed state).
+  resume?: boolean;
   x?: number;
   y?: number;
 }
@@ -37,6 +44,7 @@ export class FarmScene extends Phaser.Scene {
   private character!: Character;
   private farmer!: Phaser.GameObjects.Rectangle;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private clearedMonsterIds = new Set<string>();
   private spawnX?: number;
   private spawnY?: number;
 
@@ -45,6 +53,9 @@ export class FarmScene extends Phaser.Scene {
   }
 
   init(data: FarmData): void {
+    if (!data?.resume) {
+      this.clearedMonsterIds = new Set();
+    }
     this.spawnX = data?.x;
     this.spawnY = data?.y;
   }
@@ -86,6 +97,7 @@ export class FarmScene extends Phaser.Scene {
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.farmer);
+    this.addRatKingZone();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -140,7 +152,7 @@ export class FarmScene extends Phaser.Scene {
     if (speed > 0) {
       this.distanceWalked += (speed * delta) / 1000;
       if (this.distanceWalked >= this.encounterThreshold) {
-        this.startEncounter();
+        this.startEncounter('field_rat');
       }
     }
   }
@@ -149,13 +161,42 @@ export class FarmScene extends Phaser.Scene {
     this.encounterThreshold = Phaser.Math.Between(MIN_ENCOUNTER_DISTANCE, MAX_ENCOUNTER_DISTANCE);
   }
 
-  private startEncounter(): void {
+  // Always present (not gated behind accepting crop_pests_king) — same
+  // precedent as every other camp's leader: fightable on its own, the quest
+  // just tracks/rewards the same kill. Placed clear of both crop-row blocks
+  // and the farmer.
+  private addRatKingZone(): void {
+    if (this.clearedMonsterIds.has(KING_ZONE_ID)) return;
+
+    const x = 170;
+    const y = 320;
+    const marker = this.add.rectangle(x, y, 30, 30, 0x3a2a1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const label = addCrispText(this, x, y - 24, 'Roi des rats', {
+      fontSize: '9px',
+      color: '#e8d9b5',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const zone = this.add.zone(x, y, 30, 30);
+    this.physics.add.existing(zone, true);
+    const overlap = this.physics.add.overlap(this.player, zone, () => {
+      overlap.destroy();
+      marker.destroy();
+      label.destroy();
+      zone.destroy();
+      this.clearedMonsterIds.add(KING_ZONE_ID);
+      this.startEncounter('rat_king');
+    });
+  }
+
+  private startEncounter(monsterId: string): void {
+    if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'Farm',
-        monsterId: 'field_rat',
+        monsterId,
         x: this.player.x,
         y: this.player.y,
       });
@@ -194,6 +235,52 @@ export class FarmScene extends Phaser.Scene {
           label: 'Récupérer la récompense',
           onClick: async () => {
             turnInQuest(this.character, QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.talkToFarmerAboutRatKing();
+  }
+
+  // Reached only once crop_pests is turned in — same shape as the camps'
+  // leader follow-ups: the boss sits deeper in this same scene rather than
+  // opening a new connected one.
+  private talkToFarmerAboutRatKing(): void {
+    const quest = QUESTS[KING_QUEST_ID];
+    const progress = getQuestProgress(this.character, KING_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, KING_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nIl se terre dans la remise, au fond de la ferme.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\nLes récoltes sont enfin tranquilles. Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, KING_QUEST_ID);
             await SaveManager.saveCharacter(this.character);
             this.closeDialog();
           },

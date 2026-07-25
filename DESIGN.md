@@ -190,6 +190,8 @@ La quête principale apparaît désormais en tête de l'écran Quêtes (`QuestLo
 
 **Même traitement pour le Camp de gobelins (suite immédiate)** : `goblin_camp_threat` gagne `goblin_camp_threat_leader`, copie conforme du schéma bandits/chef — un chef des gobelins (`goblin_chief`, nouveau monstre, 44 PV/9 ATQ, boss) placé plus profondément dans le camp, toujours affrontable indépendamment de la quête. Récompense : 105 XP + Gants de cuir (Rare). Les deux camps annexes du Champ/Forêt ont maintenant une profondeur de quête symétrique.
 
+**Et pour la Ferme isolée (suite immédiate)** : `crop_pests` gagne `crop_pests_king` — même principe, adapté à une scène qui n'avait jusqu'ici que des rencontres aléatoires (pas de zone fixe) : ajout d'un « Roi des rats » (`rat_king`, nouveau monstre, 26 PV/5 ATQ, boss) sur une zone fixe toujours présente dans la ferme, avec le suivi cleared/resume nécessaire (`Farm` ajoutée à `RESUMABLE_SCENES`). Récompense : 60 XP + Épée courte (Rare) — première quête secondaire à offrir une arme plutôt qu'un équipement défensif.
+
 10. Polish (effets, son, UI) + test offline complet — c'est le moment prévu pour intégrer de vrais assets graphiques (voir section Assets) à la place des rectangles de couleur actuels.
 
 ## Assets

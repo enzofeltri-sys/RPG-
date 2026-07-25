@@ -50,6 +50,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'field_rat', count: 3 },
     reward: { xp: 50, itemBaseId: 'leather_boots', itemRarity: 'common' },
   },
+  crop_pests_king: {
+    id: 'crop_pests_king',
+    title: 'Le roi des rats',
+    description:
+      "La fermière a repéré un nid bien plus important dans la remise du fond — un rat monstrueux y règne sur les autres. Éliminez-le pour en finir vraiment avec l'infestation.",
+    objective: { type: 'defeat', monsterId: 'rat_king', count: 1 },
+    reward: { xp: 60, itemBaseId: 'short_sword', itemRarity: 'rare' },
+  },
   bandit_camp_threat: {
     id: 'bandit_camp_threat',
     title: 'Bandits sur la route',

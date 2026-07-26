@@ -11,6 +11,7 @@ import { addCrispText } from '../ui/text';
 
 const RUINS_QUEST_ID = 'vasenoire_ruins';
 const RUINS_LEADER_QUEST_ID = 'vasenoire_ruins_leader';
+const FISHERMAN_QUEST_ID = 'vasenoire_fisherman';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -41,6 +42,7 @@ export class VasenoireScene extends Phaser.Scene {
   private yenn!: Phaser.GameObjects.Rectangle;
   private merchantStall!: Phaser.GameObjects.Rectangle;
   private forge!: Phaser.GameObjects.Rectangle;
+  private toma!: Phaser.GameObjects.Rectangle;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
@@ -88,10 +90,17 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(this.forge, true);
     addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
+    // comment for why every placement in this project double-checks this.
+    this.toma = this.add.rectangle(70, 260, 14, 20, 0x5a6a6a).setStrokeStyle(1, 0x0b0c10);
+    this.physics.add.existing(this.toma, true);
+    addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.yenn);
     this.physics.add.collider(this.player, this.merchantStall);
     this.physics.add.collider(this.player, this.forge);
+    this.physics.add.collider(this.player, this.toma);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -137,6 +146,7 @@ export class VasenoireScene extends Phaser.Scene {
         radius: 26,
         onTap: () => this.scene.start('Crafting', { x: this.player.x, y: this.player.y, returnScene: 'Vasenoire' }),
       },
+      { x: this.toma.x, y: this.toma.y, radius: 24, onTap: () => this.talkToToma() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -399,6 +409,55 @@ export class VasenoireScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('ClandestineDock', { x: 110, y: 380 });
     });
+  }
+
+  // Standalone side quest, independent of the main thread — Toma has no
+  // stake in the Limaneux/smuggler plot, just a fisherman fed up with torn
+  // nets. Same shape as wolves_threat/crop_pests etc.: accept, track, turn
+  // in, no main-quest interaction at all.
+  private talkToToma(): void {
+    const quest = QUESTS[FISHERMAN_QUEST_ID];
+    const progress = getQuestProgress(this.character, FISHERMAN_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, FISHERMAN_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(
+        `${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} contrebandiers vaincus.`,
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\n« Mes filets vous remercient. » Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, FISHERMAN_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    this.openDialog('« Bonne pêche, grâce à vous. »', [{ label: 'Fermer', onClick: () => this.closeDialog() }]);
   }
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {

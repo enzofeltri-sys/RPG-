@@ -162,6 +162,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'ruins_delver', count: 1 },
     reward: { xp: 180, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
   },
+  vasenoire_fisherman: {
+    id: 'vasenoire_fisherman',
+    title: 'Filets déchirés',
+    description:
+      "Des contrebandiers rôdent près des pontons et déchirent les filets à chaque passage. Éliminez-en 3 pour que Toma puisse pêcher en paix.",
+    objective: { type: 'defeat', monsterId: 'smuggler_thug', count: 3 },
+    reward: { xp: 90, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

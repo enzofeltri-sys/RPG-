@@ -115,4 +115,5 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   shrine_pilgrims: 'Shrine',
   vasenoire_ruins: 'Vasenoire',
   vasenoire_ruins_leader: 'Vasenoire',
+  vasenoire_fisherman: 'Vasenoire',
 };

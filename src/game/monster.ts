@@ -140,6 +140,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 40,
     isBoss: true,
   },
+  // Same smuggler network as Faubourg (smuggler_thug/smuggler_captain,
+  // Acte 1) rather than a brand new faction — the delta operation answers to
+  // the same people, tying the two acts together instead of introducing an
+  // unrelated antagonist this late.
+  smuggler_lieutenant: {
+    id: 'smuggler_lieutenant',
+    name: 'Lieutenant des contrebandiers',
+    maxHp: 65,
+    attack: 13,
+    xpReward: 155,
+    goldReward: 45,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

@@ -44,6 +44,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'SunkenRoad', label: 'Route engloutie', region: 'terresnoyees', x: 70, y: 55 },
   { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 140, y: 55 },
   { key: 'SunkenRuins', label: 'Ruines englouties', region: 'terresnoyees', x: 70, y: 110 },
+  { key: 'ClandestineDock', label: 'Quai clandestin', region: 'terresnoyees', x: 140, y: 110 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -69,6 +70,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['HunterOutpost', 'SunkenRoad'],
   ['SunkenRoad', 'Vasenoire'],
   ['SunkenRoad', 'SunkenRuins'],
+  ['Vasenoire', 'ClandestineDock'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
@@ -90,6 +92,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   river_lead: 'City',
   act1_complete: 'City',
   crossing_marshes: 'Vasenoire',
+  limaneux_lead: 'ClandestineDock',
+  network_exposed: 'Vasenoire',
+  smugglers_unmasked: 'Vasenoire',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

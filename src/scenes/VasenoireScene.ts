@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
-import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
+import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
@@ -111,6 +111,18 @@ export class VasenoireScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // North exit — a Limaneux-only path, only worth mentioning on-screen once
+    // the main quest actually points there, same "always walkable, narratively
+    // gated by dialogue rather than by physics" approach as everywhere else.
+    const dockZone = this.add.zone(WORLD_WIDTH / 2, 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(dockZone, true);
+    this.physics.add.overlap(this.player, dockZone, () => this.leaveToClandestineDock());
+
+    addCrispText(this, WORLD_WIDTH / 2, 24, 'Quai clandestin ↑', {
+      fontSize: '8px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.yenn.x, y: this.yenn.y, radius: 24, onTap: () => this.talkToYenn() },
       {
@@ -180,11 +192,13 @@ export class VasenoireScene extends Phaser.Scene {
       return;
     }
 
-    if (stage === 'delta_conspiracy') {
-      this.openDialog(
-        "« Le delta garde encore ses secrets, étranger. Mais vous nous avez donné une longueur d'avance — les Limaneux n'oublieront pas. »",
-        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
-      );
+    if (
+      stage === 'delta_conspiracy' ||
+      stage === 'limaneux_lead' ||
+      stage === 'network_exposed' ||
+      stage === 'smugglers_unmasked'
+    ) {
+      this.talkToYennAboutSmugglers(stage);
       return;
     }
 
@@ -323,6 +337,68 @@ export class VasenoireScene extends Phaser.Scene {
         },
       ],
     );
+  }
+
+  // Covers delta_conspiracy through smugglers_unmasked — the reveal that the
+  // ruins looters answer to the same smuggler network from Act 1's Faubourg
+  // (smuggler_thug/smuggler_captain), rather than a brand new, unrelated
+  // antagonist this late in development.
+  private talkToYennAboutSmugglers(stage: MainQuestStage): void {
+    if (stage === 'delta_conspiracy') {
+      this.openDialog(
+        "Yenn revient vers vous quelques jours plus tard, une carte usée à la main. « Les Limaneux ont fait circuler la question dans tout le delta. » Elle a l'air moins sereine qu'à l'accoutumée. « Une réponse nous est revenue, du côté d'un quai qu'on croyait abandonné, au nord de la ville — des gens qui n'ont de compte à rendre à personne, et surtout pas à nous. Si votre marque vous mène vers la vérité, c'est par là qu'elle passe maintenant. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'limaneux_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'limaneux_lead') {
+      this.openDialog('« Le quai clandestin, au nord. Revenez me voir quand vous aurez des réponses. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'network_exposed') {
+      this.openDialog(
+        "Yenn écoute votre récit sans vous interrompre. « Les contrebandiers du Faubourg, ici, dans le delta... » Elle secoue la tête. « Ce n'était donc pas une bande isolée qui fouillait ces ruines — c'est tout un réseau, qui s'étend bien au-delà d'Aiglemont. » Elle vous regarde longuement. « Vous avez fait plus que gagner notre confiance, étranger. Vous nous avez donné un nom à traquer. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'smugglers_unmasked');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.openDialog(
+      "« Le delta garde encore ses secrets, étranger. Mais vous nous avez donné une longueur d'avance — les Limaneux n'oublieront pas. »",
+      [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
+  }
+
+  private leaveToClandestineDock(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('ClandestineDock', { x: 110, y: 380 });
+    });
   }
 
   private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {

@@ -90,6 +90,21 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: 'Discutez avec Yenn, à Vasenoire.',
   },
+  limaneux_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Enquêtez sur le quai clandestin, au nord de Vasenoire.',
+  },
+  network_exposed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir Yenn, à Vasenoire.',
+  },
+  smugglers_unmasked: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Discutez avec Yenn, à Vasenoire.',
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

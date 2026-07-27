@@ -94,7 +94,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   crossing_marshes: 'Vasenoire',
   limaneux_lead: 'ClandestineDock',
   network_exposed: 'Vasenoire',
-  smugglers_unmasked: 'Vasenoire',
+  smugglers_unmasked: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

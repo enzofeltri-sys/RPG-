@@ -103,7 +103,12 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
   smugglers_unmasked: {
     label: 'En cours',
     color: ACTIVE_COLOR,
-    description: 'Discutez avec Yenn, à Vasenoire.',
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  network_reported: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
 };
 

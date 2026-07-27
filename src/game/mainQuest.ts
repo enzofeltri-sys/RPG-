@@ -29,7 +29,8 @@ export type MainQuestStage =
   | 'delta_conspiracy'
   | 'limaneux_lead'
   | 'network_exposed'
-  | 'smugglers_unmasked';
+  | 'smugglers_unmasked'
+  | 'network_reported';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -57,6 +58,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   vasenoire_arrival: { xp: 300, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   delta_conspiracy: { xp: 130, itemBaseId: 'short_sword', itemRarity: 'rare' },
   smugglers_unmasked: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
+  network_reported: { xp: 200, itemBaseId: 'simple_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

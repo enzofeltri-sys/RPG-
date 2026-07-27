@@ -536,6 +536,32 @@ export class CityScene extends Phaser.Scene {
       return;
     }
 
+    if (stage === 'smugglers_unmasked') {
+      this.openDialog(
+        "Sélène écoute votre récit sans un mot, jusqu'au bout. « Le capitaine du Faubourg... » Elle secoue la tête, presque amère. « Je le pensais mort avec son secret. Il semble que son réseau lui ait survécu, et qu'il se soit simplement déplacé là où personne ne songeait à regarder. » Elle range ses cartes, plus lentement que d'habitude. « Vous avez fait ce qu'aucun garde d'Aiglemont n'a su faire en deux ans d'enquête, voyageur. Ce fil-là n'est pas coupé — mais il est enfin visible. Reposez-vous. Vous en aurez besoin pour la suite. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'network_reported');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'network_reported') {
+      this.openDialog(
+        "« Le réseau du Faubourg s'étend jusqu'aux Terres Noyées, désormais. Nous ne sommes pas au bout de cette histoire, voyageur — mais vous avez fait plus que quiconque avant vous. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
     const text = MAGE_LINES[this.mageLineIndex % MAGE_LINES.length];
     this.mageLineIndex += 1;
     this.openDialog(text, [{ label: 'Fermer', onClick: () => this.closeDialog() }]);

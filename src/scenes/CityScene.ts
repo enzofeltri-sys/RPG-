@@ -600,7 +600,51 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'shard_cache_found') {
       this.openDialog(
-        "« Le sanctuaire englouti a livré son secret, mais pas encore toutes ses réponses. Nous y reviendrons, voyageur — pour l'instant, reposez-vous. »",
+        "Sélène range enfin le pendentif, mais son inquiétude ne retombe pas. « J'ai relu vos notes sur le sanctuaire, voyageur. Le passage que vous avez emprunté n'était pas intact — quelqu'un l'avait forcé bien avant le lieutenant et son réseau, à en juger par l'état des scellés extérieurs. » Elle fait les cent pas. « Les Limaneux connaissent ce delta mieux que quiconque. Si un autre groupe rôdait dans les parages avant les contrebandiers, Yenn en aura forcément entendu parler — les Limaneux ne laissent jamais un étranger armé traverser leurs terres sans le remarquer. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rival_hunters_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'rival_hunters_lead') {
+      this.openDialog(
+        "« Retournez voir Yenn, à Vasenoire. Si quelqu'un d'autre fouillait le delta avant le réseau du lieutenant, les Limaneux le sauront. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'rival_hunters_confirmed') {
+      this.openDialog(
+        "Sélène écoute votre récit, le visage fermé. « Les Chercheurs d'éclats... » Elle répète le nom comme pour se convaincre qu'elle ne l'invente pas. « Si un groupe organisé traque ces fragments depuis des années, sans lien avec les contrebandiers que vous avez démantelés, alors ce n'est plus une question de trafic, voyageur. C'est une question de savoir qui, exactement, cherche à reconstituer le sceau — et pourquoi. » Elle range ses instruments plus lentement que d'habitude. « Je n'ai pas de piste à vous donner cette fois. Juste un nom, et l'intuition que nous n'avons pas fini d'en entendre parler. Reposez-vous, voyageur. La suite demandera qu'on sache où chercher. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'threat_acknowledged');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'threat_acknowledged') {
+      this.openDialog(
+        "« Les Chercheurs d'éclats attendront, voyageur — nous les retrouverons quand le moment sera venu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

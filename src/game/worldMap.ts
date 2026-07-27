@@ -77,8 +77,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'shard_cache_found' have no entry: those chapters are closed, nothing left
-// to point at for now.
+// 'threat_acknowledged' have no entry: those chapters are closed, nothing
+// left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -101,6 +101,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   network_reported: 'City',
   sealed_vault_lead: 'ClandestineDock',
   vault_uncovered: 'City',
+  shard_cache_found: 'City',
+  rival_hunters_lead: 'Vasenoire',
+  rival_hunters_confirmed: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

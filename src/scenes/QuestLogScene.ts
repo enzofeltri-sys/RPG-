@@ -125,6 +125,21 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
+  rival_hunters_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir Yenn, à Vasenoire.',
+  },
+  rival_hunters_confirmed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  threat_acknowledged: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

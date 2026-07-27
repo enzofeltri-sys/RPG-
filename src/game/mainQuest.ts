@@ -33,7 +33,10 @@ export type MainQuestStage =
   | 'network_reported'
   | 'sealed_vault_lead'
   | 'vault_uncovered'
-  | 'shard_cache_found';
+  | 'shard_cache_found'
+  | 'rival_hunters_lead'
+  | 'rival_hunters_confirmed'
+  | 'threat_acknowledged';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -63,6 +66,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   smugglers_unmasked: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   network_reported: { xp: 200, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   shard_cache_found: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
+  threat_acknowledged: { xp: 200, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

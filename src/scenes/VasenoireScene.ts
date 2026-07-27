@@ -212,6 +212,11 @@ export class VasenoireScene extends Phaser.Scene {
       return;
     }
 
+    if (stage === 'rival_hunters_lead') {
+      this.talkToYennAboutRivals();
+      return;
+    }
+
     this.openDialog("« Les Terres Noyées ne pardonnent pas l'imprudence, étranger. »", [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
@@ -399,6 +404,25 @@ export class VasenoireScene extends Phaser.Scene {
     this.openDialog(
       "« Le delta garde encore ses secrets, étranger. Mais vous nous avez donné une longueur d'avance — les Limaneux n'oublieront pas. »",
       [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
+  }
+
+  // One-shot beat (rival_hunters_lead only) — Sélène sends the player back to
+  // Yenn rather than a new NPC, same "ask the person who already knows this
+  // territory" logic as delta_conspiracy/limaneux_lead above.
+  private talkToYennAboutRivals(): void {
+    this.openDialog(
+      "Yenn écoute votre question sans surprise, comme si elle l'attendait. « Le sanctuaire scellé ? Bien sûr qu'on savait qu'il existait — mais personne d'assez fou pour y toucher, en tout cas jusqu'à ces contrebandiers. » Elle réfléchit un instant. « Il y a bien eu un groupe, avant eux, remontant le delta il y a peut-être deux ans. Pas des pillards ordinaires : ils posaient des questions précises, cherchaient des lieux précis, ne s'intéressaient à rien d'autre. On les appelait les Chercheurs d'éclats, dans le coin — mais ils ont disparu du jour au lendemain, sans qu'on sache pourquoi. » Elle vous regarde, sérieuse. « Si votre sanctuaire portait leurs traces, voyageur, c'est peut-être qu'ils n'ont pas disparu — qu'ils ont juste appris à se cacher mieux. »",
+      [
+        {
+          label: 'Continuer',
+          onClick: async () => {
+            advanceMainQuestStage(this.character, 'rival_hunters_confirmed');
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ],
     );
   }
 

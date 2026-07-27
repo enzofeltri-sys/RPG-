@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Character, getEffectiveStats } from '../game/character';
-import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, equipSlotLabel, describeItemStats } from '../game/item';
+import { Item, ItemCategory, EquipSlot, RARITY_LABELS, RARITY_COLORS, equipSlotLabel, isUpgrade } from '../game/item';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -9,6 +9,16 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const SLOT_BG = '#1c2b1c';
+const EQUIPPED_BG = '#2a3a2a';
+
+// ring1/ring2 both accept any 'ring'-category item — every other slot's
+// category matches its own name exactly.
+function slotCategory(slot: EquipSlot): ItemCategory {
+  return slot === 'ring1' || slot === 'ring2' ? 'ring' : slot;
+}
+
+const CANDIDATE_ROW_H = 20;
+const MAX_VISIBLE_CANDIDATES = 8;
 
 const SLOT_ORDER: EquipSlot[] = [
   'weapon',
@@ -32,11 +42,13 @@ export class InventoryScene extends Phaser.Scene {
   private slotTexts: Partial<Record<EquipSlot, Phaser.GameObjects.Text>> = {};
   private statsText!: Phaser.GameObjects.Text;
 
-  private detailContext?: EquipSlot;
+  // Browsing a slot shows every item in the bag that fits it (plus whatever's
+  // currently equipped there), not just the one piece already worn — lets the
+  // player compare and swap directly instead of hunting through the Sac.
+  private detailSlot?: EquipSlot;
   private detailBg!: Phaser.GameObjects.Rectangle;
   private detailTitle!: Phaser.GameObjects.Text;
-  private detailStats!: Phaser.GameObjects.Text;
-  private detailActionButton!: Phaser.GameObjects.Text;
+  private detailRows: Phaser.GameObjects.GameObject[] = [];
   private detailCloseButton!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -71,7 +83,7 @@ export class InventoryScene extends Phaser.Scene {
     });
     this.refreshStats();
 
-    addCrispText(this, 12, 246, 'Astuce : équipe des objets depuis le Sac.', {
+    addCrispText(this, 12, 246, 'Astuce : touche un emplacement pour comparer et équiper.', {
       fontSize: '9px',
       color: MUTED,
       wordWrap: { width: width - 24 },
@@ -105,10 +117,7 @@ export class InventoryScene extends Phaser.Scene {
       wordWrap: { width: 92 },
     }).setInteractive({ useHandCursor: true });
 
-    text.on('pointerdown', () => {
-      const equipped = this.character.equipment[slot];
-      if (equipped) this.showDetail(slot, equipped);
-    });
+    text.on('pointerdown', () => this.showSlotDetail(slot));
     this.slotTexts[slot] = text;
   }
 
@@ -121,6 +130,16 @@ export class InventoryScene extends Phaser.Scene {
     if (!item) return;
     delete this.character.equipment[slot];
     this.character.inventory.push(item);
+
+    await SaveManager.saveCharacter(this.character);
+    this.refreshAll();
+  }
+
+  private async equipInto(slot: EquipSlot, item: Item): Promise<void> {
+    const previous = this.character.equipment[slot];
+    this.character.equipment[slot] = item;
+    this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
+    if (previous) this.character.inventory.push(previous);
 
     await SaveManager.saveCharacter(this.character);
     this.refreshAll();
@@ -149,8 +168,11 @@ export class InventoryScene extends Phaser.Scene {
     this.statsText.setText(lines.join('\n'));
   }
 
-  // Detail overlay for an equipped slot: view its stats and unequip it.
-  // Buttons are kept top-level per the project's Container-hit-testing rule.
+  // Detail overlay for a slot: every candidate that fits it (whatever's
+  // currently equipped, plus every matching item in the Sac), each row
+  // tappable to equip/unequip directly — comparing and swapping without
+  // leaving this screen. Buttons are kept top-level per the project's
+  // Container-hit-testing rule.
   private createDetailOverlay(): void {
     const { width } = this.scale;
 
@@ -165,26 +187,6 @@ export class InventoryScene extends Phaser.Scene {
       .setDepth(901)
       .setVisible(false);
 
-    this.detailStats = addCrispText(this, 20, 80, '', {
-      fontSize: '9px',
-      color: GOLD,
-      lineSpacing: 6,
-      wordWrap: { width: width - 40 },
-    })
-      .setDepth(901)
-      .setVisible(false);
-
-    this.detailActionButton = addCrispText(this, 20, 272, 'Déséquiper', {
-      fontSize: '11px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 8, y: 5 },
-    })
-      .setDepth(901)
-      .setInteractive({ useHandCursor: true })
-      .setVisible(false);
-    this.detailActionButton.on('pointerdown', () => this.handleDetailAction());
-
     this.detailCloseButton = addCrispText(this, 20, 300, 'Fermer', {
       fontSize: '11px',
       color: DARK,
@@ -197,33 +199,91 @@ export class InventoryScene extends Phaser.Scene {
     this.detailCloseButton.on('pointerdown', () => this.hideDetail());
   }
 
-  private showDetail(slot: EquipSlot, item: Item): void {
-    this.detailContext = slot;
+  private showSlotDetail(slot: EquipSlot): void {
+    this.detailSlot = slot;
+    this.detailRows.forEach((row) => row.destroy());
+    this.detailRows = [];
 
-    const lines = describeItemStats(item);
-    this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
-    this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
+    this.detailTitle.setText(equipSlotLabel(slot)).setColor(GOLD);
+
+    const equipped = this.character.equipment[slot];
+    const category = slotCategory(slot);
+    const candidates = this.character.inventory.filter((item) => item.category === category);
+
+    let y = 82;
+    if (equipped) {
+      this.detailRows.push(this.renderCandidateRow(equipped, y, true, equipped));
+      y += CANDIDATE_ROW_H;
+    }
+
+    if (!equipped && candidates.length === 0) {
+      this.detailRows.push(
+        addCrispText(this, 20, y, 'Aucun objet pour cet emplacement.', { fontSize: '9px', color: MUTED })
+          .setDepth(901),
+      );
+    } else {
+      candidates.slice(0, MAX_VISIBLE_CANDIDATES).forEach((item) => {
+        this.detailRows.push(this.renderCandidateRow(item, y, false, equipped));
+        y += CANDIDATE_ROW_H;
+      });
+
+      const overflow = candidates.length - MAX_VISIBLE_CANDIDATES;
+      if (overflow > 0) {
+        this.detailRows.push(
+          addCrispText(this, 20, y, `+ ${overflow} de plus dans le Sac`, { fontSize: '9px', color: MUTED })
+            .setDepth(901),
+        );
+      }
+    }
 
     this.detailBg.setVisible(true);
     this.detailTitle.setVisible(true);
-    this.detailStats.setVisible(true);
-    this.detailActionButton.setVisible(true);
     this.detailCloseButton.setVisible(true);
   }
 
-  private hideDetail(): void {
-    this.detailContext = undefined;
-    this.detailBg.setVisible(false);
-    this.detailTitle.setVisible(false);
-    this.detailStats.setVisible(false);
-    this.detailActionButton.setVisible(false);
-    this.detailCloseButton.setVisible(false);
+  // isEquipped rows unequip on tap; bag candidates equip into this.detailSlot
+  // (not resolveEquipSlot's auto-pick — the player already chose which ring
+  // slot etc. by tapping it) and show an upgrade/downgrade arrow against
+  // whatever's currently worn there.
+  private renderCandidateRow(item: Item, y: number, isEquipped: boolean, equipped?: Item): Phaser.GameObjects.Text {
+    let suffix = isEquipped ? ' — Équipé' : '';
+    if (!isEquipped && equipped) {
+      if (isUpgrade(item, equipped)) suffix = ' ▲';
+      else if (isUpgrade(equipped, item)) suffix = ' ▼';
+    }
+
+    const row = addCrispText(this, 20, y, `${item.name} (${RARITY_LABELS[item.rarity]})${suffix}`, {
+      fontSize: '9px',
+      color: RARITY_COLORS[item.rarity],
+      backgroundColor: isEquipped ? EQUIPPED_BG : SLOT_BG,
+      padding: { x: 6, y: 3 },
+    })
+      .setDepth(901)
+      .setInteractive({ useHandCursor: true });
+
+    if (isEquipped) {
+      row.on('pointerdown', async () => {
+        if (!this.detailSlot) return;
+        await this.unequip(this.detailSlot);
+        this.showSlotDetail(this.detailSlot);
+      });
+    } else {
+      row.on('pointerdown', async () => {
+        if (!this.detailSlot) return;
+        await this.equipInto(this.detailSlot, item);
+        this.showSlotDetail(this.detailSlot);
+      });
+    }
+
+    return row;
   }
 
-  private async handleDetailAction(): Promise<void> {
-    if (!this.detailContext) return;
-    const slot = this.detailContext;
-    this.hideDetail();
-    await this.unequip(slot);
+  private hideDetail(): void {
+    this.detailSlot = undefined;
+    this.detailRows.forEach((row) => row.destroy());
+    this.detailRows = [];
+    this.detailBg.setVisible(false);
+    this.detailTitle.setVisible(false);
+    this.detailCloseButton.setVisible(false);
   }
 }

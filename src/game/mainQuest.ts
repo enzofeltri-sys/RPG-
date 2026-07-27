@@ -36,7 +36,10 @@ export type MainQuestStage =
   | 'shard_cache_found'
   | 'rival_hunters_lead'
   | 'rival_hunters_confirmed'
-  | 'threat_acknowledged';
+  | 'threat_acknowledged'
+  | 'chercheurs_lead'
+  | 'seekers_confronted'
+  | 'seekers_defeated';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -67,6 +70,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   network_reported: { xp: 200, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   shard_cache_found: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   threat_acknowledged: { xp: 200, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
+  seekers_defeated: { xp: 260, itemBaseId: 'leather_legs', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -90,6 +94,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   smuggler_captain: { fromStage: 'faubourg_lead', toStage: 'shard_confirmed' },
   smuggler_lieutenant: { fromStage: 'limaneux_lead', toStage: 'network_exposed' },
   shard_warden: { fromStage: 'sealed_vault_lead', toStage: 'vault_uncovered' },
+  seeker_archivist: { fromStage: 'chercheurs_lead', toStage: 'seekers_confronted' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

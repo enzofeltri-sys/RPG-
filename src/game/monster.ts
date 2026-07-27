@@ -173,6 +173,25 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 60,
     isBoss: true,
   },
+  // Les Chercheurs d'éclats — la faction rivale évoquée par Yenn, révélée
+  // pour la première fois avec un visage plutôt qu'un simple nom.
+  seeker_scout: {
+    id: 'seeker_scout',
+    name: 'Éclaireur des Chercheurs',
+    maxHp: 40,
+    attack: 10,
+    xpReward: 85,
+    goldReward: 24,
+  },
+  seeker_archivist: {
+    id: 'seeker_archivist',
+    name: 'Archiviste des Chercheurs',
+    maxHp: 95,
+    attack: 15,
+    xpReward: 230,
+    goldReward: 65,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

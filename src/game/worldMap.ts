@@ -46,6 +46,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'SunkenRuins', label: 'Ruines englouties', region: 'terresnoyees', x: 70, y: 110 },
   { key: 'ClandestineDock', label: 'Quai clandestin', region: 'terresnoyees', x: 140, y: 110 },
   { key: 'SealedSanctuary', label: 'Sanctuaire scellé', region: 'terresnoyees', x: 140, y: 165 },
+  { key: 'ShardSeekersCamp', label: 'Camp des Chercheurs', region: 'terresnoyees', x: 140, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -73,12 +74,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['SunkenRoad', 'SunkenRuins'],
   ['Vasenoire', 'ClandestineDock'],
   ['ClandestineDock', 'SealedSanctuary'],
+  ['SealedSanctuary', 'ShardSeekersCamp'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'threat_acknowledged' have no entry: those chapters are closed, nothing
-// left to point at for now.
+// 'seekers_defeated' have no entry: those chapters are closed, nothing left
+// to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -104,6 +106,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   shard_cache_found: 'City',
   rival_hunters_lead: 'Vasenoire',
   rival_hunters_confirmed: 'City',
+  threat_acknowledged: 'City',
+  chercheurs_lead: 'SealedSanctuary',
+  seekers_confronted: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

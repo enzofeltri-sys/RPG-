@@ -24,6 +24,7 @@ import { VasenoireScene } from './scenes/VasenoireScene';
 import { SunkenRuinsScene } from './scenes/SunkenRuinsScene';
 import { ClandestineDockScene } from './scenes/ClandestineDockScene';
 import { SealedSanctuaryScene } from './scenes/SealedSanctuaryScene';
+import { ShardSeekersCampScene } from './scenes/ShardSeekersCampScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -135,6 +136,7 @@ async function boot(): Promise<void> {
       SunkenRuinsScene,
       ClandestineDockScene,
       SealedSanctuaryScene,
+      ShardSeekersCampScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

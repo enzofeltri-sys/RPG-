@@ -644,7 +644,51 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'threat_acknowledged') {
       this.openDialog(
-        "« Les Chercheurs d'éclats attendront, voyageur — nous les retrouverons quand le moment sera venu. »",
+        "Sélène vous fait signe d'approcher avant même que vous n'ayez parlé, un pli à la main. « Yenn m'a fait porter ceci. Les Limaneux ont fouillé le sanctuaire scellé après votre départ, par prudence — et ont trouvé un passage que ni vous ni le gardien n'aviez remarqué, dissimulé derrière l'autel où reposait le pendentif. » Elle déplie la lettre. « Des traces montrent qu'il servait encore, il n'y a pas si longtemps. Si les Chercheurs d'éclats ont un point d'ancrage dans le delta, voyageur, il est probablement là. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'chercheurs_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'chercheurs_lead') {
+      this.openDialog(
+        "« Le passage caché, au fond du sanctuaire scellé. Prudence, voyageur — s'ils sont encore là, ils ne vous laisseront pas repartir avec leurs secrets aussi facilement que le gardien. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'seekers_confronted') {
+      this.openDialog(
+        "Sélène examine le sceau que vous avez rapporté sans un mot, longtemps. « Ainsi les Chercheurs d'éclats n'ont jamais vraiment disparu — ils se sont juste terrés, patiemment, en attendant de trouver ce qu'ils cherchaient. » Elle repose le sceau. « Vous venez de leur ôter leur avance et leur meilleur limier, voyageur. Ce n'est pas rien. Mais une organisation pareille ne tient pas sur un seul homme — s'ils avaient un plan, quelqu'un d'autre le poursuit déjà. » Elle vous regarde, presque à contrecœur. « Reposez-vous. Nous en saurons davantage bien assez tôt, j'en ai peur. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'seekers_defeated');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'seekers_defeated') {
+      this.openDialog(
+        "« L'archiviste est tombé, mais son organisation lui survit ailleurs, voyageur. Nous saurons où chercher le moment venu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

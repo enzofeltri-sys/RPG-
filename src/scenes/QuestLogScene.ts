@@ -140,6 +140,21 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
+  chercheurs_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Fouillez le passage caché du sanctuaire scellé, dans les Terres Noyées.',
+  },
+  seekers_confronted: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  seekers_defeated: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

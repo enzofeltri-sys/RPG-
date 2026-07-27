@@ -97,6 +97,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'seeker_signet',
+    name: "Sceau de l'Archiviste",
+    category: 'ring',
+    baseStats: { intelligence: 2, agility: 2 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

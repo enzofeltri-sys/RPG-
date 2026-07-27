@@ -27,7 +27,8 @@ export type ReturnSceneKey =
   | 'Vasenoire'
   | 'SunkenRuins'
   | 'ClandestineDock'
-  | 'SealedSanctuary';
+  | 'SealedSanctuary'
+  | 'ShardSeekersCamp';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -56,6 +57,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'SunkenRuins',
   'ClandestineDock',
   'SealedSanctuary',
+  'ShardSeekersCamp',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

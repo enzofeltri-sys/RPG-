@@ -556,7 +556,51 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'network_reported') {
       this.openDialog(
-        "« Le réseau du Faubourg s'étend jusqu'aux Terres Noyées, désormais. Nous ne sommes pas au bout de cette histoire, voyageur — mais vous avez fait plus que quiconque avant vous. »",
+        "Sélène relit une dernière fois le rapport que vous avez rapporté du quai clandestin, un sourcil froncé. « Le lieutenant transportait plus que des caisses volées, voyageur. Parmi ses papiers, une adresse codée revient trois fois : un ancien sanctuaire scellé, englouti avec le reste du delta, que les Limaneux évitent depuis des générations — ils prétendent qu'on y entend encore chanter les gardiens. » Elle repose les papiers, le regard sombre. « Si le réseau y stockait un dépôt d'éclats, c'est là qu'il faut chercher, pas dans un entrepôt de plus. L'entrée doit se trouver quelque part près du quai clandestin lui-même — personne d'autre n'aurait pu y accéder aussi facilement. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'sealed_vault_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'sealed_vault_lead') {
+      this.openDialog(
+        '« Le sanctuaire scellé, près du quai clandestin. Méfiez-vous de ce qui le garde encore, voyageur. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'vault_uncovered') {
+      this.openDialog(
+        "Sélène manipule le pendentif que vous avez rapporté avec une prudence presque révérencieuse, comme s'il pouvait encore se refermer sur ses doigts. « Un gardien scellé avec le dépôt lui-même... Je n'avais lu cela que dans de très vieux textes, et je pensais qu'ils exagéraient. » Elle le repose enfin, incapable de cacher un frisson. « Ce sanctuaire ne protégeait pas un simple entrepôt de contrebandiers, voyageur — c'était une réserve, dissimulée depuis le rituel de scellement originel lui-même. Si le réseau avait fini par la localiser, la question n'est plus de savoir combien d'éclats circulent. C'est de savoir qui d'autre a fini par la trouver avant eux. » Elle range le pendentif avec soin. « Reposez-vous. Cette découverte va demander qu'on reconsidère bien des choses. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'shard_cache_found');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'shard_cache_found') {
+      this.openDialog(
+        "« Le sanctuaire englouti a livré son secret, mais pas encore toutes ses réponses. Nous y reviendrons, voyageur — pour l'instant, reposez-vous. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

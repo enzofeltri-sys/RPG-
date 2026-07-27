@@ -30,7 +30,10 @@ export type MainQuestStage =
   | 'limaneux_lead'
   | 'network_exposed'
   | 'smugglers_unmasked'
-  | 'network_reported';
+  | 'network_reported'
+  | 'sealed_vault_lead'
+  | 'vault_uncovered'
+  | 'shard_cache_found';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -59,6 +62,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   delta_conspiracy: { xp: 130, itemBaseId: 'short_sword', itemRarity: 'rare' },
   smugglers_unmasked: { xp: 220, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   network_reported: { xp: 200, itemBaseId: 'simple_ring', itemRarity: 'epic' },
+  shard_cache_found: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -81,6 +85,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   fallen_guardian: { fromStage: 'catacombs', toStage: 'trail_found' },
   smuggler_captain: { fromStage: 'faubourg_lead', toStage: 'shard_confirmed' },
   smuggler_lieutenant: { fromStage: 'limaneux_lead', toStage: 'network_exposed' },
+  shard_warden: { fromStage: 'sealed_vault_lead', toStage: 'vault_uncovered' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

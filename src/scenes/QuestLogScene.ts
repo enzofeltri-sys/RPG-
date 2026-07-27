@@ -110,6 +110,21 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
+  sealed_vault_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Trouvez le sanctuaire scellé, près du quai clandestin.',
+  },
+  vault_uncovered: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  shard_cache_found: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

@@ -4,7 +4,8 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
-import { playChestOpen } from '../ui/sound';
+import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { playChestOpen, playQuestComplete } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
@@ -18,7 +19,19 @@ const CHEST_ID = 'sunkenroad_chest_1';
 const MIN_ENCOUNTER_DISTANCE = 220;
 const MAX_ENCOUNTER_DISTANCE = 400;
 
-const REFUGEE_LINES = [
+const SENTINELS_QUEST_ID = 'sunkenroad_sentinels';
+
+// Ambient encounter identity, once Odren's quest gives the region's second
+// threat a name — picked at random per encounter rather than alternating,
+// same "unpredictable danger" feel as every other region's random fights.
+const AMBIENT_MONSTER_IDS = ['bog_wraith', 'corrupted_sentinel'];
+
+const GOLD = '#e8d9b5';
+const DARK = '#0b0c10';
+
+// Flavor-only lines once Odren's quest is turned in — the same rumor-mill
+// role the wanderer played before being given a name and a quest.
+const ODREN_LINES = [
   "Vasenoire n'est plus très loin. Suivez les passerelles, ne vous écartez pas — le fond a disparu depuis longtemps par ici.",
   'Les Limaneux contrôlent ce qui reste de terre ferme. Mieux vaut ne pas leur chercher noise.',
   "On raconte que des étrangers armés fouillent les ruines englouties depuis des mois. Personne ne sait pour le compte de qui.",
@@ -56,6 +69,7 @@ export class SunkenRoadScene extends Phaser.Scene {
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private messageText?: Phaser.GameObjects.Text;
+  private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
 
@@ -79,7 +93,8 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Relais des chasseurs', '→ Vasenoire']);
 
-    // Ambient refugee, clear of the signpost and the water patch.
+    // Odren, a refugee wandering clear of the signpost and the water patch —
+    // side-quest giver for this region's second ambient threat.
     this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
@@ -130,7 +145,7 @@ export class SunkenRoadScene extends Phaser.Scene {
           return refugeeSprite.y;
         },
         radius: 20,
-        onTap: () => this.talkToRefugee(),
+        onTap: () => this.talkToOdren(),
       },
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
@@ -182,21 +197,110 @@ export class SunkenRoadScene extends Phaser.Scene {
 
   private startEncounter(): void {
     this.isTransitioning = true;
+    const monsterId = Phaser.Utils.Array.GetRandom(AMBIENT_MONSTER_IDS);
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Combat', {
         returnScene: 'SunkenRoad',
-        monsterId: 'bog_wraith',
+        monsterId,
         x: this.player.x,
         y: this.player.y,
       });
     });
   }
 
-  private talkToRefugee(): void {
-    const line = REFUGEE_LINES[this.refugeeLineIndex % REFUGEE_LINES.length];
+  private talkToOdren(): void {
+    const quest = QUESTS[SENTINELS_QUEST_ID];
+    const progress = getQuestProgress(this.character, SENTINELS_QUEST_ID);
+
+    if (!progress) {
+      this.openDialog(quest.description, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, SENTINELS_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(
+        `${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} sentinelles vaincues.`,
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(`${quest.title} — terminée !\n\n« La brume s'est un peu calmée. Merci, voyageur. » Voici votre récompense.`, [
+        {
+          label: 'Récupérer la récompense',
+          onClick: async () => {
+            turnInQuest(this.character, SENTINELS_QUEST_ID);
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
+            this.closeDialog();
+          },
+        },
+      ]);
+      return;
+    }
+
+    const line = ODREN_LINES[this.refugeeLineIndex % ODREN_LINES.length];
     this.refugeeLineIndex += 1;
     this.showMessage(line);
+  }
+
+  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+    this.closeDialog();
+    this.tapControl.setEnabled(false);
+
+    const { width, height } = this.scale;
+    const bg = this.add
+      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(800)
+      .setStrokeStyle(1, 0xe8d9b5);
+
+    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
+      fontSize: '10px',
+      color: GOLD,
+      align: 'center',
+      lineSpacing: 5,
+      wordWrap: { width: width - 44 },
+    })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(801);
+
+    this.dialogElements = [bg, label];
+
+    buttons.forEach((button, i) => {
+      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
+        fontSize: '10px',
+        color: DARK,
+        backgroundColor: GOLD,
+        padding: { x: 8, y: 5 },
+      })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(801)
+        .setInteractive({ useHandCursor: true });
+      buttonText.on('pointerdown', button.onClick);
+      this.dialogElements.push(buttonText);
+    });
+  }
+
+  private closeDialog(): void {
+    this.dialogElements.forEach((el) => el.destroy());
+    this.dialogElements = [];
+    this.tapControl.setEnabled(true);
   }
 
   private async handleChestTap(): Promise<void> {

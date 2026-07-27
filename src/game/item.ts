@@ -89,6 +89,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 3 },
     signature: true,
   },
+  {
+    baseId: 'shard_pendant',
+    name: "Pendentif d'éclat scellé",
+    category: 'amulet',
+    baseStats: { intelligence: 3, vitality: 3 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

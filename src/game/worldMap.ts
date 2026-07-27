@@ -45,6 +45,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 140, y: 55 },
   { key: 'SunkenRuins', label: 'Ruines englouties', region: 'terresnoyees', x: 70, y: 110 },
   { key: 'ClandestineDock', label: 'Quai clandestin', region: 'terresnoyees', x: 140, y: 110 },
+  { key: 'SealedSanctuary', label: 'Sanctuaire scellé', region: 'terresnoyees', x: 140, y: 165 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -71,11 +72,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['SunkenRoad', 'Vasenoire'],
   ['SunkenRoad', 'SunkenRuins'],
   ['Vasenoire', 'ClandestineDock'],
+  ['ClandestineDock', 'SealedSanctuary'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
-// named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' has no
-// entry: that chapter is closed, nothing left to point at for now.
+// named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
+// 'shard_cache_found' have no entry: those chapters are closed, nothing left
+// to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -95,6 +98,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   limaneux_lead: 'ClandestineDock',
   network_exposed: 'Vasenoire',
   smugglers_unmasked: 'City',
+  network_reported: 'City',
+  sealed_vault_lead: 'ClandestineDock',
+  vault_uncovered: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.
@@ -116,4 +122,5 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   vasenoire_ruins: 'Vasenoire',
   vasenoire_ruins_leader: 'Vasenoire',
   vasenoire_fisherman: 'Vasenoire',
+  sunkenroad_sentinels: 'SunkenRoad',
 };

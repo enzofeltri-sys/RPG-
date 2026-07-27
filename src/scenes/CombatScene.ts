@@ -21,6 +21,7 @@ const BAR_WIDTH = 160;
 // the random pool (see item.ts's `signature` flag on ItemTemplate).
 const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
   fallen_guardian: { baseId: 'guardian_amulet', rarity: 'epic' },
+  shard_warden: { baseId: 'shard_pendant', rarity: 'epic' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —

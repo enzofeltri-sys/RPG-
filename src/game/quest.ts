@@ -170,6 +170,14 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'smuggler_thug', count: 3 },
     reward: { xp: 90, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
   },
+  sunkenroad_sentinels: {
+    id: 'sunkenroad_sentinels',
+    title: 'Ce qui veille dans la brume',
+    description:
+      "Depuis quelques jours, des sentinelles corrompues rôdent près des passerelles et empêchent quiconque de s'aventurer plus loin sans encombre. Éliminez-en 3 pour qu'Odren puisse à nouveau guider les voyageurs en sécurité.",
+    objective: { type: 'defeat', monsterId: 'corrupted_sentinel', count: 3 },
+    reward: { xp: 100, itemBaseId: 'leather_helmet', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

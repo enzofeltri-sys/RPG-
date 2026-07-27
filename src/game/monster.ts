@@ -153,6 +153,26 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 45,
     isBoss: true,
   },
+  // Ambient guardian shared by SunkenRoad (alternating with bog_wraith) and
+  // the sealed sanctuary's approach — same "something is actively watching
+  // the ruins" identity in both places, tougher than a plain wraith.
+  corrupted_sentinel: {
+    id: 'corrupted_sentinel',
+    name: 'Sentinelle corrompue',
+    maxHp: 34,
+    attack: 9,
+    xpReward: 70,
+    goldReward: 20,
+  },
+  shard_warden: {
+    id: 'shard_warden',
+    name: 'Gardien des éclats',
+    maxHp: 85,
+    attack: 14,
+    xpReward: 210,
+    goldReward: 60,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

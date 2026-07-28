@@ -79,8 +79,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'seekers_defeated' have no entry: those chapters are closed, nothing left
-// to point at for now.
+// 'brotherhood_tomb_hinted' have no entry: those chapters are closed,
+// nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -109,6 +109,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   threat_acknowledged: 'City',
   chercheurs_lead: 'SealedSanctuary',
   seekers_confronted: 'City',
+  seekers_defeated: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

@@ -39,7 +39,8 @@ export type MainQuestStage =
   | 'threat_acknowledged'
   | 'chercheurs_lead'
   | 'seekers_confronted'
-  | 'seekers_defeated';
+  | 'seekers_defeated'
+  | 'brotherhood_tomb_hinted';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -71,6 +72,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   shard_cache_found: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   threat_acknowledged: { xp: 200, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   seekers_defeated: { xp: 260, itemBaseId: 'leather_legs', itemRarity: 'epic' },
+  brotherhood_tomb_hinted: { xp: 280, itemBaseId: 'short_sword', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

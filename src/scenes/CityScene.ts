@@ -688,7 +688,25 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'seekers_defeated') {
       this.openDialog(
-        "« L'archiviste est tombé, mais son organisation lui survit ailleurs, voyageur. Nous saurons où chercher le moment venu. »",
+        "Sélène a passé des jours à décortiquer les carnets de l'archiviste, et son visage en dit long quand vous entrez. « Les Chercheurs d'éclats ne travaillaient pas pour leur propre compte, voyageur. Chaque piste qu'ils suivaient, chaque éclat qu'ils cataloguaient, tout convergeait vers un seul objectif : localiser le tombeau de la confrérie fondatrice — le site où reposent, depuis trois siècles, les mages qui ont scellé le Roi Démon. » Elle repousse les carnets, comme si leur seul contact la salissait. « Si un groupe de chercheurs isolés y consacrait des années entières, ce n'est pas par simple curiosité érudite. Quelqu'un, au-dessus d'eux, veut ce tombeau — et je crains fort que ce ne soit pas pour l'honorer. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'brotherhood_tomb_hinted');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'brotherhood_tomb_hinted') {
+      this.openDialog(
+        "« Nous ignorons encore où repose ce tombeau, voyageur. Mais si quelqu'un veut l'atteindre en premier, ce sera vous — pas eux. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

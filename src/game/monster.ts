@@ -192,6 +192,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 65,
     isBoss: true,
   },
+  // Envoyé pour le tombeau de la confrérie fondatrice — la première créature
+  // du jeu directement au service du Roi Démon plutôt que d'une faction
+  // humaine, et le combat le plus dur à ce jour.
+  demon_envoy: {
+    id: 'demon_envoy',
+    name: 'Émissaire du Roi Démon',
+    maxHp: 110,
+    attack: 17,
+    xpReward: 300,
+    goldReward: 80,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

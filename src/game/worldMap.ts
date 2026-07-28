@@ -47,6 +47,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'ClandestineDock', label: 'Quai clandestin', region: 'terresnoyees', x: 140, y: 110 },
   { key: 'SealedSanctuary', label: 'Sanctuaire scellé', region: 'terresnoyees', x: 140, y: 165 },
   { key: 'ShardSeekersCamp', label: 'Camp des Chercheurs', region: 'terresnoyees', x: 140, y: 220 },
+  { key: 'BrotherhoodTomb', label: 'Tombeau de la confrérie', region: 'terresnoyees', x: 70, y: 165 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -75,12 +76,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['Vasenoire', 'ClandestineDock'],
   ['ClandestineDock', 'SealedSanctuary'],
   ['SealedSanctuary', 'ShardSeekersCamp'],
+  ['SunkenRuins', 'BrotherhoodTomb'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'brotherhood_tomb_hinted' have no entry: those chapters are closed,
-// nothing left to point at for now.
+// 'act2_complete' have no entry: those chapters are closed, nothing left to
+// point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -110,6 +112,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   chercheurs_lead: 'SealedSanctuary',
   seekers_confronted: 'City',
   seekers_defeated: 'City',
+  brotherhood_tomb_hinted: 'City',
+  tomb_location_found: 'SunkenRuins',
+  tomb_raided: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

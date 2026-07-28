@@ -160,6 +160,22 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     color: ACTIVE_COLOR,
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
+  tomb_location_found: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Fouillez les Ruines englouties — le tombeau se trouve en dessous.',
+  },
+  tomb_raided: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  act2_complete: {
+    label: 'Acte 2 terminé',
+    color: DONE_COLOR,
+    description:
+      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — une région entière commence à sombrer dans la corruption. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
+  },
 };
 
 // Just below the title and just above the "Retour" button — the list scrolls

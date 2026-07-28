@@ -706,7 +706,50 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'brotherhood_tomb_hinted') {
       this.openDialog(
-        "« Nous ignorons encore où repose ce tombeau, voyageur. Mais si quelqu'un veut l'atteindre en premier, ce sera vous — pas eux. »",
+        "Sélène a passé du temps sur d'anciennes cartes et des relevés antérieurs à la Rupture. « Le tombeau de la confrérie fondatrice n'a jamais été retrouvé, voyageur — officiellement. Mais les récits qui ont survécu convergent tous vers un seul endroit : sous les ruines englouties, au sud du delta, là où vous avez déjà affronté les pillards du réseau. Ce que vous preniez pour le fond des ruines n'était peut-être qu'un plafond. » Elle roule la carte avec soin. « Si quelqu'un cherche vraiment ce tombeau, c'est là qu'il faudra le devancer. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'tomb_location_found');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'tomb_location_found') {
+      this.openDialog('« Sous les Ruines englouties, voyageur. Cherchez ce qui ne devrait pas s\'y trouver. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'tomb_raided') {
+      this.openDialog(
+        "Sélène vous écoute en silence, incapable de masquer son effroi. « Un émissaire du Roi Démon lui-même, ici, dans ce monde... » Elle se reprend. « Vous l'avez vaincu, et c'est plus que quiconque n'a jamais fait avant vous. Mais si un tel être a été envoyé pour ce tombeau, c'est qu'il n'était pas venu les mains vides : un éclat majeur, gardé depuis trois siècles, a disparu avec lui avant même que vous n'atteigniez la chambre funéraire. » Elle s'assoit lourdement. « Les premiers rapports arrivent déjà des Terres Noyées, voyageur. La corruption gagne du terrain, plus vite qu'elle ne l'a jamais fait. Ce que vous avez empêché là-bas... ce n'était qu'un début. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'act2_complete');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'act2_complete') {
+      this.openDialog(
+        "« Le tombeau est profané, l'éclat majeur perdu, et une région entière sombre déjà dans la corruption, voyageur. Ce combat vous dépasse désormais — mais vous êtes allé plus loin que quiconque avant vous. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

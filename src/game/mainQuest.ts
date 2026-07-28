@@ -40,7 +40,10 @@ export type MainQuestStage =
   | 'chercheurs_lead'
   | 'seekers_confronted'
   | 'seekers_defeated'
-  | 'brotherhood_tomb_hinted';
+  | 'brotherhood_tomb_hinted'
+  | 'tomb_location_found'
+  | 'tomb_raided'
+  | 'act2_complete';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -73,6 +76,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   threat_acknowledged: { xp: 200, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   seekers_defeated: { xp: 260, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   brotherhood_tomb_hinted: { xp: 280, itemBaseId: 'short_sword', itemRarity: 'epic' },
+  act2_complete: { xp: 300, itemBaseId: 'leather_boots', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -97,6 +101,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   smuggler_lieutenant: { fromStage: 'limaneux_lead', toStage: 'network_exposed' },
   shard_warden: { fromStage: 'sealed_vault_lead', toStage: 'vault_uncovered' },
   seeker_archivist: { fromStage: 'chercheurs_lead', toStage: 'seekers_confronted' },
+  demon_envoy: { fromStage: 'tomb_location_found', toStage: 'tomb_raided' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

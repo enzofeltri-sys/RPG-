@@ -81,8 +81,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'act2_complete' have no entry: those chapters are closed, nothing left to
-// point at for now.
+// 'corruption_confirmed' have no entry: those chapters are closed, nothing
+// left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -115,6 +115,8 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   brotherhood_tomb_hinted: 'City',
   tomb_location_found: 'SunkenRuins',
   tomb_raided: 'City',
+  act2_complete: 'City',
+  outpost_corruption_lead: 'HunterOutpost',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

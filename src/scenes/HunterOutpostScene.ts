@@ -271,6 +271,31 @@ export class HunterOutpostScene extends Phaser.Scene {
       return;
     }
 
+    if (stage === 'outpost_corruption_lead') {
+      this.openDialog(
+        "Le chasseur vous entraîne à l'écart, la mine sombre. « Vous venez pour ça aussi, alors. » Il désigne la lisière est du relais. « Les pièges sont vides depuis trois jours — pas parce qu'on les a pillés, parce que plus rien ne s'y aventure. Et là-bas, les herbes ont noirci sans qu'il ait gelé ni brûlé. » Il secoue la tête. « On croyait les Terres Noyées loin derrière nous. On avait tort. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'corruption_confirmed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'corruption_confirmed') {
+      this.openDialog('« Restez sur vos gardes, voyageur. Ce qui vient du delta ne s\'arrêtera pas ici. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
     this.openDialog('Les pièges rapportent de nouveau, grâce à vous.', [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);

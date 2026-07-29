@@ -749,7 +749,32 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'act2_complete') {
       this.openDialog(
-        "« Le tombeau est profané, l'éclat majeur perdu, et une région entière sombre déjà dans la corruption, voyageur. Ce combat vous dépasse désormais — mais vous êtes allé plus loin que quiconque avant vous. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène ne vous laisse pas fermer la porte derrière vous. « Les premiers rapports que je redoutais sont arrivés, voyageur — plus vite que je ne l'espérais. » Elle déplie une carte tachée d'encre fraîche. « Le Relais des chasseurs, à la lisière des Terres Noyées, signale des bêtes qui fuient sans raison apparente et des cultures qui noircissent du jour au lendemain. C'est exactement ainsi que la corruption s'est propagée près de chez vous, il y a des années. » Elle vous regarde, grave. « Si la région tombe vraiment, ce sera le premier endroit touché de ce côté du delta. Allez voir par vous-même. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'outpost_corruption_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'outpost_corruption_lead') {
+      this.openDialog('« Le Relais des chasseurs, voyageur. Voyez ce qu\'il en est vraiment. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'corruption_confirmed') {
+      this.openDialog(
+        "« La corruption gagne déjà le Relais des chasseurs, voyageur. Ce combat vous dépasse désormais — mais vous êtes allé plus loin que quiconque avant vous. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

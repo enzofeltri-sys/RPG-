@@ -171,10 +171,20 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   act2_complete: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  outpost_corruption_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Rendez-vous au Relais des chasseurs — la corruption y aurait déjà été aperçue.',
+  },
+  corruption_confirmed: {
     label: 'Acte 2 terminé',
     color: DONE_COLOR,
     description:
-      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — une région entière commence à sombrer dans la corruption. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
+      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — la corruption gagne déjà le Relais des chasseurs. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
   },
 };
 

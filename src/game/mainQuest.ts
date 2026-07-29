@@ -43,7 +43,9 @@ export type MainQuestStage =
   | 'brotherhood_tomb_hinted'
   | 'tomb_location_found'
   | 'tomb_raided'
-  | 'act2_complete';
+  | 'act2_complete'
+  | 'outpost_corruption_lead'
+  | 'corruption_confirmed';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -77,6 +79,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   seekers_defeated: { xp: 260, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   brotherhood_tomb_hinted: { xp: 280, itemBaseId: 'short_sword', itemRarity: 'epic' },
   act2_complete: { xp: 300, itemBaseId: 'leather_boots', itemRarity: 'epic' },
+  corruption_confirmed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

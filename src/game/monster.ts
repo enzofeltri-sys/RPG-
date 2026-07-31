@@ -204,6 +204,26 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 80,
     isBoss: true,
   },
+  // Première manifestation concrète de l'éclat volé au tombeau — pas une
+  // faction, juste la corruption elle-même qui prend forme là où elle
+  // s'installe, au Relais des chasseurs.
+  blight_spawn: {
+    id: 'blight_spawn',
+    name: 'Rejeton corrompu',
+    maxHp: 50,
+    attack: 12,
+    xpReward: 100,
+    goldReward: 28,
+  },
+  corruption_heart: {
+    id: 'corruption_heart',
+    name: 'Cœur de la corruption',
+    maxHp: 100,
+    attack: 15,
+    xpReward: 260,
+    goldReward: 70,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

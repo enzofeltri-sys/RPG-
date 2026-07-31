@@ -181,10 +181,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: 'Rendez-vous au Relais des chasseurs — la corruption y aurait déjà été aperçue.',
   },
   corruption_confirmed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir le chasseur, au Relais des chasseurs.',
+  },
+  blighted_grove_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Fouillez le bosquet corrompu, près du Relais des chasseurs.',
+  },
+  grove_purified: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  corruption_contained: {
     label: 'Acte 2 terminé',
     color: DONE_COLOR,
     description:
-      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — la corruption gagne déjà le Relais des chasseurs. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
+      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — un premier foyer de corruption près du Relais des chasseurs a été contenu, mais ce n'est qu'un début. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
   },
 };
 

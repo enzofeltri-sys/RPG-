@@ -45,7 +45,10 @@ export type MainQuestStage =
   | 'tomb_raided'
   | 'act2_complete'
   | 'outpost_corruption_lead'
-  | 'corruption_confirmed';
+  | 'corruption_confirmed'
+  | 'blighted_grove_lead'
+  | 'grove_purified'
+  | 'corruption_contained';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -80,6 +83,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   brotherhood_tomb_hinted: { xp: 280, itemBaseId: 'short_sword', itemRarity: 'epic' },
   act2_complete: { xp: 300, itemBaseId: 'leather_boots', itemRarity: 'epic' },
   corruption_confirmed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'rare' },
+  corruption_contained: { xp: 260, itemBaseId: 'simple_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -105,6 +109,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   shard_warden: { fromStage: 'sealed_vault_lead', toStage: 'vault_uncovered' },
   seeker_archivist: { fromStage: 'chercheurs_lead', toStage: 'seekers_confronted' },
   demon_envoy: { fromStage: 'tomb_location_found', toStage: 'tomb_raided' },
+  corruption_heart: { fromStage: 'blighted_grove_lead', toStage: 'grove_purified' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

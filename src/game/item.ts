@@ -105,6 +105,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'purified_breastplate',
+    name: 'Cuirasse purifiée',
+    category: 'chest',
+    baseStats: { vitality: 4, armor: 2 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

@@ -774,7 +774,40 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'corruption_confirmed') {
       this.openDialog(
-        "« La corruption gagne déjà le Relais des chasseurs, voyageur. Ce combat vous dépasse désormais — mais vous êtes allé plus loin que quiconque avant vous. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
+        "« La corruption gagne déjà le Relais des chasseurs, voyageur. Restez-y, et voyez ce que vous pouvez faire. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    if (stage === 'blighted_grove_lead') {
+      this.openDialog('« Le bosquet corrompu, près du Relais des chasseurs. Soyez prudent, voyageur. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'grove_purified') {
+      this.openDialog(
+        "Sélène examine la cuirasse noircie que vous avez rapportée, presque incrédule. « Un cœur de corruption, formé spontanément autour de l'éclat qui fuit... » Elle repose l'objet avec précaution. « Vous venez de contenir le premier foyer, voyageur. Mais un éclat majeur continue de répandre son influence quelque part — celui-ci n'était qu'une retombée, pas la source. » Elle se tait un instant. « Vous avez gagné du temps. Pas la guerre. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'corruption_contained');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'corruption_contained') {
+      this.openDialog(
+        "« Le bosquet respire de nouveau, voyageur, mais la source véritable reste hors de portée. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

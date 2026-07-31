@@ -48,6 +48,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   { key: 'SealedSanctuary', label: 'Sanctuaire scellé', region: 'terresnoyees', x: 140, y: 165 },
   { key: 'ShardSeekersCamp', label: 'Camp des Chercheurs', region: 'terresnoyees', x: 140, y: 220 },
   { key: 'BrotherhoodTomb', label: 'Tombeau de la confrérie', region: 'terresnoyees', x: 70, y: 165 },
+
+  // Première zone corrompue en dehors des Terres Noyées — la contamination
+  // du tombeau remonte vers l'Aiglemont.
+  { key: 'BlightedGrove', label: 'Bosquet corrompu', region: 'aiglemont', x: 100, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -77,11 +81,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['ClandestineDock', 'SealedSanctuary'],
   ['SealedSanctuary', 'ShardSeekersCamp'],
   ['SunkenRuins', 'BrotherhoodTomb'],
+  ['HunterOutpost', 'BlightedGrove'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'corruption_confirmed' have no entry: those chapters are closed, nothing
+// 'corruption_contained' have no entry: those chapters are closed, nothing
 // left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -117,6 +122,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   tomb_raided: 'City',
   act2_complete: 'City',
   outpost_corruption_lead: 'HunterOutpost',
+  corruption_confirmed: 'HunterOutpost',
+  blighted_grove_lead: 'HunterOutpost',
+  grove_purified: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

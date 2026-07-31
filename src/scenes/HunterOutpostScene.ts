@@ -117,6 +117,18 @@ export class HunterOutpostScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // South zone — newly opened once the corruption spreading from the
+    // Terres Noyées reaches this side of the delta.
+    const blightedGroveZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
+    this.physics.add.existing(blightedGroveZone, true);
+    this.physics.add.overlap(this.player, blightedGroveZone, () => this.enterBlightedGrove());
+
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30, 'Bosquet corrompu ↓', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.hunter.x, y: this.hunter.y, radius: 24, onTap: () => this.talkToHunter() },
     ];
@@ -290,7 +302,32 @@ export class HunterOutpostScene extends Phaser.Scene {
     }
 
     if (stage === 'corruption_confirmed') {
-      this.openDialog('« Restez sur vos gardes, voyageur. Ce qui vient du delta ne s\'arrêtera pas ici. »', [
+      this.openDialog(
+        "Le chasseur hésite, puis se décide. « Il y a autre chose, voyageur — quelque chose que je n'ai pas osé dire devant les autres. Au sud du relais, un bosquet entier a noirci en une nuit. Personne n'ose plus s'en approcher : ceux qui l'ont fait racontent avoir vu des formes bouger sous l'écorce pourrie. » Il désigne la lisière sud. « Si la corruption a une source ici, elle est là-dedans. Je ne peux pas vous accompagner. Mais quelqu'un doit y aller. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'blighted_grove_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'blighted_grove_lead') {
+      this.openDialog('« Le bosquet corrompu, au sud. Revenez si vous en découvrez la source. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'grove_purified' || stage === 'corruption_contained') {
+      this.openDialog('« Le bosquet respire à nouveau, grâce à vous. Mais pour combien de temps... »', [
         { label: 'Fermer', onClick: () => this.closeDialog() },
       ]);
       return;
@@ -363,6 +400,15 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('SunkenRoad', { x: 40, y: 200 });
+    });
+  }
+
+  private enterBlightedGrove(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('BlightedGrove', { x: 110, y: 380 });
     });
   }
 

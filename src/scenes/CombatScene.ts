@@ -23,6 +23,7 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
   fallen_guardian: { baseId: 'guardian_amulet', rarity: 'epic' },
   shard_warden: { baseId: 'shard_pendant', rarity: 'epic' },
   seeker_archivist: { baseId: 'seeker_signet', rarity: 'epic' },
+  corruption_heart: { baseId: 'purified_breastplate', rarity: 'epic' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —

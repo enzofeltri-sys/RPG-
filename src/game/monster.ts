@@ -1,3 +1,34 @@
+// A small, per-encounter chance that a regular (non-boss) monster spawns as a
+// tougher, better-rewarding variant of itself — same identity and place in
+// the world, not a new monster to design — rather than every field/dungeon
+// encounter always being the plain version. Bosses are already the toughest,
+// best-rewarding version of themselves by design, so tier variance is
+// deliberately skipped for them.
+export type EncounterTier = 'normal' | 'elite' | 'legendary';
+
+const ELITE_CHANCE = 0.04;
+const LEGENDARY_CHANCE = 0.01;
+
+const TIER_LABELS: Record<EncounterTier, string> = {
+  normal: '',
+  elite: ' élite',
+  legendary: ' légendaire',
+};
+
+const TIER_STAT_MULTIPLIER: Record<EncounterTier, { hp: number; attack: number; xp: number; gold: number }> = {
+  normal: { hp: 1, attack: 1, xp: 1, gold: 1 },
+  elite: { hp: 1.6, attack: 1.3, xp: 1.5, gold: 1.5 },
+  legendary: { hp: 2.5, attack: 1.7, xp: 2.5, gold: 2.5 },
+};
+
+export function rollEncounterTier(isBoss: boolean): EncounterTier {
+  if (isBoss) return 'normal';
+  const roll = Math.random();
+  if (roll < LEGENDARY_CHANCE) return 'legendary';
+  if (roll < LEGENDARY_CHANCE + ELITE_CHANCE) return 'elite';
+  return 'normal';
+}
+
 export interface Monster {
   id: string;
   name: string;
@@ -7,6 +38,7 @@ export interface Monster {
   xpReward: number;
   goldReward: number;
   isBoss: boolean;
+  tier: EncounterTier;
 }
 
 interface MonsterTemplate {
@@ -249,12 +281,31 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
   },
 };
 
-export function createMonster(id: string): Monster {
+// tier defaults to a fresh roll (skipped for bosses) — callers can pass an
+// explicit tier to force a specific outcome, e.g. for deterministic tests.
+// Bosses stay 'normal' even if a caller passes an explicit tier: they're
+// already the toughest, best-rewarding version of themselves by design, so
+// this invariant is enforced here rather than trusted to every call site.
+export function createMonster(id: string, tier?: EncounterTier): Monster {
   const template = TEMPLATES[id];
   if (!template) {
     throw new Error(`Unknown monster template: ${id}`);
   }
-  return { ...template, hp: template.maxHp, isBoss: Boolean(template.isBoss) };
+  const isBoss = Boolean(template.isBoss);
+  const resolvedTier = isBoss ? 'normal' : (tier ?? rollEncounterTier(false));
+  const mult = TIER_STAT_MULTIPLIER[resolvedTier];
+  const maxHp = Math.round(template.maxHp * mult.hp);
+  return {
+    id: template.id,
+    name: template.name + TIER_LABELS[resolvedTier],
+    hp: maxHp,
+    maxHp,
+    attack: Math.round(template.attack * mult.attack),
+    xpReward: Math.round(template.xpReward * mult.xp),
+    goldReward: Math.round(template.goldReward * mult.gold),
+    isBoss,
+    tier: resolvedTier,
+  };
 }
 
 // Kept for the Field's random encounters, which only ever fight this one test monster.

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Character, grantXp, getEffectiveStats } from '../game/character';
-import { Monster, createTestMonster, createMonster } from '../game/monster';
+import { Monster, EncounterTier, createTestMonster, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
@@ -15,6 +15,27 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const BAR_WIDTH = 160;
+
+// Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
+// "élite"/"légendaire" the same way they already read rare/épique loot,
+// instead of learning a second color code.
+const TIER_NAME_COLOR: Record<EncounterTier, string> = {
+  normal: GOLD,
+  elite: '#4fa3e3',
+  legendary: '#a855f7',
+};
+
+const TIER_ENEMY_TINT: Record<EncounterTier, number> = {
+  normal: 0x6b2b2b,
+  elite: 0x2b4a6b,
+  legendary: 0x4a2b6b,
+};
+
+const TIER_APPEARANCE_MESSAGE: Record<EncounterTier, string> = {
+  normal: 'apparaît',
+  elite: "bien plus puissant que la normale apparaît — l'air se charge d'une menace inhabituelle",
+  legendary: 'monstrueux et rayonnant se dresse devant vous — une rencontre rarissime',
+};
 
 // A hard-dungeon boss can grant its own exclusive item on top of the normal
 // loot roll — a guaranteed, always-the-same "special reward" distinct from
@@ -44,6 +65,9 @@ interface CombatData {
   monsterId?: string;
   x?: number;
   y?: number;
+  // Forces a specific encounter tier instead of rolling one — used by tests;
+  // real gameplay never passes this, so createMonster always rolls normally.
+  tier?: EncounterTier;
 }
 
 export class CombatScene extends Phaser.Scene {
@@ -51,6 +75,7 @@ export class CombatScene extends Phaser.Scene {
   private monster!: Monster;
   private returnScene: ReturnSceneKey = 'Field';
   private monsterId?: string;
+  private tier?: EncounterTier;
   private returnX?: number;
   private returnY?: number;
   private busy = false;
@@ -74,6 +99,7 @@ export class CombatScene extends Phaser.Scene {
   init(data: CombatData): void {
     this.returnScene = data?.returnScene ?? 'Field';
     this.monsterId = data?.monsterId;
+    this.tier = data?.tier;
     this.returnX = data?.x;
     this.returnY = data?.y;
     this.busy = false;
@@ -89,14 +115,14 @@ export class CombatScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     this.character = save!.character!;
-    this.monster = this.monsterId ? createMonster(this.monsterId) : createTestMonster();
+    this.monster = this.monsterId ? createMonster(this.monsterId, this.tier) : createTestMonster();
 
     addCrispText(this, width / 2, 34, this.monster.name, {
       fontSize: '15px',
-      color: GOLD,
+      color: TIER_NAME_COLOR[this.monster.tier],
     }).setOrigin(0.5);
 
-    this.add.rectangle(width / 2, 90, 64, 64, 0x6b2b2b).setStrokeStyle(1, 0x2e1414);
+    this.add.rectangle(width / 2, 90, 64, 64, TIER_ENEMY_TINT[this.monster.tier]).setStrokeStyle(1, 0x2e1414);
 
     const enemyBarX = width / 2 - BAR_WIDTH / 2;
     this.add.rectangle(enemyBarX, 136, BAR_WIDTH, 10, 0x33261f).setOrigin(0, 0.5);
@@ -125,12 +151,18 @@ export class CombatScene extends Phaser.Scene {
       color: MUTED,
     }).setOrigin(0, 0.5);
 
-    this.logText = addCrispText(this, width / 2, 270, `Un ${this.monster.name.toLowerCase()} apparaît !`, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      wordWrap: { width: width - 24 },
-    }).setOrigin(0.5);
+    this.logText = addCrispText(
+      this,
+      width / 2,
+      270,
+      `Un ${this.monster.name.toLowerCase()} ${TIER_APPEARANCE_MESSAGE[this.monster.tier]} !`,
+      {
+        fontSize: '10px',
+        color: GOLD,
+        align: 'center',
+        wordWrap: { width: width - 24 },
+      },
+    ).setOrigin(0.5);
 
     this.createActionButton(width / 2 - 55, 330, 'Attaquer', () => this.playerAttack());
     this.createActionButton(width / 2 + 55, 330, 'Fuir', () => this.flee());
@@ -257,9 +289,13 @@ export class CombatScene extends Phaser.Scene {
 
     const loot: Item | null = this.monster.isBoss
       ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
-      : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)
-        ? rollLootItem({ guaranteed: true, rareChance: 0.3 })
-        : rollLootItem();
+      : this.monster.tier === 'legendary'
+        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5 })
+        : this.monster.tier === 'elite'
+          ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
+          : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)
+            ? rollLootItem({ guaranteed: true, rareChance: 0.3 })
+            : rollLootItem();
     if (loot) {
       this.character.inventory.push(loot);
     }

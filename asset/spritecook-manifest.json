@@ -1,0 +1,40 @@
+{
+  "_comment": "Registre des assets générés via SpriteCook (MCP). asset_id est l'identifiant stable côté SpriteCook ; les liens de téléchargement signés expirent après quelques heures et doivent être régénérés via l'appli ou l'outil MCP get_asset_metadata. Les fichiers PNG eux-mêmes ne sont pas encore versionnés ici (voir DESIGN.md, section Assets).",
+  "style_lock": "top-down RPG sprite, single idle front-facing pose, pixel art, medieval fantasy, earthy muted palette (leather, stone, iron, moss), realistic proportions (no chibi), transparent background, 56x56px canvas",
+  "style_reference_asset_ids": [
+    "e6b8392b-a774-48cd-8f9d-70245c0bb1bf",
+    "4b3a9aa7-7e56-4e46-a666-7b23cfbfb643",
+    "8cf2f30f-5e98-413c-b4aa-69e999e1fbbf"
+  ],
+  "assets": [
+    {
+      "monster_id": "corrupted_wolf",
+      "label": "Corrupted Wolf",
+      "asset_id": "05535bd7-43e4-40f6-87bc-101c094ac6bb",
+      "tier": 1,
+      "generated_at": "2026-08-01T08:48:08Z"
+    },
+    {
+      "monster_id": "goblin_scout",
+      "label": "Goblin Scout",
+      "asset_id": "a2a38e32-edc2-4356-a86f-04d3fff6afed",
+      "tier": 1,
+      "generated_at": "2026-08-01T09:01:19Z"
+    },
+    {
+      "monster_id": "cave_spider",
+      "label": "Cave Spider",
+      "asset_id": "91df08f0-fdd7-4082-ae03-e8f19f7f4f41",
+      "tier": 1,
+      "generated_at": "2026-08-01T09:01:37Z"
+    },
+    {
+      "monster_id": "rat_king",
+      "label": "Rat King",
+      "asset_id": "44943870-17bb-4c3d-bf3a-be1ef6d6730c",
+      "tier": 1,
+      "is_boss": true,
+      "generated_at": "2026-08-01T09:02:20Z"
+    }
+  ]
+}

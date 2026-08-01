@@ -71,7 +71,10 @@ export type MainQuestStage =
   | 'tomb_depths_lead'
   | 'tomb_depths_reached'
   | 'tomb_depths_cleared'
-  | 'grand_theory_formed';
+  | 'grand_theory_formed'
+  | 'grove_depths_lead'
+  | 'grove_depths_reached'
+  | 'grove_depths_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -118,6 +121,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   silhouette_message_found: { xp: 300, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   tomb_depths_cleared: { xp: 470, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   grand_theory_formed: { xp: 320, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
+  grove_depths_cleared: { xp: 500, itemBaseId: 'leather_legs', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -149,6 +153,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   unnamed_vestige: { fromStage: 'ward_core_lead', toStage: 'ward_core_reached' },
   last_watcher: { fromStage: 'watchers_vault_lead', toStage: 'watchers_vault_reached' },
   broken_sleeper: { fromStage: 'tomb_depths_lead', toStage: 'tomb_depths_reached' },
+  blight_root: { fromStage: 'grove_depths_lead', toStage: 'grove_depths_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

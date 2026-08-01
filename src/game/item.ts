@@ -153,6 +153,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'corrupted_root_gloves',
+    name: 'Gants de la Racine-mère',
+    category: 'gloves',
+    baseStats: { strength: 3, vitality: 3 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

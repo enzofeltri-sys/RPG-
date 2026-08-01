@@ -311,10 +311,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   grand_theory_formed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  grove_depths_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Un passage caché dans les racines, au bosquet corrompu.',
+  },
+  grove_depths_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  grove_depths_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une chaîne d'événements enfin recoupée — le vol de l'éclat, la vigie, le tombeau, la silhouette. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Ce que le cœur de la corruption n'était qu'un symptôme de. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

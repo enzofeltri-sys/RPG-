@@ -1131,7 +1131,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'grand_theory_formed') {
       this.openDialog(
-        '« La chaîne, voyageur. Chaque maillon compte. La suite de cette histoire viendra en temps voulu. »',
+        "« La chaîne, voyageur. Chaque maillon compte. » Sélène ressort une vieille carte, celle du Relais des chasseurs et du bosquet corrompu. « Nous avons vaincu le cœur de la corruption là-bas, mais nous n'avons jamais vraiment su ce qui l'alimentait — nous l'avons pris pour l'origine, pas pour un symptôme de plus. » Elle trace du doigt un cercle sous le bosquet. « Si votre théorie est juste, voyageur, il y a peut-être encore une racine à trouver là-dessous. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'grove_depths_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'grove_depths_lead') {
+      this.openDialog(
+        '« Le bosquet corrompu, voyageur. Cherchez sous la clairière flétrie, cette fois. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'grove_depths_reached') {
+      this.openDialog(
+        "Sélène examine les gants rapportés, encore humides de sève noircie. « Une racine-mère. » Elle secoue la tête, presque incrédule. « Le cœur de la corruption n'était donc que ce qu'elle laissait pousser en surface — la vraie source dormait dessous depuis le début, et nous ne l'avons jamais su. » Elle relève les yeux, la théorie de la veille visiblement confirmée. « La chaîne tient, voyageur. Le tombeau, la vigie, le bosquet — trois maillons du même mal, trois symptômes d'une seule fragilité. » Elle inspire. « Il ne nous manque plus qu'à savoir combien d'autres maillons nous attendent encore. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'grove_depths_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'grove_depths_cleared') {
+      this.openDialog(
+        "« Trois maillons trouvés, voyageur. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

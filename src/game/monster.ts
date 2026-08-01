@@ -331,6 +331,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 140,
     isBoss: true,
   },
+  // Ce que corruption_heart n'était qu'un symptôme de — la racine qui
+  // alimentait tout le bosquet corrompu, jamais atteinte quand ce cœur a été
+  // vaincu. Un autre maillon de la même chaîne que Sélène vient de recouper.
+  blight_root: {
+    id: 'blight_root',
+    name: 'Racine-mère corrompue',
+    maxHp: 205,
+    attack: 29,
+    xpReward: 500,
+    goldReward: 150,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

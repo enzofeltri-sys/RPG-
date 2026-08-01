@@ -73,6 +73,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // fondatrice, jamais atteinte lors du pillage de fin d'Acte 2 — ce que le
   // vol de l'éclat majeur a réellement dérangé.
   { key: 'BrokenSleep', label: 'Le Sommeil brisé', region: 'terresnoyees', x: 70, y: 220 },
+
+  // Ce que corruption_heart n'était qu'un symptôme de, sous le bosquet
+  // corrompu — jamais atteint quand ce cœur a été vaincu.
+  { key: 'CorruptedRoot', label: 'La Racine corrompue', region: 'aiglemont', x: 160, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -108,12 +112,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['SilentWatch', 'WardCore'],
   ['Archives', 'WatchersVault'],
   ['BrotherhoodTomb', 'BrokenSleep'],
+  ['BlightedGrove', 'CorruptedRoot'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'grand_theory_formed') have no entry: that
-// chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'grove_depths_cleared') have no entry:
+// that chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -172,6 +177,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   tomb_depths_lead: 'BrotherhoodTomb',
   tomb_depths_reached: 'City',
   tomb_depths_cleared: 'City',
+  grand_theory_formed: 'City',
+  grove_depths_lead: 'BlightedGrove',
+  grove_depths_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

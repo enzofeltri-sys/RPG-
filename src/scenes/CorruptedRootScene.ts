@@ -8,12 +8,12 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'blightedgrove_chest_1';
+const CHEST_ID = 'corruptedroot_chest_1';
 
-// Same gabarit as the rest of the "moyen" dungeons (gate behind two fixed
-// encounters, boss zone beyond it, one chest) — the first patch of
-// corruption to reach Aiglemont's side of the delta, south of the Hunter
-// Outpost.
+// Same gabarit "moyen" que les 16 donjons précédents — ce que corruption_heart
+// n'était qu'un symptôme de, jamais atteint quand ce cœur a été vaincu.
+// Palette verte malsaine distincte du bosquet en surface, pour marquer une
+// source plutôt qu'une simple retombée.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -26,22 +26,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'blight_spawn', x: WORLD_WIDTH / 2, y: 320, label: 'Rejetons corrompus' },
-  { monsterId: 'blight_spawn', x: WORLD_WIDTH / 2, y: 250, label: 'Rejetons corrompus' },
+  { monsterId: 'blight_spawn', x: WORLD_WIDTH / 2, y: 320, label: 'Rejetons de la racine' },
+  { monsterId: 'blight_spawn', x: WORLD_WIDTH / 2, y: 250, label: 'Rejetons de la racine' },
 ];
 
-const BOSS_MONSTER_ID = 'corruption_heart';
+const BOSS_MONSTER_ID = 'blight_root';
 
-interface BlightedGroveData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the Hunter Outpost's south exit.
+interface CorruptedRootData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via the Blighted Grove's
+  // hidden passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class BlightedGroveScene extends Phaser.Scene {
+export class CorruptedRootScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -57,10 +58,10 @@ export class BlightedGroveScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('BlightedGrove');
+    super('CorruptedRoot');
   }
 
-  init(data: BlightedGroveData): void {
+  init(data: CorruptedRootData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -70,9 +71,9 @@ export class BlightedGroveScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#1f2a1c');
+    this.cameras.main.setBackgroundColor('#1a2414');
 
-    addCrispText(this, this.scale.width / 2, 12, 'Bosquet corrompu', {
+    addCrispText(this, this.scale.width / 2, 12, 'La Racine corrompue', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -90,7 +91,7 @@ export class BlightedGroveScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.tapControl = new TapController(this, this.player);
 
-    this.addBlightedTrees();
+    this.addRoots();
     const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
     if (remaining.length > 0) {
       this.addGate();
@@ -102,20 +103,12 @@ export class BlightedGroveScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveGrove());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveRoot());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // A second, half-hidden way in, clear of the boss zone at the top of the
-    // center corridor — roots thick enough to have hidden what fed them all
-    // along.
-    const rootZone = this.add.zone(200, 15, 40, 20);
-    this.physics.add.existing(rootZone, true);
-    this.physics.add.overlap(this.player, rootZone, () => this.enterCorruptedRoot());
-    addCrispText(this, 200, 28, 'Racines ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -137,7 +130,7 @@ export class BlightedGroveScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'BlightedGrove',
+        'CorruptedRoot',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -152,26 +145,27 @@ export class BlightedGroveScene extends Phaser.Scene {
     this.tapControl.update(delta);
   }
 
-  private addBlightedTrees(): void {
+  private addRoots(): void {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
-    const tree = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2a3020).setStrokeStyle(1, 0x141a0d);
+    const root = (x: number, y: number, w: number, h: number) => {
+      const rect = this.add.rectangle(x, y, w, h, 0x24301c).setStrokeStyle(1, 0x0f150a);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    tree(20, 360, 24, 60);
-    tree(WORLD_WIDTH - 20, 280, 24, 60);
-    tree(20, 140, 24, 60);
+    root(20, 360, 24, 60);
+    root(WORLD_WIDTH - 20, 280, 24, 60);
+    root(20, 140, 24, 60);
+    root(WORLD_WIDTH - 20, 360, 24, 60);
   }
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2a3020)
-      .setStrokeStyle(1, 0x141a0d);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x24301c)
+      .setStrokeStyle(1, 0x0f150a);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Ronces noircies', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Enchevêtrement de racines', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -186,7 +180,7 @@ export class BlightedGroveScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x3a4a2e, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x2e3a24, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -210,8 +204,8 @@ export class BlightedGroveScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x241f14, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, "Clairière flétrie", {
+    this.add.rectangle(x, y, 50, 50, 0x121a0e, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Le nœud originel', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -231,7 +225,7 @@ export class BlightedGroveScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'BlightedGrove', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'CorruptedRoot', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -269,21 +263,12 @@ export class BlightedGroveScene extends Phaser.Scene {
     });
   }
 
-  private enterCorruptedRoot(): void {
+  private leaveRoot(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('CorruptedRoot', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveGrove(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('HunterOutpost', { x: 110, y: 30 });
+      this.scene.start('BlightedGrove', { x: 30, y: 30 });
     });
   }
 }

@@ -50,6 +50,7 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
   unnamed_vestige: { baseId: 'eternal_watch_greaves', rarity: 'epic' },
   last_watcher: { baseId: 'last_watcher_boots', rarity: 'epic' },
   broken_sleeper: { baseId: 'broken_sleep_aegis', rarity: 'epic' },
+  blight_root: { baseId: 'corrupted_root_gloves', rarity: 'epic' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —

@@ -279,6 +279,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 100,
     isBoss: true,
   },
+  // La vieille vigie que la silhouette du sanctuaire remontait le delta pour
+  // atteindre — un poste d'observation de la confrérie fondatrice, laissé à
+  // l'abandon depuis des générations. Son gardien ne distingue plus l'ami de
+  // l'ennemi : il garde encore, aveuglément, contre toute intrusion.
+  watchtower_guardian: {
+    id: 'watchtower_guardian',
+    name: 'Gardien oublié',
+    maxHp: 145,
+    attack: 21,
+    xpReward: 380,
+    goldReward: 110,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

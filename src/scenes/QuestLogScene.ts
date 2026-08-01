@@ -226,10 +226,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: 'Retournez voir Yenn, à Vasenoire.',
   },
   identity_hint_gathered: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  upstream_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez à Vasenoire — Yenn connaît le passage vers la vigie.',
+  },
+  watchtower_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  watchtower_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une piste ténue vers l'identité de la silhouette entraperçue au sanctuaire. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "La vieille vigie de la confrérie fondatrice a été atteinte, mais la piste s'arrête là pour l'instant. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

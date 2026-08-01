@@ -121,6 +121,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { fireDamage: 4 },
     signature: true,
   },
+  {
+    baseId: 'watchtower_helm',
+    name: 'Heaume de la Vigie oubliée',
+    category: 'helmet',
+    baseStats: { vitality: 3, agility: 2 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

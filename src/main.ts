@@ -28,6 +28,7 @@ import { ShardSeekersCampScene } from './scenes/ShardSeekersCampScene';
 import { BrotherhoodTombScene } from './scenes/BrotherhoodTombScene';
 import { BlightedGroveScene } from './scenes/BlightedGroveScene';
 import { SealChamberScene } from './scenes/SealChamberScene';
+import { SilentWatchScene } from './scenes/SilentWatchScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -143,6 +144,7 @@ async function boot(): Promise<void> {
       BrotherhoodTombScene,
       BlightedGroveScene,
       SealChamberScene,
+      SilentWatchScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

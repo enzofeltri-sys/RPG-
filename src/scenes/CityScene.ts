@@ -892,7 +892,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'identity_hint_gathered') {
       this.openDialog(
-        "« Yenn a bon flair pour ce genre de choses. Continuons à tirer ce fil, voyageur — prudemment. »",
+        "« Yenn a bon flair pour ce genre de choses. » Sélène étale une carte usée du delta sur sa table. « Une passagère solitaire, en amont... Il n'y a qu'un seul endroit qui vaille la peine d'un tel détour par là-bas : la vieille vigie de la confrérie fondatrice, abandonnée depuis des générations. Si elle y est allée, c'est qu'elle savait ce qu'elle cherchait — et je crains que nous devions le découvrir nous-mêmes, avant elle. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'upstream_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'upstream_lead') {
+      this.openDialog(
+        "« La vieille vigie, en amont de Vasenoire. Yenn connaît le passage, voyageur. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'watchtower_reached') {
+      this.openDialog(
+        "Sélène examine le heaume terni que vous rapportez, le visage grave. « Le gardien de la vigie... encore fidèle à son serment, trois siècles après que tout le monde l'a oublié. Il ne protégeait plus rien — ou plutôt si : il protégeait tout, indistinctement, ami comme ennemi. » Elle repose l'objet avec un respect prudent. « Si votre passagère solitaire cherchait la même chose que nous ici, voyageur, elle a dû l'affronter aussi. Ou elle savait comment l'éviter. Dans un cas comme dans l'autre, elle nous devance toujours d'un pas. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'watchtower_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'watchtower_cleared') {
+      this.openDialog(
+        "« Un pas derrière elle ne veut pas dire perdus, voyageur. Nous la rattraperons. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

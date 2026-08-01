@@ -31,7 +31,8 @@ export type ReturnSceneKey =
   | 'ShardSeekersCamp'
   | 'BrotherhoodTomb'
   | 'BlightedGrove'
-  | 'SealChamber';
+  | 'SealChamber'
+  | 'SilentWatch';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -64,6 +65,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'BrotherhoodTomb',
   'BlightedGrove',
   'SealChamber',
+  'SilentWatch',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

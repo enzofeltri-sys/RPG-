@@ -132,6 +132,19 @@ export class VasenoireScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // East edge — the same discreet upstream passage Yenn described, always
+    // walkable rather than dialogue-gated, same "physics not dialogue"
+    // approach as ClandestineDock's sanctuaryZone and Shrine's altar.
+    const upstreamZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
+    this.physics.add.existing(upstreamZone, true);
+    this.physics.add.overlap(this.player, upstreamZone, () => this.enterSilentWatch());
+
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Passage discret →', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.yenn.x, y: this.yenn.y, radius: 24, onTap: () => this.talkToYenn() },
       {
@@ -219,6 +232,14 @@ export class VasenoireScene extends Phaser.Scene {
 
     if (stage === 'identity_search_started') {
       this.talkToYennAboutIdentitySearch();
+      return;
+    }
+
+    if (stage === 'upstream_lead') {
+      this.openDialog(
+        "« Le passage est là, à l'est du village, voyageur — pas gardé, juste discret. Personne ne s'en vante. » Yenn hésite. « Ce qu'il y a en amont, je ne saurais pas vous le dire. Mais vous n'êtes pas le premier à l'avoir emprunté récemment. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
       return;
     }
 
@@ -450,6 +471,15 @@ export class VasenoireScene extends Phaser.Scene {
         },
       ],
     );
+  }
+
+  private enterSilentWatch(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SilentWatch', { x: 110, y: 380 });
+    });
   }
 
   private leaveToClandestineDock(): void {

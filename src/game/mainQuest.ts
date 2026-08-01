@@ -54,7 +54,10 @@ export type MainQuestStage =
   | 'seal_failing'
   | 'antagonist_glimpsed'
   | 'identity_search_started'
-  | 'identity_hint_gathered';
+  | 'identity_hint_gathered'
+  | 'upstream_lead'
+  | 'watchtower_reached'
+  | 'watchtower_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -93,6 +96,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   original_site_revealed: { xp: 280, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   antagonist_glimpsed: { xp: 350, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   identity_hint_gathered: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
+  watchtower_cleared: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -120,6 +124,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   demon_envoy: { fromStage: 'tomb_location_found', toStage: 'tomb_raided' },
   corruption_heart: { fromStage: 'blighted_grove_lead', toStage: 'grove_purified' },
   primordial_guardian: { fromStage: 'shrine_lead', toStage: 'seal_failing' },
+  watchtower_guardian: { fromStage: 'upstream_lead', toStage: 'watchtower_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

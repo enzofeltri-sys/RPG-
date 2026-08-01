@@ -112,7 +112,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'tomb_depths_cleared') have no entry: that
+// with no further lead (currently 'grand_theory_formed') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -171,6 +171,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   silhouette_message_found: 'City',
   tomb_depths_lead: 'BrotherhoodTomb',
   tomb_depths_reached: 'City',
+  tomb_depths_cleared: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

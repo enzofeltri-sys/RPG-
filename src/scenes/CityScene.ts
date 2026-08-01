@@ -1114,7 +1114,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'tomb_depths_cleared') {
       this.openDialog(
-        "« Ce qui se réveille a maintenant un visage, voyageur, même si nous ne savons pas encore ce qu'il annonce. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène passe la nuit à tout recouper — le dicton d'Aldric, le nom de l'Ordre, le message de la silhouette, ce qui dormait sous le tombeau. Au matin, elle vous convoque, les traits tirés mais l'œil vif. « Je crois que je comprends, voyageur. Pas tout. Mais assez. » Elle étale ses notes. « Ce n'est pas un seul événement qui se réveille — c'est une chaîne. Le vol de l'éclat a fragilisé le sceau original, quelque part. Et cette fragilité se propage : au tombeau, à la vigie, peut-être ailleurs que nous n'avons pas encore trouvé. » Elle pose le doigt sur le mot Ordre, souligné trois fois. « Et si la silhouette suit exactement la même piste que nous, avec une longueur d'avance à chaque fois... c'est peut-être qu'elle essaie d'arriver avant que la chaîne ne se referme mal. Pas pour nous en priver, voyageur. Pour nous devancer. » Elle vous regarde, grave. « Nous devons faire vite. Mais nous devons aussi faire juste. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'grand_theory_formed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'grand_theory_formed') {
+      this.openDialog(
+        '« La chaîne, voyageur. Chaque maillon compte. La suite de cette histoire viendra en temps voulu. »',
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

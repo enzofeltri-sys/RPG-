@@ -306,10 +306,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   tomb_depths_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  grand_theory_formed: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Ce que le vol de l'éclat majeur a réellement dérangé, bien plus profond que quiconque ne l'imaginait. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une chaîne d'événements enfin recoupée — le vol de l'éclat, la vigie, le tombeau, la silhouette. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

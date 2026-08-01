@@ -70,7 +70,8 @@ export type MainQuestStage =
   | 'silhouette_message_found'
   | 'tomb_depths_lead'
   | 'tomb_depths_reached'
-  | 'tomb_depths_cleared';
+  | 'tomb_depths_cleared'
+  | 'grand_theory_formed';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -116,6 +117,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   watchers_vault_cleared: { xp: 440, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   silhouette_message_found: { xp: 300, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   tomb_depths_cleared: { xp: 470, itemBaseId: 'leather_chest', itemRarity: 'epic' },
+  grand_theory_formed: { xp: 320, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

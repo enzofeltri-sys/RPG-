@@ -216,10 +216,20 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   antagonist_glimpsed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  identity_search_started: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir Yenn, à Vasenoire.',
+  },
+  identity_hint_gathered: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le site originel du scellement a livré son premier secret, et bien plus de questions que de réponses. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une piste ténue vers l'identité de la silhouette entraperçue au sanctuaire. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

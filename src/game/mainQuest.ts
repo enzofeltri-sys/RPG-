@@ -52,7 +52,9 @@ export type MainQuestStage =
   | 'original_site_revealed'
   | 'shrine_lead'
   | 'seal_failing'
-  | 'antagonist_glimpsed';
+  | 'antagonist_glimpsed'
+  | 'identity_search_started'
+  | 'identity_hint_gathered';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -90,6 +92,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   corruption_contained: { xp: 260, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   original_site_revealed: { xp: 280, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   antagonist_glimpsed: { xp: 350, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
+  identity_hint_gathered: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

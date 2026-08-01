@@ -868,7 +868,31 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'antagonist_glimpsed') {
       this.openDialog(
-        "« Nous devons découvrir qui cherche ce que vous cherchez, voyageur, et pourquoi. La suite de cette histoire viendra en temps voulu. »",
+        "« Nous devons découvrir qui cherche ce que vous cherchez, voyageur, et pourquoi. » Sélène feuillette son grimoire, en vain. « Mes propres moyens ne suffiront pas à mettre un nom sur cette silhouette — mais je connais quelqu'un dont ce serait le métier. Yenn, à Vasenoire : les rumeurs du delta remontent jusqu'à elle avant quiconque d'autre. Si quelqu'un d'autre s'intéresse au sceau, elle l'aura peut-être déjà entendu dire. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'identity_search_started');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'identity_search_started') {
+      this.openDialog(
+        "« Allez voir Yenn, à Vasenoire, voyageur. Si quelqu'un peut avoir entendu quelque chose, c'est elle. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'identity_hint_gathered') {
+      this.openDialog(
+        "« Yenn a bon flair pour ce genre de choses. Continuons à tirer ce fil, voyageur — prudemment. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

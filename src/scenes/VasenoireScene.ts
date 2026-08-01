@@ -217,6 +217,11 @@ export class VasenoireScene extends Phaser.Scene {
       return;
     }
 
+    if (stage === 'identity_search_started') {
+      this.talkToYennAboutIdentitySearch();
+      return;
+    }
+
     this.openDialog("« Les Terres Noyées ne pardonnent pas l'imprudence, étranger. »", [
       { label: 'Fermer', onClick: () => this.closeDialog() },
     ]);
@@ -419,6 +424,27 @@ export class VasenoireScene extends Phaser.Scene {
           onClick: async () => {
             advanceMainQuestStage(this.character, 'rival_hunters_confirmed');
             await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+      ],
+    );
+  }
+
+  // One-shot beat (identity_search_started only) — Sélène's own means came up
+  // empty, so she sends the player back to Yenn a second time, for a
+  // genuinely new question this time rather than reopening the Chercheurs
+  // d'éclats thread that rival_hunters_confirmed already closed.
+  private talkToYennAboutIdentitySearch(): void {
+    this.openDialog(
+      "Yenn écoute la description que vous lui donnez — une silhouette, rien de plus — sans se moquer de son imprécision. « Une seule personne, seule, qui regarde et ne prend rien... » Elle réfléchit longuement. « Ça ne ressemble à aucun des groupes qui ont fouillé ce delta ces dernières années. Ceux-là, on les entend venir de loin. » Elle hausse les épaules, presque inquiète. « Mais on m'a rapporté, il y a peu, qu'une passagère solitaire avait payé cher pour un passage discret vers l'amont, sans donner de nom, sans expliquer pourquoi. Ça ne prouve rien, voyageur. Mais si votre ombre du sanctuaire cherchait à passer inaperçue, elle a peut-être laissé une trace après tout. »",
+      [
+        {
+          label: 'Continuer',
+          onClick: async () => {
+            advanceMainQuestStage(this.character, 'identity_hint_gathered');
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
             this.closeDialog();
           },
         },

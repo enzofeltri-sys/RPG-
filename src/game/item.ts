@@ -129,6 +129,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'eternal_watch_greaves',
+    name: 'Grèves de la Veille éternelle',
+    category: 'legs',
+    baseStats: { agility: 3, vitality: 2 },
+    rareOnlyStats: { armor: 3 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

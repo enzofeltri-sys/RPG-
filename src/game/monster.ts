@@ -292,6 +292,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 110,
     isBoss: true,
   },
+  // Ce que le réseau de vigies de la confrérie fondatrice surveillait vraiment
+  // — jamais nommé dans les textes retrouvés jusqu'ici, jamais lié au Roi
+  // Démon ni à aucune faction connue. Les vigies faiblissent, et lui remue.
+  unnamed_vestige: {
+    id: 'unnamed_vestige',
+    name: 'Vestige innommé',
+    maxHp: 160,
+    attack: 23,
+    xpReward: 410,
+    goldReward: 120,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

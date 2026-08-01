@@ -8,13 +8,13 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'silentwatch_chest_1';
+const CHEST_ID = 'wardcore_chest_1';
 
-// Same gabarit "moyen" que les 12 donjons précédents — la vieille vigie de
-// la confrérie fondatrice, en amont du delta, que la silhouette du sanctuaire
-// remontait pour atteindre. Palette gris-bleu distincte de la précédente
-// (violet/indigo du Sceau) pour marquer un lieu différent : pierre et brume,
-// pas de magie visible.
+// Same gabarit "moyen" que les 13 donjons précédents — le cœur du réseau de
+// vigies de la confrérie fondatrice, une chambre plus profonde sous la Vigie
+// silencieuse elle-même, jamais mentionnée dans les textes retrouvés
+// jusqu'ici. Palette froide, presque sans couleur, pour marquer un lieu à
+// part des donjons précédents : ni pierre ordinaire, ni magie du sceau.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -27,22 +27,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'corrupted_sentinel', x: WORLD_WIDTH / 2, y: 320, label: 'Sentinelles de pierre' },
-  { monsterId: 'corrupted_sentinel', x: WORLD_WIDTH / 2, y: 250, label: 'Sentinelles de pierre' },
+  { monsterId: 'brotherhood_specter', x: WORLD_WIDTH / 2, y: 320, label: 'Échos de la confrérie' },
+  { monsterId: 'brotherhood_specter', x: WORLD_WIDTH / 2, y: 250, label: 'Échos de la confrérie' },
 ];
 
-const BOSS_MONSTER_ID = 'watchtower_guardian';
+const BOSS_MONSTER_ID = 'unnamed_vestige';
 
-interface SilentWatchData {
+interface WardCoreData {
   // Set by CombatScene when handing control back after a fight, or by the
   // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
-  // "returning mid-run" from a genuine fresh entry via the Vasenoire jetty.
+  // "returning mid-run" from a genuine fresh entry via the Vigie's hidden
+  // lower passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class SilentWatchScene extends Phaser.Scene {
+export class WardCoreScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -58,10 +59,10 @@ export class SilentWatchScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('SilentWatch');
+    super('WardCore');
   }
 
-  init(data: SilentWatchData): void {
+  init(data: WardCoreData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -71,9 +72,9 @@ export class SilentWatchScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#2a3038');
+    this.cameras.main.setBackgroundColor('#22262b');
 
-    addCrispText(this, this.scale.width / 2, 12, 'La Vigie silencieuse', {
+    addCrispText(this, this.scale.width / 2, 12, 'Cœur du réseau de vigies', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -91,7 +92,7 @@ export class SilentWatchScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.tapControl = new TapController(this, this.player);
 
-    this.addRubble();
+    this.addPillars();
     const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
     if (remaining.length > 0) {
       this.addGate();
@@ -103,20 +104,12 @@ export class SilentWatchScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveWatch());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveWardCore());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // A second, half-hidden way down, clear of the boss zone at the top of
-    // the center corridor — a stair the vigie's own garrison used to reach
-    // whatever this place ultimately answered to.
-    const wardCoreZone = this.add.zone(20, 15, 40, 20);
-    this.physics.add.existing(wardCoreZone, true);
-    this.physics.add.overlap(this.player, wardCoreZone, () => this.enterWardCore());
-    addCrispText(this, 20, 28, 'Escalier ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -138,7 +131,7 @@ export class SilentWatchScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'SilentWatch',
+        'WardCore',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -153,27 +146,27 @@ export class SilentWatchScene extends Phaser.Scene {
     this.tapControl.update(delta);
   }
 
-  private addRubble(): void {
+  private addPillars(): void {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
-    const rubble = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x333c46).setStrokeStyle(1, 0x181c22);
+    const pillar = (x: number, y: number, w: number, h: number) => {
+      const rect = this.add.rectangle(x, y, w, h, 0x2c3136).setStrokeStyle(1, 0x121518);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    rubble(20, 360, 24, 60);
-    rubble(WORLD_WIDTH - 20, 280, 24, 60);
-    rubble(20, 140, 24, 60);
-    rubble(WORLD_WIDTH - 20, 360, 24, 60);
+    pillar(20, 360, 24, 60);
+    pillar(WORLD_WIDTH - 20, 280, 24, 60);
+    pillar(20, 140, 24, 60);
+    pillar(WORLD_WIDTH - 20, 360, 24, 60);
   }
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x333c46)
-      .setStrokeStyle(1, 0x181c22);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2c3136)
+      .setStrokeStyle(1, 0x121518);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Herse effondrée', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Cercle de wards éteintes', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -188,7 +181,7 @@ export class SilentWatchScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x3c4550, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x353b41, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -212,8 +205,8 @@ export class SilentWatchScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x1c2126, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'Sommet de la vigie', {
+    this.add.rectangle(x, y, 50, 50, 0x16181b, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Cœur sans nom', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -233,7 +226,7 @@ export class SilentWatchScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'SilentWatch', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'WardCore', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -271,21 +264,12 @@ export class SilentWatchScene extends Phaser.Scene {
     });
   }
 
-  private enterWardCore(): void {
+  private leaveWardCore(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('WardCore', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveWatch(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Vasenoire', { x: WORLD_WIDTH - 30, y: 30 });
+      this.scene.start('SilentWatch', { x: 30, y: 30 });
     });
   }
 }

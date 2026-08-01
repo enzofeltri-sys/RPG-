@@ -950,7 +950,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'helm_inscription_studied') {
       this.openDialog(
-        "« Veiller, jamais frapper les premiers. » Sélène répète le serment à mi-voix, comme pour se le rappeler. « Prudence n'est pas confiance, voyageur. Mais ça change la question qu'on se pose. »",
+        "« Veiller, jamais frapper les premiers. » Sélène répète le serment à mi-voix, comme pour se le rappeler. « Un seul gardien ne jure pas seul, voyageur. Un serment comme celui-là suppose un réseau — d'autres postes, quelque part, qui veillaient avec lui. Et si la vigie que vous avez traversée n'était qu'un maillon, ce qu'elle protégeait vraiment doit se trouver ailleurs, plus profond. » Elle hésite. « Retournez-y. Cherchez ce que son gardien gardait, pas seulement le gardien lui-même. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'ward_core_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'ward_core_lead') {
+      this.openDialog(
+        '« Cherchez plus profond dans la vigie, voyageur. Un escalier, une trappe — quelque chose que le gardien seul ne suffit pas à expliquer. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'ward_core_reached') {
+      this.openDialog(
+        "Sélène reste silencieuse un long moment après votre récit. « Un cœur de réseau, sous la vigie... et quelque chose qu'aucun texte de la confrérie ne nomme, scellé dessous depuis aussi longtemps que le reste. » Elle se ressaisit. « Pas le Roi Démon — les textes en auraient parlé, même à demi-mot. Autre chose. Quelque chose que la confrérie a jugé assez dangereux pour lui bâtir tout un réseau de vigies, sans jamais oser lui donner de nom. » Elle vous regarde, grave. « Et si votre silhouette du sanctuaire cherchait précisément ça, voyageur... je ne sais plus si nous devons espérer qu'elle le trouve avant nous, ou après. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'ward_core_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'ward_core_cleared') {
+      this.openDialog(
+        "« Un nom nous manque encore, voyageur — celui du réseau, et celui de la silhouette. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

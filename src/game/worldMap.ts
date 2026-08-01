@@ -60,6 +60,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Un poste d'observation de la confrérie fondatrice, en amont du delta —
   // le passage discret que la silhouette du sanctuaire empruntait.
   { key: 'SilentWatch', label: 'Vigie silencieuse', region: 'terresnoyees', x: 200, y: 55 },
+
+  // Une chambre plus profonde sous la Vigie silencieuse elle-même, jamais
+  // mentionnée dans les textes retrouvés jusqu'ici.
+  { key: 'WardCore', label: 'Cœur du réseau', region: 'terresnoyees', x: 200, y: 110 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -92,12 +96,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['HunterOutpost', 'BlightedGrove'],
   ['Shrine', 'SealChamber'],
   ['Vasenoire', 'SilentWatch'],
+  ['SilentWatch', 'WardCore'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'helm_inscription_studied') have no
-// entry: that chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'ward_core_cleared') have no entry: that
+// chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -143,6 +148,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   upstream_lead: 'Vasenoire',
   watchtower_reached: 'City',
   watchtower_cleared: 'City',
+  helm_inscription_studied: 'City',
+  ward_core_lead: 'SilentWatch',
+  ward_core_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

@@ -246,10 +246,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   helm_inscription_studied: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  ward_core_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Un escalier caché, dans la Vigie silencieuse.',
+  },
+  ward_core_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  ward_core_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le heaume de la vigie portait un serment, pas un simple mot d'ordre. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Le réseau de vigies protégeait quelque chose qu'aucun texte ne nomme. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

@@ -261,10 +261,20 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   ward_core_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  hermit_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir Aldric, au petit sanctuaire, près de Basse-Combe.',
+  },
+  hermit_confided: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le réseau de vigies protégeait quelque chose qu'aucun texte ne nomme. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un vieux dicton de gardien, transmis d'ermite en ermite. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

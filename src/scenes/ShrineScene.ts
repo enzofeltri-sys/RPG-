@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
+import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
@@ -188,7 +189,42 @@ export class ShrineScene extends Phaser.Scene {
       return;
     }
 
+    const stage = getMainQuestStage(this.character);
+    if (stage === 'hermit_lead') {
+      this.talkToHermitAboutWatchers();
+      return;
+    }
+    if (stage === 'hermit_confided') {
+      this.openDialog(
+        "« Retournez voir votre mage, voyageur. Elle saura quoi faire de ça mieux que moi. »",
+        [this.restButton(), { label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
     this.showLoreAndRest();
+  }
+
+  // One-shot beat (hermit_lead only) — Aldric has never spoken about the main
+  // quest before now (his only role until this point was shrine_pilgrims and
+  // ambient lore), even though his own shrine sat over the seal chamber the
+  // whole time. Reusing him here pays off a Act 1 character rather than
+  // introducing a new one for a single line.
+  private talkToHermitAboutWatchers(): void {
+    this.openDialog(
+      "Aldric vous écoute sans surprise, comme s'il attendait cette question depuis longtemps. « 'Veiller, jamais frapper les premiers'... » Il ferme les yeux un instant. « Mon prédécesseur me l'a enseigné, avant moi le sien — un dicton de gardien, pas d'écriture. 'Les veilleurs ne meurent pas de vieillesse. Ils meurent de doute.' » Il rouvre les yeux, graves. « Je ne sais pas si l'ordre existe encore, voyageur. Mais la formule, elle, a survécu. Et une formule qui survit trois siècles n'est jamais tout à fait morte. »",
+      [
+        {
+          label: 'Continuer',
+          onClick: async () => {
+            advanceMainQuestStage(this.character, 'hermit_confided');
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
+            this.closeDialog();
+          },
+        },
+      ],
+    );
   }
 
   private showLoreAndRest(): void {

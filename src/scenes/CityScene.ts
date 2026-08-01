@@ -991,7 +991,31 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'ward_core_cleared') {
       this.openDialog(
-        "« Un nom nous manque encore, voyageur — celui du réseau, et celui de la silhouette. La suite de cette histoire viendra en temps voulu. »",
+        "« Un nom nous manque encore, voyageur — celui du réseau, et celui de la silhouette. » Sélène s'arrête, songeuse. « Il y a quelqu'un que nous n'avons pas encore interrogé, pourtant : Aldric, le vieil ermite du sanctuaire. Il veille sur ce lieu depuis plus longtemps qu'aucun de nous ne le croit. S'il existe une mémoire de ce serment en dehors des textes de la confrérie, c'est peut-être la sienne. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'hermit_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'hermit_lead') {
+      this.openDialog(
+        '« Retournez voir Aldric, au petit sanctuaire, voyageur. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'hermit_confided') {
+      this.openDialog(
+        "Sélène écoute votre récit, le regard lointain. « 'Ils meurent de doute'... » Elle referme son grimoire. « La suite de cette histoire viendra en temps voulu, voyageur. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

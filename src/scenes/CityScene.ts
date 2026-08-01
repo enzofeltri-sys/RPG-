@@ -1056,7 +1056,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'watchers_vault_cleared') {
       this.openDialog(
-        "« L'Ordre des Veilleurs a enfin un nom, voyageur. Il lui manque encore un visage. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène vous convoque tôt, l'air troublé. Sur sa table, un morceau de parchemin plié, qu'elle n'a pas laissé elle-même. « Je l'ai trouvé ce matin, ici, dans une pièce que je verrouille toujours. » Elle vous le tend. Une seule ligne, tracée d'une main sûre : 'Vous cherchez la mauvaise question. Ce n'est pas qui je suis qui compte — c'est ce qui se réveille.' Pas de signature. Juste, en dessous, la même marque que sur le heaume rapporté de la vigie : un cercle brisé. Sélène referme les doigts sur le parchemin, visiblement secouée. « Elle est entrée ici, voyageur. Dans MA tour. Sans qu'aucune garde ne la voie. » Elle relève les yeux. « Soit elle a voulu qu'on le sache, soit elle a voulu que vous le sachiez, vous précisément. Dans les deux cas... elle nous parle, maintenant. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'silhouette_message_found');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'silhouette_message_found') {
+      this.openDialog(
+        "« 'Ce n'est pas qui je suis qui compte — c'est ce qui se réveille.' » Sélène a gardé le parchemin sur elle depuis. « Elle savait pour l'Ordre. Elle savait pour le heaume. Et elle a pris la peine de nous avertir plutôt que de nous laisser dans le noir. » Elle secoue la tête. « Ça ne prouve toujours rien, voyageur. Mais ça pèse, dans la balance. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

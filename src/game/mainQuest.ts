@@ -66,7 +66,8 @@ export type MainQuestStage =
   | 'hermit_confided'
   | 'watchers_vault_lead'
   | 'watchers_vault_reached'
-  | 'watchers_vault_cleared';
+  | 'watchers_vault_cleared'
+  | 'silhouette_message_found';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -110,6 +111,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   ward_core_cleared: { xp: 410, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   hermit_confided: { xp: 280, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   watchers_vault_cleared: { xp: 440, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
+  silhouette_message_found: { xp: 300, itemBaseId: 'simple_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

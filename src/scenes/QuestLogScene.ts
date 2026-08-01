@@ -286,10 +286,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   watchers_vault_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  silhouette_message_found: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "L'Ordre des Veilleurs a enfin un nom. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un message, laissé sans témoin dans la tour de Sélène elle-même. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

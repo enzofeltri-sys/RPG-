@@ -241,10 +241,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   watchtower_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  helm_inscription_studied: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "La vieille vigie de la confrérie fondatrice a été atteinte, mais la piste s'arrête là pour l'instant. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Le heaume de la vigie portait un serment, pas un simple mot d'ordre. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

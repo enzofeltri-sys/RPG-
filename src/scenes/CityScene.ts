@@ -933,7 +933,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'watchtower_cleared') {
       this.openDialog(
-        "« Un pas derrière elle ne veut pas dire perdus, voyageur. Nous la rattraperons. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène vous accueille quelques jours plus tard, les yeux cernés mais brillants. « Je l'ai. » Elle retourne le heaume vers vous, désignant une ligne de runes presque effacées sous le rebord. « Ce n'est pas un simple mot d'ordre militaire, voyageur. C'est un serment — 'Veiller, jamais frapper les premiers.' » Elle repose l'objet, pensive. « Si la confrérie fondatrice a juré cela, et que votre silhouette porte encore ce même serment... alors elle ne nous a peut-être pas suivis pour nous nuire. » Elle secoue la tête, comme pour chasser un espoir trop hâtif. « Ou alors je me trompe complètement, et je préfère ne pas parier votre vie là-dessus. Restons prudents, voyageur. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'helm_inscription_studied');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'helm_inscription_studied') {
+      this.openDialog(
+        "« Veiller, jamais frapper les premiers. » Sélène répète le serment à mi-voix, comme pour se le rappeler. « Prudence n'est pas confiance, voyageur. Mais ça change la question qu'on se pose. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

@@ -57,7 +57,8 @@ export type MainQuestStage =
   | 'identity_hint_gathered'
   | 'upstream_lead'
   | 'watchtower_reached'
-  | 'watchtower_cleared';
+  | 'watchtower_cleared'
+  | 'helm_inscription_studied';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -97,6 +98,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   antagonist_glimpsed: { xp: 350, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   identity_hint_gathered: { xp: 240, itemBaseId: 'leather_gloves', itemRarity: 'rare' },
   watchtower_cleared: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'epic' },
+  helm_inscription_studied: { xp: 260, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

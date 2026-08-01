@@ -1073,7 +1073,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'silhouette_message_found') {
       this.openDialog(
-        "« 'Ce n'est pas qui je suis qui compte — c'est ce qui se réveille.' » Sélène a gardé le parchemin sur elle depuis. « Elle savait pour l'Ordre. Elle savait pour le heaume. Et elle a pris la peine de nous avertir plutôt que de nous laisser dans le noir. » Elle secoue la tête. « Ça ne prouve toujours rien, voyageur. Mais ça pèse, dans la balance. La suite de cette histoire viendra en temps voulu. »",
+        "« 'Ce n'est pas qui je suis qui compte — c'est ce qui se réveille.' » Sélène a gardé le parchemin sur elle depuis, le relisant sans doute plus de fois qu'elle ne l'admettrait. « J'ai fini par comprendre où chercher, voyageur. Le tombeau de la confrérie — là où l'éclat majeur a été volé. Nous n'avons jamais fouillé au-delà de la chambre funéraire. Nous avons vaincu l'émissaire, récupéré ce que nous pouvions, et nous sommes partis. » Elle hésite. « Si quelque chose s'est réveillé, voyageur, c'est peut-être là, plus profond que nous ne sommes jamais descendus, qu'il faut chercher. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'tomb_depths_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'tomb_depths_lead') {
+      this.openDialog(
+        '« Le tombeau de la confrérie, voyageur. Plus profond que la chambre funéraire, cette fois. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'tomb_depths_reached') {
+      this.openDialog(
+        "Sélène pose l'égide récupérée sur sa table sans un mot, le regard perdu dessus un long moment. « Ce n'était donc pas seulement l'émissaire du Roi Démon qui gardait ce tombeau. » Elle relève enfin les yeux. « Quelque chose dormait dessous, voyageur, depuis bien avant que la confrérie ne scelle quoi que ce soit — et le vol de l'éclat l'a réveillé, ne serait-ce qu'un peu. » Elle serre le parchemin de la silhouette dans son autre main. « 'Ce qui se réveille.' Elle savait. Elle savait avant même que nous ne redescendions. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'tomb_depths_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'tomb_depths_cleared') {
+      this.openDialog(
+        "« Ce qui se réveille a maintenant un visage, voyageur, même si nous ne savons pas encore ce qu'il annonce. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

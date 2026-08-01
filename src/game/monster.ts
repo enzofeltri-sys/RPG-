@@ -317,6 +317,20 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 130,
     isBoss: true,
   },
+  // Ce que le vol de l'éclat majeur, au tombeau de la confrérie fondatrice
+  // (fin d'Acte 2), a réellement dérangé — pas seulement libéré un émissaire
+  // du Roi Démon en surface, mais troublé quelque chose de bien plus profond,
+  // jamais découvert jusqu'ici faute d'être redescendu si loin dans le
+  // tombeau.
+  broken_sleeper: {
+    id: 'broken_sleeper',
+    name: 'Dormeur brisé',
+    maxHp: 190,
+    attack: 27,
+    xpReward: 470,
+    goldReward: 140,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

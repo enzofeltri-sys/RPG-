@@ -8,14 +8,14 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'brotherhoodtomb_chest_1';
+const CHEST_ID = 'brokensleep_chest_1';
 
-// Same gabarit as the rest of the "moyen" dungeons (gate behind two fixed
-// encounters, boss zone beyond it, one chest) — the Act 2 climax dungeon,
-// reached through a stairwell hidden beneath the Sunken Ruins. Reuses
-// corrupted_knight for the tomb's guardians (already the game's "fallen
-// knight" identity, from the Catacombs) rather than inventing a new ambient
-// monster this late in the arc.
+// Same gabarit "moyen" que les 15 donjons précédents — une chambre plus
+// profonde encore sous le tombeau de la confrérie fondatrice, jamais
+// atteinte lors du pillage de fin d'Acte 2 : ce que le vol de l'éclat majeur
+// a réellement dérangé. Palette rouge sombre distincte des dungeons
+// précédents, pour marquer un réveil plutôt qu'une simple ruine ou un lieu
+// gardé.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -28,23 +28,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 320, label: 'Gardiens de la confrérie' },
-  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 250, label: 'Gardiens de la confrérie' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 320, label: 'Gardiens réveillés' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 250, label: 'Gardiens réveillés' },
 ];
 
-const BOSS_MONSTER_ID = 'demon_envoy';
+const BOSS_MONSTER_ID = 'broken_sleeper';
 
-interface BrotherhoodTombData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the Sunken Ruins' hidden
-  // stairwell.
+interface BrokenSleepData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via the tomb's hidden
+  // lower passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class BrotherhoodTombScene extends Phaser.Scene {
+export class BrokenSleepScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -60,10 +60,10 @@ export class BrotherhoodTombScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('BrotherhoodTomb');
+    super('BrokenSleep');
   }
 
-  init(data: BrotherhoodTombData): void {
+  init(data: BrokenSleepData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -73,9 +73,9 @@ export class BrotherhoodTombScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#1c1c26');
+    this.cameras.main.setBackgroundColor('#2e1c1c');
 
-    addCrispText(this, this.scale.width / 2, 12, 'Tombeau de la confrérie', {
+    addCrispText(this, this.scale.width / 2, 12, 'Le Sommeil brisé', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -105,20 +105,12 @@ export class BrotherhoodTombScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveTomb());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveDepths());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // A second, half-hidden way down, clear of the boss zone at the top of
-    // the center corridor — a crack in the floor that wasn't there before
-    // the shard was torn from this tomb.
-    const depthsZone = this.add.zone(20, 15, 40, 20);
-    this.physics.add.existing(depthsZone, true);
-    this.physics.add.overlap(this.player, depthsZone, () => this.enterBrokenSleep());
-    addCrispText(this, 20, 28, 'Fissure ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -140,7 +132,7 @@ export class BrotherhoodTombScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'BrotherhoodTomb',
+        'BrokenSleep',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -159,7 +151,7 @@ export class BrotherhoodTombScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const pillar = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x28283a).setStrokeStyle(1, 0x121218);
+      const rect = this.add.rectangle(x, y, w, h, 0x3a2424).setStrokeStyle(1, 0x180f0f);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -171,11 +163,11 @@ export class BrotherhoodTombScene extends Phaser.Scene {
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x28283a)
-      .setStrokeStyle(1, 0x121218);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3a2424)
+      .setStrokeStyle(1, 0x180f0f);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Dalle funéraire scellée', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Fissure béante', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -190,7 +182,7 @@ export class BrotherhoodTombScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x38384a, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x452c2c, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -214,8 +206,8 @@ export class BrotherhoodTombScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x241f34, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'Chambre funéraire', {
+    this.add.rectangle(x, y, 50, 50, 0x1a0f0f, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Le cœur du sommeil', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -235,7 +227,7 @@ export class BrotherhoodTombScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'BrotherhoodTomb', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'BrokenSleep', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -273,21 +265,12 @@ export class BrotherhoodTombScene extends Phaser.Scene {
     });
   }
 
-  private enterBrokenSleep(): void {
+  private leaveDepths(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('BrokenSleep', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveTomb(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('SunkenRuins', { x: 30, y: 40 });
+      this.scene.start('BrotherhoodTomb', { x: 30, y: 30 });
     });
   }
 }

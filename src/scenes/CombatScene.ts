@@ -49,6 +49,7 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
   watchtower_guardian: { baseId: 'watchtower_helm', rarity: 'epic' },
   unnamed_vestige: { baseId: 'eternal_watch_greaves', rarity: 'epic' },
   last_watcher: { baseId: 'last_watcher_boots', rarity: 'epic' },
+  broken_sleeper: { baseId: 'broken_sleep_aegis', rarity: 'epic' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —

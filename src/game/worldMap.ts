@@ -68,6 +68,11 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Une voûte scellée sous les Archives d'Aiglemont — la première fois que
   // l'Ordre des Veilleurs est nommé comme tel dans le jeu.
   { key: 'WatchersVault', label: 'Voûte des Veilleurs', region: 'aiglemont', x: 40, y: 220 },
+
+  // Une chambre plus profonde encore sous le tombeau de la confrérie
+  // fondatrice, jamais atteinte lors du pillage de fin d'Acte 2 — ce que le
+  // vol de l'éclat majeur a réellement dérangé.
+  { key: 'BrokenSleep', label: 'Le Sommeil brisé', region: 'terresnoyees', x: 70, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -102,12 +107,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['Vasenoire', 'SilentWatch'],
   ['SilentWatch', 'WardCore'],
   ['Archives', 'WatchersVault'],
+  ['BrotherhoodTomb', 'BrokenSleep'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'silhouette_message_found') have no
-// entry: that chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'tomb_depths_cleared') have no entry: that
+// chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -162,6 +168,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   watchers_vault_lead: 'Archives',
   watchers_vault_reached: 'City',
   watchers_vault_cleared: 'City',
+  silhouette_message_found: 'City',
+  tomb_depths_lead: 'BrotherhoodTomb',
+  tomb_depths_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

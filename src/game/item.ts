@@ -145,6 +145,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'broken_sleep_aegis',
+    name: 'Égide du Sommeil brisé',
+    category: 'shield',
+    baseStats: { vitality: 4, armor: 3 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

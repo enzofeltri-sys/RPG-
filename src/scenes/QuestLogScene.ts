@@ -291,10 +291,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   silhouette_message_found: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  tomb_depths_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Une fissure, dans le tombeau de la confrérie fondatrice.',
+  },
+  tomb_depths_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  tomb_depths_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un message, laissé sans témoin dans la tour de Sélène elle-même. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Ce que le vol de l'éclat majeur a réellement dérangé, bien plus profond que quiconque ne l'imaginait. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

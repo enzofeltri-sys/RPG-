@@ -1172,7 +1172,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'grove_depths_cleared') {
       this.openDialog(
-        "« Trois maillons trouvés, voyageur. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène passe des heures à comparer tout ce que nous savons de la silhouette avec ce que nous savons de l'Ordre. Elle finit par reposer sa plume, presque hésitante à le dire à voix haute. « Le message. La marque du cercle brisé, la même que sur le heaume. Sa connaissance du serment avant même qu'Aldric ne nous le confie. Et cette manière d'arriver systématiquement avant nous, à chaque maillon. » Elle vous regarde. « Je pense qu'elle n'enquête pas sur l'Ordre des Veilleurs, voyageur. Je pense qu'elle EST l'Ordre des Veilleurs — ou ce qu'il en reste. La dernière, peut-être, à tenir encore le serment. » Elle secoue la tête devant sa propre conclusion. « Si j'ai raison, nous ne poursuivons pas une menace. Nous poursuivons quelqu'un qui fait, seule, depuis Dieu sait combien de temps, exactement ce que nous essayons de faire à plusieurs. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'watcher_hypothesis_formed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'watcher_hypothesis_formed') {
+      this.openDialog(
+        '« Une veilleuse solitaire, voyageur — pas une ennemie. Du moins, c\'est mon hypothèse. La suite de cette histoire viendra en temps voulu. »',
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

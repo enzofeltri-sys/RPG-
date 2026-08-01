@@ -326,10 +326,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   grove_depths_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  watcher_hypothesis_formed: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Ce que le cœur de la corruption n'était qu'un symptôme de. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "La silhouette ne serait pas une menace, mais la dernière veilleuse encore fidèle au serment. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

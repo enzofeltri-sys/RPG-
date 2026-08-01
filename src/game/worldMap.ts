@@ -117,8 +117,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'grove_depths_cleared') have no entry:
-// that chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'watcher_hypothesis_formed') have no
+// entry: that chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -180,6 +180,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   grand_theory_formed: 'City',
   grove_depths_lead: 'BlightedGrove',
   grove_depths_reached: 'City',
+  grove_depths_cleared: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

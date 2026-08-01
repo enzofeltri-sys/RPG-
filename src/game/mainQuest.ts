@@ -48,7 +48,8 @@ export type MainQuestStage =
   | 'corruption_confirmed'
   | 'blighted_grove_lead'
   | 'grove_purified'
-  | 'corruption_contained';
+  | 'corruption_contained'
+  | 'original_site_revealed';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -84,6 +85,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   act2_complete: { xp: 300, itemBaseId: 'leather_boots', itemRarity: 'epic' },
   corruption_confirmed: { xp: 150, itemBaseId: 'simple_ring', itemRarity: 'rare' },
   corruption_contained: { xp: 260, itemBaseId: 'simple_ring', itemRarity: 'epic' },
+  original_site_revealed: { xp: 280, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

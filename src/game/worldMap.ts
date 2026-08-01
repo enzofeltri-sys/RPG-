@@ -86,8 +86,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'corruption_contained' have no entry: those chapters are closed, nothing
-// left to point at for now.
+// 'original_site_revealed' have no entry: those chapters are closed,
+// nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -125,6 +125,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   corruption_confirmed: 'HunterOutpost',
   blighted_grove_lead: 'HunterOutpost',
   grove_purified: 'City',
+  corruption_contained: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

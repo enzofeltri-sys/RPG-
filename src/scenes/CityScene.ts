@@ -807,7 +807,25 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'corruption_contained') {
       this.openDialog(
-        "« Le bosquet respire de nouveau, voyageur, mais la source véritable reste hors de portée. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène étale ses recherches, épuisée mais méthodique. « J'ai recoupé les carnets du tombeau avec ce que nous savons du bosquet, et un détail me trouble depuis des jours. » Elle pointe un passage ancien, presque effacé. « Le site où la confrérie fondatrice a scellé le Roi Démon, il y a trois siècles, n'a jamais été 'perdu', voyageur. Il a simplement été oublié — rebâti dessus, renommé, jusqu'à ce que plus personne ne se souvienne de ce qu'il abritait vraiment. » Elle relève les yeux vers vous, presque incrédule de ce qu'elle s'apprête à dire. « Le petit sanctuaire, près de Basse-Combe. Celui où vous avez grandi. C'est là. Ça a toujours été là. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'original_site_revealed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'original_site_revealed') {
+      this.openDialog(
+        "« Le petit sanctuaire n'est plus un simple lieu de repos, voyageur. Mais nous ne sommes pas encore prêts à y retourner ainsi. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

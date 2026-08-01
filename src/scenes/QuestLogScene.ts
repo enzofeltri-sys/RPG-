@@ -196,10 +196,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   corruption_contained: {
-    label: 'Acte 2 terminé',
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  original_site_revealed: {
+    label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le tombeau de la confrérie fondatrice a été profané et un éclat majeur volé — un premier foyer de corruption près du Relais des chasseurs a été contenu, mais ce n'est qu'un début. La suite de l'histoire (Acte 3) arrivera dans une prochaine mise à jour.",
+      "Le site originel du scellement a été identifié : le petit sanctuaire de Basse-Combe. Ce lieu paisible n'est plus ce qu'il semblait être. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

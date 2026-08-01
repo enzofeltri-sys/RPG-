@@ -63,7 +63,10 @@ export type MainQuestStage =
   | 'ward_core_reached'
   | 'ward_core_cleared'
   | 'hermit_lead'
-  | 'hermit_confided';
+  | 'hermit_confided'
+  | 'watchers_vault_lead'
+  | 'watchers_vault_reached'
+  | 'watchers_vault_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -106,6 +109,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   helm_inscription_studied: { xp: 260, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   ward_core_cleared: { xp: 410, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   hermit_confided: { xp: 280, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
+  watchers_vault_cleared: { xp: 440, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -135,6 +139,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   primordial_guardian: { fromStage: 'shrine_lead', toStage: 'seal_failing' },
   watchtower_guardian: { fromStage: 'upstream_lead', toStage: 'watchtower_reached' },
   unnamed_vestige: { fromStage: 'ward_core_lead', toStage: 'ward_core_reached' },
+  last_watcher: { fromStage: 'watchers_vault_lead', toStage: 'watchers_vault_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

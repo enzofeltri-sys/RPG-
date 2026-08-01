@@ -8,12 +8,17 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-// Wide enough to fill the portrait canvas at every camera position — see
-// HamletScene's WORLD_HEIGHT comment. Low-stakes and short like Le vieux
-// puits — Aiglemont's own "inutile mais du butin" detour, no gate, no quest.
+const CHEST_ID = 'watchersvault_chest_1';
+
+// Same gabarit "moyen" que les 14 donjons précédents — une voûte scellée
+// plus profonde sous les Archives d'Aiglemont, jamais visitée depuis
+// qu'Aldric et sa lignée n'en gardaient plus que le dicton. La première fois
+// que l'Ordre des Veilleurs est nommé comme tel, pas seulement décrit.
+// Palette parcheminée, distincte des dungeons précédents (pierre/froid), pour
+// marquer un lieu construit plutôt que naturel ou ruiné.
 const WORLD_WIDTH = 220;
-const WORLD_HEIGHT = 300;
-const CHEST_ID = 'archives_chest_1';
+const WORLD_HEIGHT = 420;
+const GATE_Y = 190;
 
 interface EncounterMarker {
   monsterId: string;
@@ -23,26 +28,31 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'corrupted_tome', x: WORLD_WIDTH / 2, y: 190, label: 'Grimoires' },
+  { monsterId: 'archive_wisp', x: WORLD_WIDTH / 2, y: 320, label: 'Feux-follets des Veilleurs' },
+  { monsterId: 'archive_wisp', x: WORLD_WIDTH / 2, y: 250, label: 'Feux-follets des Veilleurs' },
 ];
 
-const TREASURE_MONSTER_ID = 'archive_wisp';
+const BOSS_MONSTER_ID = 'last_watcher';
 
-interface ArchivesData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the City's north zone.
+interface WatchersVaultData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via the Archives' hidden
+  // passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class ArchivesScene extends Phaser.Scene {
+export class WatchersVaultScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private clearedMonsterIds = new Set<string>();
+  private gate?: Phaser.GameObjects.Rectangle;
+  private gateCollider?: Phaser.Physics.Arcade.Collider;
+  private gateLabel?: Phaser.GameObjects.Text;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private messageText?: Phaser.GameObjects.Text;
@@ -50,10 +60,10 @@ export class ArchivesScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('Archives');
+    super('WatchersVault');
   }
 
-  init(data: ArchivesData): void {
+  init(data: WatchersVaultData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -63,9 +73,9 @@ export class ArchivesScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#241f2e');
+    this.cameras.main.setBackgroundColor('#332c22');
 
-    addCrispText(this, this.scale.width / 2, 12, 'Les Archives scellées', {
+    addCrispText(this, this.scale.width / 2, 12, 'Voûte des Veilleurs', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -84,29 +94,25 @@ export class ArchivesScene extends Phaser.Scene {
     this.tapControl = new TapController(this, this.player);
 
     this.addShelves();
-    ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y)).forEach((encounter) =>
-      this.addEncounterZone(encounter),
-    );
-    this.addTreasureZone();
+    const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
+    if (remaining.length > 0) {
+      this.addGate();
+      remaining.forEach((encounter) => this.addEncounterZone(encounter));
+    }
+    if (!this.clearedMonsterIds.has(BOSS_MONSTER_ID)) {
+      this.addBossZone();
+    }
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveArchives());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveVault());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
-    // A second, half-hidden way in/out on the west side, clear of the
-    // treasure zone at the top of the center corridor — a section even the
-    // Archives' own keepers stopped mentioning generations ago.
-    const vaultZone = this.add.zone(20, 15, 40, 20);
-    this.physics.add.existing(vaultZone, true);
-    this.physics.add.overlap(this.player, vaultZone, () => this.enterWatchersVault());
-    addCrispText(this, 20, 28, 'Voûte ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
-
-    this.chest = this.add.rectangle(170, 250, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
@@ -126,7 +132,7 @@ export class ArchivesScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'Archives',
+        'WatchersVault',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -142,18 +148,41 @@ export class ArchivesScene extends Phaser.Scene {
   }
 
   private addShelves(): void {
+    // Purely decorative, kept well clear of the center corridor (x=110) that
+    // the encounters, gate, and boss zone all sit on.
     const shelf = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x342c40).setStrokeStyle(1, 0x181420);
+      const rect = this.add.rectangle(x, y, w, h, 0x3d3427).setStrokeStyle(1, 0x1a1610);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    shelf(20, 240, 30, 60);
-    shelf(WORLD_WIDTH - 20, 140, 30, 80);
+    shelf(20, 360, 24, 60);
+    shelf(WORLD_WIDTH - 20, 280, 24, 60);
+    shelf(20, 140, 24, 60);
+    shelf(WORLD_WIDTH - 20, 360, 24, 60);
+  }
+
+  private addGate(): void {
+    this.gate = this.add
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3d3427)
+      .setStrokeStyle(1, 0x1a1610);
+    this.physics.add.existing(this.gate, true);
+    this.gateCollider = this.physics.add.collider(this.player, this.gate);
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Rayonnages effondrés', {
+      fontSize: '8px',
+      color: '#9aa0a6',
+    }).setOrigin(0.5);
+  }
+
+  private openGateIfCleared(): void {
+    if (this.clearedMonsterIds.size < ENCOUNTERS.length) return;
+    this.gateCollider?.destroy();
+    this.gate?.destroy();
+    this.gateLabel?.destroy();
   }
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x3a2a4a, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x453c2e, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -169,28 +198,27 @@ export class ArchivesScene extends Phaser.Scene {
       label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
+      this.openGateIfCleared();
       this.startCombat(encounter.monsterId);
     });
   }
 
-  private addTreasureZone(): void {
+  private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
-    const y = 60;
-    if (this.clearedMonsterIds.has(TREASURE_MONSTER_ID + y)) return;
-
-    this.add.rectangle(x, y, 40, 40, 0x4a3f5a, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 30, 'Rayonnage scellé', {
+    const y = 70;
+    this.add.rectangle(x, y, 50, 50, 0x201b12, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Dernier rayonnage', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
     }).setOrigin(0.5);
 
-    const zone = this.add.zone(x, y, 40, 40);
+    const zone = this.add.zone(x, y, 50, 50);
     this.physics.add.existing(zone, true);
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
-      this.clearedMonsterIds.add(TREASURE_MONSTER_ID + y);
-      this.startCombat(TREASURE_MONSTER_ID);
+      this.clearedMonsterIds.add(BOSS_MONSTER_ID);
+      this.startCombat(BOSS_MONSTER_ID);
     });
   }
 
@@ -199,7 +227,7 @@ export class ArchivesScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'Archives', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'WatchersVault', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -237,21 +265,12 @@ export class ArchivesScene extends Phaser.Scene {
     });
   }
 
-  private enterWatchersVault(): void {
+  private leaveVault(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('WatchersVault', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveArchives(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('City', { x: 260, y: 40 });
+      this.scene.start('Archives', { x: 110, y: 40 });
     });
   }
 }

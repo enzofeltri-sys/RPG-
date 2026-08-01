@@ -64,6 +64,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Une chambre plus profonde sous la Vigie silencieuse elle-même, jamais
   // mentionnée dans les textes retrouvés jusqu'ici.
   { key: 'WardCore', label: 'Cœur du réseau', region: 'terresnoyees', x: 200, y: 110 },
+
+  // Une voûte scellée sous les Archives d'Aiglemont — la première fois que
+  // l'Ordre des Veilleurs est nommé comme tel dans le jeu.
+  { key: 'WatchersVault', label: 'Voûte des Veilleurs', region: 'aiglemont', x: 40, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -97,12 +101,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['Shrine', 'SealChamber'],
   ['Vasenoire', 'SilentWatch'],
   ['SilentWatch', 'WardCore'],
+  ['Archives', 'WatchersVault'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'hermit_confided') have no entry: that
-// chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'watchers_vault_cleared') have no entry:
+// that chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -153,6 +158,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   ward_core_reached: 'City',
   ward_core_cleared: 'City',
   hermit_lead: 'Shrine',
+  hermit_confided: 'City',
+  watchers_vault_lead: 'Archives',
+  watchers_vault_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

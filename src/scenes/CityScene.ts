@@ -1015,7 +1015,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'hermit_confided') {
       this.openDialog(
-        "Sélène écoute votre récit, le regard lointain. « 'Ils meurent de doute'... » Elle referme son grimoire. « La suite de cette histoire viendra en temps voulu, voyageur. »",
+        "Sélène écoute votre récit, le regard lointain. « 'Ils meurent de doute'... » Elle referme son grimoire, puis le rouvre presque aussitôt. « Un dicton de gardien qui survit trois siècles, ça se transmet — à l'oral, mais parfois aussi par écrit, quelque part, pour ceux qui savent où chercher. » Elle hésite. « Les Archives d'Aiglemont. J'y ai moi-même étudié, et je n'ai jamais entendu parler d'un Ordre des Veilleurs dans ce qu'on m'a montré. Ce qui veut dire soit qu'il n'existe pas, soit qu'on ne montre pas tout. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'watchers_vault_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'watchers_vault_lead') {
+      this.openDialog(
+        '« Les Archives d\'Aiglemont, voyageur. Si un secret s\'y cache, il ne se donnera pas facilement. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'watchers_vault_reached') {
+      this.openDialog(
+        "Sélène pose les bottes récupérées sur sa table, sans un mot pendant un long moment. « L'Ordre des Veilleurs. » Elle répète le nom, comme pour se convaincre qu'il est réel. « Trois siècles à surveiller quelque chose d'assez dangereux pour mériter tout un réseau, et personne à Aiglemont n'en a jamais entendu parler. Soit ils ont gardé le secret à la perfection, voyageur, soit... » Elle s'arrête. « Soit quelqu'un a veillé à ce qu'on l'oublie. » Elle vous regarde, grave. « Dans un cas comme dans l'autre, nous devons continuer à tirer ce fil. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'watchers_vault_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'watchers_vault_cleared') {
+      this.openDialog(
+        "« L'Ordre des Veilleurs a enfin un nom, voyageur. Il lui manque encore un visage. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

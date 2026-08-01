@@ -304,6 +304,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 120,
     isBoss: true,
   },
+  // Le dernier gardien connu de l'Ordre des Veilleurs — celui qui n'a jamais
+  // douté, contrairement à ce que dit le vieux dicton d'Aldric, et qui garde
+  // encore la voûte scellée des Archives depuis que tous les autres se sont
+  // tus.
+  last_watcher: {
+    id: 'last_watcher',
+    name: 'Dernier Veilleur',
+    maxHp: 175,
+    attack: 25,
+    xpReward: 440,
+    goldReward: 130,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

@@ -271,10 +271,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: 'Retournez voir Aldric, au petit sanctuaire, près de Basse-Combe.',
   },
   hermit_confided: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  watchers_vault_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Une voûte scellée, cachée dans les Archives.',
+  },
+  watchers_vault_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  watchers_vault_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un vieux dicton de gardien, transmis d'ermite en ermite. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "L'Ordre des Veilleurs a enfin un nom. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

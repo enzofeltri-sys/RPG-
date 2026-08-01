@@ -137,6 +137,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 3 },
     signature: true,
   },
+  {
+    baseId: 'last_watcher_boots',
+    name: 'Bottes du Dernier Veilleur',
+    category: 'boots',
+    baseStats: { agility: 3, vitality: 3 },
+    rareOnlyStats: { armor: 2 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

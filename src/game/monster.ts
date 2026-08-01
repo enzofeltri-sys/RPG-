@@ -224,6 +224,29 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 70,
     isBoss: true,
   },
+  // Gardiens du site originel du scellement, sous le petit sanctuaire — les
+  // esprits inquiets de la confrérie fondatrice elle-même, pas une faction
+  // hostile ni une créature du Roi Démon.
+  brotherhood_specter: {
+    id: 'brotherhood_specter',
+    name: 'Spectre de la confrérie',
+    maxHp: 55,
+    attack: 13,
+    xpReward: 115,
+    goldReward: 30,
+  },
+  // Le combat le plus dur du jeu à ce jour — pas un serviteur, mais la magie
+  // du scellement originel elle-même, devenue instable depuis le vol de
+  // l'éclat majeur.
+  primordial_guardian: {
+    id: 'primordial_guardian',
+    name: 'Gardien primordial',
+    maxHp: 130,
+    attack: 19,
+    xpReward: 350,
+    goldReward: 100,
+    isBoss: true,
+  },
 };
 
 export function createMonster(id: string): Monster {

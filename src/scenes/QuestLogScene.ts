@@ -201,10 +201,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   original_site_revealed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  shrine_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez au petit sanctuaire, près de Basse-Combe — cherchez sous l\'autel.',
+  },
+  seal_failing: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  antagonist_glimpsed: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le site originel du scellement a été identifié : le petit sanctuaire de Basse-Combe. Ce lieu paisible n'est plus ce qu'il semblait être. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Le site originel du scellement a livré son premier secret, et bien plus de questions que de réponses. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

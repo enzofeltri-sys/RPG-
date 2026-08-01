@@ -825,7 +825,50 @@ export class CityScene extends Phaser.Scene {
 
     if (stage === 'original_site_revealed') {
       this.openDialog(
-        "« Le petit sanctuaire n'est plus un simple lieu de repos, voyageur. Mais nous ne sommes pas encore prêts à y retourner ainsi. Reposez-vous. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène a passé la nuit à préparer ce qu'elle va vous dire. « Je ne peux pas vous accompagner au sanctuaire, voyageur — pas encore. Mais je peux vous dire ce qu'il faut y chercher : un passage que l'ermite lui-même ignore sans doute, scellé sous l'autel depuis trois siècles. » Elle referme son grimoire. « Si le site originel du scellement se trouve vraiment là, la vérité sur ce qui s'y est passé vous y attend aussi. Soyez prêt à ce que vous y trouverez. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'shrine_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'shrine_lead') {
+      this.openDialog('« Le petit sanctuaire, près de Basse-Combe. Cherchez sous l\'autel, voyageur. »', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (stage === 'seal_failing') {
+      this.openDialog(
+        "Sélène ausculte la lame que vous rapportez, incapable de cacher son trouble. « Le Gardien primordial... la magie même du rituel de scellement, devenue hostile. » Elle repose l'arme avec précaution. « Vous n'étiez pas seul là-dessous, voyageur. » Elle hésite, comme si les mots lui coûtaient. « Une silhouette, dans la chambre funéraire — partie avant que vous n'ayez pu l'affronter. Elle n'a rien volé. Elle n'a rien détruit. Elle a seulement... regardé. Comme si elle cherchait la même chose que vous. » Elle vous fixe, grave. « Nous ne sommes plus seuls à remonter cette piste, voyageur. Et je crains que celui — ou celle — qui la remonte avec nous n'ait pas les mêmes intentions. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'antagonist_glimpsed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (stage === 'antagonist_glimpsed') {
+      this.openDialog(
+        "« Nous devons découvrir qui cherche ce que vous cherchez, voyageur, et pourquoi. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

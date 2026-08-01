@@ -78,6 +78,8 @@ export class ShrineScene extends Phaser.Scene {
     this.add.rectangle(150, 280, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
     this.add.rectangle(90, 340, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
 
+    addCrispText(this, 100, 30, 'Autel', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.hermit, true);
@@ -103,8 +105,14 @@ export class ShrineScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // A passage beneath the altar, sealed for three centuries — the hermit
+    // never knew it was there. Not a fixed-encounter zone in this scene
+    // (the shrine stays combat-free), just a tap-through into
+    // SealChamberScene, which has its own gate/boss/chest like every other
+    // dungeon.
     const interactables: Interactable[] = [
       { x: this.hermit.x, y: this.hermit.y, radius: 24, onTap: () => this.talkToHermit() },
+      { x: 100, y: 50, radius: 22, onTap: () => this.enterSealChamber() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -250,6 +258,15 @@ export class ShrineScene extends Phaser.Scene {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
     this.tapControl.setEnabled(true);
+  }
+
+  private enterSealChamber(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SealChamber', { x: 110, y: 380 });
+    });
   }
 
   private leaveShrine(): void {

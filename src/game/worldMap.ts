@@ -52,6 +52,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Première zone corrompue en dehors des Terres Noyées — la contamination
   // du tombeau remonte vers l'Aiglemont.
   { key: 'BlightedGrove', label: 'Bosquet corrompu', region: 'aiglemont', x: 100, y: 220 },
+
+  // Le site originel du scellement, révélé caché sous le petit sanctuaire
+  // de la région de départ.
+  { key: 'SealChamber', label: 'Chambre du Scellement', region: 'start', x: 160, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -82,12 +86,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['SealedSanctuary', 'ShardSeekersCamp'],
   ['SunkenRuins', 'BrotherhoodTomb'],
   ['HunterOutpost', 'BlightedGrove'],
+  ['Shrine', 'SealChamber'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. 'debriefed' and
-// 'original_site_revealed' have no entry: those chapters are closed,
-// nothing left to point at for now.
+// 'antagonist_glimpsed' have no entry: those chapters are closed, nothing
+// left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -126,6 +131,8 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   blighted_grove_lead: 'HunterOutpost',
   grove_purified: 'City',
   corruption_contained: 'City',
+  shrine_lead: 'Shrine',
+  seal_failing: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

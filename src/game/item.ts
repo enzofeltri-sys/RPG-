@@ -113,6 +113,14 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStats: { armor: 2 },
     signature: true,
   },
+  {
+    baseId: 'sealed_blade',
+    name: 'Lame du Sceau originel',
+    category: 'weapon',
+    baseStats: { strength: 4, intelligence: 2 },
+    rareOnlyStats: { fireDamage: 4 },
+    signature: true,
+  },
 ];
 
 export const RARITY_LABELS: Record<Rarity, string> = {

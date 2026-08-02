@@ -1,5 +1,7 @@
 import { Character } from './character';
 import { Item, RARITY_LABELS, rollLootItem } from './item';
+import { ReturnSceneKey } from '../ui/returnContext';
+import { DUNGEON_LOOT_TIER } from './worldMap';
 
 // Chests always yield something, with better rare/epic odds than a random
 // monster kill — finding one off the beaten path (abandoned houses, dungeon
@@ -14,11 +16,13 @@ export function isChestOpened(character: Character, chestId: string): boolean {
 
 // Returns null if the chest was already opened (no re-roll) — callers should
 // check isChestOpened() first to show the right message instead of relying
-// on this alone.
-export function openChest(character: Character, chestId: string): Item | null {
+// on this alone. `scene` picks the item palier (see DUNGEON_LOOT_TIER) so a
+// chest's contents match where it actually sits in the story.
+export function openChest(character: Character, chestId: string, scene: ReturnSceneKey): Item | null {
   if (character.openedChests[chestId]) return null;
   character.openedChests[chestId] = true;
-  const loot = rollLootItem({ guaranteed: true, rareChance: CHEST_RARE_CHANCE, epicChance: CHEST_EPIC_CHANCE });
+  const tier = DUNGEON_LOOT_TIER[scene] ?? 1;
+  const loot = rollLootItem({ guaranteed: true, rareChance: CHEST_RARE_CHANCE, epicChance: CHEST_EPIC_CHANCE, tier });
   if (loot) character.inventory.push(loot);
   return loot;
 }

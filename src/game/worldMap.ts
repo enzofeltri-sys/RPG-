@@ -277,3 +277,61 @@ export const QUEST_LOCATIONS: Record<string, ReturnSceneKey> = {
   vasenoire_fisherman: 'Vasenoire',
   sunkenroad_sentinels: 'SunkenRoad',
 };
+
+// Which item palier (see ITEM_SETS-adjacent tiering in item.ts's TEMPLATES,
+// tagged via ItemTemplate.tier) each scene's combat/chest loot draws from —
+// so power actually follows story progression, not just difficulty chances.
+// Palier 1 = Acte 1 / région de départ, palier 2 = Acte 2 (Aiglemont +
+// Terres Noyées), palier 3 = donjons tardifs de l'Acte 3 (l'arc silhouette/
+// Ordre des Veilleurs/sceau) — geographically these nest inside Acte 1/2
+// locations (hidden passages), so tier is assigned per dungeon scene, not
+// per map region.
+export const DUNGEON_LOOT_TIER: Record<ReturnSceneKey, 1 | 2 | 3> = {
+  // Acte 1 — région de départ
+  Village: 1,
+  Field: 1,
+  Dungeon: 1,
+  Hamlet: 1,
+  Forest: 1,
+  Cave: 1,
+  BanditCamp: 1,
+  GoblinCamp: 1,
+  Farm: 1,
+  Shrine: 1,
+  Road: 1,
+
+  // Acte 2 — Aiglemont + Terres Noyées
+  City: 2,
+  Catacombs: 2,
+  OldWell: 2,
+  Faubourg: 2,
+  Warehouse: 2,
+  Archives: 2,
+  RiverRoad: 2,
+  HunterOutpost: 2,
+  MarshLair: 2,
+  SunkenRoad: 2,
+  Vasenoire: 2,
+  SunkenRuins: 2,
+  ClandestineDock: 2,
+  SealedSanctuary: 2,
+  ShardSeekersCamp: 2,
+  BrotherhoodTomb: 2,
+  BlightedGrove: 2,
+
+  // Acte 3 — donjons tardifs (arc silhouette/Ordre des Veilleurs/sceau)
+  SealChamber: 3,
+  SilentWatch: 3,
+  WardCore: 3,
+  WatchersVault: 3,
+  BrokenSleep: 3,
+  CorruptedRoot: 3,
+  SealDepths: 3,
+  WatchersLodge: 3,
+  RiteArchive: 3,
+  RiteAnnex: 3,
+  AncestralCrypt: 3,
+  ForgottenGrave: 3,
+  GuildArchive: 3,
+  CorruptedWaystation: 3,
+};

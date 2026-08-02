@@ -8,6 +8,7 @@ import { CONSUMABLES, useConsumable } from '../game/consumable';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
+import { DUNGEON_LOOT_TIER } from '../game/worldMap';
 import { addCrispText } from '../ui/text';
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 
@@ -292,15 +293,16 @@ export class CombatScene extends Phaser.Scene {
     const levelsGained = grantXp(this.character, this.monster.xpReward);
     this.character.gold += this.monster.goldReward;
 
+    const lootTier = DUNGEON_LOOT_TIER[this.returnScene] ?? 1;
     const loot: Item | null = this.monster.isBoss
-      ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
+      ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15, tier: lootTier })
       : this.monster.tier === 'legendary'
-        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5, legendaryChance: 0.05 })
+        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5, legendaryChance: 0.05, tier: lootTier })
         : this.monster.tier === 'elite'
-          ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
+          ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15, tier: lootTier })
           : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)
-            ? rollLootItem({ guaranteed: true, rareChance: 0.3 })
-            : rollLootItem();
+            ? rollLootItem({ guaranteed: true, rareChance: 0.3, tier: lootTier })
+            : rollLootItem({ tier: lootTier });
     if (loot) {
       this.character.inventory.push(loot);
     }

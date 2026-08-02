@@ -233,7 +233,7 @@ export class DungeonScene extends Phaser.Scene {
       this.showMessage('Ce coffre est vide.');
       return;
     }
-    const loot = openChest(this.character, CHEST_ID);
+    const loot = openChest(this.character, CHEST_ID, 'Dungeon');
     this.chest.setFillStyle(0x3a3428);
     await SaveManager.saveCharacter(this.character);
     if (loot) {

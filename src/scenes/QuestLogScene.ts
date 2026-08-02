@@ -366,10 +366,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   lodge_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  reinforcement_plan_started: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "La Loge des Veilleurs, enfin retrouvée. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Comprendre ne suffit plus — il faut désormais chercher comment réparer le sceau. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

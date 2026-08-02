@@ -127,8 +127,8 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'lodge_cleared') have no entry: that
-// chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'reinforcement_plan_started') have no
+// entry: that chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -198,6 +198,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   second_token_found: 'City',
   lodge_lead: 'Shrine',
   lodge_reached: 'City',
+  lodge_cleared: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

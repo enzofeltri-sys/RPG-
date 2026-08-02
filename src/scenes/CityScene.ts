@@ -1288,7 +1288,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'lodge_cleared') {
       this.openDialog(
-        "« Un visage sans nom, voyageur. C'est un début. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène étale toutes ses notes une dernière fois, dans un silence différent des précédents — plus déterminé que troublé. « Nous avons passé des semaines à comprendre ce qui se brise, voyageur. Il est temps de nous demander comment le réparer. » Elle referme son grimoire. « Un sceau ne se renforce pas avec de la magie seule — il a fallu toute une confrérie, autrefois, pour le poser. S'il existe un moyen de le stabiliser à nouveau, je doute qu'il tienne dans un seul grimoire, ou entre les mains d'une seule personne. » Elle vous regarde, presque avec espoir. « Peut-être est-ce pour ça qu'elle a écrit 'Ensemble', voyageur. Peut-être le sait-elle déjà. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'reinforcement_plan_started');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'reinforcement_plan_started') {
+      this.openDialog(
+        "« Réparer, pas seulement comprendre, voyageur. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

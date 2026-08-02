@@ -82,7 +82,8 @@ export type MainQuestStage =
   | 'second_token_found'
   | 'lodge_lead'
   | 'lodge_reached'
-  | 'lodge_cleared';
+  | 'lodge_cleared'
+  | 'reinforcement_plan_started';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -134,6 +135,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   seal_depths_cleared: { xp: 530, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   second_token_found: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'rare' },
   lodge_cleared: { xp: 560, itemBaseId: 'simple_ring', itemRarity: 'epic' },
+  reinforcement_plan_started: { xp: 400, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

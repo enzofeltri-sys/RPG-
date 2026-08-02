@@ -102,6 +102,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Une maison scellée du vieux quartier d'Aiglemont, jamais reliée à un
   // nom jusqu'à ce que le registre de l'Ordre en révèle un.
   { key: 'AncestralCrypt', label: 'La Crypte des Aînés', region: 'aiglemont', x: 200, y: 55 },
+
+  // Les registres notariaux de la guilde des marchands, sous l'entrepôt du
+  // Faubourg — la seule trace civile d'une transmission de titre.
+  { key: 'GuildArchive', label: 'Les Registres de la Guilde', region: 'aiglemont', x: 200, y: 110 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -144,11 +148,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['RiteArchive', 'RiteAnnex'],
   ['City', 'AncestralCrypt'],
   ['Village', 'ForgottenGrave'],
+  ['Warehouse', 'GuildArchive'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'title_hypothesis') have no entry: that
+// with no further lead (currently 'registry_cleared') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -236,6 +241,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   elder_lead: 'ForgottenGrave',
   grave_reached: 'City',
   grave_cleared: 'City',
+  title_hypothesis: 'City',
+  notary_lead: 'Warehouse',
+  registry_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

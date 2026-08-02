@@ -451,10 +451,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   title_hypothesis: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  notary_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Un escalier caché dans l'entrepôt du Faubourg.",
+  },
+  registry_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  registry_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une charge transmise, pas un fantôme. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une succession sans interruption, jusqu'à il y a quelques années seulement. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

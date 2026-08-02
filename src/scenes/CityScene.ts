@@ -1546,7 +1546,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'title_hypothesis') {
       this.openDialog(
-        "« Une charge transmise, pas un fantôme, voyageur. C'est déjà ça. La suite de cette histoire viendra en temps voulu. »",
+        "« Une charge, voyageur, ça se transmet aussi par le droit, pas seulement par la religion. » Sélène se redresse, une idée neuve dans le regard. « Un changement de propriété, un nom qui passe d'une main à une autre — la guilde des marchands garde ce genre de trace depuis des siècles, dans son propre entrepôt. Ce ne sont pas des moines qui l'ont tenu à jour, mais des notaires. Et les notaires, eux, ne croient pas aux légendes : ils écrivent des dates. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'notary_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'notary_lead') {
+      this.openDialog(
+        "« Retournez à l'entrepôt du Faubourg, voyageur. Il paraît qu'il cache un escalier vers les vieux registres de la guilde, sous les caisses. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'registry_reached') {
+      this.openDialog(
+        "Sélène déroule les pages que vous avez rapportées sur toute la longueur de sa table — un acte de propriété transféré, encore et encore, toujours au même nom, jamais à la même personne : chaque transfert daté d'une génération à l'autre, sans jamais un seul jour de vide entre deux titulaires. « Une succession sans interruption, voyageur. Organisée, documentée, presque légale. » Elle repose la dernière page, la plus récente. « Et celle-ci ne date que de quelques années. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'registry_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'registry_cleared') {
+      this.openDialog(
+        "« Quelques années, voyageur. Pas trois siècles. Quelqu'un porte cette charge aujourd'hui, quelque part à Aiglemont ou tout près. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

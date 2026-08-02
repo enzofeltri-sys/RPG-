@@ -8,13 +8,13 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'warehouse_chest_1';
+const CHEST_ID = 'guildarchive_chest_1';
 
-// Wide enough to fill the portrait canvas at every camera position — see
-// HamletScene's WORLD_HEIGHT comment. Medium dungeon: shorter than Catacombs
-// (hard) and with a plain guaranteed-loot boss instead of a signature reward —
-// the middle rung of the difficulty spread the player asked for, between
-// Le vieux puits (easy) and Catacombes d'Aiglemont (hard).
+// Vingt-quatrième donjon — les registres notariaux de la guilde des
+// marchands, plus profonds que l'entrepôt lui-même : la seule trace civile,
+// pas religieuse ni secrète, d'une transmission de titre et de propriété.
+// Même gabarit "moyen" que les 23 donjons précédents, palette poussiéreuse
+// de papier et de bois plutôt que pierre.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -27,22 +27,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'smuggler_thug', x: WORLD_WIDTH / 2, y: 320, label: 'Contrebandiers' },
-  { monsterId: 'smuggler_thug', x: WORLD_WIDTH / 2, y: 250, label: 'Contrebandiers' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 320, label: 'Gardiens des registres' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 250, label: 'Gardiens des registres' },
 ];
 
-const BOSS_MONSTER_ID = 'smuggler_captain';
+const BOSS_MONSTER_ID = 'record_keeper';
 
-interface WarehouseData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the Faubourg's north zone.
+interface GuildArchiveData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via the warehouse's
+  // hidden archive stair.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class WarehouseScene extends Phaser.Scene {
+export class GuildArchiveScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -58,10 +59,10 @@ export class WarehouseScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('Warehouse');
+    super('GuildArchive');
   }
 
-  init(data: WarehouseData): void {
+  init(data: GuildArchiveData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -71,9 +72,9 @@ export class WarehouseScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#2a2620');
+    this.cameras.main.setBackgroundColor('#2e2a20');
 
-    addCrispText(this, this.scale.width / 2, 12, 'Entrepôt abandonné', {
+    addCrispText(this, this.scale.width / 2, 12, 'Les Registres de la Guilde', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -91,7 +92,7 @@ export class WarehouseScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.tapControl = new TapController(this, this.player);
 
-    this.addCrates();
+    this.addShelves();
     const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
     if (remaining.length > 0) {
       this.addGate();
@@ -103,21 +104,12 @@ export class WarehouseScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveWarehouse());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveArchive());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // Un escalier vers les registres de la guilde, sous l'entrepôt lui-même
-    // — jamais relié à un nom jusqu'à ce que l'hypothèse d'un titre transmis
-    // pousse Sélène à chercher une trace civile plutôt que religieuse.
-    // Toujours franchissable, quelle que soit l'étape de la quête en cours.
-    const archiveZone = this.add.zone(200, 15, 40, 20);
-    this.physics.add.existing(archiveZone, true);
-    this.physics.add.overlap(this.player, archiveZone, () => this.enterGuildArchive());
-    addCrispText(this, 200, 28, 'Registres ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -139,7 +131,7 @@ export class WarehouseScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'Warehouse',
+        'GuildArchive',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -154,26 +146,27 @@ export class WarehouseScene extends Phaser.Scene {
     this.tapControl.update(delta);
   }
 
-  private addCrates(): void {
+  private addShelves(): void {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
-    const crate = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x3a342a).setStrokeStyle(1, 0x1a1712);
+    const shelf = (x: number, y: number, w: number, h: number) => {
+      const rect = this.add.rectangle(x, y, w, h, 0x3e382a).setStrokeStyle(1, 0x181410);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    crate(20, 360, 30, 60);
-    crate(WORLD_WIDTH - 20, 280, 30, 60);
-    crate(20, 140, 30, 60);
+    shelf(20, 360, 24, 60);
+    shelf(WORLD_WIDTH - 20, 280, 24, 60);
+    shelf(20, 140, 24, 60);
+    shelf(WORLD_WIDTH - 20, 360, 24, 60);
   }
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3a342a)
-      .setStrokeStyle(1, 0x1a1712);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3e382a)
+      .setStrokeStyle(1, 0x181410);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Caisses entassées', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Rayonnages verrouillés', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -188,7 +181,7 @@ export class WarehouseScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x4a3a2a, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x484030, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -212,8 +205,8 @@ export class WarehouseScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x4a2a1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'Bureau du capitaine', {
+    this.add.rectangle(x, y, 50, 50, 0x1c1810, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Le registre des successions', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -233,7 +226,7 @@ export class WarehouseScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'Warehouse', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'GuildArchive', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -271,21 +264,12 @@ export class WarehouseScene extends Phaser.Scene {
     });
   }
 
-  private leaveWarehouse(): void {
+  private leaveArchive(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Faubourg', { x: 130, y: 40, resume: true });
-    });
-  }
-
-  private enterGuildArchive(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('GuildArchive', { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT - 40 });
+      this.scene.start('Warehouse', { x: 30, y: 30, resume: true });
     });
   }
 }

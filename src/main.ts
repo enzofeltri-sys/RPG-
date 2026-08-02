@@ -39,6 +39,7 @@ import { RiteArchiveScene } from './scenes/RiteArchiveScene';
 import { RiteAnnexScene } from './scenes/RiteAnnexScene';
 import { AncestralCryptScene } from './scenes/AncestralCryptScene';
 import { ForgottenGraveScene } from './scenes/ForgottenGraveScene';
+import { GuildArchiveScene } from './scenes/GuildArchiveScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -165,6 +166,7 @@ async function boot(): Promise<void> {
       RiteAnnexScene,
       AncestralCryptScene,
       ForgottenGraveScene,
+      GuildArchiveScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

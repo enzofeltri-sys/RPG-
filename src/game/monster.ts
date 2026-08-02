@@ -425,6 +425,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 210,
     isBoss: true,
   },
+  // Gardien des registres notariaux de la guilde des marchands, plus
+  // profonds que l'entrepôt lui-même — la seule trace civile, pas
+  // religieuse ni secrète, d'une transmission de titre et de propriété.
+  record_keeper: {
+    id: 'record_keeper',
+    name: 'Gardien des Registres',
+    maxHp: 310,
+    attack: 43,
+    xpReward: 710,
+    goldReward: 220,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

@@ -98,7 +98,8 @@ export type MainQuestStage =
   | 'first_name_given'
   | 'elder_lead'
   | 'grave_reached'
-  | 'grave_cleared';
+  | 'grave_cleared'
+  | 'title_hypothesis';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -158,6 +159,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   crypt_cleared: { xp: 680, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
   first_name_given: { xp: 370, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   grave_cleared: { xp: 710, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
+  title_hypothesis: { xp: 390, itemBaseId: 'wooden_shield', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

@@ -148,7 +148,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'grave_cleared') have no entry: that
+// with no further lead (currently 'title_hypothesis') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -235,6 +235,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   first_name_given: 'City',
   elder_lead: 'ForgottenGrave',
   grave_reached: 'City',
+  grave_cleared: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

@@ -446,10 +446,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   grave_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  title_hypothesis: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une tombe entretenue depuis des siècles, un mot qui vous attendait. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une charge transmise, pas un fantôme. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

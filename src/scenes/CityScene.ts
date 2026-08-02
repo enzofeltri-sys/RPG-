@@ -1529,7 +1529,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'grave_cleared') {
       this.openDialog(
-        "« Une tombe entretenue depuis des siècles, un mot qui vous attendait, voyageur. Nous ne savons plus vraiment ce que nous cherchons — une personne, ou quelque chose de bien plus vieux. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène passe des jours dans les archives religieuses de la ville, celles qu'elle consulte rarement — pas celles de l'Ordre, mais celles, bien plus anciennes, de la cité elle-même. Elle finit par trouver un précédent : certaines lignées, autrefois, ne transmettaient pas seulement leur sang, mais un nom rituel, porté tour à tour par celui ou celle qui menait la famille — un titre, pas une seule personne éternelle. Elle repose le vieux volume, presque soulagée. « Ce n'est pas rassurant, voyageur, mais c'est la première explication qui tienne debout. Pas un fantôme depuis trois siècles. Une charge, transmise. » Elle hésite. « Reste à savoir qui la porte aujourd'hui. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'title_hypothesis');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'title_hypothesis') {
+      this.openDialog(
+        "« Une charge transmise, pas un fantôme, voyageur. C'est déjà ça. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

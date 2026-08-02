@@ -1,4 +1,4 @@
-import { EquipSlot, Item, ItemStats } from './item';
+import { EquipSlot, Item, ItemStats, getEquippedSetBonusStats } from './item';
 import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
@@ -154,6 +154,10 @@ export function getEffectiveStats(character: Character): CharacterStats {
     (Object.keys(item.stats) as (keyof ItemStats)[]).forEach((key) => {
       total[key] = (total[key] ?? 0) + (item.stats[key] ?? 0);
     });
+  });
+  const setBonus = getEquippedSetBonusStats(character.equipment);
+  (Object.keys(setBonus) as (keyof ItemStats)[]).forEach((key) => {
+    total[key] = (total[key] ?? 0) + (setBonus[key] ?? 0);
   });
   return total;
 }

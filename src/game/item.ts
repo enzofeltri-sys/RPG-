@@ -163,6 +163,101 @@ const TEMPLATES: ItemTemplate[] = [
   },
 ];
 
+// Panoplies (équipement sets) — built entirely from existing signature
+// items already thematically grouped by dungeon/story arc, not a new loot
+// pipeline. Bonuses stay modest and cumulative (a lower threshold stays
+// active once a higher one is reached) so a set is a genuine alternative
+// build, never a strict upgrade over freely mixed best-in-slot gear.
+export interface ItemSetBonus {
+  pieces: number;
+  stats: ItemStats;
+}
+
+export interface ItemSet {
+  id: string;
+  label: string;
+  baseIds: string[];
+  bonuses: ItemSetBonus[];
+}
+
+export const ITEM_SETS: ItemSet[] = [
+  {
+    id: 'watchers_order',
+    label: "Ordre des Veilleurs",
+    baseIds: ['watchtower_helm', 'eternal_watch_greaves', 'last_watcher_boots'],
+    bonuses: [
+      { pieces: 2, stats: { armor: 2 } },
+      { pieces: 3, stats: { vitality: 3 } },
+    ],
+  },
+  {
+    id: 'blighted_grove',
+    label: 'Bosquet corrompu',
+    baseIds: ['purified_breastplate', 'corrupted_root_gloves'],
+    bonuses: [{ pieces: 2, stats: { vitality: 2, armor: 1 } }],
+  },
+];
+
+const SET_BY_BASE_ID = new Map<string, ItemSet>();
+ITEM_SETS.forEach((set) => set.baseIds.forEach((baseId) => SET_BY_BASE_ID.set(baseId, set)));
+
+function countEquippedPerSet(equipment: Partial<Record<EquipSlot, Item>>): Map<string, number> {
+  const counts = new Map<string, number>();
+  Object.values(equipment).forEach((item) => {
+    if (!item) return;
+    const set = SET_BY_BASE_ID.get(item.baseId);
+    if (!set) return;
+    counts.set(set.id, (counts.get(set.id) ?? 0) + 1);
+  });
+  return counts;
+}
+
+// Sums every set-bonus threshold currently met by the character's equipped
+// gear — the only place set bonuses actually apply stats, consumed by
+// getEffectiveStats() in character.ts.
+export function getEquippedSetBonusStats(equipment: Partial<Record<EquipSlot, Item>>): ItemStats {
+  const counts = countEquippedPerSet(equipment);
+  const total: ItemStats = {};
+  ITEM_SETS.forEach((set) => {
+    const equipped = counts.get(set.id) ?? 0;
+    set.bonuses.forEach((bonus) => {
+      if (equipped < bonus.pieces) return;
+      (Object.keys(bonus.stats) as (keyof ItemStats)[]).forEach((key) => {
+        total[key] = (total[key] ?? 0) + (bonus.stats[key] ?? 0);
+      });
+    });
+  });
+  return total;
+}
+
+// One line per set with at least one piece equipped, e.g. "Ordre des
+// Veilleurs 2/3" — surfaced in the Équipement screen's stats summary.
+export function summarizeEquippedSets(equipment: Partial<Record<EquipSlot, Item>>): string[] {
+  const counts = countEquippedPerSet(equipment);
+  return ITEM_SETS.filter((set) => (counts.get(set.id) ?? 0) > 0).map(
+    (set) => `${set.label} ${counts.get(set.id)}/${set.baseIds.length}`,
+  );
+}
+
+// Full per-threshold breakdown for a single item's detail view — which
+// panoplie it belongs to, current progress, and which bonus tiers are
+// active vs. still locked.
+export function describeItemSetDetail(baseId: string, equipment: Partial<Record<EquipSlot, Item>>): string[] {
+  const set = SET_BY_BASE_ID.get(baseId);
+  if (!set) return [];
+  const counts = countEquippedPerSet(equipment);
+  const equipped = counts.get(set.id) ?? 0;
+  const lines = [`Panoplie : ${set.label} (${equipped}/${set.baseIds.length} équipées)`];
+  set.bonuses.forEach((bonus) => {
+    const active = equipped >= bonus.pieces;
+    const statsText = (Object.keys(bonus.stats) as (keyof ItemStats)[])
+      .map((key) => `${STAT_LABELS[key]} +${bonus.stats[key]}`)
+      .join(', ');
+    lines.push(`${active ? '✓' : '·'} ${bonus.pieces} pièces : ${statsText}`);
+  });
+  return lines;
+}
+
 export const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Commun',
   rare: 'Rare',

@@ -1,6 +1,15 @@
 import Phaser from 'phaser';
 import { Character, getEffectiveStats } from '../game/character';
-import { Item, ItemCategory, EquipSlot, RARITY_LABELS, RARITY_COLORS, equipSlotLabel, isUpgrade } from '../game/item';
+import {
+  Item,
+  ItemCategory,
+  EquipSlot,
+  RARITY_LABELS,
+  RARITY_COLORS,
+  equipSlotLabel,
+  isUpgrade,
+  summarizeEquippedSets,
+} from '../game/item';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -164,6 +173,10 @@ export class InventoryScene extends Phaser.Scene {
     ];
     if (stats.armor > 0 || stats.fireDamage > 0) {
       lines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
+    }
+    const sets = summarizeEquippedSets(this.character.equipment);
+    if (sets.length > 0) {
+      lines.push(`Panoplies : ${sets.join(' · ')}`);
     }
     this.statsText.setText(lines.join('\n'));
   }

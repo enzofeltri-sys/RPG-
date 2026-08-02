@@ -1,6 +1,15 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
-import { Item, EquipSlot, RARITY_LABELS, RARITY_COLORS, categoryIcon, compareItemStats, isUpgrade } from '../game/item';
+import {
+  Item,
+  EquipSlot,
+  RARITY_LABELS,
+  RARITY_COLORS,
+  categoryIcon,
+  compareItemStats,
+  isUpgrade,
+  describeItemSetDetail,
+} from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
 import { materialLabel, isRareMaterial } from '../game/material';
 import { QuestItem } from '../game/questItem';
@@ -355,6 +364,8 @@ export class BagScene extends Phaser.Scene {
 
     const equipped = this.character.equipment[this.resolveEquipSlot(item)];
     const lines = compareItemStats(item, equipped);
+    const setLines = describeItemSetDetail(item.baseId, this.character.equipment);
+    if (setLines.length > 0) lines.push('', ...setLines);
     this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
     this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
     this.resetDiscardButton();

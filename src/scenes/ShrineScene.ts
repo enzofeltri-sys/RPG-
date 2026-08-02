@@ -111,9 +111,14 @@ export class ShrineScene extends Phaser.Scene {
     // (the shrine stays combat-free), just a tap-through into
     // SealChamberScene, which has its own gate/boss/chest like every other
     // dungeon.
+    //
+    // A second tap-through, at the outer standing stone Aldric now
+    // recognizes thanks to the fragment — same "combat-free entry into a
+    // combat-full scene" shape as the altar above.
     const interactables: Interactable[] = [
       { x: this.hermit.x, y: this.hermit.y, radius: 24, onTap: () => this.talkToHermit() },
       { x: 100, y: 50, radius: 22, onTap: () => this.enterSealChamber() },
+      { x: 150, y: 280, radius: 22, onTap: () => this.enterWatchersLodge() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -198,6 +203,13 @@ export class ShrineScene extends Phaser.Scene {
       this.openDialog(
         "« Retournez voir votre mage, voyageur. Elle saura quoi faire de ça mieux que moi. »",
         [this.restButton(), { label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'lodge_lead') {
+      this.openDialog(
+        "Aldric prend le fragment entre ses mains tremblantes, le tourne vers la lumière. « La pierre extérieure, dans mon propre jardin... » Il secoue la tête, incrédule. « J'ai marché devant cette pierre chaque jour depuis quarante ans, voyageur, sans jamais voir ce que ces marques signifiaient vraiment. » Il vous la désigne, à l'écart du chemin. « Si le mot 'Ensemble' devait vous mener quelque part, c'est là. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;
     }
@@ -302,6 +314,15 @@ export class ShrineScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('SealChamber', { x: 110, y: 380 });
+    });
+  }
+
+  private enterWatchersLodge(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('WatchersLodge', { x: 110, y: 380 });
     });
   }
 

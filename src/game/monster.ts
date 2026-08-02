@@ -358,6 +358,23 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 160,
     isBoss: true,
   },
+  // Gardiens spectraux de la Loge des Veilleurs — pas les esprits de la
+  // confrérie fondatrice (brotherhood_specter, ailleurs), mais des échos
+  // plus tardifs, laissés par l'ordre lui-même à mesure qu'il s'éteignait.
+  watcher_echo: { id: 'watcher_echo', name: 'Écho de veilleur', maxHp: 60, attack: 15, xpReward: 130, goldReward: 34 },
+  // Une épreuve, pas un ennemi au sens strict — un dispositif qui teste
+  // quiconque entre dans la loge, ami comme inconnu, sans jamais chercher à
+  // tuer. Le dernier obstacle avant la première rencontre en personne avec
+  // la silhouette.
+  oath_guardian: {
+    id: 'oath_guardian',
+    name: 'Gardien du Serment',
+    maxHp: 235,
+    attack: 33,
+    xpReward: 560,
+    goldReward: 170,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

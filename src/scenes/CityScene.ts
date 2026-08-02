@@ -1247,7 +1247,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'second_token_found') {
       this.openDialog(
-        "« 'Ensemble', voyageur. Un mot qui pourrait tout changer — ou rien du tout. La suite de cette histoire viendra en temps voulu. »",
+        "« 'Ensemble', voyageur. Un mot qui pourrait tout changer — ou rien du tout. » Sélène retourne le fragment une dernière fois. « Je ne reconnais pas ces marques, mais quelqu'un le pourrait. Aldric a passé sa vie près du Sceau — s'il existe un lien entre ce fragment et l'Ordre, c'est lui qui le verra le premier. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'lodge_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'lodge_lead') {
+      this.openDialog(
+        '« Retournez voir Aldric, au petit sanctuaire, voyageur. Montrez-lui le fragment. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'lodge_reached') {
+      this.openDialog(
+        "Sélène vous écoute décrire la loge, silencieuse jusqu'au bout du récit. « Elle vous attendait. » Ce n'est pas une question. « Pas d'attaque, pas de piège — juste elle, à la table où l'Ordre se réunissait autrefois. » Vous lui rapportez ce qui s'est dit : peu de mots, prudents des deux côtés, mais un visage, enfin, derrière la silhouette. Sélène reste longtemps silencieuse. « Un nom, voyageur ? » Vous secouez la tête — elle n'en a pas donné. Sélène hoche lentement la tête, presque soulagée. « Alors nous avons le temps d'apprendre à lui faire confiance avant d'avoir à le faire tout à fait. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'lodge_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'lodge_cleared') {
+      this.openDialog(
+        "« Un visage sans nom, voyageur. C'est un début. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

@@ -351,10 +351,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   second_token_found: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  lodge_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez voir Aldric, au petit sanctuaire — il reconnaîtra peut-être le fragment.',
+  },
+  lodge_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  lodge_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un fragment gravé d'un seul mot, laissé directement sur vous. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "La Loge des Veilleurs, enfin retrouvée. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

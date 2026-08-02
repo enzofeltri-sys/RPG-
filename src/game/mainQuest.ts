@@ -79,7 +79,10 @@ export type MainQuestStage =
   | 'seal_depths_lead'
   | 'seal_depths_reached'
   | 'seal_depths_cleared'
-  | 'second_token_found';
+  | 'second_token_found'
+  | 'lodge_lead'
+  | 'lodge_reached'
+  | 'lodge_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -130,6 +133,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   watcher_hypothesis_formed: { xp: 350, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   seal_depths_cleared: { xp: 530, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   second_token_found: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'rare' },
+  lodge_cleared: { xp: 560, itemBaseId: 'simple_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -163,6 +167,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   broken_sleeper: { fromStage: 'tomb_depths_lead', toStage: 'tomb_depths_reached' },
   blight_root: { fromStage: 'grove_depths_lead', toStage: 'grove_depths_reached' },
   seal_echo: { fromStage: 'seal_depths_lead', toStage: 'seal_depths_reached' },
+  oath_guardian: { fromStage: 'lodge_lead', toStage: 'lodge_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

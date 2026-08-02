@@ -1404,7 +1404,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'rite_annex_cleared') {
       this.openDialog(
-        "« Le registre de l'Ordre, voyageur. Nous ne savons pas encore quoi en faire — mais nous savons enfin qui nous cherchons vraiment. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène vous demande quelques jours de patience — le registre est vaste, l'écriture parfois presque effacée, et elle veut croiser chaque nom avec ce que vous avez déjà découvert : la Loge, le Sommeil brisé, la Voûte des Veilleurs. Quand elle vous rappelle, elle a les traits tirés mais les yeux brillants. « Un nom revient, voyageur. Pas partout — mais assez souvent, sur plusieurs générations, pour que ce ne soit pas un hasard. » Elle pose le doigt sur trois lignes du registre, séparées de plusieurs décennies chacune. « La même famille, je crois. Ou du moins le même sang. » Elle relève les yeux vers vous, hésitante. « Je ne sais pas encore ce que ça signifie pour elle. Mais ça restreint beaucoup de choses. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'lineage_traced');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'lineage_traced') {
+      this.openDialog(
+        "« Une lignée, voyageur, pas juste une personne. Cela change la question qu'on doit se poser. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

@@ -406,10 +406,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   rite_annex_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  lineage_traced: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Le registre de l'Ordre, enfin ouvert. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une lignée, pas juste une personne. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

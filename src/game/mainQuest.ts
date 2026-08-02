@@ -90,7 +90,8 @@ export type MainQuestStage =
   | 'response_sent'
   | 'rite_annex_lead'
   | 'rite_annex_reached'
-  | 'rite_annex_cleared';
+  | 'rite_annex_cleared'
+  | 'lineage_traced';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -146,6 +147,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   rite_archive_cleared: { xp: 590, itemBaseId: 'leather_chest', itemRarity: 'epic' },
   response_sent: { xp: 420, itemBaseId: 'leather_boots', itemRarity: 'epic' },
   rite_annex_cleared: { xp: 610, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
+  lineage_traced: { xp: 340, itemBaseId: 'simple_ring', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

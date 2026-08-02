@@ -109,7 +109,10 @@ export type MainQuestStage =
   | 'waystation_cleared'
   | 'awaiting_meeting'
   | 'first_meeting'
-  | 'meeting_debriefed';
+  | 'meeting_debriefed'
+  | 'chapel_lead'
+  | 'chapel_reached'
+  | 'chapel_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -174,6 +177,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   meeting_promised: { xp: 410, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   waystation_cleared: { xp: 750, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
   meeting_debriefed: { xp: 800, itemBaseId: 'ritual_amulet', itemRarity: 'epic' },
+  chapel_cleared: { xp: 830, itemBaseId: 'watcher_amulet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -214,6 +218,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   grave_warden: { fromStage: 'elder_lead', toStage: 'grave_reached' },
   record_keeper: { fromStage: 'notary_lead', toStage: 'registry_reached' },
   blight_sentinel: { fromStage: 'road_lead', toStage: 'waystation_reached' },
+  sunken_warden: { fromStage: 'chapel_lead', toStage: 'chapel_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

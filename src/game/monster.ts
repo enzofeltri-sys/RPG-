@@ -450,6 +450,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 230,
     isBoss: true,
   },
+  // Gardien d'une chapelle engloutie sous les vieux quais du Faubourg,
+  // bâtie à la même époque que le Sceau originel — le premier site
+  // confirmé, et non plus seulement théorisé, d'un rite pensé pour
+  // plusieurs mains à plusieurs endroits.
+  sunken_warden: {
+    id: 'sunken_warden',
+    name: 'Gardien englouti',
+    maxHp: 340,
+    attack: 47,
+    xpReward: 770,
+    goldReward: 240,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

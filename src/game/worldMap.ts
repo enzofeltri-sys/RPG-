@@ -111,6 +111,11 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // ressurgit soudainement — comme si elle réagissait à l'approche de la
   // silhouette.
   { key: 'CorruptedWaystation', label: 'La Halte corrompue', region: 'aiglemont', x: 200, y: 165 },
+
+  // Une chapelle engloutie sous les vieux quais du Faubourg, bâtie à la
+  // même époque que le Sceau originel — le premier second site confirmé
+  // d'un rite pensé pour plusieurs mains à plusieurs endroits.
+  { key: 'SunkenChapel', label: 'La Chapelle engloutie', region: 'aiglemont', x: 200, y: 220 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -155,11 +160,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['Village', 'ForgottenGrave'],
   ['Warehouse', 'GuildArchive'],
   ['Road', 'CorruptedWaystation'],
+  ['Faubourg', 'SunkenChapel'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'meeting_debriefed') have no entry: that
+// with no further lead (currently 'chapel_cleared') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -257,6 +263,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   waystation_cleared: 'City',
   awaiting_meeting: 'Shrine',
   first_meeting: 'City',
+  meeting_debriefed: 'City',
+  chapel_lead: 'SunkenChapel',
+  chapel_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.
@@ -337,4 +346,5 @@ export const DUNGEON_LOOT_TIER: Record<ReturnSceneKey, 1 | 2 | 3> = {
   ForgottenGrave: 3,
   GuildArchive: 3,
   CorruptedWaystation: 3,
+  SunkenChapel: 3,
 };

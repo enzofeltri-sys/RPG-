@@ -501,10 +501,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   meeting_debriefed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  chapel_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Une chapelle engloutie, sous les vieux quais du Faubourg.',
+  },
+  chapel_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  chapel_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un visage, enfin, en face de vous. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un second site confirmé, peut-être pas le dernier. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

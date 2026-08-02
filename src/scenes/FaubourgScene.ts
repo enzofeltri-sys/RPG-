@@ -136,6 +136,19 @@ export class FaubourgScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // West side — a chapel engloutie under the old docks, built the same
+    // era as the Sceau originel, never noticed until the silhouette's own
+    // research pointed here. Toujours franchissable, quelle que soit
+    // l'étape de la quête en cours.
+    const chapelZone = this.add.zone(10, 200, 20, 320);
+    this.physics.add.existing(chapelZone, true);
+    this.physics.add.overlap(this.player, chapelZone, () => this.enterSunkenChapel());
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Chapelle engloutie', {
+      fontSize: '9px',
+      color: '#9aa0a6',
+      align: 'center',
+    }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.informant.x, y: this.informant.y, radius: 24, onTap: () => this.talkToInformant() },
     ];
@@ -357,6 +370,15 @@ export class FaubourgScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('RiverRoad', { x: 40, y: 200 });
+    });
+  }
+
+  private enterSunkenChapel(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SunkenChapel', { x: 110, y: 380 });
     });
   }
 

@@ -1685,7 +1685,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'meeting_debriefed') {
       this.openDialog(
-        "« Un visage, un nom qui reste à comprendre, une charge qu'elle porte vraiment, voyageur. Nous avons du chemin devant nous, mais plus dans le noir complet. La suite de cette histoire viendra en temps voulu. »",
+        "Quelques jours plus tard, un message arrive — cette fois signé, pour la première fois, d'un prénom seul. Elle a cherché de son côté ce que « plusieurs endroits » pouvait vouloir dire concrètement, et a trouvé une piste : une chapelle engloutie sous les quais du Faubourg, bâtie à la même époque que le Sceau originel, oubliée depuis que les eaux ont monté. « Si le rite demandait plusieurs sites, celui-ci en est peut-être un second », écrit-elle. Sélène relève les yeux du message. « Le Faubourg, voyageur. Sous les quais, à l'ouest — je ne savais même pas qu'il y avait quelque chose là-dessous. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'chapel_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'chapel_lead') {
+      this.openDialog(
+        "« Le Faubourg des quais, voyageur. Cherchez à l'ouest, sous les vieux quais. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'chapel_reached') {
+      this.openDialog(
+        "Sélène étudie ce que vous rapportez de la chapelle engloutie — des gravures presque effacées par l'eau, mais assez nettes pour reconnaître le même symbole que celui du Sceau originel, gravé ici sur un second autel, plus petit, manifestement pensé pour fonctionner en miroir du premier. « Un second site, confirmé, voyageur. Ce n'est plus une hypothèse. » Elle marque une pause. « Reste à savoir combien il en faut encore, et où les trouver. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'chapel_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'chapel_cleared') {
+      this.openDialog(
+        "« Un second autel trouvé, voyageur. Peut-être pas le dernier. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

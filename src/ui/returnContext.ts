@@ -44,7 +44,8 @@ export type ReturnSceneKey =
   | 'AncestralCrypt'
   | 'ForgottenGrave'
   | 'GuildArchive'
-  | 'CorruptedWaystation';
+  | 'CorruptedWaystation'
+  | 'SunkenChapel';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -90,6 +91,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'ForgottenGrave',
   'GuildArchive',
   'CorruptedWaystation',
+  'SunkenChapel',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

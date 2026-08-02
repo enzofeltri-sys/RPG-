@@ -365,6 +365,299 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
 
+  // --- Palier 2 (Aiglemont / Terres Noyées) ---
+  // 4 familles par emplacement, mêmes noms d'un slot à l'autre pour rester
+  // lisible : Garde (Aiglemont, tank vitalité/armure), Marais (Terres
+  // Noyées, agilité), Acier (matériau générique, armure/force lourde),
+  // Archiviste (tour des mages, intelligence). Stats nettement au-dessus du
+  // palier 1 (voir DESIGN.md) ; alimente pour l'instant le même pool de
+  // loot général, faute de segmentation par région/acte.
+
+  // --- Armes (palier 2) ---
+  {
+    baseId: 'guard_sword',
+    name: 'Épée de la garde',
+    category: 'weapon',
+    baseStatRolls: { strength: [3, 4, 5] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { strength: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_dagger',
+    name: 'Dague des marais',
+    category: 'weapon',
+    baseStatRolls: { agility: [3, 4, 5] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 3] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_greatsword',
+    name: 'Épée à deux mains en acier',
+    category: 'weapon',
+    baseStatRolls: { strength: [5, 6, 7] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    legendaryOnlyStatRolls: { strength: [2, 3, 3] },
+  },
+  {
+    baseId: 'archivist_wand',
+    name: "Bâton d'archiviste",
+    category: 'weapon',
+    baseStatRolls: { intelligence: [3, 4, 5] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+
+  // --- Boucliers (palier 2) ---
+  {
+    baseId: 'guard_shield',
+    name: 'Bouclier de la garde',
+    category: 'shield',
+    baseStatRolls: { vitality: [3, 4, 5], armor: [4, 5, 6] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_buckler',
+    name: 'Targe des marais',
+    category: 'shield',
+    baseStatRolls: { agility: [3, 4, 4], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { agility: [2, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_tower_shield',
+    name: 'Bouclier-tour en acier',
+    category: 'shield',
+    baseStatRolls: { vitality: [4, 5, 6], armor: [5, 6, 7] },
+    rareOnlyStatRolls: { armor: [2, 3, 3] },
+    legendaryOnlyStatRolls: { vitality: [2, 3, 3] },
+  },
+  {
+    baseId: 'smuggler_shield',
+    name: 'Bouclier du contrebandier',
+    category: 'shield',
+    baseStatRolls: { armor: [5, 6, 7] },
+    rareOnlyStatRolls: { vitality: [2, 3, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+
+  // --- Casques (palier 2) ---
+  {
+    baseId: 'guard_helm',
+    name: 'Heaume de la garde',
+    category: 'helmet',
+    baseStatRolls: { vitality: [3, 3, 4], armor: [3, 4, 5] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_hood',
+    name: 'Capuche des marais',
+    category: 'helmet',
+    baseStatRolls: { agility: [3, 4, 4], armor: [2, 3, 4] },
+    rareOnlyStatRolls: { agility: [2, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_helm',
+    name: "Heaume d'acier",
+    category: 'helmet',
+    baseStatRolls: { armor: [5, 6, 7], vitality: [2, 2, 3] },
+    rareOnlyStatRolls: { armor: [2, 3, 3] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_circlet',
+    name: "Diadème d'archiviste",
+    category: 'helmet',
+    baseStatRolls: { intelligence: [3, 4, 5], armor: [2, 3, 4] },
+    rareOnlyStatRolls: { intelligence: [2, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+
+  // --- Torses (palier 2) ---
+  {
+    baseId: 'guard_chest',
+    name: 'Plastron de la garde',
+    category: 'chest',
+    baseStatRolls: { vitality: [3, 4, 5], armor: [4, 5, 6] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_vest',
+    name: 'Veste des marais',
+    category: 'chest',
+    baseStatRolls: { agility: [3, 4, 4], armor: [3, 4, 5] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_chest',
+    name: "Cuirasse d'acier",
+    category: 'chest',
+    baseStatRolls: { vitality: [4, 5, 6], armor: [5, 6, 7] },
+    rareOnlyStatRolls: { armor: [2, 3, 3] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_robe',
+    name: "Robe d'archiviste",
+    category: 'chest',
+    baseStatRolls: { intelligence: [3, 4, 5], armor: [2, 3, 4] },
+    rareOnlyStatRolls: { intelligence: [2, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+
+  // --- Jambes (palier 2) ---
+  {
+    baseId: 'guard_legs',
+    name: 'Jambières de la garde',
+    category: 'legs',
+    baseStatRolls: { vitality: [3, 3, 4], armor: [3, 4, 5] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_leggings',
+    name: 'Chausses des marais',
+    category: 'legs',
+    baseStatRolls: { agility: [4, 5, 6], armor: [2, 2, 3] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_legs',
+    name: "Jambières d'acier",
+    category: 'legs',
+    baseStatRolls: { vitality: [4, 5, 6], armor: [4, 5, 6] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_legs',
+    name: "Bas d'archiviste",
+    category: 'legs',
+    baseStatRolls: { intelligence: [3, 4, 4], armor: [2, 2, 3] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+
+  // --- Bottes (palier 2) ---
+  {
+    baseId: 'guard_boots',
+    name: 'Bottes de la garde',
+    category: 'boots',
+    baseStatRolls: { vitality: [3, 3, 4], armor: [3, 3, 4] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_boots',
+    name: 'Bottes des marais',
+    category: 'boots',
+    baseStatRolls: { agility: [4, 5, 6] },
+    rareOnlyStatRolls: { agility: [2, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_boots',
+    name: "Bottes d'acier",
+    category: 'boots',
+    baseStatRolls: { vitality: [3, 4, 4], armor: [4, 5, 6] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'smuggler_boots',
+    name: 'Bottes du contrebandier',
+    category: 'boots',
+    baseStatRolls: { agility: [3, 4, 4], vitality: [3, 4, 4] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+
+  // --- Gants (palier 2) ---
+  {
+    baseId: 'guard_gloves',
+    name: 'Gants de la garde',
+    category: 'gloves',
+    baseStatRolls: { strength: [3, 4, 4], armor: [3, 3, 4] },
+    legendaryOnlyStatRolls: { strength: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_gloves',
+    name: 'Gants des marais',
+    category: 'gloves',
+    baseStatRolls: { agility: [4, 5, 6] },
+    rareOnlyStatRolls: { agility: [2, 2, 3] },
+    legendaryOnlyStatRolls: { fireDamage: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_gauntlets_2',
+    name: "Gantelets d'acier renforcés",
+    category: 'gloves',
+    baseStatRolls: { strength: [4, 5, 6], armor: [3, 4, 5] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_gloves',
+    name: "Gants d'archiviste",
+    category: 'gloves',
+    baseStatRolls: { intelligence: [4, 5, 6] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+
+  // --- Anneaux (palier 2) ---
+  {
+    baseId: 'guard_ring',
+    name: 'Anneau de la garde',
+    category: 'ring',
+    baseStatRolls: { vitality: [3, 4, 5] },
+    legendaryOnlyStatRolls: { vitality: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_ring',
+    name: 'Anneau des marais',
+    category: 'ring',
+    baseStatRolls: { agility: [3, 4, 5] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_ring',
+    name: "Anneau d'acier",
+    category: 'ring',
+    baseStatRolls: { strength: [3, 4, 5] },
+    legendaryOnlyStatRolls: { strength: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_ring',
+    name: "Anneau d'archiviste",
+    category: 'ring',
+    baseStatRolls: { intelligence: [3, 4, 5] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+
+  // --- Amulettes (palier 2) ---
+  {
+    baseId: 'watch_amulet',
+    name: 'Amulette du guet',
+    category: 'amulet',
+    baseStatRolls: { vitality: [3, 4, 4], armor: [2, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [2, 2, 3] },
+  },
+  {
+    baseId: 'marsh_amulet',
+    name: 'Amulette des marais',
+    category: 'amulet',
+    baseStatRolls: { agility: [3, 4, 4], intelligence: [2, 2, 3] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_amulet',
+    name: "Amulette d'acier",
+    category: 'amulet',
+    baseStatRolls: { strength: [2, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { strength: [2, 2, 3] },
+  },
+  {
+    baseId: 'archivist_amulet',
+    name: "Amulette d'archiviste",
+    category: 'amulet',
+    baseStatRolls: { intelligence: [4, 5, 6] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+
   // --- Objets signature (jamais dans le loot commun, voir plus haut) ---
   {
     baseId: 'guardian_amulet',

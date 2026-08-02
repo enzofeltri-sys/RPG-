@@ -1230,7 +1230,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'seal_depths_cleared') {
       this.openDialog(
-        "« Le sceau tout entier, voyageur. La suite de cette histoire viendra en temps voulu. »",
+        "En rentrant du Sceau, vous découvrez dans votre propre sacoche un objet qui n'y était pas ce matin — un petit fragment de pierre gravé du même cercle brisé. Sélène l'examine avec autant d'inquiétude que de fascination. « Elle s'est approchée de vous directement, cette fois. Pas de ma tour — de vous. » Elle retourne le fragment entre ses doigts. Au dos, à peine visible : un seul mot gravé. 'Ensemble.' Elle relève les yeux, incertaine. « Une main tendue, voyageur ? Ou un avertissement de plus ? Je ne sais pas si je dois m'en réjouir ou m'en inquiéter davantage. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'second_token_found');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'second_token_found') {
+      this.openDialog(
+        "« 'Ensemble', voyageur. Un mot qui pourrait tout changer — ou rien du tout. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

@@ -346,10 +346,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   seal_depths_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  second_token_found: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "La source de toute la chaîne enfin atteinte — mais pas encore comprise. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un fragment gravé d'un seul mot, laissé directement sur vous. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

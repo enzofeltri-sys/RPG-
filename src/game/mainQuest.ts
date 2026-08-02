@@ -78,7 +78,8 @@ export type MainQuestStage =
   | 'watcher_hypothesis_formed'
   | 'seal_depths_lead'
   | 'seal_depths_reached'
-  | 'seal_depths_cleared';
+  | 'seal_depths_cleared'
+  | 'second_token_found';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -128,6 +129,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   grove_depths_cleared: { xp: 500, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   watcher_hypothesis_formed: { xp: 350, itemBaseId: 'leather_gloves', itemRarity: 'epic' },
   seal_depths_cleared: { xp: 530, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
+  second_token_found: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'rare' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

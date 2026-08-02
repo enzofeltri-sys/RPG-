@@ -426,10 +426,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   crypt_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  first_name_given: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un blason, une lignée, un Ordre qui n'a jamais vraiment disparu. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un prénom sorti d'une légende. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

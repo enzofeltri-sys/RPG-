@@ -1471,7 +1471,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'crypt_cleared') {
       this.openDialog(
-        "« Un blason, une lignée, un Ordre qui n'a jamais vraiment disparu, voyageur. Les pièces s'assemblent, lentement. La suite de cette histoire viendra en temps voulu. »",
+        "Vous portez le blason au petit sanctuaire, comme la pierre et le mot avant lui — un geste devenu presque un rituel entre vous. Le lendemain, la réponse est différente des précédentes : plus longue, l'écriture moins assurée, presque hâtive. « Vous êtes allés trop loin pour que je continue à me taire complètement. » Un seul mot suit, souligné deux fois : un prénom. Sélène le reconnaît aussitôt — pas de nulle part en particulier, mais d'une vieille légende locale qu'elle croyait n'être qu'une légende, justement. Elle vous regarde, presque pâle. « Ce nom ne devrait appartenir à personne de vivant, voyageur. Pas depuis longtemps. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'first_name_given');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'first_name_given') {
+      this.openDialog(
+        "« Un prénom sorti d'une légende, voyageur. Je ne sais pas encore si c'est un mensonge, un symbole, ou quelque chose de bien plus étrange. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

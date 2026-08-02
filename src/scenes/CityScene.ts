@@ -1726,7 +1726,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'chapel_cleared') {
       this.openDialog(
-        "« Un second autel trouvé, voyageur. Peut-être pas le dernier. La suite de cette histoire viendra en temps voulu. »",
+        "En superposant les gravures du second autel à ce qui subsistait des pages de l'Archive du Rite, Sélène recompte, une fois, deux fois, comme pour être sûre. « Trois, voyageur. Trois sites, pas plus, si je lis ça correctement — le premier sous ce sanctuaire même, le second sous les quais. » Elle pose le doigt sur une ligne presque effacée. « Il en manque un troisième, quelque part. Et cette fois, je crois que c'est elle qui va devoir nous aider à le trouver — ses archives à elle, pas les nôtres. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'third_site_awaited');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'third_site_awaited') {
+      this.openDialog(
+        "« Trois sites, voyageur. Deux de trouvés, un qui nous échappe encore. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

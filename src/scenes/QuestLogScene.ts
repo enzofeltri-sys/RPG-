@@ -516,10 +516,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   chapel_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  third_site_awaited: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un second site confirmé, peut-être pas le dernier. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Trois sites en tout, deux de trouvés. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

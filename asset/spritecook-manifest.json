@@ -35,6 +35,20 @@
       "tier": 1,
       "is_boss": true,
       "generated_at": "2026-08-01T09:02:20Z"
+    },
+    {
+      "monster_id": "bandit_thug",
+      "label": "Bandit Thug",
+      "asset_id": "543926d1-337d-4699-a18c-0be032741490",
+      "tier": 1,
+      "generated_at": "2026-08-02T12:58:56Z"
+    },
+    {
+      "monster_id": "goblin_brute",
+      "label": "Goblin Brute",
+      "asset_id": "475594c5-bb2b-4d18-a12e-15bf118af77d",
+      "tier": 1,
+      "generated_at": "2026-08-02T12:59:15Z"
     }
   ]
 }

@@ -658,6 +658,298 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
   },
 
+  // --- Palier 3 (donjons tardifs de l'Acte 3) ---
+  // Même schéma que les paliers 1 et 2, un cran de puissance de plus.
+  // Quatre familles cousines du thème de fin d'Acte 3 : Veilleur (Ordre
+  // des Veilleurs, tank vitalité/armure), Ombre (agilité), Mithril
+  // (matériau précieux, armure/force lourde), Rituel (arcane du sceau,
+  // intelligence).
+
+  // --- Armes (palier 3) ---
+  {
+    baseId: 'watcher_blade',
+    name: 'Lame du Veilleur',
+    category: 'weapon',
+    baseStatRolls: { strength: [5, 6, 7] },
+    rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
+    legendaryOnlyStatRolls: { strength: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_dagger',
+    name: "Dague de l'Ombre",
+    category: 'weapon',
+    baseStatRolls: { agility: [5, 6, 7] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_sword',
+    name: 'Épée de mithril',
+    category: 'weapon',
+    baseStatRolls: { strength: [7, 8, 9] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { strength: [3, 4, 4] },
+  },
+  {
+    baseId: 'ritual_staff',
+    name: 'Bâton rituel',
+    category: 'weapon',
+    baseStatRolls: { intelligence: [5, 6, 7] },
+    rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+
+  // --- Boucliers (palier 3) ---
+  {
+    baseId: 'watcher_shield',
+    name: 'Bouclier du Veilleur',
+    category: 'shield',
+    baseStatRolls: { vitality: [5, 6, 7], armor: [6, 7, 8] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_buckler',
+    name: "Targe de l'Ombre",
+    category: 'shield',
+    baseStatRolls: { agility: [5, 6, 6], armor: [4, 5, 6] },
+    rareOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_shield',
+    name: 'Bouclier de mithril',
+    category: 'shield',
+    baseStatRolls: { vitality: [6, 7, 8], armor: [7, 8, 9] },
+    rareOnlyStatRolls: { armor: [3, 4, 4] },
+    legendaryOnlyStatRolls: { vitality: [3, 4, 4] },
+  },
+  {
+    baseId: 'ritual_ward',
+    name: 'Égide rituelle',
+    category: 'shield',
+    baseStatRolls: { armor: [7, 8, 9] },
+    rareOnlyStatRolls: { vitality: [3, 4, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+
+  // --- Casques (palier 3) ---
+  {
+    baseId: 'watcher_helm',
+    name: 'Heaume du Veilleur',
+    category: 'helmet',
+    baseStatRolls: { vitality: [5, 5, 6], armor: [5, 6, 7] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_hood',
+    name: "Capuche de l'Ombre",
+    category: 'helmet',
+    baseStatRolls: { agility: [5, 6, 6], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_helm',
+    name: 'Heaume de mithril',
+    category: 'helmet',
+    baseStatRolls: { armor: [7, 8, 9], vitality: [3, 3, 4] },
+    rareOnlyStatRolls: { armor: [3, 4, 4] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_circlet',
+    name: 'Diadème rituel',
+    category: 'helmet',
+    baseStatRolls: { intelligence: [5, 6, 7], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { intelligence: [3, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+
+  // --- Torses (palier 3) ---
+  {
+    baseId: 'watcher_chest',
+    name: 'Plastron du Veilleur',
+    category: 'chest',
+    baseStatRolls: { vitality: [5, 6, 7], armor: [6, 7, 8] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_vest',
+    name: "Veste de l'Ombre",
+    category: 'chest',
+    baseStatRolls: { agility: [5, 6, 6], armor: [4, 5, 6] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_chest',
+    name: 'Cuirasse de mithril',
+    category: 'chest',
+    baseStatRolls: { vitality: [6, 7, 8], armor: [7, 8, 9] },
+    rareOnlyStatRolls: { armor: [3, 4, 4] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_robe',
+    name: 'Robe rituelle',
+    category: 'chest',
+    baseStatRolls: { intelligence: [5, 6, 7], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { intelligence: [3, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+
+  // --- Jambes (palier 3) ---
+  {
+    baseId: 'watcher_legs',
+    name: 'Jambières du Veilleur',
+    category: 'legs',
+    baseStatRolls: { vitality: [5, 5, 6], armor: [5, 6, 7] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_leggings',
+    name: "Chausses de l'Ombre",
+    category: 'legs',
+    baseStatRolls: { agility: [6, 7, 8], armor: [3, 3, 4] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_legs',
+    name: 'Jambières de mithril',
+    category: 'legs',
+    baseStatRolls: { vitality: [6, 7, 8], armor: [6, 7, 8] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_legs',
+    name: 'Bas rituels',
+    category: 'legs',
+    baseStatRolls: { intelligence: [5, 6, 6], armor: [3, 3, 4] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+
+  // --- Bottes (palier 3) ---
+  {
+    baseId: 'watcher_boots',
+    name: 'Bottes du Veilleur',
+    category: 'boots',
+    baseStatRolls: { vitality: [5, 5, 6], armor: [5, 5, 6] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_boots',
+    name: "Bottes de l'Ombre",
+    category: 'boots',
+    baseStatRolls: { agility: [6, 7, 8] },
+    rareOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_boots',
+    name: 'Bottes de mithril',
+    category: 'boots',
+    baseStatRolls: { vitality: [5, 6, 6], armor: [6, 7, 8] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_boots',
+    name: 'Bottes rituelles',
+    category: 'boots',
+    baseStatRolls: { agility: [5, 6, 6], intelligence: [3, 3, 4] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+
+  // --- Gants (palier 3) ---
+  {
+    baseId: 'watcher_gloves',
+    name: 'Gants du Veilleur',
+    category: 'gloves',
+    baseStatRolls: { strength: [5, 6, 6], armor: [5, 5, 6] },
+    legendaryOnlyStatRolls: { strength: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_gloves',
+    name: "Gants de l'Ombre",
+    category: 'gloves',
+    baseStatRolls: { agility: [6, 7, 8] },
+    rareOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { fireDamage: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_gauntlets',
+    name: 'Gantelets de mithril',
+    category: 'gloves',
+    baseStatRolls: { strength: [6, 7, 8], armor: [5, 6, 7] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_gloves',
+    name: 'Gants rituels',
+    category: 'gloves',
+    baseStatRolls: { intelligence: [6, 7, 8] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+
+  // --- Anneaux (palier 3) ---
+  {
+    baseId: 'watcher_ring',
+    name: 'Anneau du Veilleur',
+    category: 'ring',
+    baseStatRolls: { vitality: [5, 6, 7] },
+    legendaryOnlyStatRolls: { vitality: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_ring',
+    name: "Anneau de l'Ombre",
+    category: 'ring',
+    baseStatRolls: { agility: [5, 6, 7] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_ring',
+    name: 'Anneau de mithril',
+    category: 'ring',
+    baseStatRolls: { strength: [5, 6, 7] },
+    legendaryOnlyStatRolls: { strength: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_ring',
+    name: 'Anneau rituel',
+    category: 'ring',
+    baseStatRolls: { intelligence: [5, 6, 7] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+
+  // --- Amulettes (palier 3) ---
+  {
+    baseId: 'watcher_amulet',
+    name: 'Amulette du Veilleur',
+    category: 'amulet',
+    baseStatRolls: { vitality: [5, 6, 6], armor: [3, 4, 5] },
+    legendaryOnlyStatRolls: { armor: [3, 3, 4] },
+  },
+  {
+    baseId: 'shadow_amulet',
+    name: "Amulette de l'Ombre",
+    category: 'amulet',
+    baseStatRolls: { agility: [5, 6, 6], intelligence: [3, 3, 4] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+  },
+  {
+    baseId: 'mithril_amulet',
+    name: 'Amulette de mithril',
+    category: 'amulet',
+    baseStatRolls: { strength: [3, 3, 4] },
+    rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
+    legendaryOnlyStatRolls: { strength: [3, 3, 4] },
+  },
+  {
+    baseId: 'ritual_amulet',
+    name: 'Amulette rituelle',
+    category: 'amulet',
+    baseStatRolls: { intelligence: [6, 7, 8] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+
   // --- Objets signature (jamais dans le loot commun, voir plus haut) ---
   {
     baseId: 'guardian_amulet',

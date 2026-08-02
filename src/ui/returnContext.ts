@@ -36,7 +36,8 @@ export type ReturnSceneKey =
   | 'WardCore'
   | 'WatchersVault'
   | 'BrokenSleep'
-  | 'CorruptedRoot';
+  | 'CorruptedRoot'
+  | 'SealDepths';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -74,6 +75,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'WatchersVault',
   'BrokenSleep',
   'CorruptedRoot',
+  'SealDepths',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

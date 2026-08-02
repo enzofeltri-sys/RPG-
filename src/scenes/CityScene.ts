@@ -1189,7 +1189,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'watcher_hypothesis_formed') {
       this.openDialog(
-        '« Une veilleuse solitaire, voyageur — pas une ennemie. Du moins, c\'est mon hypothèse. La suite de cette histoire viendra en temps voulu. »',
+        "« Une veilleuse solitaire, voyageur — pas une ennemie. Du moins, c'est mon hypothèse. » Sélène s'arrête, songeuse. « Trois maillons trouvés, tous des symptômes d'une seule fragilité. Mais nous n'avons jamais vraiment cherché à la source elle-même — la chambre du Sceau, derrière le gardien primordial que vous avez déjà vaincu. » Elle hésite. « Si votre hypothèse sur la silhouette est juste, voyageur, c'est peut-être exactement là qu'elle se dirige en ce moment même. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'seal_depths_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'seal_depths_lead') {
+      this.openDialog(
+        '« La chambre du Sceau, voyageur. Cherchez au-delà du gardien primordial, cette fois. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'seal_depths_reached') {
+      this.openDialog(
+        "Sélène vous écoute décrire la faille, le visage de plus en plus pâle. « Pas le Roi Démon. » Elle répète, comme pour s'en convaincre. « Juste la contrainte du sceau elle-même, qui cède un peu plus, à la source de tout ce que nous avons trouvé. » Elle repose ses notes, épuisée. « Quatre maillons, voyageur. Le tombeau, la vigie, le bosquet, et maintenant la source elle-même. Ce n'est plus une chaîne isolée — c'est le sceau tout entier qui vacille. » Elle vous regarde, la voix posée mais grave. « Je ne sais pas combien de temps il nous reste. Mais je sais que nous ne sommes plus seuls à le savoir aussi. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'seal_depths_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'seal_depths_cleared') {
+      this.openDialog(
+        "« Le sceau tout entier, voyageur. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

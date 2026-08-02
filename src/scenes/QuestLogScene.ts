@@ -331,10 +331,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   watcher_hypothesis_formed: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  seal_depths_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Une faille, derrière la chambre du Sceau originel.',
+  },
+  seal_depths_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  seal_depths_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "La silhouette ne serait pas une menace, mais la dernière veilleuse encore fidèle au serment. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "La source de toute la chaîne enfin atteinte — mais pas encore comprise. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

@@ -33,6 +33,7 @@ import { WardCoreScene } from './scenes/WardCoreScene';
 import { WatchersVaultScene } from './scenes/WatchersVaultScene';
 import { BrokenSleepScene } from './scenes/BrokenSleepScene';
 import { CorruptedRootScene } from './scenes/CorruptedRootScene';
+import { SealDepthsScene } from './scenes/SealDepthsScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -153,6 +154,7 @@ async function boot(): Promise<void> {
       WatchersVaultScene,
       BrokenSleepScene,
       CorruptedRootScene,
+      SealDepthsScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

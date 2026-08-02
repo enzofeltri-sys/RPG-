@@ -8,13 +8,13 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'sealchamber_chest_1';
+const CHEST_ID = 'sealdepths_chest_1';
 
-// Same gabarit as the rest of the "moyen" dungeons (gate behind two fixed
-// encounters, boss zone beyond it, one chest) — the site where the founding
-// brotherhood sealed the Demon King three centuries ago, hidden beneath the
-// small shrine that has stood over it ever since. The hardest fight in the
-// game to date.
+// Same gabarit "moyen" que les 17 donjons précédents — une fissure trouvée
+// derrière la chambre du primordial_guardian lui-même, à la source de toute
+// la chaîne théorisée par Sélène. Palette blanc-bleu presque aveuglante,
+// distincte de tous les dungeons précédents, pour marquer la source plutôt
+// qu'un symptôme de plus.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -27,22 +27,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'brotherhood_specter', x: WORLD_WIDTH / 2, y: 320, label: 'Spectres de la confrérie' },
-  { monsterId: 'brotherhood_specter', x: WORLD_WIDTH / 2, y: 250, label: 'Spectres de la confrérie' },
+  { monsterId: 'corrupted_sentinel', x: WORLD_WIDTH / 2, y: 320, label: 'Sentinelles de la faille' },
+  { monsterId: 'corrupted_sentinel', x: WORLD_WIDTH / 2, y: 250, label: 'Sentinelles de la faille' },
 ];
 
-const BOSS_MONSTER_ID = 'primordial_guardian';
+const BOSS_MONSTER_ID = 'seal_echo';
 
-interface SealChamberData {
-  // Set by CombatScene when handing control back after a fight, or by the Menu
-  // overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes "returning
-  // mid-run" from a genuine fresh entry via the shrine's hidden altar.
+interface SealDepthsData {
+  // Set by CombatScene when handing control back after a fight, or by the
+  // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
+  // "returning mid-run" from a genuine fresh entry via the seal chamber's
+  // hidden passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class SealChamberScene extends Phaser.Scene {
+export class SealDepthsScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -58,10 +59,10 @@ export class SealChamberScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('SealChamber');
+    super('SealDepths');
   }
 
-  init(data: SealChamberData): void {
+  init(data: SealDepthsData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -71,9 +72,9 @@ export class SealChamberScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#242038');
+    this.cameras.main.setBackgroundColor('#1c2430');
 
-    addCrispText(this, this.scale.width / 2, 12, 'Chambre du Scellement', {
+    addCrispText(this, this.scale.width / 2, 12, 'La Faille du Sceau', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -103,20 +104,12 @@ export class SealChamberScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveChamber());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveDepths());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // A second, half-hidden way in, clear of the boss zone at the top of the
-    // center corridor — a fissure behind the primordial_guardian's own
-    // chamber, not visible until this far in.
-    const depthsZone = this.add.zone(200, 15, 40, 20);
-    this.physics.add.existing(depthsZone, true);
-    this.physics.add.overlap(this.player, depthsZone, () => this.enterSealDepths());
-    addCrispText(this, 200, 28, 'Faille ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -138,7 +131,7 @@ export class SealChamberScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'SealChamber',
+        'SealDepths',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -157,7 +150,7 @@ export class SealChamberScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const pillar = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2a2440).setStrokeStyle(1, 0x14101f);
+      const rect = this.add.rectangle(x, y, w, h, 0x28323e).setStrokeStyle(1, 0x10161c);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -169,11 +162,11 @@ export class SealChamberScene extends Phaser.Scene {
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2a2440)
-      .setStrokeStyle(1, 0x14101f);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x28323e)
+      .setStrokeStyle(1, 0x10161c);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Runes du Sceau originel', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Lumière figée', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -188,7 +181,7 @@ export class SealChamberScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x3a3450, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x323c48, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -212,8 +205,8 @@ export class SealChamberScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x1f1a30, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'Cœur du Sceau', {
+    this.add.rectangle(x, y, 50, 50, 0x0e141c, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'La source', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -233,7 +226,7 @@ export class SealChamberScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'SealChamber', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'SealDepths', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -271,21 +264,12 @@ export class SealChamberScene extends Phaser.Scene {
     });
   }
 
-  private enterSealDepths(): void {
+  private leaveDepths(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('SealDepths', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveChamber(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Shrine', { x: 100, y: 70 });
+      this.scene.start('SealChamber', { x: 30, y: 30 });
     });
   }
 }

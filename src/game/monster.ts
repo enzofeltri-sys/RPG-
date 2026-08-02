@@ -343,6 +343,21 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 150,
     isBoss: true,
   },
+  // Une fissure vivante, trouvée derrière la chambre du primordial_guardian
+  // lui-même — pas le Roi Démon, seulement la contrainte du sceau qui cède
+  // un peu plus, ici, à la source de toute la chaîne. Comme demon_envoy, ne
+  // porte aucune récompense signature : tous les emplacements d'équipement
+  // ont déjà la leur, et cette rencontre reste volontairement un symptôme
+  // de plus, pas une conclusion.
+  seal_echo: {
+    id: 'seal_echo',
+    name: 'Écho du Sceau',
+    maxHp: 220,
+    attack: 31,
+    xpReward: 530,
+    goldReward: 160,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

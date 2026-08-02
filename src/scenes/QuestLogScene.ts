@@ -371,10 +371,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   reinforcement_plan_started: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  rite_archive_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Un passage plus profond, dans la Loge des Veilleurs.',
+  },
+  rite_archive_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  rite_archive_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Comprendre ne suffit plus — il faut désormais chercher comment réparer le sceau. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Les instructions du rite de scellement, en partie retrouvées. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

@@ -85,6 +85,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // La loge où l'Ordre des Veilleurs se réunissait autrefois, révélée par
   // les marques gravées sur le fragment laissé au joueur.
   { key: 'WatchersLodge', label: 'La Loge des Veilleurs', region: 'start', x: 200, y: 165 },
+
+  // Ce que la loge gardait de plus précieux : les instructions du rite de
+  // scellement lui-même, plus profondes que la table ronde.
+  { key: 'RiteArchive', label: 'Les Archives du Rite', region: 'start', x: 200, y: 110 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -123,12 +127,13 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['BlightedGrove', 'CorruptedRoot'],
   ['SealChamber', 'SealDepths'],
   ['Shrine', 'WatchersLodge'],
+  ['WatchersLodge', 'RiteArchive'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'reinforcement_plan_started') have no
-// entry: that chapter is closed, nothing left to point at for now.
+// with no further lead (currently 'rite_archive_cleared') have no entry:
+// that chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
   dungeon: 'Dungeon',
@@ -199,6 +204,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   lodge_lead: 'Shrine',
   lodge_reached: 'City',
   lodge_cleared: 'City',
+  reinforcement_plan_started: 'City',
+  rite_archive_lead: 'WatchersLodge',
+  rite_archive_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

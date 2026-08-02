@@ -1305,7 +1305,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'reinforcement_plan_started') {
       this.openDialog(
-        "« Réparer, pas seulement comprendre, voyageur. La suite de cette histoire viendra en temps voulu. »",
+        "« Réparer, pas seulement comprendre, voyageur. » Sélène s'arrête net, comme frappée par une évidence. « La Loge. Nous n'avons vu que la table ronde, l'endroit où l'Ordre se réunissait — pas où il gardait ses écrits. Un ordre qui a posé un sceau pareil n'a certainement pas confié la méthode à la seule mémoire. » Elle referme son grimoire d'un coup sec. « S'il existe des instructions quelque part, voyageur, c'est là qu'elles doivent être. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rite_archive_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'rite_archive_lead') {
+      this.openDialog(
+        '« Retournez à la Loge, voyageur. Cherchez plus profond que la table ronde, cette fois. »',
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'rite_archive_reached') {
+      this.openDialog(
+        "Sélène étale sur sa table les pages récupérées, encore fragiles après trois siècles. « Ce n'est pas complet, voyageur — des pages manquent, d'autres sont illisibles. Mais c'est plus que nous n'en avions espéré. » Elle suit du doigt une ligne, pensive. « Le rite original demandait plusieurs mains, à plusieurs endroits, au même instant. Pas un sortilège qu'on lance seul. » Elle relève les yeux vers vous. « Si nous devons le refaire, voyageur, nous ne pourrons pas le faire à deux. Il nous faudra du monde — et peut-être elle, aussi. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rite_archive_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'rite_archive_cleared') {
+      this.openDialog(
+        "« Plusieurs mains, voyageur, à plusieurs endroits. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

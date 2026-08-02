@@ -375,6 +375,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 170,
     isBoss: true,
   },
+  // Le dernier gardien de la loge, posté devant ce que l'Ordre a laissé de
+  // plus précieux : les instructions du rite de scellement lui-même, pas
+  // seulement son souvenir.
+  rite_guardian: {
+    id: 'rite_guardian',
+    name: 'Gardien du Rite',
+    maxHp: 250,
+    attack: 35,
+    xpReward: 590,
+    goldReward: 180,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

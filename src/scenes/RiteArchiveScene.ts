@@ -8,13 +8,13 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'watcherslodge_chest_1';
+const CHEST_ID = 'ritearchive_chest_1';
 
-// Same gabarit "moyen" que les 18 donjons précédents — la loge où l'Ordre
-// des Veilleurs se réunissait autrefois, révélée par les marques gravées sur
-// le fragment laissé au joueur. Palette chaude, presque accueillante,
-// distincte de tous les dungeons précédents : ce lieu n'a jamais été
-// hostile, seulement oublié.
+// Same gabarit "moyen" que les 19 donjons précédents — ce que la Loge des
+// Veilleurs gardait de plus précieux, plus profond que la table ronde où le
+// joueur a rencontré la silhouette. Palette parcheminée chaude, cousine de
+// celle de la Voûte des Veilleurs (sous les Archives d'Aiglemont), pour
+// marquer une autre bibliothèque de l'Ordre plutôt qu'un lieu hostile.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -31,19 +31,19 @@ const ENCOUNTERS: EncounterMarker[] = [
   { monsterId: 'watcher_echo', x: WORLD_WIDTH / 2, y: 250, label: 'Échos de veilleurs' },
 ];
 
-const BOSS_MONSTER_ID = 'oath_guardian';
+const BOSS_MONSTER_ID = 'rite_guardian';
 
-interface WatchersLodgeData {
+interface RiteArchiveData {
   // Set by CombatScene when handing control back after a fight, or by the
   // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
-  // "returning mid-run" from a genuine fresh entry via the shrine's stone
-  // circle.
+  // "returning mid-run" from a genuine fresh entry via the lodge's hidden
+  // passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class WatchersLodgeScene extends Phaser.Scene {
+export class RiteArchiveScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -59,10 +59,10 @@ export class WatchersLodgeScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('WatchersLodge');
+    super('RiteArchive');
   }
 
-  init(data: WatchersLodgeData): void {
+  init(data: RiteArchiveData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -72,9 +72,9 @@ export class WatchersLodgeScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#332a20');
+    this.cameras.main.setBackgroundColor('#302818');
 
-    addCrispText(this, this.scale.width / 2, 12, 'La Loge des Veilleurs', {
+    addCrispText(this, this.scale.width / 2, 12, 'Les Archives du Rite', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -92,7 +92,7 @@ export class WatchersLodgeScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.tapControl = new TapController(this, this.player);
 
-    this.addBeams();
+    this.addShelves();
     const remaining = ENCOUNTERS.filter((e) => !this.clearedMonsterIds.has(e.monsterId + e.y));
     if (remaining.length > 0) {
       this.addGate();
@@ -104,20 +104,12 @@ export class WatchersLodgeScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveLodge());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveArchive());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // A second, half-hidden way in, clear of the boss zone at the top of the
-    // center corridor — a door the table's own carvings pointed toward, not
-    // visible until the lodge itself had been walked once.
-    const archiveZone = this.add.zone(20, 15, 40, 20);
-    this.physics.add.existing(archiveZone, true);
-    this.physics.add.overlap(this.player, archiveZone, () => this.enterRiteArchive());
-    addCrispText(this, 20, 28, 'Archives ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -139,7 +131,7 @@ export class WatchersLodgeScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'WatchersLodge',
+        'RiteArchive',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -154,27 +146,27 @@ export class WatchersLodgeScene extends Phaser.Scene {
     this.tapControl.update(delta);
   }
 
-  private addBeams(): void {
+  private addShelves(): void {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
-    const beam = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x3d3224).setStrokeStyle(1, 0x1a140d);
+    const shelf = (x: number, y: number, w: number, h: number) => {
+      const rect = this.add.rectangle(x, y, w, h, 0x3a3020).setStrokeStyle(1, 0x18140c);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
-    beam(20, 360, 24, 60);
-    beam(WORLD_WIDTH - 20, 280, 24, 60);
-    beam(20, 140, 24, 60);
-    beam(WORLD_WIDTH - 20, 360, 24, 60);
+    shelf(20, 360, 24, 60);
+    shelf(WORLD_WIDTH - 20, 280, 24, 60);
+    shelf(20, 140, 24, 60);
+    shelf(WORLD_WIDTH - 20, 360, 24, 60);
   }
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3d3224)
-      .setStrokeStyle(1, 0x1a140d);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x3a3020)
+      .setStrokeStyle(1, 0x18140c);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Porte close depuis longtemps', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Rayonnages verrouillés', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -189,7 +181,7 @@ export class WatchersLodgeScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x453a2c, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x423722, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -213,8 +205,8 @@ export class WatchersLodgeScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x241e14, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, 'La table ronde', {
+    this.add.rectangle(x, y, 50, 50, 0x1e1810, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Le dernier rayonnage', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -234,7 +226,7 @@ export class WatchersLodgeScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'WatchersLodge', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'RiteArchive', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -272,21 +264,12 @@ export class WatchersLodgeScene extends Phaser.Scene {
     });
   }
 
-  private enterRiteArchive(): void {
+  private leaveArchive(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('RiteArchive', { x: 110, y: 380 });
-    });
-  }
-
-  private leaveLodge(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Shrine', { x: 150, y: 260 });
+      this.scene.start('WatchersLodge', { x: 30, y: 30 });
     });
   }
 }

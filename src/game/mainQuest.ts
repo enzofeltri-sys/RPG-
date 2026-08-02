@@ -83,7 +83,10 @@ export type MainQuestStage =
   | 'lodge_lead'
   | 'lodge_reached'
   | 'lodge_cleared'
-  | 'reinforcement_plan_started';
+  | 'reinforcement_plan_started'
+  | 'rite_archive_lead'
+  | 'rite_archive_reached'
+  | 'rite_archive_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -136,6 +139,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   second_token_found: { xp: 380, itemBaseId: 'leather_boots', itemRarity: 'rare' },
   lodge_cleared: { xp: 560, itemBaseId: 'simple_ring', itemRarity: 'epic' },
   reinforcement_plan_started: { xp: 400, itemBaseId: 'simple_amulet', itemRarity: 'rare' },
+  rite_archive_cleared: { xp: 590, itemBaseId: 'leather_chest', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -170,6 +174,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   blight_root: { fromStage: 'grove_depths_lead', toStage: 'grove_depths_reached' },
   seal_echo: { fromStage: 'seal_depths_lead', toStage: 'seal_depths_reached' },
   oath_guardian: { fromStage: 'lodge_lead', toStage: 'lodge_reached' },
+  rite_guardian: { fromStage: 'rite_archive_lead', toStage: 'rite_archive_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

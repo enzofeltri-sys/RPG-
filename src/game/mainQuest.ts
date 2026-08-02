@@ -117,7 +117,8 @@ export type MainQuestStage =
   | 'third_site_lead'
   | 'third_site_reached'
   | 'third_site_cleared'
-  | 'recruiting_help';
+  | 'recruiting_help'
+  | 'ally_secured';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -186,6 +187,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   third_site_awaited: { xp: 450, itemBaseId: 'shadow_ring', itemRarity: 'rare' },
   third_site_cleared: { xp: 860, itemBaseId: 'mithril_chest', itemRarity: 'epic' },
   recruiting_help: { xp: 470, itemBaseId: 'ritual_ring', itemRarity: 'rare' },
+  ally_secured: { xp: 490, itemBaseId: 'watcher_ring', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

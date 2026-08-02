@@ -76,6 +76,52 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultType: 'consumable',
     resultConsumableId: 'health_potion_greater',
   },
+  // "Artisan" line — the only way to obtain these 4 items (see item.ts's
+  // craftOnly flag): never dropped, never rolled. Costs real farming across
+  // two dungeon tiers (steel_ingot from Acte 2, mithril_shard from Acte 3),
+  // capped at 3 distinct materials per recipe (well under the 5-resource
+  // ceiling) with quantities high enough that gathering them takes real
+  // playtime, not a lucky single kill.
+  craft_artisan_blade: {
+    id: 'craft_artisan_blade',
+    name: "Lame de l'artisan",
+    description: "Forger une lame d'exception en combinant mithril raffiné et acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 4, mithril_shard_rare: 2, steel_ingot: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_blade',
+    resultItemRarity: 'epic',
+  },
+  craft_artisan_amulet: {
+    id: 'craft_artisan_amulet',
+    name: "Amulette de l'artisan",
+    description: "Sertir un éclat de mithril pur dans une monture d'acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 4, mithril_shard_rare: 2, steel_ingot: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_amulet',
+    resultItemRarity: 'epic',
+  },
+  craft_artisan_ring: {
+    id: 'craft_artisan_ring',
+    name: "Anneau de l'artisan",
+    description: 'Couler un anneau fin à partir de mithril raffiné.',
+    station: 'forge',
+    materials: { mithril_shard: 3, mithril_shard_rare: 2, steel_ingot: 2 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_ring',
+    resultItemRarity: 'epic',
+  },
+  craft_artisan_gloves: {
+    id: 'craft_artisan_gloves',
+    name: "Gants de l'artisan",
+    description: "Doubler des gants d'acier trempé avec du mithril pur.",
+    station: 'forge',
+    materials: { mithril_shard: 3, mithril_shard_rare: 2, steel_ingot: 2 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_gloves',
+    resultItemRarity: 'epic',
+  },
 };
 
 export function canCraft(character: Character, recipeId: string): boolean {

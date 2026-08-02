@@ -541,10 +541,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   recruiting_help: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  ally_secured: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Trois sites, trois mains, mais pas assez de bras. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Le capitaine Bregan prêtera main-forte pour les deux sites extérieurs. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

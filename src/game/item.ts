@@ -78,6 +78,13 @@ interface ItemTemplate {
   // stays a genuinely special, exclusive find rather than diluting the
   // common loot table.
   signature?: boolean;
+  // Like signature items, never dropped or rolled — the only way to obtain
+  // one is the matching recipe in recipe.ts, which costs farmed materials
+  // (see material.ts's steel_ingot/mithril_shard). Purely a documentation/UI
+  // flag (see isCraftOnly()) — exclusion from LOOTABLE_TEMPLATES_BY_TIER
+  // already happens because these templates carry no `tier`, same mechanism
+  // as signature items.
+  craftOnly?: boolean;
 }
 
 // Palier 1 (région de départ) — 4 objets nommés par emplacement au lieu d'un
@@ -1144,7 +1151,49 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
+
+  // --- Objets d'artisanat (jamais dans le loot, uniquement via recipe.ts) ---
+  // Always crafted at 'epic' (see recipe.ts's craft_artisan_* recipes) — a
+  // small, deliberate edge over an equivalent palier-3 epic drop (e.g. more
+  // generous rareOnly line) rewards the material grind without outclassing
+  // a lucky legendary find, which stays the higher ceiling.
+  {
+    baseId: 'artisan_blade',
+    name: "Lame de l'artisan",
+    category: 'weapon',
+    craftOnly: true,
+    baseStatRolls: { strength: [7, 8, 9] },
+    rareOnlyStatRolls: { fireDamage: [5, 6, 7] },
+  },
+  {
+    baseId: 'artisan_amulet',
+    name: "Amulette de l'artisan",
+    category: 'amulet',
+    craftOnly: true,
+    baseStatRolls: { vitality: [6, 7, 8], armor: [5, 6, 7] },
+    rareOnlyStatRolls: { armor: [3, 4, 4] },
+  },
+  {
+    baseId: 'artisan_ring',
+    name: "Anneau de l'artisan",
+    category: 'ring',
+    craftOnly: true,
+    baseStatRolls: { intelligence: [6, 7, 8], agility: [3, 3, 4] },
+    rareOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+  {
+    baseId: 'artisan_gloves',
+    name: "Gants de l'artisan",
+    category: 'gloves',
+    craftOnly: true,
+    baseStatRolls: { agility: [6, 7, 8], strength: [3, 3, 4] },
+    rareOnlyStatRolls: { agility: [3, 3, 4] },
+  },
 ];
+
+export function isCraftOnly(baseId: string): boolean {
+  return TEMPLATES.find((t) => t.baseId === baseId)?.craftOnly === true;
+}
 
 // Panoplies (équipement sets) — built entirely from existing signature
 // items already thematically grouped by dungeon/story arc, not a new loot

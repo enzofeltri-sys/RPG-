@@ -9,6 +9,7 @@ import {
   compareItemStats,
   isUpgrade,
   describeItemSetDetail,
+  isCraftOnly,
 } from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
 import { materialLabel, isRareMaterial } from '../game/material';
@@ -366,6 +367,7 @@ export class BagScene extends Phaser.Scene {
     const lines = compareItemStats(item, equipped);
     const setLines = describeItemSetDetail(item.baseId, this.character.equipment);
     if (setLines.length > 0) lines.push('', ...setLines);
+    if (isCraftOnly(item.baseId)) lines.push('', 'Objet d\'artisanat — jamais en butin, uniquement à la Forge.');
     this.detailTitle.setText(`${item.name} (${RARITY_LABELS[item.rarity]})`).setColor(RARITY_COLORS[item.rarity]);
     this.detailStats.setText(lines.length ? lines.join('\n') : 'Aucun bonus de statistique.');
     this.resetDiscardButton();

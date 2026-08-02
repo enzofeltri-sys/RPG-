@@ -66,6 +66,15 @@ const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corr
 const BEAST_LEATHER_CHANCE = 0.25;
 const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 
+// Farmable crafting materials tied to dungeon tier rather than monster
+// identity (see grantMaterial in victory()) — lets the Acte 2/3 "artisan"
+// recipes (see recipe.ts) require real, repeatable farming instead of
+// relying on rare loot RNG.
+const TIER_MATERIAL: Record<2 | 3, { common: string; rare: string; commonChance: number; rareChance: number }> = {
+  2: { common: 'steel_ingot', rare: 'steel_ingot_rare', commonChance: 0.25, rareChance: 0.5 },
+  3: { common: 'mithril_shard', rare: 'mithril_shard_rare', commonChance: 0.25, rareChance: 0.5 },
+};
+
 interface CombatData {
   returnScene?: ReturnSceneKey;
   monsterId?: string;
@@ -248,7 +257,20 @@ export class CombatScene extends Phaser.Scene {
 
   private enemyTurn(): void {
     const armor = getEffectiveStats(this.character).armor;
-    const damage = Math.max(1, this.monster.attack + Phaser.Math.Between(-1, 2) - armor);
+    const rawAttack = this.monster.attack + Phaser.Math.Between(-1, 2);
+    // Armor can mitigate at most 60% of the monster's base attack — a tier-3
+    // character stacks armor from several equipped slots at once (helmet/
+    // chest/legs/boots/shield/gloves all roll it), which under plain flat
+    // subtraction could exceed any boss's attack stat outright and floor
+    // every hit to the 1-damage minimum, making a fully-geared player
+    // unkillable regardless of the fight. Capping how much of an attack
+    // armor can ever cancel keeps the flat-subtraction feel identical to
+    // before for any reasonable armor total (the cap only engages once
+    // armor already exceeds 60% of the attack it's mitigating) while
+    // guaranteeing late-game fights keep some real risk no matter how much
+    // armor is stacked.
+    const effectiveArmor = Math.min(armor, this.monster.attack * 0.6);
+    const damage = Math.max(1, Math.round(rawAttack - effectiveArmor));
     this.character.hp = Math.max(0, this.character.hp - damage);
     this.refreshBars();
     playHit();
@@ -313,19 +335,41 @@ export class CombatScene extends Phaser.Scene {
       this.character.inventory.push(signatureItem);
     }
 
-    let materialDrop: string | null = null;
+    const materialDrops: string[] = [];
+    const grantMaterial = (materialId: string | null) => {
+      if (!materialId) return;
+      this.character.materials[materialId] = (this.character.materials[materialId] ?? 0) + 1;
+      materialDrops.push(materialId);
+    };
+
     if (BEAST_MONSTER_IDS.has(this.monster.id)) {
-      const materialId = this.monster.isBoss
-        ? Math.random() < BEAST_BOSS_RARE_LEATHER_CHANCE
-          ? 'leather_rare'
-          : null
-        : Math.random() < BEAST_LEATHER_CHANCE
-          ? 'leather'
-          : null;
-      if (materialId) {
-        this.character.materials[materialId] = (this.character.materials[materialId] ?? 0) + 1;
-        materialDrop = materialId;
-      }
+      grantMaterial(
+        this.monster.isBoss
+          ? Math.random() < BEAST_BOSS_RARE_LEATHER_CHANCE
+            ? 'leather_rare'
+            : null
+          : Math.random() < BEAST_LEATHER_CHANCE
+            ? 'leather'
+            : null,
+      );
+    }
+
+    // Every fight in a tier-2/3 dungeon has a chance to drop that tier's
+    // crafting material, independent of monster identity — ties farming
+    // directly to "fight in the right zone" rather than a curated monster
+    // list, which would otherwise miss reused monster ids that also appear
+    // in earlier-tier zones (e.g. corrupted_knight spans tiers 2 and 3).
+    const tierMaterial = TIER_MATERIAL[lootTier as 2 | 3];
+    if (tierMaterial) {
+      grantMaterial(
+        this.monster.isBoss
+          ? Math.random() < tierMaterial.rareChance
+            ? tierMaterial.rare
+            : null
+          : Math.random() < tierMaterial.commonChance
+            ? tierMaterial.common
+            : null,
+      );
     }
 
     const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
@@ -340,7 +384,12 @@ export class CombatScene extends Phaser.Scene {
         : `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
-    const materialPart = materialDrop ? ` Ressource récupérée : ${materialLabel(materialDrop)}.` : '';
+    const materialPart =
+      materialDrops.length > 0
+        ? ` Ressource${materialDrops.length > 1 ? 's récupérées' : ' récupérée'} : ${materialDrops
+            .map((id) => materialLabel(id))
+            .join(', ')}.`
+        : '';
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
     const mainQuestPart = mainQuestAdvanced ? ' La marque à votre poignet palpite soudain...' : '';

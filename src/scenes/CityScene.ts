@@ -1801,7 +1801,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'recruiting_help') {
       this.openDialog(
-        "« Trouver d'autres mains, voyageur. Ce ne sera pas simple — qui croirait une histoire pareille sans preuve ? La suite de cette histoire viendra en temps voulu. »",
+        "« Trouver d'autres mains, voyageur, mais des mains qui ne poseront pas trop de questions. » Sélène réfléchit un instant, puis son regard s'éclaire. « Le capitaine Bregan. Il a déjà vu ce que la corruption fait aux terres autour d'Aiglemont, il sait que quelque chose cloche depuis des mois — et il vous fait confiance. S'il accepte de détacher quelques hommes sans exiger toute la vérité, ça suffira pour tenir les deux sites extérieurs pendant que nous tenons le principal. Laissez-moi lui en toucher un mot avant que vous n'y alliez vous-même ; ce sera mieux reçu venant de moi, entre gens d'Aiglemont. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'ally_secured');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'ally_secured') {
+      this.openDialog(
+        "« C'est fait, voyageur. » Sélène a l'air à la fois soulagée et un peu incrédule. « Bregan a accepté sans même discuter le prix — il a juste demandé qu'on lui explique, un jour, ce que tout cela voulait dire. Ses hommes tiendront les deux sites extérieurs le moment venu. Reste le site principal : vous, moi, et elle. » Un temps. « Nous avons ce qu'il nous faut. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

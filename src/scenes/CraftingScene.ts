@@ -12,11 +12,14 @@ const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const OK_COLOR = '#5fbf6a';
 
-// Kept small enough that a recipe's full block (name/description/requirements/
-// button) never encroaches on the fixed status/pagination/Retour row below —
-// necessary once more than a couple of recipes exist (5 now, after the
-// resource-rarity crafting increment).
-const PAGE_SIZE = 2;
+// One recipe per page: the "artisan" recipes (3 materials with longer
+// French labels — see recipe.ts) wrap to more lines than the original
+// 1-2-material recipes did, so a fixed 2-per-page budget risked the second
+// block's text overlapping the fixed status/pagination/Retour row below.
+// Dynamic per-recipe height (see renderRecipe) already prevents overlap
+// within a page; keeping to 1 per page keeps that margin comfortable
+// without needing to shrink fonts or descriptions.
+const PAGE_SIZE = 1;
 
 interface CraftingData {
   x?: number;
@@ -64,8 +67,7 @@ export class CraftingScene extends Phaser.Scene {
 
     let y = 40;
     pageRecipes.forEach((recipe) => {
-      this.renderRecipe(recipe, y);
-      y += 100;
+      y += this.renderRecipe(recipe, y) + 14;
     });
 
     this.statusText = addCrispText(this, width / 2, 250, '', { fontSize: '10px', color: GOLD }).setOrigin(0.5);
@@ -112,18 +114,27 @@ export class CraftingScene extends Phaser.Scene {
     );
   }
 
-  private renderRecipe(recipe: RecipeDefinition, startY: number): void {
+  // Returns the total height used, measured from actual rendered text
+  // heights rather than fixed offsets — a 3-material "artisan" recipe (see
+  // recipe.ts) wraps its requirement line to more rows than the original
+  // 1-2-material recipes did, and a fixed offset would either waste space
+  // on short recipes or overlap the button on long ones.
+  private renderRecipe(recipe: RecipeDefinition, startY: number): number {
     const { width } = this.scale;
     let y = startY;
     const stationLabel = recipe.station === 'forge' ? 'Forge' : 'Alchimie';
-    addCrispText(this, 12, y, `${recipe.name} (${stationLabel})`, { fontSize: '12px', color: GOLD });
-    y += 18;
-    addCrispText(this, 12, y, recipe.description, {
+    const nameText = addCrispText(this, 12, y, `${recipe.name} (${stationLabel})`, {
+      fontSize: '12px',
+      color: GOLD,
+    });
+    y += nameText.height + 4;
+
+    const descText = addCrispText(this, 12, y, recipe.description, {
       fontSize: '9px',
       color: MUTED,
       wordWrap: { width: width - 24 },
     });
-    y += 22;
+    y += descText.height + 6;
 
     const requirementLines = Object.entries(recipe.materials)
       .map(([materialId, count]) => {
@@ -131,11 +142,12 @@ export class CraftingScene extends Phaser.Scene {
         return `${materialLabel(materialId)} : ${owned}/${count}`;
       })
       .join('   ');
-    addCrispText(this, 12, y, requirementLines, {
+    const reqText = addCrispText(this, 12, y, requirementLines, {
       fontSize: '9px',
       color: canCraft(this.character, recipe.id) ? OK_COLOR : MUTED,
+      wordWrap: { width: width - 24 },
     });
-    y += 20;
+    y += reqText.height + 8;
 
     const button = addCrispText(this, 12, y, 'Fabriquer', {
       fontSize: '10px',
@@ -146,6 +158,9 @@ export class CraftingScene extends Phaser.Scene {
     button.setAlpha(canCraft(this.character, recipe.id) ? 1 : 0.5);
     button.on('pointerdown', () => this.handleCraft(recipe.id));
     this.craftButtons.push(button);
+    y += button.height;
+
+    return y - startY;
   }
 
   private goToPage(page: number): void {

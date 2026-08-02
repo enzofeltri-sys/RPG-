@@ -12,10 +12,12 @@ export type EquipSlot =
 
 export type ItemCategory = EquipSlot | 'ring';
 
-// 'epic' is the first step beyond rare, reserved for hard-dungeon boss
-// rewards — légendaire/unique (per VISION.md's full rarity ladder) come
-// later as more of that high-end content exists to place them in.
-export type Rarity = 'common' | 'rare' | 'epic';
+// 'legendary' only drops from a 'legendary'-tier monster encounter (see
+// EncounterTier in monster.ts — itself already a ~1% roll), so getting one
+// means clearing two rare rolls in a row. 'unique' (per VISION.md's full
+// rarity ladder) comes later — the signature items already fill that role
+// narratively, just not under that literal name yet.
+export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export interface ItemStats {
   strength?: number;
@@ -61,6 +63,11 @@ interface ItemTemplate {
   // sword that only catches fire once it's a rare drop. Same independent
   // 3-variant roll per line as baseStatRolls.
   rareOnlyStatRolls?: Partial<Record<keyof ItemStats, StatRoll>>;
+  // A further stat line, on top of rareOnlyStatRolls, only rolled when the
+  // item comes out legendary — stacks with the rare-tier line rather than
+  // replacing it, so a legendary item has strictly every line a lower
+  // rarity of the same template could have, plus this one.
+  legendaryOnlyStatRolls?: Partial<Record<keyof ItemStats, StatRoll>>;
   // Never appears in the general rollLootItem() pool — granted directly by a
   // specific hard-dungeon boss (see CombatScene's SIGNATURE_REWARDS), so it
   // stays a genuinely special, exclusive find rather than diluting the
@@ -80,6 +87,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'weapon',
     baseStatRolls: { strength: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    legendaryOnlyStatRolls: { strength: [1, 2, 2] },
   },
   {
     baseId: 'dagger_thief',
@@ -87,6 +95,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'weapon',
     baseStatRolls: { agility: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
+    legendaryOnlyStatRolls: { agility: [1, 2, 2] },
   },
   {
     baseId: 'broken_sword',
@@ -94,6 +103,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'weapon',
     baseStatRolls: { strength: [1, 1, 2] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    legendaryOnlyStatRolls: { fireDamage: [1, 2, 2] },
   },
   {
     baseId: 'apprentice_blade',
@@ -101,6 +111,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'weapon',
     baseStatRolls: { strength: [1, 2, 2], intelligence: [1, 1, 2] },
     rareOnlyStatRolls: { fireDamage: [1, 2, 3] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
 
   // --- Boucliers ---
@@ -109,6 +120,7 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Bouclier en bois',
     category: 'shield',
     baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [1, 2, 2] },
   },
   {
     baseId: 'buckler',
@@ -116,6 +128,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'shield',
     baseStatRolls: { agility: [1, 2, 2], armor: [1, 2, 3] },
     rareOnlyStatRolls: { agility: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'tower_shield',
@@ -123,6 +136,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'shield',
     baseStatRolls: { vitality: [2, 3, 4], armor: [3, 4, 5] },
     rareOnlyStatRolls: { armor: [1, 2, 2] },
+    legendaryOnlyStatRolls: { vitality: [1, 2, 2] },
   },
   {
     baseId: 'reinforced_shield',
@@ -130,6 +144,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'shield',
     baseStatRolls: { armor: [3, 4, 5] },
     rareOnlyStatRolls: { vitality: [1, 2, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
 
   // --- Casques ---
@@ -138,6 +153,7 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Casque de cuir',
     category: 'helmet',
     baseStatRolls: { vitality: [1, 1, 2], armor: [1, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'rogue_hood',
@@ -145,6 +161,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'helmet',
     baseStatRolls: { agility: [1, 2, 2], armor: [1, 1, 2] },
     rareOnlyStatRolls: { agility: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'iron_cap',
@@ -152,6 +169,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'helmet',
     baseStatRolls: { armor: [2, 3, 4], vitality: [1, 1, 1] },
     rareOnlyStatRolls: { armor: [1, 1, 2] },
+    legendaryOnlyStatRolls: { vitality: [1, 1, 2] },
   },
   {
     baseId: 'simple_circlet',
@@ -159,6 +177,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'helmet',
     baseStatRolls: { intelligence: [1, 2, 2], armor: [1, 1, 2] },
     rareOnlyStatRolls: { intelligence: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
 
   // --- Torses ---
@@ -167,12 +186,14 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Plastron de cuir',
     category: 'chest',
     baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+    legendaryOnlyStatRolls: { armor: [1, 2, 2] },
   },
   {
     baseId: 'padded_vest',
     name: 'Gilet matelassé',
     category: 'chest',
     baseStatRolls: { agility: [1, 2, 2], armor: [1, 2, 3] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
   {
     baseId: 'light_chainmail',
@@ -180,6 +201,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'chest',
     baseStatRolls: { vitality: [2, 3, 4], armor: [3, 4, 5] },
     rareOnlyStatRolls: { armor: [1, 2, 2] },
+    legendaryOnlyStatRolls: { vitality: [1, 1, 2] },
   },
   {
     baseId: 'simple_robe',
@@ -187,6 +209,7 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'chest',
     baseStatRolls: { intelligence: [1, 2, 3], armor: [1, 1, 2] },
     rareOnlyStatRolls: { intelligence: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
 
   // --- Jambes ---
@@ -195,24 +218,28 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Jambières de cuir',
     category: 'legs',
     baseStatRolls: { vitality: [1, 1, 2], agility: [1, 1, 2], armor: [1, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'studded_legs',
     name: 'Jambières cloutées',
     category: 'legs',
     baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+    legendaryOnlyStatRolls: { vitality: [1, 1, 2] },
   },
   {
     baseId: 'light_leggings',
     name: 'Chausses légères',
     category: 'legs',
     baseStatRolls: { agility: [2, 3, 4], armor: [1, 1, 2] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
   {
     baseId: 'robe_legs',
     name: 'Bas de robe',
     category: 'legs',
     baseStatRolls: { intelligence: [1, 2, 2], armor: [1, 1, 2] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
 
   // --- Bottes ---
@@ -221,6 +248,7 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Bottes de cuir',
     category: 'boots',
     baseStatRolls: { agility: [1, 2, 3], armor: [1, 1, 2] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
   {
     baseId: 'swift_boots',
@@ -228,18 +256,21 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'boots',
     baseStatRolls: { agility: [2, 3, 4] },
     rareOnlyStatRolls: { agility: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'iron_boots',
     name: 'Bottes ferrées',
     category: 'boots',
     baseStatRolls: { vitality: [1, 2, 2], armor: [2, 3, 4] },
+    legendaryOnlyStatRolls: { vitality: [1, 1, 2] },
   },
   {
     baseId: 'travelers_boots',
     name: 'Bottes de voyageur',
     category: 'boots',
     baseStatRolls: { agility: [1, 2, 2], vitality: [1, 2, 2] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
 
   // --- Gants ---
@@ -248,6 +279,7 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Gants de cuir',
     category: 'gloves',
     baseStatRolls: { strength: [1, 1, 2], armor: [1, 1, 2] },
+    legendaryOnlyStatRolls: { strength: [1, 1, 2] },
   },
   {
     baseId: 'thief_gloves',
@@ -255,25 +287,52 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'gloves',
     baseStatRolls: { agility: [1, 2, 3] },
     rareOnlyStatRolls: { agility: [1, 1, 2] },
+    legendaryOnlyStatRolls: { fireDamage: [1, 1, 2] },
   },
   {
     baseId: 'scholar_gloves',
     name: "Gants d'étude",
     category: 'gloves',
     baseStatRolls: { intelligence: [1, 2, 3] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
   {
     baseId: 'iron_gauntlets',
     name: 'Gantelets de fer',
     category: 'gloves',
     baseStatRolls: { strength: [2, 3, 4], armor: [1, 2, 3] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
 
   // --- Anneaux ---
-  { baseId: 'simple_ring', name: 'Anneau simple', category: 'ring', baseStatRolls: { intelligence: [1, 1, 2] } },
-  { baseId: 'strength_ring', name: 'Anneau de force', category: 'ring', baseStatRolls: { strength: [1, 2, 3] } },
-  { baseId: 'agility_ring', name: "Anneau d'agilité", category: 'ring', baseStatRolls: { agility: [1, 2, 3] } },
-  { baseId: 'vitality_ring', name: 'Anneau de vitalité', category: 'ring', baseStatRolls: { vitality: [1, 2, 3] } },
+  {
+    baseId: 'simple_ring',
+    name: 'Anneau simple',
+    category: 'ring',
+    baseStatRolls: { intelligence: [1, 1, 2] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
+  },
+  {
+    baseId: 'strength_ring',
+    name: 'Anneau de force',
+    category: 'ring',
+    baseStatRolls: { strength: [1, 2, 3] },
+    legendaryOnlyStatRolls: { strength: [1, 1, 2] },
+  },
+  {
+    baseId: 'agility_ring',
+    name: "Anneau d'agilité",
+    category: 'ring',
+    baseStatRolls: { agility: [1, 2, 3] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'vitality_ring',
+    name: 'Anneau de vitalité',
+    category: 'ring',
+    baseStatRolls: { vitality: [1, 2, 3] },
+    legendaryOnlyStatRolls: { vitality: [1, 1, 2] },
+  },
 
   // --- Amulettes ---
   {
@@ -281,6 +340,7 @@ const TEMPLATES: ItemTemplate[] = [
     name: 'Amulette simple',
     category: 'amulet',
     baseStatRolls: { intelligence: [1, 2, 3] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
   {
     baseId: 'flame_amulet',
@@ -288,18 +348,21 @@ const TEMPLATES: ItemTemplate[] = [
     category: 'amulet',
     baseStatRolls: { intelligence: [1, 1, 2] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
   {
     baseId: 'ward_amulet',
     name: 'Amulette de protection',
     category: 'amulet',
     baseStatRolls: { armor: [1, 2, 3], vitality: [1, 1, 2] },
+    legendaryOnlyStatRolls: { armor: [1, 1, 2] },
   },
   {
     baseId: 'swift_amulet',
     name: 'Amulette véloce',
     category: 'amulet',
     baseStatRolls: { agility: [1, 2, 3], intelligence: [1, 1, 2] },
+    legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
 
   // --- Objets signature (jamais dans le loot commun, voir plus haut) ---
@@ -484,24 +547,28 @@ export const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Commun',
   rare: 'Rare',
   epic: 'Épique',
+  legendary: 'Légendaire',
 };
 
 export const RARITY_COLORS: Record<Rarity, string> = {
   common: '#9aa0a6',
   rare: '#4fa3e3',
   epic: '#a855f7',
+  legendary: '#ff8c1a',
 };
 
 const RARITY_MULTIPLIER: Record<Rarity, number> = {
   common: 1,
   rare: 2,
   epic: 3,
+  legendary: 5,
 };
 
 const RARITY_SELL_PRICE: Record<Rarity, number> = {
   common: 10,
   rare: 25,
   epic: 60,
+  legendary: 150,
 };
 
 export function sellPrice(item: Item): number {
@@ -588,6 +655,15 @@ export function createItem(baseId: string, rarity: Rarity): Item {
       stats[key] = (stats[key] ?? 0) + (rolledExtra[key] ?? 0);
     });
   }
+  // Stacks on top of the rare-tier line above, not instead of it — a
+  // legendary item has every line a lower rarity of the same template
+  // could roll, plus this one.
+  if (rarity === 'legendary' && template.legendaryOnlyStatRolls) {
+    const rolledLegendary = rollStatLines(template.legendaryOnlyStatRolls);
+    (Object.keys(rolledLegendary) as (keyof ItemStats)[]).forEach((key) => {
+      stats[key] = (stats[key] ?? 0) + (rolledLegendary[key] ?? 0);
+    });
+  }
   return {
     id: `item-${nextItemId++}`,
     baseId: template.baseId,
@@ -646,19 +722,31 @@ interface LootOptions {
   // hard-dungeon bosses that explicitly opt in can drop one from the pool
   // (on top of any signature reward they grant directly).
   epicChance?: number;
+  // Chance of rolling legendary instead of epic/rare/common — 0 by default.
+  // Only ever set above 0 for a 'legendary'-tier monster encounter (see
+  // EncounterTier in monster.ts), itself already a ~1% roll, so a
+  // legendary item means clearing two rare rolls back to back.
+  legendaryChance?: number;
 }
 
 const LOOTABLE_TEMPLATES = TEMPLATES.filter((t) => !t.signature);
 
-// Modest drop chance, mostly common with a smaller chance of rare/epic —
-// bosses pass { guaranteed: true } for a sure drop with better odds. Real
-// per-dungeon loot tables come as more dungeons are added; difficulty tiers
-// currently differ via rareChance/epicChance, not separate tables.
+// Modest drop chance, mostly common with a smaller chance of rare/epic/
+// legendary — bosses pass { guaranteed: true } for a sure drop with better
+// odds. Real per-dungeon loot tables come as more dungeons are added;
+// difficulty tiers currently differ via these chances, not separate tables.
 export function rollLootItem(options: LootOptions = {}): Item | null {
-  const { guaranteed = false, rareChance = 0.2, epicChance = 0 } = options;
+  const { guaranteed = false, rareChance = 0.2, epicChance = 0, legendaryChance = 0 } = options;
   if (!guaranteed && Math.random() > 0.4) return null;
   const template = LOOTABLE_TEMPLATES[Math.floor(Math.random() * LOOTABLE_TEMPLATES.length)];
   const roll = Math.random();
-  const rarity: Rarity = roll < epicChance ? 'epic' : roll < epicChance + rareChance ? 'rare' : 'common';
+  const rarity: Rarity =
+    roll < legendaryChance
+      ? 'legendary'
+      : roll < legendaryChance + epicChance
+        ? 'epic'
+        : roll < legendaryChance + epicChance + rareChance
+          ? 'rare'
+          : 'common';
   return createItem(template.baseId, rarity);
 }

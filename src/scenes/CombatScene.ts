@@ -295,7 +295,7 @@ export class CombatScene extends Phaser.Scene {
     const loot: Item | null = this.monster.isBoss
       ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
       : this.monster.tier === 'legendary'
-        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5 })
+        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5, legendaryChance: 0.05 })
         : this.monster.tier === 'elite'
           ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15 })
           : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)

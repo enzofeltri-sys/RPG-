@@ -536,10 +536,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   third_site_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  recruiting_help: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Les trois sites du rite, tous trouvés. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Trois sites, trois mains, mais pas assez de bras. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

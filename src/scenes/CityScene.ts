@@ -1784,7 +1784,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'third_site_cleared') {
       this.openDialog(
-        "« Les trois sites, voyageur. Un point qu'on croyait impossible à atteindre, atteint. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène passe des jours à établir un plan, avec l'aide de messages de plus en plus fréquents venus du sanctuaire. « Le rite doit se produire aux trois sites en même temps, voyageur — pas l'un après l'autre. » Elle pose une carte griffonnée à la main sur la table. « Ça veut dire qu'il nous faut du monde à chaque endroit, au même instant, et quelqu'un capable de tenir le site principal pendant que les deux autres répondent. » Elle relève les yeux. « Nous ne sommes que deux, voyageur. Enfin, trois avec elle. Il va falloir trouver d'autres mains. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'recruiting_help');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'recruiting_help') {
+      this.openDialog(
+        "« Trouver d'autres mains, voyageur. Ce ne sera pas simple — qui croirait une histoire pareille sans preuve ? La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

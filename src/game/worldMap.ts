@@ -170,7 +170,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'third_site_cleared') have no entry: that
+// with no further lead (currently 'recruiting_help') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -275,6 +275,7 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   third_site_awaited: 'City',
   third_site_lead: 'AncestralCrypt',
   third_site_reached: 'City',
+  third_site_cleared: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

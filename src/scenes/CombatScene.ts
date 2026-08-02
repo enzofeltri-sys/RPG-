@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { Character, grantXp, getEffectiveStats } from '../game/character';
+import { Character, CharClass, CharacterStats, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, EncounterTier, createTestMonster, createMonster } from '../game/monster';
-import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
+import { Item, Rarity, RARITY_LABELS, WeaponType, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { CONSUMABLES, useConsumable } from '../game/consumable';
@@ -65,6 +65,34 @@ const GUARANTEED_LOOT_MONSTER_IDS = new Set<string>(['well_guardian', 'archive_w
 const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corrupted_boar', 'corrupted_boar_alpha']);
 const BEAST_LEATHER_CHANCE = 0.25;
 const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
+
+// Which CharacterStats field a weapon's damage scales from, by WeaponType
+// (see item.ts's WeaponType comment). A bow always hits with Agilité even
+// in a Guerrier's hands — only the profile match below changes how much of
+// that scaling actually lands.
+const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
+  sword_axe: 'strength',
+  bow: 'agility',
+  dagger: 'agility',
+  staff_tome: 'intelligence',
+};
+
+// Each class is fully trained on exactly one weapon type; anything else
+// still works (no hard equip restriction — a mage CAN pick up a sword) but
+// deals reduced damage, so "un archer avec une épée tape moins qu'avec un
+// arc" holds without needing a dedicated equip-validation system.
+const CLASS_WEAPON_PROFILE: Record<CharClass, WeaponType> = {
+  warrior: 'sword_axe',
+  mage: 'staff_tome',
+  archer: 'bow',
+  rogue: 'dagger',
+  cleric: 'staff_tome',
+};
+
+// Applied to the weapon-derived portion of damage only (not the flat 2-5
+// random base every class deals regardless of gear) when the equipped
+// weapon's type isn't the wielder's class profile.
+const OFF_PROFILE_WEAPON_MULTIPLIER = 0.7;
 
 // Farmable crafting materials tied to dungeon tier rather than monster
 // identity (see grantMaterial in victory()) — lets the Acte 2/3 "artisan"
@@ -236,14 +264,25 @@ export class CombatScene extends Phaser.Scene {
     this.setActionsEnabled(false);
 
     const stats = getEffectiveStats(this.character);
-    const baseDamage = Phaser.Math.Between(2, 5) + Math.floor(stats.strength / 2);
-    const damage = baseDamage + stats.fireDamage;
+    const weaponType = this.character.equipment.weapon?.weaponType;
+    // No weapon equipped falls back to a neutral Force scaling with no
+    // profile penalty — bare fists don't punish a class for having nothing
+    // equipped on top of already dealing no weapon-line stats.
+    const scalingStat: keyof CharacterStats = weaponType ? WEAPON_SCALING_STAT[weaponType] : 'strength';
+    const inProfile = !weaponType || CLASS_WEAPON_PROFILE[this.character.class] === weaponType;
+    const weaponDamage = Math.floor(stats[scalingStat] / 2) * (inProfile ? 1 : OFF_PROFILE_WEAPON_MULTIPLIER);
+    const baseDamage = Phaser.Math.Between(2, 5) + Math.round(weaponDamage);
+    const elementalDamage = stats.fireDamage + stats.poisonDamage;
+    const damage = baseDamage + elementalDamage;
     this.monster.hp -= damage;
     this.refreshBars();
     playHit();
+    const elementalParts: string[] = [];
+    if (stats.fireDamage > 0) elementalParts.push(`${stats.fireDamage} de feu`);
+    if (stats.poisonDamage > 0) elementalParts.push(`${stats.poisonDamage} de poison`);
     this.logText.setText(
-      stats.fireDamage > 0
-        ? `Vous infligez ${damage} dégâts (dont ${stats.fireDamage} de feu).`
+      elementalParts.length > 0
+        ? `Vous infligez ${damage} dégâts (dont ${elementalParts.join(' et ')}).`
         : `Vous infligez ${damage} dégâts.`,
     );
 

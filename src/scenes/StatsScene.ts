@@ -41,6 +41,9 @@ export class StatsScene extends Phaser.Scene {
     if (stats.armor > 0 || stats.fireDamage > 0) {
       statLines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
     }
+    if (stats.poisonDamage > 0) {
+      statLines.push(`Dégâts de poison ${stats.poisonDamage}`);
+    }
 
     addCrispText(
       this,

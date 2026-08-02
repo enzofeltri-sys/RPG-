@@ -7,6 +7,14 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 
+// 3 columns keep 5 race/class options within the 216px game width — a
+// single row (the original 2-race/2-class layout) no longer fits once Nain/
+// Orc/Halfling and Archer/Voleur/Clerc were added.
+const GRID_COLS = 3;
+const GRID_COL_W = 68;
+const GRID_ROW_H = 22;
+const GRID_MARGIN_X = 10;
+
 export class CharacterCreationScene extends Phaser.Scene {
   private race: Race = 'human';
   private charClass: CharClass = 'warrior';
@@ -22,37 +30,56 @@ export class CharacterCreationScene extends Phaser.Scene {
   create(): void {
     const { width } = this.scale;
 
-    addCrispText(this, width / 2, 14, 'Création de personnage', {
-      fontSize: '16px',
+    addCrispText(this, width / 2, 12, 'Création de personnage', {
+      fontSize: '14px',
       color: GOLD,
     }).setOrigin(0.5);
 
-    addCrispText(this, 14, 32, 'Race', { fontSize: '11px', color: MUTED });
+    const raceRows = Math.ceil((Object.keys(RACES) as Race[]).length / GRID_COLS);
+    const raceGridTop = 40;
+    addCrispText(this, 12, raceGridTop - 12, 'Race', { fontSize: '10px', color: MUTED });
     (Object.keys(RACES) as Race[]).forEach((race, i) => {
-      this.raceButtons[race] = this.createOption(14 + i * 105, 46, RACES[race].label, () => {
-        this.race = race;
-        this.refresh();
-      });
+      const col = i % GRID_COLS;
+      const row = Math.floor(i / GRID_COLS);
+      this.raceButtons[race] = this.createOption(
+        GRID_MARGIN_X + col * GRID_COL_W,
+        raceGridTop + row * GRID_ROW_H,
+        RACES[race].label,
+        () => {
+          this.race = race;
+          this.refresh();
+        },
+      );
     });
 
-    addCrispText(this, 14, 84, 'Classe', { fontSize: '11px', color: MUTED });
+    const classGridTop = raceGridTop + raceRows * GRID_ROW_H + 18;
+    addCrispText(this, 12, classGridTop - 12, 'Classe', { fontSize: '10px', color: MUTED });
+    const classRows = Math.ceil((Object.keys(CLASSES) as CharClass[]).length / GRID_COLS);
     (Object.keys(CLASSES) as CharClass[]).forEach((charClass, i) => {
-      this.classButtons[charClass] = this.createOption(14 + i * 105, 98, CLASSES[charClass].label, () => {
-        this.charClass = charClass;
-        this.refresh();
-      });
+      const col = i % GRID_COLS;
+      const row = Math.floor(i / GRID_COLS);
+      this.classButtons[charClass] = this.createOption(
+        GRID_MARGIN_X + col * GRID_COL_W,
+        classGridTop + row * GRID_ROW_H,
+        CLASSES[charClass].label,
+        () => {
+          this.charClass = charClass;
+          this.refresh();
+        },
+      );
     });
 
-    this.statsText = addCrispText(this, 14, 140, ' ', {
-      fontSize: '11px',
+    const infoTop = classGridTop + classRows * GRID_ROW_H + 14;
+    this.statsText = addCrispText(this, 12, infoTop, ' ', {
+      fontSize: '10px',
       color: GOLD,
-      lineSpacing: 5,
+      lineSpacing: 4,
     });
 
-    this.skillsText = addCrispText(this, 14, 200, ' ', {
+    this.skillsText = addCrispText(this, 12, infoTop + 48, ' ', {
       fontSize: '9px',
       color: MUTED,
-      wordWrap: { width: width - 28 },
+      wordWrap: { width: width - 24 },
       lineSpacing: 4,
     });
 
@@ -72,10 +99,10 @@ export class CharacterCreationScene extends Phaser.Scene {
 
   private createOption(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
     const text = addCrispText(this, x, y, label, {
-      fontSize: '12px',
+      fontSize: '10px',
       color: GOLD,
       backgroundColor: '#1c2b1c',
-      padding: { x: 8, y: 5 },
+      padding: { x: 5, y: 4 },
     }).setInteractive({ useHandCursor: true });
 
     text.on('pointerdown', onClick);
@@ -106,7 +133,9 @@ export class CharacterCreationScene extends Phaser.Scene {
     );
 
     const raceSkills = RACES[this.race].skills.join('\n');
-    this.skillsText.setText(`${RACES[this.race].description}\n\n${raceSkills}`);
+    this.skillsText.setText(
+      `${CLASSES[this.charClass].description}\n${RACES[this.race].description}\n\n${raceSkills}`,
+    );
   }
 
   private async confirm(): Promise<void> {

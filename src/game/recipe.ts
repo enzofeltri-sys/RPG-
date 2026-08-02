@@ -25,12 +25,15 @@ interface ConsumableRecipe extends RecipeDefinitionBase {
 export type RecipeDefinition = ItemRecipe | ConsumableRecipe;
 
 export const RECIPES: Record<string, RecipeDefinition> = {
+  // Every recipe needs at least 2 distinct materials, scaling up to 5 for
+  // the legendary "artisan" line below — a single-material recipe reads as
+  // a resource sink rather than an actual crafting choice.
   forge_short_sword: {
     id: 'forge_short_sword',
     name: 'Épée courte',
-    description: "Forger une épée courte à partir de fer brut.",
+    description: "Forger une épée courte à partir de fer brut, la garde enveloppée de cuir.",
     station: 'forge',
-    materials: { iron_ore: 3 },
+    materials: { iron_ore: 2, leather: 1 },
     resultType: 'item',
     resultItemBaseId: 'short_sword',
     resultItemRarity: 'common',
@@ -38,9 +41,9 @@ export const RECIPES: Record<string, RecipeDefinition> = {
   brew_health_potion: {
     id: 'brew_health_potion',
     name: 'Potion de soin',
-    description: 'Préparer une potion de soin à partir d’herbes médicinales.',
+    description: "Préparer une potion de soin à partir d'herbes médicinales, en fiole de cuir.",
     station: 'alchemy',
-    materials: { herb: 2 },
+    materials: { herb: 2, leather: 1 },
     resultType: 'consumable',
     resultConsumableId: 'health_potion',
   },
@@ -121,6 +124,54 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultType: 'item',
     resultItemBaseId: 'artisan_gloves',
     resultItemRarity: 'epic',
+  },
+  // Legendary upgrade of the artisan line — the top of the common→légendaire
+  // crafting range, at the 5-material ceiling. Deliberately spans all three
+  // material tiers (iron_ore from Acte 1 through mithril_shard_rare from
+  // Acte 3) so the finished piece reflects the whole journey, not just the
+  // latest zone, and gates it behind a heavier grind than the epic version
+  // (more mithril_shard, plus a steel_ingot_rare requirement the epic
+  // recipe doesn't have) — genuinely late-game, not a strict upgrade path
+  // available the moment Acte 3 opens up.
+  craft_artisan_blade_legendary: {
+    id: 'craft_artisan_blade_legendary',
+    name: "Lame de l'artisan (légendaire)",
+    description: "Reforger la lame de l'artisan avec du mithril pur en abondance et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 6, mithril_shard_rare: 3, steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_blade',
+    resultItemRarity: 'legendary',
+  },
+  craft_artisan_amulet_legendary: {
+    id: 'craft_artisan_amulet_legendary',
+    name: "Amulette de l'artisan (légendaire)",
+    description: "Reforger l'amulette de l'artisan avec du mithril pur en abondance et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 6, mithril_shard_rare: 3, steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_amulet',
+    resultItemRarity: 'legendary',
+  },
+  craft_artisan_ring_legendary: {
+    id: 'craft_artisan_ring_legendary',
+    name: "Anneau de l'artisan (légendaire)",
+    description: "Reforger l'anneau de l'artisan avec du mithril pur en abondance et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 6, mithril_shard_rare: 3, steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_ring',
+    resultItemRarity: 'legendary',
+  },
+  craft_artisan_gloves_legendary: {
+    id: 'craft_artisan_gloves_legendary',
+    name: "Gants de l'artisan (légendaire)",
+    description: "Reforger les gants de l'artisan avec du mithril pur en abondance et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { mithril_shard: 6, mithril_shard_rare: 3, steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 3 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_gloves',
+    resultItemRarity: 'legendary',
   },
 };
 

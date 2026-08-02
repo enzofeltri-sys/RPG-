@@ -10,7 +10,24 @@ export type EquipSlot =
   | 'ring2'
   | 'amulet';
 
-export type ItemCategory = EquipSlot | 'ring';
+// 'offhand' is a second armament slot rather than a new equip slot: it maps
+// onto the existing 'shield' EquipSlot exactly like 'ring' maps onto
+// 'ring1'/'ring2' (see resolveEquipSlot in BagScene), so putting a dagger or
+// hachette there simply replaces whatever shield was equipped — genuine
+// dual-wield, no new equipment slot or UI needed. Its own stat lines then
+// stack into getEffectiveStats() through the exact same mechanism a
+// shield's armor line already does, so a dual-wielder's second weapon
+// boosts the same scaling stat the main-hand weapon's damage reads from
+// (see WEAPON_SCALING_STAT in CombatScene) with no extra formula needed.
+export type ItemCategory = EquipSlot | 'ring' | 'offhand';
+
+// Which stat a weapon's damage scales from (see CombatScene's
+// WEAPON_SCALING_STAT/CLASS_WEAPON_PROFILE) — a bow hits with Agilité even
+// in a Guerrier's hands, but a class outside a weapon type's profile takes
+// a damage penalty for using it. Only meaningful on 'weapon'-category
+// items; 'offhand' dual-wield pieces don't need one (see the ItemCategory
+// comment above — their stats just add to the pool, no separate formula).
+export type WeaponType = 'sword_axe' | 'bow' | 'dagger' | 'staff_tome';
 
 // 'legendary' only drops from a 'legendary'-tier monster encounter (see
 // EncounterTier in monster.ts — itself already a ~1% roll), so getting one
@@ -26,6 +43,7 @@ export interface ItemStats {
   vitality?: number;
   armor?: number;
   fireDamage?: number;
+  poisonDamage?: number;
 }
 
 const STAT_LABELS: Record<keyof ItemStats, string> = {
@@ -35,6 +53,7 @@ const STAT_LABELS: Record<keyof ItemStats, string> = {
   vitality: 'Vitalité',
   armor: 'Armure',
   fireDamage: 'Dégâts de feu',
+  poisonDamage: 'Dégâts de poison',
 };
 
 export interface Item {
@@ -44,6 +63,7 @@ export interface Item {
   category: ItemCategory;
   rarity: Rarity;
   stats: ItemStats;
+  weaponType?: WeaponType;
 }
 
 // A stat line's 3 possible base values — one is picked uniformly at random,
@@ -57,6 +77,9 @@ interface ItemTemplate {
   baseId: string;
   name: string;
   category: ItemCategory;
+  // Only set on 'weapon'-category templates — see the WeaponType comment
+  // above for what this drives in combat.
+  weaponType?: WeaponType;
   // Which of the 3 story-progression paliers this common item belongs to
   // (see DESIGN.md's loot rules) — drives which pool rollLootItem() draws
   // from for a given dungeon/zone. Absent on signature items, which never
@@ -97,6 +120,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'short_sword',
     name: 'Épée courte',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 1,
     baseStatRolls: { strength: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
@@ -106,6 +130,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'dagger_thief',
     name: 'Dague de voleur',
     category: 'weapon',
+    weaponType: 'dagger',
     tier: 1,
     baseStatRolls: { agility: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
@@ -115,6 +140,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'broken_sword',
     name: 'Épée cassée',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 1,
     baseStatRolls: { strength: [1, 1, 2] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
@@ -124,10 +150,31 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'apprentice_blade',
     name: "Lame d'apprenti",
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 1,
     baseStatRolls: { strength: [1, 2, 2], intelligence: [1, 1, 2] },
     rareOnlyStatRolls: { fireDamage: [1, 2, 3] },
     legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
+  },
+  {
+    baseId: 'short_bow',
+    name: 'Arc court',
+    category: 'weapon',
+    weaponType: 'bow',
+    tier: 1,
+    baseStatRolls: { agility: [1, 2, 3] },
+    rareOnlyStatRolls: { poisonDamage: [1, 1, 2] },
+    legendaryOnlyStatRolls: { fireDamage: [1, 1, 2] },
+  },
+  {
+    baseId: 'hatchet',
+    name: 'Hachette',
+    category: 'weapon',
+    weaponType: 'sword_axe',
+    tier: 1,
+    baseStatRolls: { strength: [2, 3, 4] },
+    rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
+    legendaryOnlyStatRolls: { strength: [1, 2, 2] },
   },
 
   // --- Boucliers ---
@@ -413,6 +460,29 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { agility: [1, 1, 2] },
   },
 
+  // --- Main secondaire (dual-wield, palier 1) --- catégorie 'offhand', qui
+  // occupe le même emplacement que les boucliers ci-dessus (voir
+  // resolveEquipSlot dans BagScene) : équiper l'un remplace l'autre. Pas de
+  // weaponType propre — ses lignes de stats s'ajoutent simplement au total
+  // du personnage comme n'importe quel équipement, boostant d'autant les
+  // dégâts de l'arme en main principale si elles partagent la même stat.
+  {
+    baseId: 'offhand_dagger',
+    name: 'Dague de ceinture',
+    category: 'offhand',
+    tier: 1,
+    baseStatRolls: { agility: [1, 1, 2] },
+    rareOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'offhand_hatchet',
+    name: "Hachette d'appoint",
+    category: 'offhand',
+    tier: 1,
+    baseStatRolls: { strength: [1, 1, 2] },
+    rareOnlyStatRolls: { strength: [1, 1, 2] },
+  },
+
   // --- Palier 2 (Aiglemont / Terres Noyées) ---
   // 4 familles par emplacement, mêmes noms d'un slot à l'autre pour rester
   // lisible : Garde (Aiglemont, tank vitalité/armure), Marais (Terres
@@ -426,6 +496,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'guard_sword',
     name: 'Épée de la garde',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 2,
     baseStatRolls: { strength: [3, 4, 5] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
@@ -435,6 +506,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'marsh_dagger',
     name: 'Dague des marais',
     category: 'weapon',
+    weaponType: 'dagger',
     tier: 2,
     baseStatRolls: { agility: [3, 4, 5] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 3] },
@@ -444,6 +516,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'steel_greatsword',
     name: 'Épée à deux mains en acier',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 2,
     baseStatRolls: { strength: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
@@ -453,10 +526,31 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'archivist_wand',
     name: "Bâton d'archiviste",
     category: 'weapon',
+    weaponType: 'staff_tome',
     tier: 2,
     baseStatRolls: { intelligence: [3, 4, 5] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
     legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+  },
+  {
+    baseId: 'hunting_bow',
+    name: 'Arc de chasse',
+    category: 'weapon',
+    weaponType: 'bow',
+    tier: 2,
+    baseStatRolls: { agility: [3, 4, 5] },
+    rareOnlyStatRolls: { poisonDamage: [2, 3, 3] },
+    legendaryOnlyStatRolls: { fireDamage: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_axe',
+    name: "Hache d'armes en acier",
+    category: 'weapon',
+    weaponType: 'sword_axe',
+    tier: 2,
+    baseStatRolls: { strength: [4, 5, 6] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    legendaryOnlyStatRolls: { strength: [2, 3, 3] },
   },
 
   // --- Boucliers (palier 2) ---
@@ -742,6 +836,24 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
   },
 
+  // --- Main secondaire (dual-wield, palier 2) ---
+  {
+    baseId: 'marsh_offhand_dagger',
+    name: 'Dague des marais (main secondaire)',
+    category: 'offhand',
+    tier: 2,
+    baseStatRolls: { agility: [2, 3, 3] },
+    rareOnlyStatRolls: { agility: [2, 2, 3] },
+  },
+  {
+    baseId: 'steel_offhand_axe',
+    name: "Hachette d'acier",
+    category: 'offhand',
+    tier: 2,
+    baseStatRolls: { strength: [2, 3, 3] },
+    rareOnlyStatRolls: { strength: [2, 2, 3] },
+  },
+
   // --- Palier 3 (donjons tardifs de l'Acte 3) ---
   // Même schéma que les paliers 1 et 2, un cran de puissance de plus.
   // Quatre familles cousines du thème de fin d'Acte 3 : Veilleur (Ordre
@@ -754,6 +866,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'watcher_blade',
     name: 'Lame du Veilleur',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 3,
     baseStatRolls: { strength: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
@@ -763,6 +876,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'shadow_dagger',
     name: "Dague de l'Ombre",
     category: 'weapon',
+    weaponType: 'dagger',
     tier: 3,
     baseStatRolls: { agility: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
@@ -772,6 +886,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'mithril_sword',
     name: 'Épée de mithril',
     category: 'weapon',
+    weaponType: 'sword_axe',
     tier: 3,
     baseStatRolls: { strength: [7, 8, 9] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
@@ -781,10 +896,31 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'ritual_staff',
     name: 'Bâton rituel',
     category: 'weapon',
+    weaponType: 'staff_tome',
     tier: 3,
     baseStatRolls: { intelligence: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
     legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+  },
+  {
+    baseId: 'watcher_bow',
+    name: 'Arc long du Veilleur',
+    category: 'weapon',
+    weaponType: 'bow',
+    tier: 3,
+    baseStatRolls: { agility: [5, 6, 7] },
+    rareOnlyStatRolls: { poisonDamage: [4, 5, 5] },
+    legendaryOnlyStatRolls: { fireDamage: [3, 4, 4] },
+  },
+  {
+    baseId: 'mithril_axe',
+    name: 'Hache de mithril',
+    category: 'weapon',
+    weaponType: 'sword_axe',
+    tier: 3,
+    baseStatRolls: { strength: [6, 7, 8] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    legendaryOnlyStatRolls: { strength: [3, 4, 4] },
   },
 
   // --- Boucliers (palier 3) ---
@@ -1070,6 +1206,24 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
   },
 
+  // --- Main secondaire (dual-wield, palier 3) ---
+  {
+    baseId: 'shadow_offhand_dagger',
+    name: "Dague jumelle de l'Ombre",
+    category: 'offhand',
+    tier: 3,
+    baseStatRolls: { agility: [4, 5, 5] },
+    rareOnlyStatRolls: { agility: [3, 4, 4] },
+  },
+  {
+    baseId: 'mithril_offhand_axe',
+    name: 'Hachette de mithril',
+    category: 'offhand',
+    tier: 3,
+    baseStatRolls: { strength: [4, 5, 5] },
+    rareOnlyStatRolls: { strength: [3, 4, 4] },
+  },
+
   // --- Objets signature (jamais dans le loot commun, voir plus haut) ---
   {
     baseId: 'guardian_amulet',
@@ -1107,6 +1261,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'sealed_blade',
     name: 'Lame du Sceau originel',
     category: 'weapon',
+    weaponType: 'sword_axe',
     baseStatRolls: { strength: [3, 4, 5], intelligence: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
     signature: true,
@@ -1153,17 +1308,19 @@ const TEMPLATES: ItemTemplate[] = [
   },
 
   // --- Objets d'artisanat (jamais dans le loot, uniquement via recipe.ts) ---
-  // Always crafted at 'epic' (see recipe.ts's craft_artisan_* recipes) — a
-  // small, deliberate edge over an equivalent palier-3 epic drop (e.g. more
-  // generous rareOnly line) rewards the material grind without outclassing
-  // a lucky legendary find, which stays the higher ceiling.
+  // Craftable at 'epic' (small, deliberate edge over an equivalent palier-3
+  // epic drop) or 'légendaire' (see recipe.ts's craft_artisan_*_legendary
+  // recipes — the top of the crafting range, gated behind a heavier grind
+  // than the epic version rather than a straight upgrade).
   {
     baseId: 'artisan_blade',
     name: "Lame de l'artisan",
     category: 'weapon',
+    weaponType: 'sword_axe',
     craftOnly: true,
     baseStatRolls: { strength: [7, 8, 9] },
     rareOnlyStatRolls: { fireDamage: [5, 6, 7] },
+    legendaryOnlyStatRolls: { strength: [4, 5, 5] },
   },
   {
     baseId: 'artisan_amulet',
@@ -1172,6 +1329,7 @@ const TEMPLATES: ItemTemplate[] = [
     craftOnly: true,
     baseStatRolls: { vitality: [6, 7, 8], armor: [5, 6, 7] },
     rareOnlyStatRolls: { armor: [3, 4, 4] },
+    legendaryOnlyStatRolls: { vitality: [3, 4, 4] },
   },
   {
     baseId: 'artisan_ring',
@@ -1180,6 +1338,7 @@ const TEMPLATES: ItemTemplate[] = [
     craftOnly: true,
     baseStatRolls: { intelligence: [6, 7, 8], agility: [3, 3, 4] },
     rareOnlyStatRolls: { intelligence: [3, 3, 4] },
+    legendaryOnlyStatRolls: { agility: [2, 3, 3] },
   },
   {
     baseId: 'artisan_gloves',
@@ -1188,11 +1347,20 @@ const TEMPLATES: ItemTemplate[] = [
     craftOnly: true,
     baseStatRolls: { agility: [6, 7, 8], strength: [3, 3, 4] },
     rareOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { strength: [2, 3, 3] },
   },
 ];
 
 export function isCraftOnly(baseId: string): boolean {
   return TEMPLATES.find((t) => t.baseId === baseId)?.craftOnly === true;
+}
+
+// Looks up a template's weaponType by baseId — used by
+// ensureCharacterDefaults (character.ts) to backfill the field onto items
+// created before weaponType existed, whose already-saved Item objects never
+// got it from createItem() at creation time.
+export function getWeaponType(baseId: string): WeaponType | undefined {
+  return TEMPLATES.find((t) => t.baseId === baseId)?.weaponType;
 }
 
 // Panoplies (équipement sets) — built entirely from existing signature
@@ -1324,7 +1492,7 @@ export function sellPrice(item: Item): number {
 
 const SLOT_LABELS: Record<EquipSlot, string> = {
   weapon: 'Arme',
-  shield: 'Bouclier',
+  shield: 'Bouclier / Main secondaire',
   helmet: 'Casque',
   chest: 'Torse',
   legs: 'Jambes',
@@ -1344,6 +1512,7 @@ export function equipSlotLabel(slot: EquipSlot): string {
 const CATEGORY_ICONS: Record<ItemCategory, string> = {
   weapon: 'ARM',
   shield: 'BOU',
+  offhand: 'SEC',
   helmet: 'CAS',
   chest: 'TOR',
   legs: 'JAM',
@@ -1418,6 +1587,7 @@ export function createItem(baseId: string, rarity: Rarity): Item {
     category: template.category,
     rarity,
     stats,
+    weaponType: template.weaponType,
   };
 }
 

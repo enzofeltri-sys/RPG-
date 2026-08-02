@@ -269,6 +269,7 @@ export class BagScene extends Phaser.Scene {
   }
 
   private resolveEquipSlot(item: Item): EquipSlot {
+    if (item.category === 'offhand') return 'shield';
     if (item.category !== 'ring') return item.category;
     if (!this.character.equipment.ring1) return 'ring1';
     if (!this.character.equipment.ring2) return 'ring2';

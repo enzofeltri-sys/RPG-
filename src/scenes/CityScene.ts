@@ -1645,7 +1645,47 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'waystation_cleared') {
       this.openDialog(
-        "« La route est sûre, voyageur. Reste à attendre, maintenant — et à espérer que ça suffise. La suite de cette histoire viendra en temps voulu. »",
+        "Les jours passent sans nouvelle, puis un message arrive enfin — pas au sanctuaire, cette fois, mais porté par un jeune garçon du village qui dit ne pas se souvenir de qui le lui a confié. Un seul mot : « Maintenant. » Sélène relève les yeux vers vous, la voix tendue. « Maintenant, voyageur. Retournez au sanctuaire. Je crois qu'elle vous attend déjà. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'awaiting_meeting');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'awaiting_meeting') {
+      this.openDialog(
+        "« Le sanctuaire, voyageur. Allez-y maintenant. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'first_meeting') {
+      this.openDialog(
+        "Vous racontez à Sélène chaque mot de la rencontre, aussi précisément que vous le pouvez. Elle vous écoute sans interrompre, pour une fois — puis referme longuement les yeux. « Une charge, pas une légende. Elle vous l'a dit elle-même. » Elle rouvre les yeux, presque émue. « Après tout ce temps à courir après une ombre, voyageur, vous avez enfin un visage en face de vous. » Elle se redresse, retrouvant son sérieux habituel. « Reste à savoir ce que 'réparer le sceau ensemble' veut vraiment dire, concrètement. Mais ça, voyageur, c'est une autre histoire — pour une prochaine fois. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'meeting_debriefed');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'meeting_debriefed') {
+      this.openDialog(
+        "« Un visage, un nom qui reste à comprendre, une charge qu'elle porte vraiment, voyageur. Nous avons du chemin devant nous, mais plus dans le noir complet. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

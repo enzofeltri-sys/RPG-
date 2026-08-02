@@ -486,10 +486,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   waystation_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  awaiting_meeting: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Retournez au petit sanctuaire, elle vous y attend.',
+  },
+  first_meeting: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  meeting_debriefed: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "La route est sûre. Reste à attendre. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un visage, enfin, en face de vous. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

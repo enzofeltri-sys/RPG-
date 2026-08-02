@@ -41,6 +41,8 @@ export class ShrineScene extends Phaser.Scene {
   private isTransitioning = false;
   private character!: Character;
   private hermit!: Phaser.GameObjects.Rectangle;
+  private silhouette?: Phaser.GameObjects.Rectangle;
+  private baseInteractables: Interactable[] = [];
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private loreIndex = 0;
   private spawnX?: number;
@@ -115,12 +117,12 @@ export class ShrineScene extends Phaser.Scene {
     // A second tap-through, at the outer standing stone Aldric now
     // recognizes thanks to the fragment — same "combat-free entry into a
     // combat-full scene" shape as the altar above.
-    const interactables: Interactable[] = [
+    this.baseInteractables = [
       { x: this.hermit.x, y: this.hermit.y, radius: 24, onTap: () => this.talkToHermit() },
       { x: 100, y: 50, radius: 22, onTap: () => this.enterSealChamber() },
       { x: 150, y: 280, radius: 22, onTap: () => this.enterWatchersLodge() },
     ];
-    this.tapControl.setInteractables(interactables);
+    this.tapControl.setInteractables(this.baseInteractables);
 
     // See ForestScene.create() for why this must bail if the scene was
     // stopped while the load was pending (a zone overlap can fire and start
@@ -139,6 +141,18 @@ export class ShrineScene extends Phaser.Scene {
           this.tapControl.setEnabled(!open);
         },
       );
+
+      // The silhouette, in person, for the first time — only present for
+      // this one stage. Kept well clear of the altar's SealChamber
+      // tap-through at (100, 50) so the two never compete for a tap.
+      if (getMainQuestStage(this.character) === 'awaiting_meeting') {
+        this.silhouette = this.add.rectangle(100, 25, 12, 20, 0x2a2a3a).setStrokeStyle(1, 0xe8d9b5);
+        addCrispText(this, 100, 10, 'Silhouette', { fontSize: '8px', color: '#e8d9b5' }).setOrigin(0.5);
+        this.tapControl.setInteractables([
+          ...this.baseInteractables,
+          { x: 100, y: 25, radius: 20, onTap: () => this.meetSilhouette() },
+        ]);
+      }
     }
   }
 
@@ -232,6 +246,30 @@ export class ShrineScene extends Phaser.Scene {
             advanceMainQuestStage(this.character, 'hermit_confided');
             await SaveManager.saveCharacter(this.character);
             playQuestComplete();
+            this.closeDialog();
+          },
+        },
+      ],
+    );
+  }
+
+  // One-shot beat (awaiting_meeting only) — the first time the silhouette
+  // appears in person rather than through a message or a token left at the
+  // altar. She disappears from the shrine once the stage moves past this,
+  // same "moment has passed" convention as every other one-shot NPC beat.
+  private meetSilhouette(): void {
+    this.openDialog(
+      "Elle est là, près de l'autel, comme si elle avait toujours fait partie du paysage — une silhouette qui, de près, cesse enfin d'être une ombre. Un visage. Des yeux qui vous observent avec autant de prudence que de soulagement. « Vous êtes venu », dit-elle, la voix plus jeune que vous ne l'auriez imaginée. « Je pensais que j'aurais plus peur. » Elle jette un regard vers le sanctuaire, vers les pierres, comme pour se rassurer qu'elles sont bien réelles, elle aussi. « Je n'ai pas cherché ce nom, voyageur. Il m'a été donné, comme à ceux avant moi — une charge, pas une légende, quoi qu'en disent les tombes et les registres que vous avez fouillés. » Un silence, plus long que les mots qui l'ont précédé. « Je vous ai observé de loin parce que je devais savoir si vous alliez chercher à réparer le sceau, ou seulement à comprendre ce qui le brise. Ce n'est pas la même chose. » Elle vous tend la main, presque timidement. « Je crois que nous allons devoir faire les deux, maintenant. Ensemble, comme je l'ai écrit. Vraiment, cette fois. »",
+      [
+        {
+          label: 'Continuer',
+          onClick: async () => {
+            advanceMainQuestStage(this.character, 'first_meeting');
+            await SaveManager.saveCharacter(this.character);
+            playQuestComplete();
+            this.silhouette?.destroy();
+            this.silhouette = undefined;
+            this.tapControl.setInteractables(this.baseInteractables);
             this.closeDialog();
           },
         },

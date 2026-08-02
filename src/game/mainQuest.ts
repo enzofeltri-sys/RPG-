@@ -106,7 +106,10 @@ export type MainQuestStage =
   | 'meeting_promised'
   | 'road_lead'
   | 'waystation_reached'
-  | 'waystation_cleared';
+  | 'waystation_cleared'
+  | 'awaiting_meeting'
+  | 'first_meeting'
+  | 'meeting_debriefed';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -170,6 +173,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   registry_cleared: { xp: 730, itemBaseId: 'short_sword', itemRarity: 'epic' },
   meeting_promised: { xp: 410, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   waystation_cleared: { xp: 750, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
+  meeting_debriefed: { xp: 800, itemBaseId: 'ritual_amulet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

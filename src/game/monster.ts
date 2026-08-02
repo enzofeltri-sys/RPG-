@@ -463,6 +463,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 240,
     isBoss: true,
   },
+  // Gardien du troisième site du rite, plus profond encore que la Crypte
+  // des Aînés elle-même — la famille pensait avoir déjà tout trouvé, sans
+  // jamais chercher au-delà du caveau déjà pillé une fois.
+  ancestor_warden: {
+    id: 'ancestor_warden',
+    name: 'Gardien des Aïeux',
+    maxHp: 355,
+    attack: 49,
+    xpReward: 800,
+    goldReward: 250,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

@@ -42,6 +42,7 @@ import { ForgottenGraveScene } from './scenes/ForgottenGraveScene';
 import { GuildArchiveScene } from './scenes/GuildArchiveScene';
 import { CorruptedWaystationScene } from './scenes/CorruptedWaystationScene';
 import { SunkenChapelScene } from './scenes/SunkenChapelScene';
+import { ThirdAltarScene } from './scenes/ThirdAltarScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -171,6 +172,7 @@ async function boot(): Promise<void> {
       GuildArchiveScene,
       CorruptedWaystationScene,
       SunkenChapelScene,
+      ThirdAltarScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

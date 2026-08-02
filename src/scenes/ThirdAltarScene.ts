@@ -8,14 +8,14 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 
-const CHEST_ID = 'ancestralcrypt_chest_1';
+const CHEST_ID = 'thirdaltar_chest_1';
 
-// Vingt-deuxième donjon — une crypte familiale scellée sous le vieux
-// quartier d'Aiglemont, jamais reliée à la quête jusqu'à ce que le nom
-// trouvé dans le registre corresponde à un acte de propriété jamais mis à
-// jour depuis des générations. Même gabarit "moyen" que les 21 donjons
-// précédents, palette pierre froide plutôt que parcheminée — un caveau, pas
-// une bibliothèque.
+// Vingt-septième donjon — le troisième et dernier site du rite, plus
+// profond encore que la Crypte des Aînés elle-même : la famille pensait
+// avoir déjà tout trouvé, sans jamais chercher au-delà du caveau déjà
+// pillé une fois. Même gabarit "moyen" que les 26 donjons précédents,
+// palette de pierre ancienne et de poussière, plus sombre encore que la
+// crypte au-dessus.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 420;
 const GATE_Y = 190;
@@ -28,23 +28,23 @@ interface EncounterMarker {
 }
 
 const ENCOUNTERS: EncounterMarker[] = [
-  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 320, label: 'Gardiens de la crypte' },
-  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 250, label: 'Gardiens de la crypte' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 320, label: 'Gardiens des Aïeux' },
+  { monsterId: 'corrupted_knight', x: WORLD_WIDTH / 2, y: 250, label: 'Gardiens des Aïeux' },
 ];
 
-const BOSS_MONSTER_ID = 'blood_keeper';
+const BOSS_MONSTER_ID = 'ancestor_warden';
 
-interface AncestralCryptData {
+interface ThirdAltarData {
   // Set by CombatScene when handing control back after a fight, or by the
   // Menu overlay's Inventaire/Sac/Stats/Quêtes screens — distinguishes
-  // "returning mid-run" from a genuine fresh entry via the alley's hidden
-  // cellar door.
+  // "returning mid-run" from a genuine fresh entry via the crypt's deeper
+  // passage.
   resume?: boolean;
   x?: number;
   y?: number;
 }
 
-export class AncestralCryptScene extends Phaser.Scene {
+export class ThirdAltarScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -60,10 +60,10 @@ export class AncestralCryptScene extends Phaser.Scene {
   private spawnY?: number;
 
   constructor() {
-    super('AncestralCrypt');
+    super('ThirdAltar');
   }
 
-  init(data: AncestralCryptData): void {
+  init(data: ThirdAltarData): void {
     if (!data?.resume) {
       this.clearedMonsterIds = new Set();
     }
@@ -73,9 +73,9 @@ export class AncestralCryptScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.cameras.main.setBackgroundColor('#1c1e22');
+    this.cameras.main.setBackgroundColor('#18161a');
 
-    addCrispText(this, this.scale.width / 2, 12, 'La Crypte des Aînés', {
+    addCrispText(this, this.scale.width / 2, 12, 'Le Troisième Autel', {
       fontSize: '10px',
       color: '#9aa0a6',
     })
@@ -105,20 +105,12 @@ export class AncestralCryptScene extends Phaser.Scene {
 
     const exitZone = this.add.zone(WORLD_WIDTH / 2, WORLD_HEIGHT - 10, WORLD_WIDTH, 20);
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player, exitZone, () => this.leaveCrypt());
+    this.physics.add.overlap(this.player, exitZone, () => this.leaveAltar());
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
-
-    // Une dalle jamais soulevée, plus profonde encore que le caveau déjà
-    // pillé — la famille pensait avoir déjà tout trouvé ici. Toujours
-    // franchissable, quelle que soit l'étape de la quête en cours.
-    const altarZone = this.add.zone(200, 15, 40, 20);
-    this.physics.add.existing(altarZone, true);
-    this.physics.add.overlap(this.player, altarZone, () => this.enterThirdAltar());
-    addCrispText(this, 200, 28, 'Dalle ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     const interactables: Interactable[] = [
@@ -140,7 +132,7 @@ export class AncestralCryptScene extends Phaser.Scene {
       new CharacterSheetPanel(
         this,
         save.character,
-        'AncestralCrypt',
+        'ThirdAltar',
         () => ({ x: this.player.x, y: this.player.y }),
         (open) => {
           this.tapControl.setEnabled(!open);
@@ -159,7 +151,7 @@ export class AncestralCryptScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const tomb = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2e3038).setStrokeStyle(1, 0x101114);
+      const rect = this.add.rectangle(x, y, w, h, 0x221f24).setStrokeStyle(1, 0x0c0a0e);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -171,11 +163,11 @@ export class AncestralCryptScene extends Phaser.Scene {
 
   private addGate(): void {
     this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2e3038)
-      .setStrokeStyle(1, 0x101114);
+      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x221f24)
+      .setStrokeStyle(1, 0x0c0a0e);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Dalle scellée', {
+    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Dalle jamais soulevée', {
       fontSize: '8px',
       color: '#9aa0a6',
     }).setOrigin(0.5);
@@ -190,7 +182,7 @@ export class AncestralCryptScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add
-      .rectangle(encounter.x, encounter.y, 28, 28, 0x383a42, 0.8)
+      .rectangle(encounter.x, encounter.y, 28, 28, 0x2a262c, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
@@ -214,8 +206,8 @@ export class AncestralCryptScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x14151a, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 36, "Le caveau des aînés", {
+    this.add.rectangle(x, y, 50, 50, 0x0c0a0e, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    addCrispText(this, x, y - 36, 'Le troisième autel', {
       fontSize: '9px',
       color: '#e8d9b5',
       align: 'center',
@@ -235,7 +227,7 @@ export class AncestralCryptScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Combat', { returnScene: 'AncestralCrypt', monsterId, x: this.player.x, y: this.player.y });
+      this.scene.start('Combat', { returnScene: 'ThirdAltar', monsterId, x: this.player.x, y: this.player.y });
     });
   }
 
@@ -244,7 +236,7 @@ export class AncestralCryptScene extends Phaser.Scene {
       this.showMessage('Ce coffre est vide.');
       return;
     }
-    const loot = openChest(this.character, CHEST_ID, 'AncestralCrypt');
+    const loot = openChest(this.character, CHEST_ID, 'ThirdAltar');
     this.chest.setFillStyle(0x3a3428);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
@@ -273,21 +265,12 @@ export class AncestralCryptScene extends Phaser.Scene {
     });
   }
 
-  private leaveCrypt(): void {
+  private leaveAltar(): void {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('City', { x: 480, y: 380 });
-    });
-  }
-
-  private enterThirdAltar(): void {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('ThirdAltar', { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT - 40 });
+      this.scene.start('AncestralCrypt', { x: 30, y: 30, resume: true });
     });
   }
 }

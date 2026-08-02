@@ -1743,7 +1743,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'third_site_awaited') {
       this.openDialog(
-        "« Trois sites, voyageur. Deux de trouvés, un qui nous échappe encore. La suite de cette histoire viendra en temps voulu. »",
+        "Un mot arrive du sanctuaire, à nouveau signé de son prénom : elle a fouillé ce qui reste des archives de sa propre famille, et trouvé une mention — vague, presque effacée, mais insistante. « Sous la crypte, plus profond que ce que vous avez déjà trouvé. Nous n'avons jamais cherché plus loin parce que nous pensions avoir déjà tout trouvé. » Sélène relit la phrase deux fois. « La Crypte des Aînés, voyageur. Encore. Plus profond, cette fois. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'third_site_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'third_site_lead') {
+      this.openDialog(
+        "« La Crypte des Aînés, voyageur. Cherchez plus profond que la dernière fois. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'third_site_reached') {
+      this.openDialog(
+        "Sélène examine ce que vous rapportez du troisième autel — identique aux deux premiers dans sa facture, mais celui-ci porte quelque chose que les autres n'avaient pas : une liste de noms gravée en marge, dont le dernier n'est séparé du présent que de quelques années. Elle relève les yeux, la voix presque tremblante. « Les trois sites, voyageur. Nous les avons tous. » Un silence. « Reste à savoir si les avoir suffit, ou si quelque chose d'autre nous attend encore. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'third_site_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'third_site_cleared') {
+      this.openDialog(
+        "« Les trois sites, voyageur. Un point qu'on croyait impossible à atteindre, atteint. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

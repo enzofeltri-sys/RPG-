@@ -521,10 +521,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   third_site_awaited: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  third_site_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Plus profond dans la Crypte des Aînés.',
+  },
+  third_site_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  third_site_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Trois sites en tout, deux de trouvés. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Les trois sites du rite, tous trouvés. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

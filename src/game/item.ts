@@ -44,15 +44,23 @@ export interface Item {
   stats: ItemStats;
 }
 
+// A stat line's 3 possible base values — one is picked uniformly at random,
+// independently per line, every time an item is created (see
+// rollStatLines/createItem below). Two items from the same template and
+// rarity can therefore end up with different stats, e.g. two "Épée courte"
+// commons don't always deal the exact same damage.
+type StatRoll = [number, number, number];
+
 interface ItemTemplate {
   baseId: string;
   name: string;
   category: ItemCategory;
-  baseStats: ItemStats;
-  // Extra stats only granted when the item rolls rare (or above later on) —
+  baseStatRolls: Partial<Record<keyof ItemStats, StatRoll>>;
+  // Extra stat lines only rolled when the item comes out rare (or above) —
   // the "special effect" flavor described in DESIGN.md's loot rules, e.g. a
-  // sword that only catches fire once it's a rare drop.
-  rareOnlyStats?: ItemStats;
+  // sword that only catches fire once it's a rare drop. Same independent
+  // 3-variant roll per line as baseStatRolls.
+  rareOnlyStatRolls?: Partial<Record<keyof ItemStats, StatRoll>>;
   // Never appears in the general rollLootItem() pool — granted directly by a
   // specific hard-dungeon boss (see CombatScene's SIGNATURE_REWARDS), so it
   // stays a genuinely special, exclusive find rather than diluting the
@@ -60,105 +68,319 @@ interface ItemTemplate {
   signature?: boolean;
 }
 
+// Palier 1 (région de départ) — 4 objets nommés par emplacement au lieu d'un
+// seul, chacun avec un profil de stats distinct plutôt qu'une simple
+// reteinte du même objet. Les paliers 2 et 3 suivront le même gabarit une
+// fois celui-ci validé en jeu (voir DESIGN.md).
 const TEMPLATES: ItemTemplate[] = [
+  // --- Armes ---
   {
     baseId: 'short_sword',
     name: 'Épée courte',
     category: 'weapon',
-    baseStats: { strength: 2 },
-    rareOnlyStats: { fireDamage: 3 },
+    baseStatRolls: { strength: [1, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
   },
-  { baseId: 'wooden_shield', name: 'Bouclier en bois', category: 'shield', baseStats: { vitality: 2, armor: 3 } },
-  { baseId: 'leather_helmet', name: 'Casque de cuir', category: 'helmet', baseStats: { vitality: 1, armor: 2 } },
-  { baseId: 'leather_chest', name: 'Plastron de cuir', category: 'chest', baseStats: { vitality: 2, armor: 3 } },
+  {
+    baseId: 'dagger_thief',
+    name: 'Dague de voleur',
+    category: 'weapon',
+    baseStatRolls: { agility: [1, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
+  },
+  {
+    baseId: 'broken_sword',
+    name: 'Épée cassée',
+    category: 'weapon',
+    baseStatRolls: { strength: [1, 1, 2] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+  },
+  {
+    baseId: 'apprentice_blade',
+    name: "Lame d'apprenti",
+    category: 'weapon',
+    baseStatRolls: { strength: [1, 2, 2], intelligence: [1, 1, 2] },
+    rareOnlyStatRolls: { fireDamage: [1, 2, 3] },
+  },
+
+  // --- Boucliers ---
+  {
+    baseId: 'wooden_shield',
+    name: 'Bouclier en bois',
+    category: 'shield',
+    baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+  },
+  {
+    baseId: 'buckler',
+    name: 'Rondache légère',
+    category: 'shield',
+    baseStatRolls: { agility: [1, 2, 2], armor: [1, 2, 3] },
+    rareOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'tower_shield',
+    name: 'Bouclier-tour',
+    category: 'shield',
+    baseStatRolls: { vitality: [2, 3, 4], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+  },
+  {
+    baseId: 'reinforced_shield',
+    name: 'Bouclier renforcé',
+    category: 'shield',
+    baseStatRolls: { armor: [3, 4, 5] },
+    rareOnlyStatRolls: { vitality: [1, 2, 2] },
+  },
+
+  // --- Casques ---
+  {
+    baseId: 'leather_helmet',
+    name: 'Casque de cuir',
+    category: 'helmet',
+    baseStatRolls: { vitality: [1, 1, 2], armor: [1, 2, 3] },
+  },
+  {
+    baseId: 'rogue_hood',
+    name: 'Capuche renforcée',
+    category: 'helmet',
+    baseStatRolls: { agility: [1, 2, 2], armor: [1, 1, 2] },
+    rareOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'iron_cap',
+    name: 'Calotte de fer',
+    category: 'helmet',
+    baseStatRolls: { armor: [2, 3, 4], vitality: [1, 1, 1] },
+    rareOnlyStatRolls: { armor: [1, 1, 2] },
+  },
+  {
+    baseId: 'simple_circlet',
+    name: 'Diadème simple',
+    category: 'helmet',
+    baseStatRolls: { intelligence: [1, 2, 2], armor: [1, 1, 2] },
+    rareOnlyStatRolls: { intelligence: [1, 1, 2] },
+  },
+
+  // --- Torses ---
+  {
+    baseId: 'leather_chest',
+    name: 'Plastron de cuir',
+    category: 'chest',
+    baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+  },
+  {
+    baseId: 'padded_vest',
+    name: 'Gilet matelassé',
+    category: 'chest',
+    baseStatRolls: { agility: [1, 2, 2], armor: [1, 2, 3] },
+  },
+  {
+    baseId: 'light_chainmail',
+    name: 'Cotte de mailles légère',
+    category: 'chest',
+    baseStatRolls: { vitality: [2, 3, 4], armor: [3, 4, 5] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+  },
+  {
+    baseId: 'simple_robe',
+    name: 'Robe simple',
+    category: 'chest',
+    baseStatRolls: { intelligence: [1, 2, 3], armor: [1, 1, 2] },
+    rareOnlyStatRolls: { intelligence: [1, 1, 2] },
+  },
+
+  // --- Jambes ---
   {
     baseId: 'leather_legs',
     name: 'Jambières de cuir',
     category: 'legs',
-    baseStats: { vitality: 1, agility: 1, armor: 2 },
+    baseStatRolls: { vitality: [1, 1, 2], agility: [1, 1, 2], armor: [1, 2, 3] },
   },
-  { baseId: 'leather_boots', name: 'Bottes de cuir', category: 'boots', baseStats: { agility: 2, armor: 1 } },
-  { baseId: 'leather_gloves', name: 'Gants de cuir', category: 'gloves', baseStats: { strength: 1, armor: 1 } },
-  { baseId: 'simple_ring', name: 'Anneau simple', category: 'ring', baseStats: { intelligence: 1 } },
-  { baseId: 'simple_amulet', name: 'Amulette simple', category: 'amulet', baseStats: { intelligence: 2 } },
+  {
+    baseId: 'studded_legs',
+    name: 'Jambières cloutées',
+    category: 'legs',
+    baseStatRolls: { vitality: [1, 2, 3], armor: [2, 3, 4] },
+  },
+  {
+    baseId: 'light_leggings',
+    name: 'Chausses légères',
+    category: 'legs',
+    baseStatRolls: { agility: [2, 3, 4], armor: [1, 1, 2] },
+  },
+  {
+    baseId: 'robe_legs',
+    name: 'Bas de robe',
+    category: 'legs',
+    baseStatRolls: { intelligence: [1, 2, 2], armor: [1, 1, 2] },
+  },
+
+  // --- Bottes ---
+  {
+    baseId: 'leather_boots',
+    name: 'Bottes de cuir',
+    category: 'boots',
+    baseStatRolls: { agility: [1, 2, 3], armor: [1, 1, 2] },
+  },
+  {
+    baseId: 'swift_boots',
+    name: 'Bottes légères',
+    category: 'boots',
+    baseStatRolls: { agility: [2, 3, 4] },
+    rareOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'iron_boots',
+    name: 'Bottes ferrées',
+    category: 'boots',
+    baseStatRolls: { vitality: [1, 2, 2], armor: [2, 3, 4] },
+  },
+  {
+    baseId: 'travelers_boots',
+    name: 'Bottes de voyageur',
+    category: 'boots',
+    baseStatRolls: { agility: [1, 2, 2], vitality: [1, 2, 2] },
+  },
+
+  // --- Gants ---
+  {
+    baseId: 'leather_gloves',
+    name: 'Gants de cuir',
+    category: 'gloves',
+    baseStatRolls: { strength: [1, 1, 2], armor: [1, 1, 2] },
+  },
+  {
+    baseId: 'thief_gloves',
+    name: 'Gants de voleur',
+    category: 'gloves',
+    baseStatRolls: { agility: [1, 2, 3] },
+    rareOnlyStatRolls: { agility: [1, 1, 2] },
+  },
+  {
+    baseId: 'scholar_gloves',
+    name: "Gants d'étude",
+    category: 'gloves',
+    baseStatRolls: { intelligence: [1, 2, 3] },
+  },
+  {
+    baseId: 'iron_gauntlets',
+    name: 'Gantelets de fer',
+    category: 'gloves',
+    baseStatRolls: { strength: [2, 3, 4], armor: [1, 2, 3] },
+  },
+
+  // --- Anneaux ---
+  { baseId: 'simple_ring', name: 'Anneau simple', category: 'ring', baseStatRolls: { intelligence: [1, 1, 2] } },
+  { baseId: 'strength_ring', name: 'Anneau de force', category: 'ring', baseStatRolls: { strength: [1, 2, 3] } },
+  { baseId: 'agility_ring', name: "Anneau d'agilité", category: 'ring', baseStatRolls: { agility: [1, 2, 3] } },
+  { baseId: 'vitality_ring', name: 'Anneau de vitalité', category: 'ring', baseStatRolls: { vitality: [1, 2, 3] } },
+
+  // --- Amulettes ---
+  {
+    baseId: 'simple_amulet',
+    name: 'Amulette simple',
+    category: 'amulet',
+    baseStatRolls: { intelligence: [1, 2, 3] },
+  },
+  {
+    baseId: 'flame_amulet',
+    name: 'Amulette de flamme',
+    category: 'amulet',
+    baseStatRolls: { intelligence: [1, 1, 2] },
+    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+  },
+  {
+    baseId: 'ward_amulet',
+    name: 'Amulette de protection',
+    category: 'amulet',
+    baseStatRolls: { armor: [1, 2, 3], vitality: [1, 1, 2] },
+  },
+  {
+    baseId: 'swift_amulet',
+    name: 'Amulette véloce',
+    category: 'amulet',
+    baseStatRolls: { agility: [1, 2, 3], intelligence: [1, 1, 2] },
+  },
+
+  // --- Objets signature (jamais dans le loot commun, voir plus haut) ---
   {
     baseId: 'guardian_amulet',
     name: 'Amulette du Gardien déchu',
     category: 'amulet',
-    baseStats: { intelligence: 3, vitality: 2 },
-    rareOnlyStats: { armor: 3 },
+    baseStatRolls: { intelligence: [2, 3, 4], vitality: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [2, 3, 4] },
     signature: true,
   },
   {
     baseId: 'shard_pendant',
     name: "Pendentif d'éclat scellé",
     category: 'amulet',
-    baseStats: { intelligence: 3, vitality: 3 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { intelligence: [2, 3, 4], vitality: [2, 3, 4] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'seeker_signet',
     name: "Sceau de l'Archiviste",
     category: 'ring',
-    baseStats: { intelligence: 2, agility: 2 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { intelligence: [1, 2, 3], agility: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'purified_breastplate',
     name: 'Cuirasse purifiée',
     category: 'chest',
-    baseStats: { vitality: 4, armor: 2 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { vitality: [3, 4, 5], armor: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'sealed_blade',
     name: 'Lame du Sceau originel',
     category: 'weapon',
-    baseStats: { strength: 4, intelligence: 2 },
-    rareOnlyStats: { fireDamage: 4 },
+    baseStatRolls: { strength: [3, 4, 5], intelligence: [1, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
     signature: true,
   },
   {
     baseId: 'watchtower_helm',
     name: 'Heaume de la Vigie oubliée',
     category: 'helmet',
-    baseStats: { vitality: 3, agility: 2 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { vitality: [2, 3, 4], agility: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'eternal_watch_greaves',
     name: 'Grèves de la Veille éternelle',
     category: 'legs',
-    baseStats: { agility: 3, vitality: 2 },
-    rareOnlyStats: { armor: 3 },
+    baseStatRolls: { agility: [2, 3, 4], vitality: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [2, 3, 4] },
     signature: true,
   },
   {
     baseId: 'last_watcher_boots',
     name: 'Bottes du Dernier Veilleur',
     category: 'boots',
-    baseStats: { agility: 3, vitality: 3 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { agility: [2, 3, 4], vitality: [2, 3, 4] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'broken_sleep_aegis',
     name: 'Égide du Sommeil brisé',
     category: 'shield',
-    baseStats: { vitality: 4, armor: 3 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { vitality: [3, 4, 5], armor: [2, 3, 4] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
   {
     baseId: 'corrupted_root_gloves',
     name: 'Gants de la Racine-mère',
     category: 'gloves',
-    baseStats: { strength: 3, vitality: 3 },
-    rareOnlyStats: { armor: 2 },
+    baseStatRolls: { strength: [2, 3, 4], vitality: [2, 3, 4] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
 ];
@@ -336,15 +558,34 @@ function scaleStats(stats: ItemStats, multiplier: number): ItemStats {
   return scaled;
 }
 
+// Picks one of a stat line's 3 possible values, uniformly at random.
+function rollStatLine(options: StatRoll): number {
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+// Rolls every stat line in a template's roll table independently — each
+// line gets its own random pick, not one pick shared across the whole item.
+function rollStatLines(rolls: Partial<Record<keyof ItemStats, StatRoll>> | undefined): ItemStats {
+  const result: ItemStats = {};
+  if (!rolls) return result;
+  (Object.keys(rolls) as (keyof ItemStats)[]).forEach((key) => {
+    const options = rolls[key];
+    if (options) result[key] = rollStatLine(options);
+  });
+  return result;
+}
+
 export function createItem(baseId: string, rarity: Rarity): Item {
   const template = TEMPLATES.find((t) => t.baseId === baseId);
   if (!template) {
     throw new Error(`Unknown item template: ${baseId}`);
   }
-  const stats = scaleStats(template.baseStats, RARITY_MULTIPLIER[rarity]);
-  if (rarity !== 'common' && template.rareOnlyStats) {
-    (Object.keys(template.rareOnlyStats) as (keyof ItemStats)[]).forEach((key) => {
-      stats[key] = (stats[key] ?? 0) + (template.rareOnlyStats![key] ?? 0);
+  const rolledBase = rollStatLines(template.baseStatRolls);
+  const stats = scaleStats(rolledBase, RARITY_MULTIPLIER[rarity]);
+  if (rarity !== 'common' && template.rareOnlyStatRolls) {
+    const rolledExtra = rollStatLines(template.rareOnlyStatRolls);
+    (Object.keys(rolledExtra) as (keyof ItemStats)[]).forEach((key) => {
+      stats[key] = (stats[key] ?? 0) + (rolledExtra[key] ?? 0);
     });
   }
   return {

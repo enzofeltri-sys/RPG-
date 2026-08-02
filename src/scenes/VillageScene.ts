@@ -118,6 +118,15 @@ export class VillageScene extends Phaser.Scene {
 
     addSignpost(this, 240, 300, ['↑ Grotte (vers Basse-Combe)', '↓ Route commerciale (vers Aiglemont)']);
 
+    // Un vieux cimetière à l'écart du village, que les enfants évitent sans
+    // qu'on ait besoin de le leur dire — jamais relié à un nom jusqu'à ce
+    // qu'un prénom sorti d'une légende y ramène l'enquête. Toujours
+    // franchissable, quelle que soit l'étape de la quête en cours.
+    const graveZone = this.add.zone(420, 580, 30, 20);
+    this.physics.add.existing(graveZone, true);
+    this.physics.add.overlap(this.player, graveZone, () => this.enterForgottenGrave());
+    addCrispText(this, 420, 593, 'Vieux cimetière ↓', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       {
         x: this.merchantNpc.x,
@@ -246,6 +255,15 @@ export class VillageScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Road', { x: 40, y: 110 });
+    });
+  }
+
+  private enterForgottenGrave(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('ForgottenGrave', { x: 110, y: 380 });
     });
   }
 }

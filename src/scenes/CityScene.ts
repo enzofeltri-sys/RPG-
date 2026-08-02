@@ -1488,7 +1488,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'first_name_given') {
       this.openDialog(
-        "« Un prénom sorti d'une légende, voyageur. Je ne sais pas encore si c'est un mensonge, un symbole, ou quelque chose de bien plus étrange. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène referme ses livres, presque frustrée. « Les archives ne mentionnent jamais ce prénom autrement que comme légende, voyageur — jamais comme un fait. Ce genre d'histoire ne survit que par la bouche des gens, pas par l'écrit. » Elle vous regarde. « Vous venez de Valombre, non ? Les anciens du village se souviennent parfois de choses qu'aucun livre n'a jamais notées. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'elder_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'elder_lead') {
+      this.openDialog(
+        "« Retournez à Valombre, voyageur. Demandez aux plus âgés — ceux qui se souviennent des histoires d'avant les histoires. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'grave_reached') {
+      this.openDialog(
+        "Vous décrivez à Sélène ce que vous avez trouvé dans le vieux cimetière — une tombe portant le prénom, la date gravée retracée à intervalles réguliers depuis des siècles, comme si quelqu'un revenait sans cesse l'entretenir. Aucun corps à l'intérieur : seulement une pierre plate, gravée d'un seul mot. Un mot que vous reconnaissez aussitôt — celui que vous aviez laissé vous-même au petit sanctuaire. Sélène pâlit. « Elle savait que vous viendriez ici, voyageur. Elle le savait peut-être avant même de vous rencontrer. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'grave_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'grave_cleared') {
+      this.openDialog(
+        "« Une tombe entretenue depuis des siècles, un mot qui vous attendait, voyageur. Nous ne savons plus vraiment ce que nous cherchons — une personne, ou quelque chose de bien plus vieux. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

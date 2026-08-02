@@ -412,6 +412,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 200,
     isBoss: true,
   },
+  // Gardien d'un vieux cimetière à l'écart de Valombre, que les enfants
+  // évitent sans qu'on ait besoin de le leur dire — une tombe entretenue en
+  // secret depuis bien plus longtemps que quiconque au village ne s'en
+  // souvient.
+  grave_warden: {
+    id: 'grave_warden',
+    name: 'Gardien de la Tombe',
+    maxHp: 295,
+    attack: 41,
+    xpReward: 680,
+    goldReward: 210,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

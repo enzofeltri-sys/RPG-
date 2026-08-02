@@ -431,10 +431,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   first_name_given: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  elder_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Demandez aux anciens de Valombre.',
+  },
+  grave_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  grave_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Un prénom sorti d'une légende. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une tombe entretenue depuis des siècles, un mot qui vous attendait. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

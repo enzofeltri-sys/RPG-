@@ -94,6 +94,11 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // jusqu'à ce que la confiance rendue à la silhouette en lève le ward.
   { key: 'RiteAnnex', label: "L'Annexe scellée", region: 'start', x: 200, y: 55 },
 
+  // Un vieux cimetière à l'écart de Valombre, que les enfants évitent sans
+  // qu'on ait besoin de le leur dire — jamais relié à un nom jusqu'à ce
+  // qu'un prénom sorti d'une légende y ramène l'enquête.
+  { key: 'ForgottenGrave', label: 'Le Vieux Cimetière', region: 'start', x: 100, y: 275 },
+
   // Une maison scellée du vieux quartier d'Aiglemont, jamais reliée à un
   // nom jusqu'à ce que le registre de l'Ordre en révèle un.
   { key: 'AncestralCrypt', label: 'La Crypte des Aînés', region: 'aiglemont', x: 200, y: 55 },
@@ -138,11 +143,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['WatchersLodge', 'RiteArchive'],
   ['RiteArchive', 'RiteAnnex'],
   ['City', 'AncestralCrypt'],
+  ['Village', 'ForgottenGrave'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'first_name_given') have no entry: that
+// with no further lead (currently 'grave_cleared') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -226,6 +232,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   crypt_lead: 'AncestralCrypt',
   crypt_reached: 'City',
   crypt_cleared: 'City',
+  first_name_given: 'City',
+  elder_lead: 'ForgottenGrave',
+  grave_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

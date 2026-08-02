@@ -386,10 +386,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   rite_archive_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  response_sent: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Les instructions du rite de scellement, en partie retrouvées. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une réponse envoyée, une réponse reçue en retour : « Bientôt. » La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

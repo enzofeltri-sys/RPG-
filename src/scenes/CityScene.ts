@@ -1346,7 +1346,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'rite_archive_cleared') {
       this.openDialog(
-        "« Plusieurs mains, voyageur, à plusieurs endroits. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène passe la nuit à réfléchir, puis vous tend un petit objet — une pierre plate, gravée d'un seul mot en retour : 'Comment ?' Elle vous regarde, presque nerveuse. « Si elle a pu nous trouver deux fois sans qu'on la voie venir, voyageur, elle saura peut-être trouver ça aussi. Laissez-le quelque part qui compte pour vous. Un endroit qu'elle pourrait reconnaître, si elle vous connaît vraiment. » Vous portez la pierre au petit sanctuaire, et la laissez au pied de l'autel. Le lendemain matin, en retournant voir Sélène, un mot vous attend déjà — griffonné à la hâte, dans une écriture que vous ne reconnaissez pas encore, mais qui, vous le sentez, ne vous sera bientôt plus étrangère : 'Bientôt.'",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'response_sent');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'response_sent') {
+      this.openDialog(
+        "« 'Bientôt', voyageur. Nous verrons ce que ce mot recouvre. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

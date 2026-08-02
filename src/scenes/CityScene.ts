@@ -1604,7 +1604,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'meeting_promised') {
       this.openDialog(
-        "« Une rencontre, voyageur. Après tout ce temps. Nous ne savons ni quand ni où — juste qu'elle vient. La suite de cette histoire viendra en temps voulu. »",
+        "Un courrier arrive de la route commerciale avant même que Sélène n'ait pu organiser quoi que ce soit : la halte de voyageurs entre Valombre et Aiglemont, désertée depuis des années, montre des signes de corruption fraîche — les mêmes que ceux du Bosquet, en pire. Sélène blêmit. « Ça ne peut pas être une coïncidence, voyageur. Si elle doit emprunter cette route pour venir jusqu'ici... » Elle n'achève pas la phrase. « Il faut sécuriser le passage. Avant elle, pas après. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'road_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'road_lead') {
+      this.openDialog(
+        "« La route commerciale, voyageur, entre Valombre et Aiglemont. Cherchez la vieille halte à l'écart du chemin — c'est là que la corruption est repartie. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'waystation_reached') {
+      this.openDialog(
+        "Sélène examine ce que vous rapportez de la halte avec un mélange d'inquiétude et de soulagement. « Contenue, pas éteinte — comme le Bosquet, comme la Racine. Ce n'est pas fini, voyageur, ça ne le sera peut-être jamais complètement tant que le sceau reste faible. » Elle marque une pause. « Mais la route est sûre, maintenant. Si elle vient, elle pourra venir. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'waystation_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'waystation_cleared') {
+      this.openDialog(
+        "« La route est sûre, voyageur. Reste à attendre, maintenant — et à espérer que ça suffise. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

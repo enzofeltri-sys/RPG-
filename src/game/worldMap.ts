@@ -106,6 +106,11 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Les registres notariaux de la guilde des marchands, sous l'entrepôt du
   // Faubourg — la seule trace civile d'une transmission de titre.
   { key: 'GuildArchive', label: 'Les Registres de la Guilde', region: 'aiglemont', x: 200, y: 110 },
+
+  // Une vieille halte à l'écart de la route commerciale, où la corruption
+  // ressurgit soudainement — comme si elle réagissait à l'approche de la
+  // silhouette.
+  { key: 'CorruptedWaystation', label: 'La Halte corrompue', region: 'aiglemont', x: 200, y: 165 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -149,11 +154,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['City', 'AncestralCrypt'],
   ['Village', 'ForgottenGrave'],
   ['Warehouse', 'GuildArchive'],
+  ['Road', 'CorruptedWaystation'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'meeting_promised') have no entry: that
+// with no further lead (currently 'waystation_cleared') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -245,6 +251,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   notary_lead: 'Warehouse',
   registry_reached: 'City',
   registry_cleared: 'City',
+  meeting_promised: 'City',
+  road_lead: 'CorruptedWaystation',
+  waystation_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

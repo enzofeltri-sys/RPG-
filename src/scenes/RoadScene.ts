@@ -124,6 +124,15 @@ export class RoadScene extends Phaser.Scene {
       color: '#9aa0a6',
     }).setOrigin(0.5);
 
+    // Une vieille halte à l'écart de la route, où la corruption ressurgit
+    // soudainement — comme si elle réagissait à l'approche de la
+    // silhouette. Toujours franchissable, quelle que soit l'étape de la
+    // quête en cours.
+    const waystationZone = this.add.zone(240, 15, 40, 20);
+    this.physics.add.existing(waystationZone, true);
+    this.physics.add.overlap(this.player, waystationZone, () => this.enterCorruptedWaystation());
+    addCrispText(this, 240, 28, 'Vieille halte ↑', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     // Local const (not `this.traveler.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would
     // otherwise bind `this` to the literal itself, not the scene.
@@ -264,6 +273,15 @@ export class RoadScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(sceneKey, data);
+    });
+  }
+
+  private enterCorruptedWaystation(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('CorruptedWaystation', { x: 110, y: 380 });
     });
   }
 }

@@ -437,6 +437,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 220,
     isBoss: true,
   },
+  // La corruption ressurgit près de la route commerciale, comme si elle
+  // réagissait à l'approche de la silhouette — la première fois que les
+  // deux fils de l'enquête (l'identité et le sceau qui se brise) se
+  // recroisent depuis le tout début de l'Acte 3.
+  blight_sentinel: {
+    id: 'blight_sentinel',
+    name: 'Sentinelle corrompue',
+    maxHp: 325,
+    attack: 45,
+    xpReward: 740,
+    goldReward: 230,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

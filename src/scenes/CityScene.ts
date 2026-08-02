@@ -1363,7 +1363,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'response_sent') {
       this.openDialog(
-        "« 'Bientôt', voyageur. Nous verrons ce que ce mot recouvre. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène vous convoque tôt le matin, un second mot à la main — arrivé pendant la nuit, glissé sous le petit sanctuaire à côté du premier. Griffonné plus vite, moins soigné : « Les rayonnages du fond. Ceux que je n'ai jamais pu ouvrir. » Elle relève les yeux, surprise elle-même. « Un ward, voyageur — posé par l'Ordre, pas par nous. Je n'ai jamais compris pourquoi il ne cédait pas. » Elle hésite. « Peut-être qu'il ne cédait à personne qui n'avait pas déjà répondu. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rite_annex_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'rite_annex_lead') {
+      this.openDialog(
+        "« Retournez aux Archives du Rite, voyageur. Cherchez au fond, derrière le dernier rayonnage — le ward devrait avoir cédé, maintenant. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'rite_annex_reached') {
+      this.openDialog(
+        "Sélène feuillette lentement ce que vous avez rapporté — un registre entier, noms et marques, certains vieux de plusieurs siècles, d'autres bien plus récents. Elle s'arrête sur une page, longuement silencieuse. « Ils n'ont jamais vraiment disparu, voyageur. L'Ordre s'est juste tu. » Elle referme le registre avec précaution, comme s'il pouvait encore se briser. « Ce que nous cherchions n'était pas une personne isolée. C'était les restes de quelque chose qui a continué, discrètement, tout ce temps. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rite_annex_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'rite_annex_cleared') {
+      this.openDialog(
+        "« Le registre de l'Ordre, voyageur. Nous ne savons pas encore quoi en faire — mais nous savons enfin qui nous cherchons vraiment. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

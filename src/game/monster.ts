@@ -387,6 +387,18 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 180,
     isBoss: true,
   },
+  // Gardien des rayonnages scellés, plus profonds encore que la salle du
+  // Gardien du Rite — celui qui tenait le registre des membres de l'Ordre,
+  // jamais consulté depuis trois siècles.
+  veiled_scribe: {
+    id: 'veiled_scribe',
+    name: 'Scribe voilé',
+    maxHp: 265,
+    attack: 37,
+    xpReward: 620,
+    goldReward: 190,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

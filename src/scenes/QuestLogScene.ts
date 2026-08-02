@@ -391,10 +391,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   response_sent: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  rite_annex_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Des rayonnages scellés, au fond des Archives du Rite.',
+  },
+  rite_annex_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  rite_annex_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une réponse envoyée, une réponse reçue en retour : « Bientôt. » La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Le registre de l'Ordre, enfin ouvert. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

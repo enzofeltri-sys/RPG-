@@ -36,6 +36,7 @@ import { CorruptedRootScene } from './scenes/CorruptedRootScene';
 import { SealDepthsScene } from './scenes/SealDepthsScene';
 import { WatchersLodgeScene } from './scenes/WatchersLodgeScene';
 import { RiteArchiveScene } from './scenes/RiteArchiveScene';
+import { RiteAnnexScene } from './scenes/RiteAnnexScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -159,6 +160,7 @@ async function boot(): Promise<void> {
       SealDepthsScene,
       WatchersLodgeScene,
       RiteArchiveScene,
+      RiteAnnexScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

@@ -89,6 +89,10 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Ce que la loge gardait de plus précieux : les instructions du rite de
   // scellement lui-même, plus profondes que la table ronde.
   { key: 'RiteArchive', label: 'Les Archives du Rite', region: 'start', x: 200, y: 110 },
+
+  // Des rayonnages scellés au fond des Archives du Rite, inaccessibles
+  // jusqu'à ce que la confiance rendue à la silhouette en lève le ward.
+  { key: 'RiteAnnex', label: "L'Annexe scellée", region: 'start', x: 200, y: 55 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -128,11 +132,12 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['SealChamber', 'SealDepths'],
   ['Shrine', 'WatchersLodge'],
   ['WatchersLodge', 'RiteArchive'],
+  ['RiteArchive', 'RiteAnnex'],
 ];
 
 // Where the main quest currently points, per stage — mirrors the location
 // named in QuestLogScene's MAIN_QUEST_STATUS descriptions. Terminal stages
-// with no further lead (currently 'response_sent') have no entry: that
+// with no further lead (currently 'rite_annex_cleared') have no entry: that
 // chapter is closed, nothing left to point at for now.
 export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>> = {
   not_started: 'Hamlet',
@@ -208,6 +213,9 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   rite_archive_lead: 'WatchersLodge',
   rite_archive_reached: 'City',
   rite_archive_cleared: 'City',
+  response_sent: 'City',
+  rite_annex_lead: 'RiteArchive',
+  rite_annex_reached: 'City',
 };
 
 // Home scene of each side quest's giver/turn-in NPC.

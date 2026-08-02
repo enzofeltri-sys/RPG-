@@ -411,10 +411,25 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   lineage_traced: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  crypt_lead: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Une maison scellée, dans le vieux quartier d’Aiglemont.',
+  },
+  crypt_reached: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  crypt_cleared: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une lignée, pas juste une personne. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Un blason, une lignée, un Ordre qui n'a jamais vraiment disparu. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

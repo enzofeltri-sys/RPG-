@@ -399,6 +399,19 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 190,
     isBoss: true,
   },
+  // Gardien d'une crypte familiale scellée dans le vieux quartier
+  // d'Aiglemont, jamais reliée jusqu'ici à la quête — jusqu'à ce que le nom
+  // du registre corresponde à un acte de propriété jamais mis à jour depuis
+  // des générations.
+  blood_keeper: {
+    id: 'blood_keeper',
+    name: 'Gardien du Sang',
+    maxHp: 280,
+    attack: 39,
+    xpReward: 650,
+    goldReward: 200,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

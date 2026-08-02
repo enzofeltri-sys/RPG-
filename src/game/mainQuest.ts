@@ -91,7 +91,10 @@ export type MainQuestStage =
   | 'rite_annex_lead'
   | 'rite_annex_reached'
   | 'rite_annex_cleared'
-  | 'lineage_traced';
+  | 'lineage_traced'
+  | 'crypt_lead'
+  | 'crypt_reached'
+  | 'crypt_cleared';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -148,6 +151,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   response_sent: { xp: 420, itemBaseId: 'leather_boots', itemRarity: 'epic' },
   rite_annex_cleared: { xp: 610, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   lineage_traced: { xp: 340, itemBaseId: 'simple_ring', itemRarity: 'rare' },
+  crypt_cleared: { xp: 680, itemBaseId: 'leather_helmet', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -184,6 +188,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   oath_guardian: { fromStage: 'lodge_lead', toStage: 'lodge_reached' },
   rite_guardian: { fromStage: 'rite_archive_lead', toStage: 'rite_archive_reached' },
   veiled_scribe: { fromStage: 'rite_annex_lead', toStage: 'rite_annex_reached' },
+  blood_keeper: { fromStage: 'crypt_lead', toStage: 'crypt_reached' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

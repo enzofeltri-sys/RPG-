@@ -169,6 +169,15 @@ export class CityScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
+    // Une ruelle du vieux quartier que tout le monde évite depuis des
+    // générations, sans trop savoir pourquoi — une porte de cave scellée,
+    // jamais rattachée à un nom jusqu'à ce que le registre en révèle un.
+    // Toujours franchissable, quelle que soit l'étape de la quête en cours.
+    const cryptZone = this.add.zone(470, 400, 30, 20);
+    this.physics.add.existing(cryptZone, true);
+    this.physics.add.overlap(this.player, cryptZone, () => this.enterAncestralCrypt());
+    addCrispText(this, 470, 413, 'Ruelle oubliée ↓', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+
     const interactables: Interactable[] = [
       { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },
       { x: this.mage.x, y: this.mage.y, radius: 24, onTap: () => this.talkToMage() },
@@ -1421,7 +1430,48 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'lineage_traced') {
       this.openDialog(
-        "« Une lignée, voyageur, pas juste une personne. Cela change la question qu'on doit se poser. La suite de cette histoire viendra en temps voulu. »",
+        "Sélène a passé du temps aux archives de la ville, cette fois, pas celles de l'Ordre. « Le nom du registre existe aussi dans les actes de propriété d'Aiglemont, voyageur. Une maison, dans le vieux quartier — jamais vendue, jamais démolie, seulement 'scellée', depuis des générations. Personne ne se souvient pourquoi. » Elle hésite. « Ce genre d'oubli ne se produit pas tout seul. »",
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'crypt_lead');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+    if (stage === 'crypt_lead') {
+      this.openDialog(
+        "« Cherchez dans le vieux quartier, voyageur — une ruelle que tout le monde évite depuis des générations, sans trop savoir pourquoi. C'est là, je crois, que se trouve cette maison. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'crypt_reached') {
+      this.openDialog(
+        "Sélène examine longuement ce que vous avez trouvé dans le caveau — un blason familial, usé mais reconnaissable, gravé sur chaque tombe. Elle le compare, main tremblante, aux marques déjà relevées sur le fragment de la Loge et les pages de l'Archive. « Le même symbole, voyageur. Pas une coïncidence, pas cette fois. » Elle repose l'objet avec précaution. « Cette famille n'a pas seulement connu l'Ordre. Elle en a peut-être fait partie, jusqu'au bout. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'crypt_cleared');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'crypt_cleared') {
+      this.openDialog(
+        "« Un blason, une lignée, un Ordre qui n'a jamais vraiment disparu, voyageur. Les pièces s'assemblent, lentement. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;
@@ -1519,6 +1569,15 @@ export class CityScene extends Phaser.Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Archives');
+    });
+  }
+
+  private enterAncestralCrypt(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('AncestralCrypt', { x: 110, y: 380 });
     });
   }
 

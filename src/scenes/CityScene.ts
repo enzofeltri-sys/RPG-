@@ -1587,7 +1587,24 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'registry_cleared') {
       this.openDialog(
-        "« Quelques années, voyageur. Pas trois siècles. Quelqu'un porte cette charge aujourd'hui, quelque part à Aiglemont ou tout près. La suite de cette histoire viendra en temps voulu. »",
+        "Le lendemain de votre passage aux Registres, un message vous attend déjà au petit sanctuaire — vous n'avez rien déposé, cette fois. La silhouette a su avant même que vous ne demandiez. Le mot est court, tremblant : « Vous êtes trop près, maintenant. Encore un peu de temps, et je viendrai moi-même. Pas de recherche. Une rencontre. » Sélène relit la phrase plusieurs fois. « Une rencontre, voyageur. Pas une lettre, pas un objet laissé quelque part. Elle parle de venir. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'meeting_promised');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'meeting_promised') {
+      this.openDialog(
+        "« Une rencontre, voyageur. Après tout ce temps. Nous ne savons ni quand ni où — juste qu'elle vient. La suite de cette histoire viendra en temps voulu. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
       return;

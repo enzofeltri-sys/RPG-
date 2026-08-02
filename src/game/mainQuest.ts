@@ -102,7 +102,8 @@ export type MainQuestStage =
   | 'title_hypothesis'
   | 'notary_lead'
   | 'registry_reached'
-  | 'registry_cleared';
+  | 'registry_cleared'
+  | 'meeting_promised';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -164,6 +165,7 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   grave_cleared: { xp: 710, itemBaseId: 'simple_amulet', itemRarity: 'epic' },
   title_hypothesis: { xp: 390, itemBaseId: 'wooden_shield', itemRarity: 'rare' },
   registry_cleared: { xp: 730, itemBaseId: 'short_sword', itemRarity: 'epic' },
+  meeting_promised: { xp: 410, itemBaseId: 'leather_legs', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

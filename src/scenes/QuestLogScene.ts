@@ -466,10 +466,15 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
     description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
   },
   registry_cleared: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  meeting_promised: {
     label: 'Acte 3 en cours',
     color: DONE_COLOR,
     description:
-      "Une succession sans interruption, jusqu'à il y a quelques années seulement. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+      "Une rencontre promise, ni quand ni où. La suite de l'histoire arrivera dans une prochaine mise à jour.",
   },
 };
 

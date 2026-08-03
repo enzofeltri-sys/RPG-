@@ -46,7 +46,8 @@ export type ReturnSceneKey =
   | 'GuildArchive'
   | 'CorruptedWaystation'
   | 'SunkenChapel'
-  | 'ThirdAltar';
+  | 'ThirdAltar'
+  | 'SanctuaryDepths';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;
@@ -94,6 +95,7 @@ const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'CorruptedWaystation',
   'SunkenChapel',
   'ThirdAltar',
+  'SanctuaryDepths',
 ]);
 
 export function returnSceneStartData(returnScene: ReturnSceneKey, x?: number, y?: number): Record<string, unknown> {

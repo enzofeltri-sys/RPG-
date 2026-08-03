@@ -475,6 +475,20 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
     goldReward: 250,
     isBoss: true,
   },
+  // The true final encounter — not the Roi Démon itself (still fully
+  // contained), but as much of it as leaks through the seal once the rite
+  // begins at all three sites at once. A clear step above every prior boss
+  // rather than one more +15hp increment in the sequence above, to read as
+  // the climax rather than just another dungeon's guardian.
+  demon_king_echo: {
+    id: 'demon_king_echo',
+    name: 'Écho du Roi Démon',
+    maxHp: 450,
+    attack: 58,
+    xpReward: 1000,
+    goldReward: 320,
+    isBoss: true,
+  },
 };
 
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an

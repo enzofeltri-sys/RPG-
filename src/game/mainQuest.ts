@@ -118,7 +118,13 @@ export type MainQuestStage =
   | 'third_site_reached'
   | 'third_site_cleared'
   | 'recruiting_help'
-  | 'ally_secured';
+  | 'ally_secured'
+  | 'signal_awaited'
+  | 'rite_night'
+  | 'rite_climax'
+  | 'ending_new_seal'
+  | 'ending_destruction'
+  | 'ending_ascension';
 
 export const MAIN_QUEST_TITLE = "L'Éveil de la Marque";
 
@@ -158,6 +164,8 @@ const STAGE_ORDER: Record<MainQuestStage, number> = {
   road_lead: 94, waystation_reached: 95, waystation_cleared: 96, awaiting_meeting: 97, first_meeting: 98,
   meeting_debriefed: 99, chapel_lead: 100, chapel_reached: 101, chapel_cleared: 102, third_site_awaited: 103,
   third_site_lead: 104, third_site_reached: 105, third_site_cleared: 106, recruiting_help: 107, ally_secured: 108,
+  signal_awaited: 109, rite_night: 110, rite_climax: 111, ending_new_seal: 112, ending_destruction: 113,
+  ending_ascension: 114,
 };
 
 const ACT1_COMPLETE_INDEX = STAGE_ORDER.act1_complete;
@@ -238,6 +246,16 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   third_site_cleared: { xp: 860, itemBaseId: 'threefold_ward', itemRarity: 'epic' },
   recruiting_help: { xp: 470, itemBaseId: 'ritual_ring', itemRarity: 'rare' },
   ally_secured: { xp: 490, itemBaseId: 'bregan_seal', itemRarity: 'epic' },
+  // The finale, at last — the first 'legendary' rarity ever handed out by
+  // STAGE_REWARDS (every prior entry above tops out at 'epic'), on purpose:
+  // whichever of the three the player picks is the one and only time this
+  // fires on a given save, so there's no balance case to guard against by
+  // holding back. Different item per ending purely for flavor (shield /
+  // sword / staff matching each ending's theme) — all three are already
+  // craftable/lootable templates, no new item introduced just for this.
+  ending_new_seal: { xp: 1000, itemBaseId: 'ritual_ward', itemRarity: 'legendary' },
+  ending_destruction: { xp: 1000, itemBaseId: 'blackened_sword', itemRarity: 'legendary' },
+  ending_ascension: { xp: 1000, itemBaseId: 'shadow_scepter', itemRarity: 'legendary' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
@@ -280,6 +298,7 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   blight_sentinel: { fromStage: 'road_lead', toStage: 'waystation_reached' },
   sunken_warden: { fromStage: 'chapel_lead', toStage: 'chapel_reached' },
   ancestor_warden: { fromStage: 'third_site_lead', toStage: 'third_site_reached' },
+  demon_king_echo: { fromStage: 'rite_night', toStage: 'rite_climax' },
 };
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {

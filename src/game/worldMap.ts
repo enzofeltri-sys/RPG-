@@ -120,6 +120,11 @@ export const MAP_LOCATIONS: MapLocation[] = [
   // Le troisième et dernier site du rite, plus profond encore que la
   // Crypte des Aînés elle-même — jamais cherché faute d'y avoir pensé.
   { key: 'ThirdAltar', label: 'Le Troisième Autel', region: 'aiglemont', x: 100, y: 275 },
+
+  // Le site principal du rite — sous la chambre du Sceau elle-même,
+  // au-delà même de ce que primordial_guardian gardait. Ouvert uniquement
+  // le soir venu, quand les trois sites doivent tenir en même temps.
+  { key: 'SanctuaryDepths', label: 'Sous le Sceau originel', region: 'start', x: 160, y: 275 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
@@ -158,6 +163,7 @@ export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [
   ['BlightedGrove', 'CorruptedRoot'],
   ['SealChamber', 'SealDepths'],
   ['Shrine', 'WatchersLodge'],
+  ['Shrine', 'SanctuaryDepths'],
   ['WatchersLodge', 'RiteArchive'],
   ['RiteArchive', 'RiteAnnex'],
   ['City', 'AncestralCrypt'],
@@ -277,6 +283,12 @@ export const MAIN_QUEST_LOCATION: Partial<Record<MainQuestStage, ReturnSceneKey>
   third_site_reached: 'City',
   third_site_cleared: 'City',
   recruiting_help: 'City',
+  ally_secured: 'City',
+  signal_awaited: 'City',
+  rite_night: 'Shrine',
+  rite_climax: 'Shrine',
+  // The 3 endings deliberately have no entry — same "chapter is closed"
+  // convention as every other terminal stage, see the comment above.
 };
 
 // Home scene of each side quest's giver/turn-in NPC.
@@ -359,4 +371,5 @@ export const DUNGEON_LOOT_TIER: Record<ReturnSceneKey, 1 | 2 | 3> = {
   CorruptedWaystation: 3,
   SunkenChapel: 3,
   ThirdAltar: 3,
+  SanctuaryDepths: 3,
 };

@@ -1818,9 +1818,67 @@ export class CityScene extends Phaser.Scene {
     }
     if (stage === 'ally_secured') {
       this.openDialog(
-        "« C'est fait, voyageur. » Sélène a l'air à la fois soulagée et un peu incrédule. « Bregan a accepté sans même discuter le prix — il a juste demandé qu'on lui explique, un jour, ce que tout cela voulait dire. Ses hommes tiendront les deux sites extérieurs le moment venu. Reste le site principal : vous, moi, et elle. » Un temps. « Nous avons ce qu'il nous faut. La suite de cette histoire viendra en temps voulu. »",
+        "« C'est fait, voyageur. » Sélène a l'air à la fois soulagée et un peu incrédule. « Bregan a accepté sans même discuter le prix — il a juste demandé qu'on lui explique, un jour, ce que tout cela voulait dire. Ses hommes tiendront les deux sites extérieurs le moment venu. Reste le site principal : vous, moi, et elle. » Un temps. « Il ne manque plus qu'un mot d'elle pour savoir quand. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'signal_awaited');
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'signal_awaited') {
+      this.openDialog(
+        "Les jours passent sans nouvelle, puis un mot finit par arriver du sanctuaire — un seul, souligné deux fois : « Ce soir. » Sélène relève les yeux du message, la voix tendue mais calme. « Ce soir, voyageur. Bregan a déjà reçu l'ordre d'envoyer ses hommes aux deux sites extérieurs. Il ne reste que le nôtre. » Elle range le message avec un soin presque cérémonieux. « Allez vous préparer. Je vous retrouve au sanctuaire à la tombée du jour. »",
+        [
+          {
+            label: 'Continuer',
+            onClick: async () => {
+              advanceMainQuestStage(this.character, 'rite_night');
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+    if (stage === 'rite_night') {
+      this.openDialog("« Le sanctuaire, voyageur. Ce soir. Je vous y retrouve. »", [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+    if (stage === 'rite_climax') {
+      this.openDialog(
+        "La tour est vide. Sélène est déjà partie pour le sanctuaire, avec elle — vous devriez les y rejoindre.",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
       );
+      return;
+    }
+    if (stage === 'ending_new_seal') {
+      this.openDialog("La tour de Sélène est calme, presque paisible. Le monde tient — c'est déjà beaucoup.", [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+    if (stage === 'ending_destruction') {
+      this.openDialog(
+        "Sélène range ses derniers grimoires, le sourire fatigué de qui a enfin gagné quelque chose. « C'est fini, voyageur. Vraiment fini, cette fois. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    if (stage === 'ending_ascension') {
+      this.openDialog('La tour de Sélène est vide. Personne à Aiglemont ne semble savoir où elle est partie.', [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
       return;
     }
 

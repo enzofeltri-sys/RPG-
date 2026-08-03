@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Character } from '../game/character';
-import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
+import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
@@ -28,6 +28,29 @@ interface ShrineData {
   x?: number;
   y?: number;
 }
+
+// The rite passage only exists (visually and as a tap target) once Sélène
+// has sent the player here for the actual rite — showing it earlier would
+// spoil that the sanctuary itself is the final site, and tapping it before
+// then has nothing to do anyway. Stays visible through every stage after,
+// including the 3 endings, so the dungeon (and its boss) stays farmable
+// like every other dungeon in the game once unlocked.
+const FINAL_RITE_STAGES: MainQuestStage[] = [
+  'rite_night',
+  'rite_climax',
+  'ending_new_seal',
+  'ending_destruction',
+  'ending_ascension',
+];
+
+const ENDING_TEXT: Record<'ending_new_seal' | 'ending_destruction' | 'ending_ascension', string> = {
+  ending_new_seal:
+    "Vous posez la main sur la fissure, et laissez la marque faire ce qu'elle a toujours été destinée à faire. La douleur est brève ; ce qui reste après ne l'est pas. Le sceau ne se referme pas — il se déplace, en vous, vivant, tenu par un choix plutôt que par une pierre. Sélène pleure sans honte. La Veilleuse, pour la première fois, sourit. Vaeloria continuera, fracturée mais debout, gardée par quelqu'un qui a choisi de rester. Ce ne sera plus jamais tout à fait votre histoire à raconter vous-même — mais elle continue, et c'est, après tout ce chemin, exactement ce qu'il fallait.",
+  ending_destruction:
+    "Aux deux sites extérieurs, les hommes de Bregan tiennent leur position une dernière fois pendant que vous, Sélène et la Veilleuse portez le rite à son terme — non pour contenir, mais pour trancher. Le Roi Démon ne se brise pas en un instant ; il se brise en hurlant, sur trois cents ans de rancœur enfin vidés d'un coup. Quand le silence revient, quelque chose d'immense a cessé d'exister, et Vaeloria, pour la première fois depuis la Rupture, n'a plus besoin de sceau du tout. La victoire a un prix — des noms que Bregan portera en lui, des sites qui ne se relèveront pas indemnes — mais elle est réelle, et elle est à vous trois.",
+  ending_ascension:
+    "Vous tendez la main vers ce que le rite libère, et au lieu de le combattre, vous le prenez. La Veilleuse crie un avertissement que vous n'entendez plus vraiment ; Sélène recule, le visage traversé d'une terreur qu'elle ne cachera plus jamais tout à fait en votre présence. Le pouvoir du Roi Démon ne vous consume pas — il se love en vous, patient, comme s'il avait toujours su que ce jour viendrait. Vous quittez le sanctuaire différent, plus fort qu'aucun royaume fracturé ne saurait l'être seul. Ce que vous ferez de cette force reste à écrire — mais Vaeloria a, ce jour-là, cessé d'avoir un sceau, et gagné quelque chose d'autre à sa place.",
+};
 
 // The "petit sanctuaire" from VISION.md's region-1 description — a small
 // dead-end branch off Basse-Combe, east side. No combat here on purpose (a
@@ -151,6 +174,19 @@ export class ShrineScene extends Phaser.Scene {
         this.tapControl.setInteractables([
           ...this.baseInteractables,
           { x: 100, y: 25, radius: 20, onTap: () => this.meetSilhouette() },
+        ]);
+      }
+
+      // Kept well clear of every existing interactable here (hermit at
+      // (140,100)r24, altar at (100,50)r22, outer stone at (150,280)r22) —
+      // TapController now warns on overlap (see input/TapController.ts), so
+      // this was placed with that check in mind, not just eyeballed.
+      if (FINAL_RITE_STAGES.includes(getMainQuestStage(this.character))) {
+        this.add.rectangle(180, 340, 14, 22, 0x2a1a3a).setStrokeStyle(1, 0xe8d9b5);
+        addCrispText(this, 180, 322, 'Faille du rite', { fontSize: '8px', color: '#e8d9b5' }).setOrigin(0.5);
+        this.tapControl.setInteractables([
+          ...this.baseInteractables,
+          { x: 180, y: 340, radius: 20, onTap: () => this.handleRiteFissure() },
         ]);
       }
     }
@@ -277,6 +313,44 @@ export class ShrineScene extends Phaser.Scene {
     );
   }
 
+  // rite_night: first descent, into the final dungeon. rite_climax: the
+  // boss is already down — this is where the 3-way ending choice actually
+  // lives. The 3 ending stages themselves re-enter the (now just a regular
+  // farmable dungeon) depths, same as every other cleared boss in the game.
+  private handleRiteFissure(): void {
+    const stage = getMainQuestStage(this.character);
+    if (stage === 'rite_climax') {
+      this.presentEndingChoice();
+      return;
+    }
+    this.enterSanctuaryDepths();
+  }
+
+  private presentEndingChoice(): void {
+    this.openDialog(
+      "Le fragment retombe en poussière. Le sceau, sous vos bottes, tremble encore. Sélène surgit du passage, la Veilleuse à son côté — enfin sans ombre pour se cacher. « Ça a tenu, aux deux autres sites. Mais pas longtemps : le sceau ne peut plus rester ce qu'il était. » Elle vous regarde, grave. « Vous portez la marque, pas nous. C'est votre choix à faire. »",
+      [
+        { label: "Devenir l'ancre", onClick: () => this.chooseEnding('ending_new_seal', ENDING_TEXT.ending_new_seal) },
+        {
+          label: 'Détruire, ensemble',
+          onClick: () => this.chooseEnding('ending_destruction', ENDING_TEXT.ending_destruction),
+        },
+        {
+          label: 'Absorber le pouvoir',
+          onClick: () => this.chooseEnding('ending_ascension', ENDING_TEXT.ending_ascension),
+        },
+      ],
+      260,
+    );
+  }
+
+  private async chooseEnding(stage: MainQuestStage, epilogue: string): Promise<void> {
+    advanceMainQuestStage(this.character, stage);
+    await SaveManager.saveCharacter(this.character);
+    playQuestComplete();
+    this.openDialog(epilogue, [{ label: 'Fermer', onClick: () => this.closeDialog() }]);
+  }
+
   private showLoreAndRest(): void {
     const text = LORE_LINES[this.loreIndex % LORE_LINES.length];
     this.loreIndex += 1;
@@ -299,18 +373,22 @@ export class ShrineScene extends Phaser.Scene {
     };
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // boxHeight defaults to the size every other dialog in this scene already
+  // fits in; the 3-way ending choice is the first to need more room for a
+  // 3rd button, so it passes a taller value instead of every existing call
+  // site needing to change.
+  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
+    const boxTop = height / 2 - 100;
 
+    // Measured before the buttons so a long paragraph can push them down
+    // instead of running underneath them — every dialog before the 3-way
+    // ending choice stayed short enough that the fixed height/2+50 offset
+    // never visibly overlapped, but that was luck, not a guarantee (confirmed
+    // by testing: this exact text/button combo overlapped at a fixed offset).
     const label = addCrispText(this, width / 2, height / 2 - 80, text, {
       fontSize: '10px',
       color: GOLD,
@@ -322,10 +400,23 @@ export class ShrineScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(801);
 
+    const bg = this.add
+      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(800)
+      .setStrokeStyle(1, 0xe8d9b5);
+
     this.dialogElements = [bg, label];
 
+    // Clamped so a long paragraph pushes buttons down but never past the
+    // visible canvas (height) — an unreachable off-screen button would be
+    // strictly worse than the pre-fix behavior of drawing it mid-paragraph
+    // at a fixed offset, at least still on-screen and tappable.
+    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
+    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
     buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
+      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
         fontSize: '10px',
         color: DARK,
         backgroundColor: GOLD,
@@ -338,12 +429,26 @@ export class ShrineScene extends Phaser.Scene {
       buttonText.on('pointerdown', button.onClick);
       this.dialogElements.push(buttonText);
     });
+
+    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
+    if (contentBottom - boxTop + 12 > boxHeight) {
+      bg.setSize(width - 20, contentBottom - boxTop + 12);
+    }
   }
 
   private closeDialog(): void {
     this.dialogElements.forEach((el) => el.destroy());
     this.dialogElements = [];
     this.tapControl.setEnabled(true);
+  }
+
+  private enterSanctuaryDepths(): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('SanctuaryDepths', { x: 110, y: 380 });
+    });
   }
 
   private enterSealChamber(): void {

@@ -547,9 +547,38 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
   },
   ally_secured: {
     label: 'Acte 3 en cours',
+    color: ACTIVE_COLOR,
+    description: "Le capitaine Bregan prêtera main-forte pour les deux sites extérieurs. En attente de son signal.",
+  },
+  signal_awaited: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: "Retournez voir la mage Sélène, à la Tour des Mages d'Aiglemont.",
+  },
+  rite_night: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Le sanctuaire, ce soir.',
+  },
+  rite_climax: {
+    label: 'En cours',
+    color: ACTIVE_COLOR,
+    description: 'Le rite a commencé. Retournez au sanctuaire.',
+  },
+  ending_new_seal: {
+    label: 'Terminé — Nouveau Sceau',
     color: DONE_COLOR,
-    description:
-      "Le capitaine Bregan prêtera main-forte pour les deux sites extérieurs. La suite de l'histoire arrivera dans une prochaine mise à jour.",
+    description: "Vous êtes devenu(e) l'ancre vivante du sceau. Vaeloria continue, fracturée mais debout.",
+  },
+  ending_destruction: {
+    label: 'Terminé — Destruction',
+    color: DONE_COLOR,
+    description: "Le Roi Démon a été détruit. Vaeloria n'a plus besoin de sceau.",
+  },
+  ending_ascension: {
+    label: 'Terminé — Ascension',
+    color: DONE_COLOR,
+    description: 'Vous avez absorbé le pouvoir du Roi Démon. Ce que vous en ferez reste à écrire.',
   },
 };
 

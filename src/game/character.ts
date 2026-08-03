@@ -221,6 +221,12 @@ export function ensureCharacterDefaults(character: Character): Character {
   if (character.stats.darkDamage === undefined) character.stats.darkDamage = 0;
   if (character.stats.earthDamage === undefined) character.stats.earthDamage = 0;
   if (character.stats.lifeSteal === undefined) character.stats.lifeSteal = 0;
+  // Saves from before stat-point allocation existed never got this field, and
+  // `undefined + 3` in grantXp's `character.statPoints += 3` silently produces
+  // NaN forever after the first level-up (NaN + anything is still NaN) — the
+  // NaN check catches a save that already leveled up once under that bug,
+  // not just a save that never had the field at all.
+  if (character.statPoints === undefined || Number.isNaN(character.statPoints)) character.statPoints = 0;
 
   // Backfills weaponType onto items saved before that field existed — their
   // Item objects were snapshotted by createItem() before it copied the

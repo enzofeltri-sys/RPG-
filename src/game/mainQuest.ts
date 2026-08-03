@@ -129,39 +129,44 @@ export function getMainQuestStage(character: Character): MainQuestStage {
 // Mirrors the union above in the same order the story actually unlocks it —
 // used to derive "how far has this save gotten" as a single number, without
 // duplicating an act boundary check everywhere that needs one (currently:
-// the merchant's rotating stock, see merchantStock.ts).
-const MAIN_QUEST_STAGE_ORDER: MainQuestStage[] = [
-  'not_started', 'dungeon', 'revelation', 'aiglemont', 'complete', 'catacombs', 'trail_found', 'debriefed',
-  'faubourg_lead', 'shard_confirmed', 'shards_beyond', 'trail_west', 'river_lead', 'act1_complete',
-  'crossing_marshes', 'vasenoire_arrival', 'delta_conspiracy', 'limaneux_lead', 'network_exposed',
-  'smugglers_unmasked', 'network_reported', 'sealed_vault_lead', 'vault_uncovered', 'shard_cache_found',
-  'rival_hunters_lead', 'rival_hunters_confirmed', 'threat_acknowledged', 'chercheurs_lead', 'seekers_confronted',
-  'seekers_defeated', 'brotherhood_tomb_hinted', 'tomb_location_found', 'tomb_raided', 'act2_complete',
-  'outpost_corruption_lead', 'corruption_confirmed', 'blighted_grove_lead', 'grove_purified',
-  'corruption_contained', 'original_site_revealed', 'shrine_lead', 'seal_failing', 'antagonist_glimpsed',
-  'identity_search_started', 'identity_hint_gathered', 'upstream_lead', 'watchtower_reached',
-  'watchtower_cleared', 'helm_inscription_studied', 'ward_core_lead', 'ward_core_reached', 'ward_core_cleared',
-  'hermit_lead', 'hermit_confided', 'watchers_vault_lead', 'watchers_vault_reached', 'watchers_vault_cleared',
-  'silhouette_message_found', 'tomb_depths_lead', 'tomb_depths_reached', 'tomb_depths_cleared',
-  'grand_theory_formed', 'grove_depths_lead', 'grove_depths_reached', 'grove_depths_cleared',
-  'watcher_hypothesis_formed', 'seal_depths_lead', 'seal_depths_reached', 'seal_depths_cleared',
-  'second_token_found', 'lodge_lead', 'lodge_reached', 'lodge_cleared', 'reinforcement_plan_started',
-  'rite_archive_lead', 'rite_archive_reached', 'rite_archive_cleared', 'response_sent', 'rite_annex_lead',
-  'rite_annex_reached', 'rite_annex_cleared', 'lineage_traced', 'crypt_lead', 'crypt_reached', 'crypt_cleared',
-  'first_name_given', 'elder_lead', 'grave_reached', 'grave_cleared', 'title_hypothesis', 'notary_lead',
-  'registry_reached', 'registry_cleared', 'meeting_promised', 'road_lead', 'waystation_reached',
-  'waystation_cleared', 'awaiting_meeting', 'first_meeting', 'meeting_debriefed', 'chapel_lead', 'chapel_reached',
-  'chapel_cleared', 'third_site_awaited', 'third_site_lead', 'third_site_reached', 'third_site_cleared',
-  'recruiting_help', 'ally_secured',
-];
+// the merchant's rotating stock, see merchantStock.ts). A Record<MainQuestStage, number>
+// instead of a plain array on purpose: TypeScript rejects this object if it's
+// missing a stage or has one that no longer exists in the union above, so
+// adding/renaming a stage without updating this list fails the build instead
+// of getStoryTier() silently misclassifying every later stage.
+const STAGE_ORDER: Record<MainQuestStage, number> = {
+  not_started: 0, dungeon: 1, revelation: 2, aiglemont: 3, complete: 4, catacombs: 5, trail_found: 6, debriefed: 7,
+  faubourg_lead: 8, shard_confirmed: 9, shards_beyond: 10, trail_west: 11, river_lead: 12, act1_complete: 13,
+  crossing_marshes: 14, vasenoire_arrival: 15, delta_conspiracy: 16, limaneux_lead: 17, network_exposed: 18,
+  smugglers_unmasked: 19, network_reported: 20, sealed_vault_lead: 21, vault_uncovered: 22, shard_cache_found: 23,
+  rival_hunters_lead: 24, rival_hunters_confirmed: 25, threat_acknowledged: 26, chercheurs_lead: 27,
+  seekers_confronted: 28, seekers_defeated: 29, brotherhood_tomb_hinted: 30, tomb_location_found: 31,
+  tomb_raided: 32, act2_complete: 33, outpost_corruption_lead: 34, corruption_confirmed: 35,
+  blighted_grove_lead: 36, grove_purified: 37, corruption_contained: 38, original_site_revealed: 39,
+  shrine_lead: 40, seal_failing: 41, antagonist_glimpsed: 42, identity_search_started: 43,
+  identity_hint_gathered: 44, upstream_lead: 45, watchtower_reached: 46, watchtower_cleared: 47,
+  helm_inscription_studied: 48, ward_core_lead: 49, ward_core_reached: 50, ward_core_cleared: 51, hermit_lead: 52,
+  hermit_confided: 53, watchers_vault_lead: 54, watchers_vault_reached: 55, watchers_vault_cleared: 56,
+  silhouette_message_found: 57, tomb_depths_lead: 58, tomb_depths_reached: 59, tomb_depths_cleared: 60,
+  grand_theory_formed: 61, grove_depths_lead: 62, grove_depths_reached: 63, grove_depths_cleared: 64,
+  watcher_hypothesis_formed: 65, seal_depths_lead: 66, seal_depths_reached: 67, seal_depths_cleared: 68,
+  second_token_found: 69, lodge_lead: 70, lodge_reached: 71, lodge_cleared: 72, reinforcement_plan_started: 73,
+  rite_archive_lead: 74, rite_archive_reached: 75, rite_archive_cleared: 76, response_sent: 77,
+  rite_annex_lead: 78, rite_annex_reached: 79, rite_annex_cleared: 80, lineage_traced: 81, crypt_lead: 82,
+  crypt_reached: 83, crypt_cleared: 84, first_name_given: 85, elder_lead: 86, grave_reached: 87, grave_cleared: 88,
+  title_hypothesis: 89, notary_lead: 90, registry_reached: 91, registry_cleared: 92, meeting_promised: 93,
+  road_lead: 94, waystation_reached: 95, waystation_cleared: 96, awaiting_meeting: 97, first_meeting: 98,
+  meeting_debriefed: 99, chapel_lead: 100, chapel_reached: 101, chapel_cleared: 102, third_site_awaited: 103,
+  third_site_lead: 104, third_site_reached: 105, third_site_cleared: 106, recruiting_help: 107, ally_secured: 108,
+};
 
-const ACT1_COMPLETE_INDEX = MAIN_QUEST_STAGE_ORDER.indexOf('act1_complete');
-const ACT2_COMPLETE_INDEX = MAIN_QUEST_STAGE_ORDER.indexOf('act2_complete');
+const ACT1_COMPLETE_INDEX = STAGE_ORDER.act1_complete;
+const ACT2_COMPLETE_INDEX = STAGE_ORDER.act2_complete;
 
 // Same palier boundaries as DUNGEON_LOOT_TIER (worldMap.ts): palier 1 before
 // Acte 1 is done, palier 2 through Acte 2, palier 3 once Acte 2 is cleared.
 export function getStoryTier(character: Character): 1 | 2 | 3 {
-  const index = MAIN_QUEST_STAGE_ORDER.indexOf(getMainQuestStage(character));
+  const index = STAGE_ORDER[getMainQuestStage(character)];
   if (index < ACT1_COMPLETE_INDEX) return 1;
   if (index < ACT2_COMPLETE_INDEX) return 2;
   return 3;

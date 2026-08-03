@@ -76,12 +76,18 @@ export class StatsScene extends Phaser.Scene {
     y += 22;
 
     const stats = getEffectiveStats(this.character);
+    // Poison and lifesteal are paired onto one line each with a neighbor
+    // (rather than getting their own solo line like earlier drafts) so a
+    // character with every magic stat active at once — realistic once
+    // dual-wield/panoplies stack several elemental lines together — still
+    // fits above the Retour button instead of running into it (see the
+    // dynamic backButton position below, which also guards against this).
     const extraLines: string[] = [];
     if (stats.armor > 0 || stats.fireDamage > 0) {
       extraLines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
     }
-    if (stats.poisonDamage > 0) {
-      extraLines.push(`Dégâts de poison ${stats.poisonDamage}`);
+    if (stats.poisonDamage > 0 || stats.lifeSteal > 0) {
+      extraLines.push(`Dégâts de poison ${stats.poisonDamage}   Vol de vie ${stats.lifeSteal}`);
     }
     if (stats.iceDamage > 0 || stats.electricDamage > 0) {
       extraLines.push(`Dégâts de glace ${stats.iceDamage}   Dégâts électriques ${stats.electricDamage}`);
@@ -89,11 +95,8 @@ export class StatsScene extends Phaser.Scene {
     if (stats.darkDamage > 0 || stats.earthDamage > 0) {
       extraLines.push(`Dégâts obscurs ${stats.darkDamage}   Dégâts de terre ${stats.earthDamage}`);
     }
-    if (stats.lifeSteal > 0) {
-      extraLines.push(`Vol de vie ${stats.lifeSteal}`);
-    }
 
-    addCrispText(
+    const statBlock = addCrispText(
       this,
       12,
       y,
@@ -102,13 +105,17 @@ export class StatsScene extends Phaser.Scene {
         `PM ${this.character.mp}/${this.character.maxMp}`,
         '',
         ...extraLines,
-        extraLines.length > 0 ? '' : undefined,
         `Or : ${this.character.gold}`,
-      ].filter((line): line is string => line !== undefined),
+      ],
       { fontSize: '11px', color: GOLD, lineSpacing: 6 },
     );
 
-    const backButton = addCrispText(this, width / 2, 362, 'Retour', {
+    // Anchored below the block's actual measured height (same idea as
+    // CraftingScene's per-recipe height measurement) instead of a fixed y —
+    // a fixed offset overlapped the Retour button once every magic stat
+    // line was present at once (confirmed in testing: ~5px overlap).
+    const backButtonY = Math.max(362, statBlock.y + statBlock.height + 18);
+    const backButton = addCrispText(this, width / 2, backButtonY, 'Retour', {
       fontSize: '13px',
       color: DARK,
       backgroundColor: GOLD,

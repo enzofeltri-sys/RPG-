@@ -2,19 +2,33 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
 import { Wanderer } from '../entities/wanderer';
+import { Character } from '../game/character';
+import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
+import { getMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
+import { playQuestComplete } from '../ui/sound';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
+const GOLD = '#e8d9b5';
+const DARK = '#0b0c10';
 
 const VILLAGER_LINES = [
   'Valombre reçoit pas mal de voyageurs ces temps-ci.',
   'La forge tourne à plein régime, allez donc voir le forgeron.',
   'On dit qu\'une route commerciale relie maintenant la ville à Aiglemont.',
 ];
+
+// Post-game only ("style Daedra, drôles et étranges" — VISION.md), same
+// unlock condition as Gontrand's chain (HamletScene) — a different comedic
+// register here (commerce/greed rather than pseudo-science).
+const POST_GAME_STAGES: MainQuestStage[] = ['ending_new_seal', 'ending_destruction', 'ending_ascension'];
+const BRASQUE_QUEST_1 = 'brasque_wolf_relic';
+const BRASQUE_QUEST_2 = 'brasque_bandit_relic';
+const BRASQUE_QUEST_3 = 'brasque_goblin_relic';
 
 interface VillageData {
   x?: number;
@@ -23,20 +37,25 @@ interface VillageData {
 
 // Valombre — the full-service town (forge, marchande), reached by crossing
 // the Champ from the player's home hamlet (Basse-Combe, HamletScene). No
-// quest-giver or gathering here anymore (increment 9 world pass) — those
+// early-game quest-giver or gathering here (increment 9 world pass) — those
 // live in the hamlet and the Champ respectively, so Valombre reads as a real
-// town you travel to rather than the same small starting point.
+// town you travel to rather than the same small starting point. Brasque
+// (below) is the one exception, and deliberately so: he stays silent until
+// the main quest is finished, so he never competes with that pacing.
 export class VillageScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private tapControl!: TapController;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
+  private character!: Character;
   private messageText?: Phaser.GameObjects.Text;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
+  private brasque!: Phaser.GameObjects.Rectangle;
   private villagers: Wanderer[] = [];
   private villagerLineIndex = 0;
+  private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
   private spawnY?: number;
 
@@ -82,10 +101,18 @@ export class VillageScene extends Phaser.Scene {
     // Ambient villagers, clear of every building/zone/signpost.
     this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15), new Wanderer(this, 400, 150, 0x7a8a6a, 25)];
 
+    // Kept well clear of every other fixed point here — see the
+    // POST_GAME_STAGES comment above for why he stays quiet until the main
+    // quest is done.
+    this.brasque = this.add.rectangle(60, 470, 14, 20, 0x8a5a2a).setStrokeStyle(1, 0x0b0c10);
+    addCrispText(this, 60, 450, 'Brasque', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.merchantNpc);
     this.villagers.forEach((v) => this.physics.add.collider(this.player, v.sprite));
+    this.physics.add.existing(this.brasque, true);
+    this.physics.add.collider(this.player, this.brasque);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -164,6 +191,7 @@ export class VillageScene extends Phaser.Scene {
           onTap: () => this.talkToVillager(),
         };
       }),
+      { x: this.brasque.x, y: this.brasque.y, radius: 22, onTap: () => this.talkToBrasque() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -174,6 +202,7 @@ export class VillageScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
 
     if (save?.character) {
+      this.character = save.character;
       new CharacterSheetPanel(
         this,
         save.character,
@@ -197,6 +226,219 @@ export class VillageScene extends Phaser.Scene {
     const line = VILLAGER_LINES[this.villagerLineIndex % VILLAGER_LINES.length];
     this.villagerLineIndex += 1;
     this.showMessage(line);
+  }
+
+  private talkToBrasque(): void {
+    if (!POST_GAME_STAGES.includes(getMainQuestStage(this.character))) {
+      this.openDialog(
+        "Brasque compte des pièces derrière son étal, l'air pensif. « Une idée me trotte dans la tête, voyageur, mais elle n'est pas encore mûre. Repassez plus tard. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    const quest = QUESTS[BRASQUE_QUEST_1];
+    const progress = getQuestProgress(this.character, BRASQUE_QUEST_1);
+
+    if (!progress) {
+      this.openDialog(
+        `Brasque bondit de derrière son étal en vous voyant. « VOUS ! Le héros en personne, et à Valombre en plus ! » Il déroule déjà une pancarte à moitié peinte. ${quest.description}`,
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              startQuest(this.character, BRASQUE_QUEST_1);
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} loups corrompus vaincus.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "Brasque examine les crocs avec un sérieux tout commercial. « Parfait, parfait. » Il les aligne déjà en vitrine. « Article numéro un : en stock. » Voici votre part, pour la peine.",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, BRASQUE_QUEST_1);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.talkToBrasqueArticle2();
+  }
+
+  // Reached only once brasque_wolf_relic is turned in — same chain shape as
+  // Gontrand's tomes in HamletScene.
+  private talkToBrasqueArticle2(): void {
+    const quest = QUESTS[BRASQUE_QUEST_2];
+    const progress = getQuestProgress(this.character, BRASQUE_QUEST_2);
+
+    if (!progress) {
+      this.openDialog(`Brasque a déjà la pancarte suivante en tête. ${quest.description}`, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, BRASQUE_QUEST_2);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nLe chef des bandits se terre toujours au Champ.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "« Magnifique. » Brasque tourne le bouton entre ses doigts comme s'il s'agissait d'un joyau. « Article numéro deux, en stock, prix déjà doublé rien que pour l'histoire qui va avec. »",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, BRASQUE_QUEST_2);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.talkToBrasqueArticle3();
+  }
+
+  // Reached only once brasque_bandit_relic is turned in.
+  private talkToBrasqueArticle3(): void {
+    const quest = QUESTS[BRASQUE_QUEST_3];
+    const progress = getQuestProgress(this.character, BRASQUE_QUEST_3);
+
+    if (!progress) {
+      this.openDialog(`Brasque en tremble presque d'avance. ${quest.description}`, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, BRASQUE_QUEST_3);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nLe chef des gobelins se terre toujours dans la Forêt.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "Brasque place le trophée en vitrine avec la solennité d'un couronnement. « Le Repaire du Héros est complet, voyageur. Trois articles, trois légendes. » Il hésite, puis sort un dernier bout de parchemin. « Une signature, pendant que vous êtes là ? Ça double la valeur de tout le reste. »",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, BRASQUE_QUEST_3);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.openDialog('« Le Repaire du Héros, voyageur. Article numéro un du commerce local, ces temps-ci. »', [
+      { label: 'Fermer', onClick: () => this.closeDialog() },
+    ]);
+  }
+
+  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
+    this.closeDialog();
+    this.tapControl.setEnabled(false);
+
+    const { width, height } = this.scale;
+    const boxTop = height / 2 - 100;
+
+    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
+      fontSize: '10px',
+      color: GOLD,
+      align: 'center',
+      lineSpacing: 5,
+      wordWrap: { width: width - 44 },
+    })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(801);
+
+    const bg = this.add
+      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(800)
+      .setStrokeStyle(1, 0xe8d9b5);
+
+    this.dialogElements = [bg, label];
+
+    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
+    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
+    buttons.forEach((button, i) => {
+      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
+        fontSize: '10px',
+        color: DARK,
+        backgroundColor: GOLD,
+        padding: { x: 8, y: 5 },
+      })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(801)
+        .setInteractive({ useHandCursor: true });
+      buttonText.on('pointerdown', button.onClick);
+      this.dialogElements.push(buttonText);
+    });
+
+    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
+    if (contentBottom - boxTop + 12 > boxHeight) {
+      bg.setSize(width - 20, contentBottom - boxTop + 12);
+    }
+  }
+
+  private closeDialog(): void {
+    this.dialogElements.forEach((el) => el.destroy());
+    this.dialogElements = [];
+    this.tapControl.setEnabled(true);
   }
 
   private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {

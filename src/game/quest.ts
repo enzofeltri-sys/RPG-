@@ -209,6 +209,34 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'bandit_leader', count: 1 },
     reward: { xp: 90, itemBaseId: 'wooden_shield', itemRarity: 'rare' },
   },
+  // Post-game, second batch — Brasque (VillageScene), same unlock condition
+  // as Gontrand's chain but a different comedic register: commerce/greed
+  // rather than pseudo-science. Reuses monster ids already used elsewhere
+  // on purpose, same reasoning as Gontrand's chain.
+  brasque_wolf_relic: {
+    id: 'brasque_wolf_relic',
+    title: 'Le Repaire du Héros, article n°1',
+    description:
+      "Brasque a eu une idée de génie : une boutique de souvenirs à votre effigie. Pour commencer, il lui faut des « crocs de loup corrompu, garantis authentiques » — plus il y en a, plus la garantie tient. Éliminez-en 3.",
+    objective: { type: 'defeat', monsterId: 'corrupted_wolf', count: 3 },
+    reward: { xp: 40, itemBaseId: 'leather_boots', itemRarity: 'common' },
+  },
+  brasque_bandit_relic: {
+    id: 'brasque_bandit_relic',
+    title: 'Le Repaire du Héros, article n°2',
+    description:
+      "« Un bouton de la veste du chef des bandits, voyageur — j'ai déjà la pancarte : \"Authentique, ou remboursé (en boutons ordinaires)\". » Retournez affronter le chef des bandits, au Champ, pour la bonne cause commerciale.",
+    objective: { type: 'defeat', monsterId: 'bandit_leader', count: 1 },
+    reward: { xp: 55, itemBaseId: 'simple_amulet', itemRarity: 'common' },
+  },
+  brasque_goblin_relic: {
+    id: 'brasque_goblin_relic',
+    title: 'Le Repaire du Héros, article n°3',
+    description:
+      "« La pièce de résistance, voyageur ! Un trophée du chef des gobelins, en vitrine, sous verre, avec votre nom dessus en grosses lettres. » Éliminez le chef des gobelins une dernière fois pour l'inauguration.",
+    objective: { type: 'defeat', monsterId: 'goblin_chief', count: 1 },
+    reward: { xp: 95, itemBaseId: 'leather_helmet', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

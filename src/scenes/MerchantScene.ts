@@ -79,6 +79,18 @@ export class MerchantScene extends Phaser.Scene {
 
     this.statusText = addCrispText(this, width / 2, 288, '', { fontSize: '9px', color: MUTED }).setOrigin(0.5);
 
+    const stockButton = addCrispText(this, width / 2, 326, 'Étal (équipement)', {
+      fontSize: '9px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 6, y: 5 },
+    })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    stockButton.on('pointerdown', () =>
+      this.scene.start('MerchantStock', { returnScene: this.returnScene, x: this.returnX, y: this.returnY }),
+    );
+
     const backButton = addCrispText(this, width / 2, 362, 'Retour', {
       fontSize: '13px',
       color: DARK,

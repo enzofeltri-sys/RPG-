@@ -55,6 +55,7 @@ import { MapScene } from './scenes/MapScene';
 import { CraftingScene } from './scenes/CraftingScene';
 import { FreeCraftScene } from './scenes/FreeCraftScene';
 import { MerchantScene } from './scenes/MerchantScene';
+import { MerchantStockScene } from './scenes/MerchantStockScene';
 
 // Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
 const GAME_WIDTH = 216;
@@ -186,6 +187,7 @@ async function boot(): Promise<void> {
       CraftingScene,
       FreeCraftScene,
       MerchantScene,
+      MerchantStockScene,
     ],
   });
 

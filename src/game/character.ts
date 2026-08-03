@@ -63,6 +63,9 @@ export interface Character {
   mainQuestStage?: MainQuestStage;
   // Keyed by chest id (see chest.ts) — presence means opened, never re-rolls.
   openedChests: Record<string, boolean>;
+  // The Village shop's rotating stock — undefined until the first visit,
+  // then regenerated on a real-world timer (see merchantStock.ts).
+  merchantStock?: { items: Item[]; refreshedAt: number };
 }
 
 export const RACES: Record<Race, RaceDefinition> = {

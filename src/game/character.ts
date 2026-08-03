@@ -269,3 +269,27 @@ export function grantXp(character: Character, xp: number): number {
 
   return levelsGained;
 }
+
+export type AllocatableStat = 'strength' | 'intelligence' | 'agility' | 'vitality';
+
+// Spends one of the character's banked statPoints (granted 3-per-level by
+// grantXp above) into a base stat. One-way by design — no respec — matching
+// how every other permanent choice in this game (race/class at creation)
+// already works. Vitality/Intelligence also bump max HP/MP immediately
+// (same +4/+3 per point used elsewhere: createCharacter's maxHp/maxMp
+// formulas, grantXp's per-level gain) so the point feels effective right
+// away rather than only mattering next level-up.
+export function allocateStatPoint(character: Character, stat: AllocatableStat): boolean {
+  if (character.statPoints <= 0) return false;
+  character.statPoints -= 1;
+  character.stats[stat] += 1;
+  if (stat === 'vitality') {
+    character.maxHp += 4;
+    character.hp += 4;
+  }
+  if (stat === 'intelligence') {
+    character.maxMp += 3;
+    character.mp += 3;
+  }
+  return true;
+}

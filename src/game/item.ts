@@ -1338,6 +1338,34 @@ const TEMPLATES: ItemTemplate[] = [
     rareOnlyStatRolls: { armor: [1, 2, 3] },
     signature: true,
   },
+  // 3 more signature rewards for narrative milestones that used to hand out
+  // a generic tiered item — a genuinely unique keepsake reads better for
+  // "the first time you meet her in person" than another interchangeable
+  // Amulette rituelle would have.
+  {
+    baseId: 'silhouette_keepsake',
+    name: 'Gage de la silhouette',
+    category: 'amulet',
+    baseStatRolls: { intelligence: [2, 3, 4], vitality: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
+    signature: true,
+  },
+  {
+    baseId: 'bregan_seal',
+    name: 'Sceau de la garnison',
+    category: 'ring',
+    baseStatRolls: { strength: [2, 3, 4], vitality: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
+    signature: true,
+  },
+  {
+    baseId: 'threefold_ward',
+    name: 'Égide des trois sites',
+    category: 'shield',
+    baseStatRolls: { vitality: [2, 3, 4], armor: [2, 3, 4] },
+    rareOnlyStatRolls: { armor: [1, 2, 3] },
+    signature: true,
+  },
 
   // --- Objets d'artisanat (jamais dans le loot, uniquement via recipe.ts) ---
   // Craftable at 'epic' (small, deliberate edge over an equivalent palier-3
@@ -1688,6 +1716,25 @@ const LOOTABLE_TEMPLATES_BY_TIER: Record<1 | 2 | 3, ItemTemplate[]> = {
   2: TEMPLATES.filter((t) => !t.signature && t.tier === 2),
   3: TEMPLATES.filter((t) => !t.signature && t.tier === 3),
 };
+
+export interface CraftableItemInfo {
+  baseId: string;
+  name: string;
+  category: ItemCategory;
+  tier: 1 | 2 | 3;
+}
+
+// Every item the generic "Forge libre" crafting screen can offer (see
+// recipe.ts's genericCraftCost) — exactly the lootable pool, since the goal
+// is "everything except signature/craftOnly uniques is craftable up to
+// legendary." Signature items stay a genuine loot-only find; craftOnly
+// items already have their own hand-tuned recipes and aren't looted either
+// way, so neither belongs in this generic list.
+export function getCraftableItems(): CraftableItemInfo[] {
+  return ([1, 2, 3] as const).flatMap((tier) =>
+    LOOTABLE_TEMPLATES_BY_TIER[tier].map((t) => ({ baseId: t.baseId, name: t.name, category: t.category, tier })),
+  );
+}
 
 // Modest drop chance, mostly common with a smaller chance of rare/epic/
 // legendary — bosses pass { guaranteed: true } for a sure drop with better

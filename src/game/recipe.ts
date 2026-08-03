@@ -3,6 +3,60 @@ import { MaterialId } from './material';
 import { ConsumableId } from './consumable';
 import { Rarity, createItem } from './item';
 
+// Generic, formula-based crafting — every lootable item (see item.ts's
+// getCraftableItems(), which is exactly the loot pool minus signature/
+// craftOnly uniques) can be crafted at any of the 4 rarities through this
+// table instead of one hand-authored RecipeDefinition per item/rarity pair
+// (121 items × 4 rarities would be 484 static objects — unmaintainable,
+// and would blow up a paginated recipe list). Cost scales by the item's
+// palier (which material family) and target rarity (2 materials at
+// common, up to the 5-resource ceiling at legendary), mirroring the
+// hand-tuned "artisan" recipes above closely enough that the two systems
+// feel like one continuous design rather than two different rulesets.
+export const GENERIC_CRAFT_COST: Record<1 | 2 | 3, Record<Rarity, Partial<Record<MaterialId, number>>>> = {
+  1: {
+    common: { iron_ore: 2, leather: 1 },
+    rare: { iron_ore: 2, iron_ore_rare: 1, leather: 1 },
+    epic: { iron_ore: 3, iron_ore_rare: 2, leather: 2, leather_rare: 1 },
+    legendary: { iron_ore: 4, iron_ore_rare: 3, leather: 3, leather_rare: 2, herb: 2 },
+  },
+  2: {
+    common: { steel_ingot: 2, iron_ore: 1 },
+    rare: { steel_ingot: 3, steel_ingot_rare: 1, iron_ore: 1 },
+    epic: { steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 2, leather: 1 },
+    legendary: { steel_ingot: 5, steel_ingot_rare: 3, iron_ore: 3, leather: 2, herb: 1 },
+  },
+  3: {
+    common: { mithril_shard: 2, steel_ingot: 1 },
+    rare: { mithril_shard: 3, mithril_shard_rare: 1, steel_ingot: 1 },
+    epic: { mithril_shard: 4, mithril_shard_rare: 2, steel_ingot: 2, steel_ingot_rare: 1 },
+    legendary: { mithril_shard: 6, mithril_shard_rare: 3, steel_ingot: 4, steel_ingot_rare: 2, iron_ore: 3 },
+  },
+};
+
+export function genericCraftCost(tier: 1 | 2 | 3, rarity: Rarity): Partial<Record<MaterialId, number>> {
+  return GENERIC_CRAFT_COST[tier][rarity];
+}
+
+export function canCraftGeneric(character: Character, tier: 1 | 2 | 3, rarity: Rarity): boolean {
+  const cost = genericCraftCost(tier, rarity);
+  return (Object.entries(cost) as [MaterialId, number][]).every(
+    ([materialId, count]) => (character.materials[materialId] ?? 0) >= count,
+  );
+}
+
+// Deducts materials and grants baseId at the given rarity; no-op (returns
+// false) if the character doesn't have what genericCraftCost requires.
+export function craftGeneric(character: Character, baseId: string, tier: 1 | 2 | 3, rarity: Rarity): boolean {
+  if (!canCraftGeneric(character, tier, rarity)) return false;
+  const cost = genericCraftCost(tier, rarity);
+  (Object.entries(cost) as [MaterialId, number][]).forEach(([materialId, count]) => {
+    character.materials[materialId] = (character.materials[materialId] ?? 0) - count;
+  });
+  character.inventory.push(createItem(baseId, rarity));
+  return true;
+}
+
 interface RecipeDefinitionBase {
   id: string;
   name: string;

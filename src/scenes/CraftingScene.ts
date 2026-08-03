@@ -101,6 +101,18 @@ export class CraftingScene extends Phaser.Scene {
       nextButton.on('pointerdown', () => this.goToPage(this.page + 1));
     }
 
+    const freeCraftButton = addCrispText(this, width / 2, 330, 'Forge libre', {
+      fontSize: '10px',
+      color: DARK,
+      backgroundColor: GOLD,
+      padding: { x: 6, y: 5 },
+    })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    freeCraftButton.on('pointerdown', () =>
+      this.scene.start('FreeCraft', { x: this.returnX, y: this.returnY, returnScene: this.returnScene }),
+    );
+
     const backButton = addCrispText(this, width / 2, 362, 'Retour', {
       fontSize: '13px',
       color: DARK,

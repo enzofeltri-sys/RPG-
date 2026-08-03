@@ -53,6 +53,7 @@ import { StatsScene } from './scenes/StatsScene';
 import { QuestLogScene } from './scenes/QuestLogScene';
 import { MapScene } from './scenes/MapScene';
 import { CraftingScene } from './scenes/CraftingScene';
+import { FreeCraftScene } from './scenes/FreeCraftScene';
 import { MerchantScene } from './scenes/MerchantScene';
 
 // Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
@@ -183,6 +184,7 @@ async function boot(): Promise<void> {
       QuestLogScene,
       MapScene,
       CraftingScene,
+      FreeCraftScene,
       MerchantScene,
     ],
   });

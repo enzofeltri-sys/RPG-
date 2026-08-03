@@ -182,12 +182,16 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   registry_cleared: { xp: 730, itemBaseId: 'short_sword', itemRarity: 'epic' },
   meeting_promised: { xp: 410, itemBaseId: 'leather_legs', itemRarity: 'epic' },
   waystation_cleared: { xp: 750, itemBaseId: 'wooden_shield', itemRarity: 'epic' },
-  meeting_debriefed: { xp: 800, itemBaseId: 'ritual_amulet', itemRarity: 'epic' },
+  // These 3 grant a signature (unique) item instead of a generic tiered one
+  // — see item.ts's silhouette_keepsake/bregan_seal/threefold_ward, added
+  // specifically so these narrative milestones hand out something that
+  // can't also drop from a random kill.
+  meeting_debriefed: { xp: 800, itemBaseId: 'silhouette_keepsake', itemRarity: 'epic' },
   chapel_cleared: { xp: 830, itemBaseId: 'watcher_amulet', itemRarity: 'epic' },
   third_site_awaited: { xp: 450, itemBaseId: 'shadow_ring', itemRarity: 'rare' },
-  third_site_cleared: { xp: 860, itemBaseId: 'mithril_chest', itemRarity: 'epic' },
+  third_site_cleared: { xp: 860, itemBaseId: 'threefold_ward', itemRarity: 'epic' },
   recruiting_help: { xp: 470, itemBaseId: 'ritual_ring', itemRarity: 'rare' },
-  ally_secured: { xp: 490, itemBaseId: 'watcher_ring', itemRarity: 'epic' },
+  ally_secured: { xp: 490, itemBaseId: 'bregan_seal', itemRarity: 'epic' },
 };
 
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {

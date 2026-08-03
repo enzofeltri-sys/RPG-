@@ -44,6 +44,7 @@ import { CorruptedWaystationScene } from './scenes/CorruptedWaystationScene';
 import { SunkenChapelScene } from './scenes/SunkenChapelScene';
 import { ThirdAltarScene } from './scenes/ThirdAltarScene';
 import { SanctuaryDepthsScene } from './scenes/SanctuaryDepthsScene';
+import { InteriorScene } from './scenes/InteriorScene';
 import { DungeonScene } from './scenes/DungeonScene';
 import { CatacombsScene } from './scenes/CatacombsScene';
 import { OldWellScene } from './scenes/OldWellScene';
@@ -177,6 +178,7 @@ async function boot(): Promise<void> {
       SunkenChapelScene,
       ThirdAltarScene,
       SanctuaryDepthsScene,
+      InteriorScene,
       DungeonScene,
       CatacombsScene,
       OldWellScene,

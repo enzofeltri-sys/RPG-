@@ -47,7 +47,8 @@ export type ReturnSceneKey =
   | 'CorruptedWaystation'
   | 'SunkenChapel'
   | 'ThirdAltar'
-  | 'SanctuaryDepths';
+  | 'SanctuaryDepths'
+  | 'Interior';
 
 export interface ReturnContext {
   returnScene: ReturnSceneKey;

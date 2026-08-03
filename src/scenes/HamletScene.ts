@@ -58,6 +58,9 @@ export class HamletScene extends Phaser.Scene {
   private chest!: Phaser.GameObjects.Rectangle;
   private villager!: Wanderer;
   private gontrand!: Phaser.GameObjects.Rectangle;
+  private thibaultHouse!: Phaser.GameObjects.Rectangle;
+  private solangeHouse!: Phaser.GameObjects.Rectangle;
+  private fauvetteHouse!: Phaser.GameObjects.Rectangle;
   private villagerLineIndex = 0;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
@@ -90,12 +93,19 @@ export class HamletScene extends Phaser.Scene {
     // to the exit zone — nothing should block that path (see DESIGN.md's
     // Container/pathing lessons: narrow gaps between colliders make
     // automated and real movement equally unreliable).
-    this.addBuilding(50, 90, 44, 36);
-    this.addBuilding(190, 90, 44, 36);
+    this.thibaultHouse = this.addBuilding(50, 90, 44, 36);
+    this.solangeHouse = this.addBuilding(190, 90, 44, 36);
     // A third hut further south, off the x=120 centerline — keeps the
     // extended hamlet from reading as an empty stretch of grass while
     // staying "deliberately sparse" (see the class doc comment).
-    this.addBuilding(190, 300, 40, 32);
+    this.fauvetteHouse = this.addBuilding(190, 300, 40, 32);
+
+    // Decoration only, no collision. Kept clear of the x=120 centerline and
+    // the farm/shrine transition strips at the world's left/right edges.
+    this.addTree(90, 220);
+    this.addTree(150, 220);
+    this.addBush(30, 180);
+    this.addBush(210, 180);
 
     // An old chest stashed beside that third, mostly-abandoned hut.
     this.chest = this.add.rectangle(150, 330, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
@@ -174,12 +184,9 @@ export class HamletScene extends Phaser.Scene {
         radius: 20,
         onTap: () => this.talkToVillager(),
       },
-      ...this.buildings.map((b) => ({
-        x: b.x,
-        y: b.y,
-        radius: 30,
-        onTap: () => this.showMessage('Une cabane du hameau. Personne ne répond.'),
-      })),
+      { x: this.thibaultHouse.x, y: this.thibaultHouse.y, radius: 30, onTap: () => this.enterInterior('thibault') },
+      { x: this.solangeHouse.x, y: this.solangeHouse.y, radius: 30, onTap: () => this.enterInterior('solange') },
+      { x: this.fauvetteHouse.x, y: this.fauvetteHouse.y, radius: 30, onTap: () => this.enterInterior('fauvette') },
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
       { x: this.gontrand.x, y: this.gontrand.y, radius: 22, onTap: () => this.talkToGontrand() },
     ];
@@ -215,10 +222,70 @@ export class HamletScene extends Phaser.Scene {
     this.villager.update();
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number): void {
+  private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
+    return rect;
+  }
+
+  // Purely decorative (no collision).
+  private addTree(x: number, y: number): void {
+    this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
+    this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+  }
+
+  private addBush(x: number, y: number): void {
+    this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+  }
+
+  // The 3 formerly dead-end "personne ne répond" cabanes, each now their
+  // own small InteriorScene — see InteriorScene's doc comment.
+  private enterInterior(which: 'thibault' | 'solange' | 'fauvette'): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    const returnX = this.player.x;
+    const returnY = this.player.y;
+    const configs = {
+      thibault: {
+        label: 'Cabane de Thibault',
+        floorColor: 0x2a2420,
+        npcName: 'Thibault',
+        npcColor: 0x6a5a4a,
+        lines: [
+          "Vous croyez que c'est fini, voyageur ? Moi je dis qu'il y a sûrement encore un gobelin quelque part qui prépare sa revanche.",
+          "J'ai muré la fenêtre côté nord. On ne sait jamais, avec les gobelins. Ou les rats. Ou le vent, en fait, mais surtout les gobelins.",
+          "Ma femme dit que j'exagère. Je lui réponds qu'elle exagérera moins le jour où un gobelin passera par la fenêtre nord. Qui est murée. Donc jamais. Ce qui me donne raison.",
+        ],
+      },
+      solange: {
+        label: 'Cabane de Solange',
+        floorColor: 0x28242a,
+        npcName: 'Solange',
+        npcColor: 0x8a6a7a,
+        lines: [
+          'Cette marque sur votre bras, voyageur, quelle nuance exacte ? J\'essaie de la reproduire en laine depuis des semaines et rien n\'y fait.',
+          'Le bleu-doré, non. Le doré-bleu, peut-être ? Il me faudrait vous regarder d\'encore plus près, tenez-vous tranquille.',
+          "Un jour je tisserai une tapisserie de toute votre histoire. Pour l'instant, j'ai surtout tissé une écharpe. Mais l'ambition est là.",
+        ],
+      },
+      fauvette: {
+        label: 'Cabane de Fauvette',
+        floorColor: 0x242a24,
+        npcName: 'Fauvette',
+        npcColor: 0x7a8a6a,
+        lines: [
+          'Le monde a failli se briser, à ce qu\'on raconte. Mes tomates, elles, se portent très bien, merci de demander.',
+          "On m'a dit qu'il y avait un roi démon scellé sous le sanctuaire. Personnellement, je me méfie plus des limaces.",
+          "Revenez au printemps, voyageur, je vous donnerai des graines. Ça marche mieux qu'une épée contre l'ennui, à mon âge.",
+        ],
+      },
+    } as const;
+    const config = configs[which];
+    this.cameras.main.fadeOut(200, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Interior', { ...config, returnScene: 'Hamlet', returnX, returnY });
+    });
   }
 
   private drawGround(): void {

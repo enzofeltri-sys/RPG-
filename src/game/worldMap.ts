@@ -372,4 +372,7 @@ export const DUNGEON_LOOT_TIER: Record<ReturnSceneKey, 1 | 2 | 3> = {
   SunkenChapel: 3,
   ThirdAltar: 3,
   SanctuaryDepths: 3,
+  // No combat/chest ever happens here (see InteriorScene) — entry only
+  // exists because DUNGEON_LOOT_TIER is a Record over every ReturnSceneKey.
+  Interior: 1,
 };

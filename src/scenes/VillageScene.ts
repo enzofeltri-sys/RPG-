@@ -52,6 +52,9 @@ export class VillageScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
+  private bertrandHouse!: Phaser.GameObjects.Rectangle;
+  private ombelineHouse!: Phaser.GameObjects.Rectangle;
+  private innBuilding!: Phaser.GameObjects.Rectangle;
   private brasque!: Phaser.GameObjects.Rectangle;
   private villagers: Wanderer[] = [];
   private villagerLineIndex = 0;
@@ -81,11 +84,21 @@ export class VillageScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(500);
 
-    this.addBuilding(120, 160, 70, 50);
-    this.addBuilding(300, 210, 60, 60);
+    this.bertrandHouse = this.addBuilding(120, 160, 70, 50);
+    this.ombelineHouse = this.addBuilding(300, 210, 60, 60);
     this.forgeBuilding = this.addBuilding(190, 360, 90, 50);
     addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
-    this.addBuilding(340, 460, 60, 70);
+    this.innBuilding = this.addBuilding(340, 460, 60, 70);
+    addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
+    // Decoration only, no collision — makes the wide-open grass between
+    // buildings read as a village edge rather than an empty field.
+    this.addTree(20, 60);
+    this.addTree(440, 90);
+    this.addTree(430, 320);
+    this.addBush(200, 130);
+    this.addBush(60, 400);
+    this.addBush(380, 540);
 
     this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.merchantNpc, true);
@@ -167,14 +180,9 @@ export class VillageScene extends Phaser.Scene {
         radius: 35,
         onTap: () => this.scene.start('Crafting', { x: this.player.x, y: this.player.y }),
       },
-      ...this.buildings
-        .filter((b) => b !== this.forgeBuilding)
-        .map((b) => ({
-          x: b.x,
-          y: b.y,
-          radius: 35,
-          onTap: () => this.showMessage('Une maison du village. Personne ne répond.'),
-        })),
+      { x: this.bertrandHouse.x, y: this.bertrandHouse.y, radius: 35, onTap: () => this.enterInterior('bertrand') },
+      { x: this.ombelineHouse.x, y: this.ombelineHouse.y, radius: 35, onTap: () => this.enterInterior('ombeline') },
+      { x: this.innBuilding.x, y: this.innBuilding.y, radius: 35, onTap: () => this.enterInterior('inn') },
       // Local consts (not `this.villagers[i].sprite` inline) so the getters
       // below are plain closures — an object literal's get x()/get y() would
       // otherwise bind `this` to the literal itself, not the scene.
@@ -446,6 +454,67 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
     return rect;
+  }
+
+  // Purely decorative (no collision) — a wide-open ground tile between
+  // buildings otherwise reads as empty rather than "the edge of a village."
+  private addTree(x: number, y: number): void {
+    this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
+    this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+  }
+
+  private addBush(x: number, y: number): void {
+    this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+  }
+
+  // The 3 formerly dead-end "personne ne répond" buildings, now each their
+  // own small InteriorScene with a distinct resident — see InteriorScene's
+  // doc comment for why this is one reusable scene rather than 3 new files.
+  private enterInterior(which: 'bertrand' | 'ombeline' | 'inn'): void {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
+    const returnX = this.player.x;
+    const returnY = this.player.y;
+    const configs = {
+      bertrand: {
+        label: 'Maison de Bertrand',
+        floorColor: 0x2a2420,
+        npcName: 'Bertrand',
+        npcColor: 0x5a6a7a,
+        lines: [
+          "Vous auriez dû voir la taille de ce poisson, voyageur. Grand comme... enfin, disons deux fois la taille d'un loup corrompu.",
+          "Trois fois. En fait, en y repensant bien, c'était plutôt trois fois la taille d'un loup corrompu.",
+          "Un jour je le rattraperai. Ou alors ce sera lui qui me rattrapera. À ce stade, difficile de dire qui chasse qui.",
+        ],
+      },
+      ombeline: {
+        label: "Maison d'Ombeline",
+        floorColor: 0x2a2028,
+        npcName: 'Ombeline',
+        npcColor: 0x8a5a7a,
+        lines: [
+          'Chut, ne réveillez pas Mistigri. Ni Griselda. Ni les onze autres, d\'ailleurs — je ne me souviens plus très bien de tous leurs noms.',
+          "On me dit qu'il n'y a pas de chat dans cette pièce, voyageur. Ces gens n'ont manifestement jamais eu de chat invisible.",
+          "Un jour j'écrirai un livre sur mes chats. Il sera très court, vu qu'aucun d'eux ne sait lire pour me raconter sa journée.",
+        ],
+      },
+      inn: {
+        label: 'Auberge du Cerf Bleu',
+        floorColor: 0x2a2418,
+        npcName: "Fernand, l'aubergiste",
+        npcColor: 0x7a5a3a,
+        lines: [
+          "Bienvenue à l'auberge, voyageur ! On n'a plus de chambres, plus de bière, et le cuisinier a démissionné la semaine dernière — mais l'accueil, ça, c'est gratuit.",
+          "On raconte que le sanctuaire porte chance aux voyageurs. Moi je raconte surtout que ma soupe porte malheur à qui la termine.",
+          'Un conseil, voyageur : ne demandez jamais ce qu\'il y a dans le ragoût du jour. Certaines réponses ne se pardonnent pas.',
+        ],
+      },
+    } as const;
+    const config = configs[which];
+    this.cameras.main.fadeOut(200, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Interior', { ...config, returnScene: 'Village', returnX, returnY });
+    });
   }
 
   private drawGround(): void {

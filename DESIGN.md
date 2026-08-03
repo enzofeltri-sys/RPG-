@@ -378,6 +378,8 @@ En testant, un vrai défaut de texte trouvé et corrigé : deux des descriptions
 
 Manoirs et châteaux restent une extension future (VISION.md) — aucune région du jeu n'en contient encore un à l'heure actuelle, contrairement aux maisons/auberges qui existaient déjà comme décor mort dans les zones construites.
 
+**Décor naturel : rochers, lave, eau (sur demande du joueur, 2026-08-03)** : quatre zones qui avaient un thème naturel affirmé sans le décor visuel correspondant. Rochers ajoutés à la Forêt (qui n'avait jusqu'ici que des arbres et des champignons) et blocs de pierre le long de la Route commerciale (qui n'avait que les chariots garés) — même traitement que les rochers déjà présents en Grotte, purement décoratif. Une mare de lave ajoutée en Grotte, à l'écart du couloir de rencontres et du coffre existants. Deux étendues d'eau trouble ajoutées à Vasenoire, le hub des Terres Noyées, qui n'avait jusqu'ici aucune eau visible malgré son nom et son thème de marécage — placées de part et d'autre du ponton en bois déjà présent. La Grotte (rochers/cristaux) et le Champ (rivière et pont) avaient déjà ce type de décor et n'ont pas été retouchés pour éviter les doublons. Comme tous les éléments décoratifs ajoutés cette session, aucune collision ni zone tactile — juste des formes colorées, sans lien avec la logique de jeu. Testé : les 4 scènes se chargent sans erreur avec le nouveau décor, aucun avertissement de chevauchement de zone tactile.
+
 10. Polish (effets, son, UI) + test offline complet — les effets sonores sont désormais en place (voir ci-dessus) ; il reste à intégrer de vrais assets graphiques et de la musique (voir section Assets) à la place des rectangles de couleur actuels, volontairement hors scope v1.
 
 ## Assets

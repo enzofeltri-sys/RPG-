@@ -50,6 +50,13 @@ const MUSHROOMS: { x: number; y: number }[] = [
   { x: 330, y: 260 },
 ];
 
+const ROCKS: { x: number; y: number }[] = [
+  { x: 200, y: 150 },
+  { x: 150, y: 320 },
+  { x: 340, y: 150 },
+  { x: 80, y: 200 },
+];
+
 interface ForestData {
   x?: number;
   y?: number;
@@ -84,6 +91,7 @@ export class ForestScene extends Phaser.Scene {
 
     TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b));
     MUSHROOMS.forEach((m) => this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10));
+    ROCKS.forEach((r) => this.add.rectangle(r.x, r.y, 16, 12, 0x4a4a48).setStrokeStyle(1, 0x24241f));
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
       '← Champ',

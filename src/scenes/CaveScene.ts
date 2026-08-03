@@ -55,6 +55,13 @@ const CRYSTALS: { x: number; y: number }[] = [
   { x: 60, y: 50 },
 ];
 
+// A single vent off to the side, clear of the central corridor (ENCOUNTERS
+// sit at x=110) and the chest (170,240) — no collision, same reasoning as
+// every other purely decorative element here (a lava-shaped gap in the
+// walkable path is exactly the narrow-gap pathing bug DESIGN.md warns
+// about).
+const LAVA_POOL = { x: 175, y: 105 };
+
 interface CaveData {
   // Set by CombatScene (via returnSceneStartData) when handing control back
   // after a fled/won fight, or by the Menu overlay — distinguishes
@@ -97,6 +104,8 @@ export class CaveScene extends Phaser.Scene {
 
     ROCKS.forEach((rock) => this.add.rectangle(rock.x, rock.y, 18, 12, 0x35353f).setStrokeStyle(1, 0x18181c));
     CRYSTALS.forEach((c) => this.add.circle(c.x, c.y, 5, 0x5a8ac5, 0.8).setStrokeStyle(1, 0x2e4a6a));
+    this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 14, 0xb54a1a).setStrokeStyle(1, 0x5a2410);
+    this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 7, 0xe8a020, 0.9);
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 40, ['↓ Forêt', '↑ Valombre']);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

@@ -76,6 +76,12 @@ export class VasenoireScene extends Phaser.Scene {
     this.add.rectangle(120, 220, 60, 40, 0x4a3a30).setStrokeStyle(1, 0x241d16);
     this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 200, 20, 0x3a4a44).setStrokeStyle(1, 0x1c2622);
 
+    // Murky standing water either side of the boardwalk — a swamp town
+    // with nothing wet in sight always read as an odd gap. No collision,
+    // same reasoning as every other decorative element here.
+    this.add.ellipse(40, 190, 34, 18, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
+    this.add.ellipse(210, 190, 30, 16, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
+
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
     this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);

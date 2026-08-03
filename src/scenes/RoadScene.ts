@@ -32,6 +32,13 @@ const WAGONS: { x: number; y: number }[] = [
   { x: 280, y: 360 },
 ];
 
+const BOULDERS: { x: number; y: number }[] = [
+  { x: 40, y: 200 },
+  { x: 440, y: 60 },
+  { x: 320, y: 260 },
+  { x: 60, y: 340 },
+];
+
 const ALPHA_ZONE_ID = 'boar_alpha_zone';
 
 interface RoadData {
@@ -84,6 +91,7 @@ export class RoadScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#6b5a42');
 
     WAGONS.forEach((wagon) => this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810));
+    BOULDERS.forEach((b) => this.add.rectangle(b.x, b.y, 20, 16, 0x6a6a62).setStrokeStyle(1, 0x38382f));
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Valombre', '→ Aiglemont']);
 

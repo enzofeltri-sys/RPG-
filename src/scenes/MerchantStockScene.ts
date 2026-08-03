@@ -1,7 +1,16 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
-import { Item, RARITY_COLORS, RARITY_LABELS } from '../game/item';
-import { getMerchantStock, merchantBuyPrice, msUntilMerchantRefresh, buyMerchantStockItem } from '../game/merchantStock';
+import { RARITY_COLORS, RARITY_LABELS } from '../game/item';
+import { materialLabel } from '../game/material';
+import {
+  MerchantStockEntry,
+  getMerchantStock,
+  merchantEntryPrice,
+  merchantEntryLabel,
+  merchantEntryRarity,
+  msUntilMerchantRefresh,
+  buyMerchantStockEntry,
+} from '../game/merchantStock';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey } from '../ui/returnContext';
 import { addCrispText } from '../ui/text';
@@ -20,9 +29,11 @@ interface MerchantStockData {
 }
 
 // A separate screen from MerchantScene (same pattern as CraftingScene ->
-// FreeCraftScene) for the rotating equipment stock — up to 10 tier-1 items,
-// refreshed on a 15-minute real-world timer (see merchantStock.ts), rather
-// than the full item catalog always being purchasable.
+// FreeCraftScene) for the rotating equipment stock — up to 10 slots
+// (mostly palier-1 common/rare items, with a small chance each of epic,
+// legendary, or a scarce crafting material — see merchantStock.ts),
+// refreshed on a 15-minute real-world timer, rather than the full item
+// catalog always being purchasable.
 export class MerchantStockScene extends Phaser.Scene {
   private character!: Character;
   private statusText!: Phaser.GameObjects.Text;
@@ -64,14 +75,15 @@ export class MerchantStockScene extends Phaser.Scene {
 
     const totalPages = Math.max(1, Math.ceil(stock.length / PAGE_SIZE));
     this.page = Phaser.Math.Clamp(this.page, 0, totalPages - 1);
-    const pageItems = stock.slice(this.page * PAGE_SIZE, this.page * PAGE_SIZE + PAGE_SIZE);
+    const pageStart = this.page * PAGE_SIZE;
+    const pageEntries = stock.slice(pageStart, pageStart + PAGE_SIZE);
 
     if (stock.length === 0) {
       addCrispText(this, 12, 70, 'Plus rien en stock — repassez plus tard.', { fontSize: '9px', color: MUTED });
     }
 
-    pageItems.forEach((item, i) => {
-      this.renderStockRow(item, 66 + i * 44);
+    pageEntries.forEach((entry, i) => {
+      this.renderStockRow(entry, pageStart + i, 66 + i * 44);
     });
 
     addCrispText(this, width / 2, 66 + PAGE_SIZE * 44 + 4, `Page ${this.page + 1}/${totalPages}`, {
@@ -118,11 +130,14 @@ export class MerchantStockScene extends Phaser.Scene {
     );
   }
 
-  private renderStockRow(item: Item, y: number): void {
-    const price = merchantBuyPrice(item);
-    addCrispText(this, 12, y, `${item.name} (${RARITY_LABELS[item.rarity]})`, {
+  private renderStockRow(entry: MerchantStockEntry, index: number, y: number): void {
+    const price = merchantEntryPrice(entry);
+    const label = merchantEntryLabel(entry, materialLabel);
+    const rarity = merchantEntryRarity(entry);
+    const nameLine = rarity ? `${label} (${RARITY_LABELS[rarity]})` : `${label} (ressource)`;
+    addCrispText(this, 12, y, nameLine, {
       fontSize: '10px',
-      color: RARITY_COLORS[item.rarity],
+      color: rarity ? RARITY_COLORS[rarity] : GOLD,
     });
     const button = addCrispText(this, 12, y + 16, `Acheter — ${price} or`, {
       fontSize: '9px',
@@ -131,18 +146,18 @@ export class MerchantStockScene extends Phaser.Scene {
       padding: { x: 6, y: 3 },
     }).setInteractive({ useHandCursor: true });
     button.setAlpha(this.character.gold >= price ? 1 : 0.5);
-    button.on('pointerdown', () => this.handleBuy(item));
+    button.on('pointerdown', () => this.handleBuy(index, label));
   }
 
-  private async handleBuy(item: Item): Promise<void> {
-    const success = buyMerchantStockItem(this.character, item.id);
+  private async handleBuy(index: number, label: string): Promise<void> {
+    const success = buyMerchantStockEntry(this.character, index);
     if (!success) {
       this.statusText.setText('Or insuffisant ou objet déjà vendu.').setColor(MUTED);
       return;
     }
     await SaveManager.saveCharacter(this.character);
     playCoin();
-    this.statusText.setText(`Acheté : ${item.name}.`).setColor(GOLD);
+    this.statusText.setText(`Acheté : ${label}.`).setColor(GOLD);
     this.time.delayedCall(500, () =>
       this.scene.restart({ page: this.page, returnScene: this.returnScene, x: this.returnX, y: this.returnY }),
     );

@@ -2,6 +2,7 @@ import { EquipSlot, Item, ItemStats, getEquippedSetBonusStats, getWeaponType } f
 import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
+import type { MerchantStockEntry } from './merchantStock';
 
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling';
 export type CharClass = 'warrior' | 'mage' | 'archer' | 'rogue' | 'cleric';
@@ -64,8 +65,11 @@ export interface Character {
   // Keyed by chest id (see chest.ts) — presence means opened, never re-rolls.
   openedChests: Record<string, boolean>;
   // The Village shop's rotating stock — undefined until the first visit,
-  // then regenerated on a real-world timer (see merchantStock.ts).
-  merchantStock?: { items: Item[]; refreshedAt: number };
+  // then regenerated on a real-world timer (see merchantStock.ts). Older
+  // saves may still have the pre-entries `{ items: Item[] }` shape —
+  // getMerchantStock() detects and discards it rather than trusting the
+  // type here.
+  merchantStock?: { entries: MerchantStockEntry[]; refreshedAt: number };
 }
 
 export const RACES: Record<Race, RaceDefinition> = {

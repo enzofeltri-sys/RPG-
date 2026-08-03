@@ -178,6 +178,37 @@ export const QUESTS: Record<string, QuestDefinition> = {
     objective: { type: 'defeat', monsterId: 'corrupted_sentinel', count: 3 },
     reward: { xp: 100, itemBaseId: 'leather_helmet', itemRarity: 'rare' },
   },
+  // Post-game only (see HamletScene's Gontrand, gated on the main quest
+  // being finished) — the "style Daedra, drôles et étranges" bucket
+  // VISION.md always earmarked for after the credits, first content there.
+  // All 3 reuse existing monster ids on purpose: the joke is that Gontrand
+  // sends a living legend after the exact same field_rat/corrupted_wolf/
+  // bandit_leader every other quest in the game already used, convinced
+  // each one is secretly something far stranger than it is.
+  gontrand_rats: {
+    id: 'gontrand_rats',
+    title: "L'Encyclopédie de Gontrand, Tome I",
+    description:
+      "Gontrand est certain que les rats des champs sont en réalité des espions infernaux déguisés, envoyés éprouver la vigilance des braves. Ramenez-lui la preuve du contraire — ou, à ses yeux, la preuve du contraire du contraire. Éliminez-en 3.",
+    objective: { type: 'defeat', monsterId: 'field_rat', count: 3 },
+    reward: { xp: 40, itemBaseId: 'leather_gloves', itemRarity: 'common' },
+  },
+  gontrand_wolves: {
+    id: 'gontrand_wolves',
+    title: "L'Encyclopédie de Gontrand, Tome II",
+    description:
+      "D'après trois cousins d'un ami de Gontrand, les loups corrompus atteindraient la taille d'un cheval de trait. Il a besoin de mesures précises pour son Tome II. Éliminez-en 3 et rapportez-lui vos observations.",
+    objective: { type: 'defeat', monsterId: 'corrupted_wolf', count: 3 },
+    reward: { xp: 55, itemBaseId: 'simple_ring', itemRarity: 'common' },
+  },
+  gontrand_bandit: {
+    id: 'gontrand_bandit',
+    title: "L'Encyclopédie de Gontrand, Tome III",
+    description:
+      "La légende locale, telle que Gontrand la raconte depuis vingt ans à qui veut bien l'écouter, veut que le chef des bandits du Champ ait trois têtes. Confirmez, ou infirmez, une bonne fois pour toutes.",
+    objective: { type: 'defeat', monsterId: 'bandit_leader', count: 1 },
+    reward: { xp: 90, itemBaseId: 'wooden_shield', itemRarity: 'rare' },
+  },
 };
 
 export function getQuestProgress(character: Character, questId: string): QuestProgress | undefined {

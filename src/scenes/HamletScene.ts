@@ -4,7 +4,7 @@ import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/pl
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
-import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
+import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen, playQuestComplete } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
@@ -29,6 +29,15 @@ const VILLAGER_LINES = [
   'On dit que le petit sanctuaire à l\'est porte chance aux voyageurs.',
 ];
 
+// Post-game only ("style Daedra, drôles et étranges" — VISION.md) — Gontrand
+// stays a normal (if odd) hamlet resident until the main quest is actually
+// finished, then offers a 3-part chain. Checked against the 3 terminal
+// endings rather than a single boolean flag so any of them unlocks it.
+const POST_GAME_STAGES: MainQuestStage[] = ['ending_new_seal', 'ending_destruction', 'ending_ascension'];
+const GONTRAND_QUEST_1 = 'gontrand_rats';
+const GONTRAND_QUEST_2 = 'gontrand_wolves';
+const GONTRAND_QUEST_3 = 'gontrand_bandit';
+
 interface HamletData {
   x?: number;
   y?: number;
@@ -48,6 +57,7 @@ export class HamletScene extends Phaser.Scene {
   private mentor!: Phaser.GameObjects.Rectangle;
   private chest!: Phaser.GameObjects.Rectangle;
   private villager!: Wanderer;
+  private gontrand!: Phaser.GameObjects.Rectangle;
   private villagerLineIndex = 0;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
   private spawnX?: number;
@@ -99,10 +109,19 @@ export class HamletScene extends Phaser.Scene {
     // every building/zone.
     this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20);
 
+    // Kept well clear of every other fixed point here (buildings at
+    // (50,90)/(190,90)/(190,300), chest at (150,330), mentor at (150,130)) —
+    // see the POST_GAME_STAGES comment above for why he stays quiet until
+    // the main quest is done.
+    this.gontrand = this.add.rectangle(50, 250, 14, 20, 0x7a6a5a).setStrokeStyle(1, 0x0b0c10);
+    addCrispText(this, 50, 230, 'Gontrand', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.mentor);
     this.physics.add.collider(this.player, this.villager.sprite);
+    this.physics.add.existing(this.gontrand, true);
+    this.physics.add.collider(this.player, this.gontrand);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -162,6 +181,7 @@ export class HamletScene extends Phaser.Scene {
         onTap: () => this.showMessage('Une cabane du hameau. Personne ne répond.'),
       })),
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
+      { x: this.gontrand.x, y: this.gontrand.y, radius: 22, onTap: () => this.talkToGontrand() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -325,18 +345,179 @@ export class HamletScene extends Phaser.Scene {
     ]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  private talkToGontrand(): void {
+    if (!POST_GAME_STAGES.includes(getMainQuestStage(this.character))) {
+      this.openDialog(
+        "Gontrand vous salue de loin sans lever les yeux de ses parchemins. « Occupé, voyageur, très occupé. Une encyclopédie ne s'écrit pas toute seule. Repassez quand le monde sera un peu plus calme. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+
+    const quest = QUESTS[GONTRAND_QUEST_1];
+    const progress = getQuestProgress(this.character, GONTRAND_QUEST_1);
+
+    if (!progress) {
+      this.openDialog(
+        `Gontrand se lève d'un bond, des parchemins glissant de ses genoux. « Vous ! Le héros ! Justement ce qu'il me fallait — quelqu'un qui a l'autorité pour trancher un débat scientifique vieux de vingt ans. » Il brandit un carnet couvert d'une écriture minuscule. « ${quest.description} »`,
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              startQuest(this.character, GONTRAND_QUEST_1);
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} rats des champs vaincus.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "« Alors ? » Gontrand se penche, avide. Vous décrivez des rats, ordinaires, poilus, nullement infernaux. Un silence. « Hmm. Ils ont dû sentir votre approche et prendre une forme plus discrète, évidemment. L'hypothèse tient toujours. » Il note quelque chose. « Merci, voyageur. Voici pour votre peine. »",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, GONTRAND_QUEST_1);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.talkToGontrandTome2();
+  }
+
+  // Reached only once gontrand_rats is turned in — same chain shape as
+  // talkToGuard/talkToGuardAboutLeader in BanditCampScene.
+  private talkToGontrandTome2(): void {
+    const quest = QUESTS[GONTRAND_QUEST_2];
+    const progress = getQuestProgress(this.character, GONTRAND_QUEST_2);
+
+    if (!progress) {
+      this.openDialog(`Gontrand tourne déjà la page. « Le Tome II, voyageur, s'impose de lui-même. ${quest.description} »`, [
+        {
+          label: 'Accepter',
+          onClick: async () => {
+            startQuest(this.character, GONTRAND_QUEST_2);
+            await SaveManager.saveCharacter(this.character);
+            this.closeDialog();
+          },
+        },
+        { label: 'Plus tard', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nProgression : ${progress.progress}/${quest.objective.count} loups corrompus vaincus.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "« De la taille d'un cheval de trait, disiez-vous ? » Vous précisez que non, pas vraiment, plutôt la taille d'un grand chien. Gontrand hoche la tête avec assurance. « Un grand chien de la taille d'un cheval de trait, donc. Exactement ce que dit ma source. » Il note quelque chose, très satisfait.",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, GONTRAND_QUEST_2);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.talkToGontrandTome3();
+  }
+
+  // Reached only once gontrand_wolves is turned in.
+  private talkToGontrandTome3(): void {
+    const quest = QUESTS[GONTRAND_QUEST_3];
+    const progress = getQuestProgress(this.character, GONTRAND_QUEST_3);
+
+    if (!progress) {
+      this.openDialog(
+        `Gontrand baisse la voix, comme si le sujet exigeait plus de discrétion que tout le reste réuni. « Le Tome III, voyageur. Celui qui fera ma réputation, ou ma ruine. ${quest.description} »`,
+        [
+          {
+            label: 'Accepter',
+            onClick: async () => {
+              startQuest(this.character, GONTRAND_QUEST_3);
+              await SaveManager.saveCharacter(this.character);
+              this.closeDialog();
+            },
+          },
+          { label: 'Plus tard', onClick: () => this.closeDialog() },
+        ],
+      );
+      return;
+    }
+
+    if (progress.state === 'active') {
+      this.openDialog(`${quest.title}\n\nLe chef des bandits se terre toujours au Champ. Une seule tête suffira comme preuve.`, [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+
+    if (progress.state === 'completed') {
+      this.openDialog(
+        "Une tête. Une seule. Gontrand reste silencieux, déchiré entre vingt ans de certitude et les faits. « ...Il aura fallu que les deux autres se cachent, le temps que vous arriviez. » Il referme son carnet avec la dignité de qui vient de perdre un débat en le croyant gagné. « L'Encyclopédie de Gontrand est achevée. Trois tomes. Toute ma vie. »",
+        [
+          {
+            label: 'Récupérer la récompense',
+            onClick: async () => {
+              turnInQuest(this.character, GONTRAND_QUEST_3);
+              await SaveManager.saveCharacter(this.character);
+              playQuestComplete();
+              this.closeDialog();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    this.openDialog(
+      "« L'Encyclopédie de Gontrand, Tomes I à III. Achevée. » Il caresse la couverture avec fierté. « Un jour, peut-être, quelqu'un me croira. »",
+      [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
+  }
+
+  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
 
     const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
+    const boxTop = height / 2 - 100;
 
+    // Measured before the buttons so a long paragraph pushes them down
+    // instead of running underneath them (found via testing: Gontrand's
+    // Tome III completion text overlapped its own button at the old fixed
+    // offset — see ShrineScene.openDialog for the same fix applied there
+    // first).
     const label = addCrispText(this, width / 2, height / 2 - 80, text, {
       fontSize: '10px',
       color: GOLD,
@@ -348,10 +529,19 @@ export class HamletScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(801);
 
+    const bg = this.add
+      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(800)
+      .setStrokeStyle(1, 0xe8d9b5);
+
     this.dialogElements = [bg, label];
 
+    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
+    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
     buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
+      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
         fontSize: '10px',
         color: DARK,
         backgroundColor: GOLD,
@@ -364,6 +554,11 @@ export class HamletScene extends Phaser.Scene {
       buttonText.on('pointerdown', button.onClick);
       this.dialogElements.push(buttonText);
     });
+
+    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
+    if (contentBottom - boxTop + 12 > boxHeight) {
+      bg.setSize(width - 20, contentBottom - boxTop + 12);
+    }
   }
 
   private closeDialog(): void {

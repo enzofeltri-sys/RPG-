@@ -134,11 +134,95 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultConsumableId: 'health_potion_greater',
   },
   // "Artisan" line — the only way to obtain these 4 items (see item.ts's
-  // craftOnly flag): never dropped, never rolled. Costs real farming across
-  // two dungeon tiers (steel_ingot from Acte 2, mithril_shard from Acte 3),
-  // capped at 3 distinct materials per recipe (well under the 5-resource
-  // ceiling) with quantities high enough that gathering them takes real
-  // playtime, not a lucky single kill.
+  // craftOnly flag): never dropped, never rolled. A full commun→légendaire
+  // arc per item (4 recipes each, one per rarity) rather than just the
+  // epic/légendaire pair originally shipped — a fresh character can start
+  // this line with palier-1 materials on day one, then reforge the same
+  // item all the way to légendaire once the harder materials are farmable.
+  craft_artisan_blade_common: {
+    id: 'craft_artisan_blade_common',
+    name: "Lame de l'artisan (premier essai)",
+    description: "Un premier essai de la lame de l'artisan, au fer brut et au cuir.",
+    station: 'forge',
+    materials: { iron_ore: 3, leather: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_blade',
+    resultItemRarity: 'common',
+  },
+  craft_artisan_amulet_common: {
+    id: 'craft_artisan_amulet_common',
+    name: "Amulette de l'artisan (premier essai)",
+    description: "Un premier essai de l'amulette de l'artisan, au fer brut et au cuir.",
+    station: 'forge',
+    materials: { iron_ore: 3, leather: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_amulet',
+    resultItemRarity: 'common',
+  },
+  craft_artisan_ring_common: {
+    id: 'craft_artisan_ring_common',
+    name: "Anneau de l'artisan (premier essai)",
+    description: "Un premier essai de l'anneau de l'artisan, au fer brut et au cuir.",
+    station: 'forge',
+    materials: { iron_ore: 2, leather: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_ring',
+    resultItemRarity: 'common',
+  },
+  craft_artisan_gloves_common: {
+    id: 'craft_artisan_gloves_common',
+    name: "Gants de l'artisan (premier essai)",
+    description: "Un premier essai des gants de l'artisan, au fer brut et au cuir.",
+    station: 'forge',
+    materials: { iron_ore: 2, leather: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_gloves',
+    resultItemRarity: 'common',
+  },
+  craft_artisan_blade_rare: {
+    id: 'craft_artisan_blade_rare',
+    name: "Lame de l'artisan (qualité supérieure)",
+    description: "Reforger la lame de l'artisan avec du fer étincelant et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { iron_ore: 2, iron_ore_rare: 1, steel_ingot: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_blade',
+    resultItemRarity: 'rare',
+  },
+  craft_artisan_amulet_rare: {
+    id: 'craft_artisan_amulet_rare',
+    name: "Amulette de l'artisan (qualité supérieure)",
+    description: "Reforger l'amulette de l'artisan avec du fer étincelant et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { iron_ore: 2, iron_ore_rare: 1, steel_ingot: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_amulet',
+    resultItemRarity: 'rare',
+  },
+  craft_artisan_ring_rare: {
+    id: 'craft_artisan_ring_rare',
+    name: "Anneau de l'artisan (qualité supérieure)",
+    description: "Reforger l'anneau de l'artisan avec du fer étincelant et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { iron_ore: 2, iron_ore_rare: 1, steel_ingot: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_ring',
+    resultItemRarity: 'rare',
+  },
+  craft_artisan_gloves_rare: {
+    id: 'craft_artisan_gloves_rare',
+    name: "Gants de l'artisan (qualité supérieure)",
+    description: "Reforger les gants de l'artisan avec du fer étincelant et un cœur d'acier trempé.",
+    station: 'forge',
+    materials: { iron_ore: 2, iron_ore_rare: 1, steel_ingot: 1 },
+    resultType: 'item',
+    resultItemBaseId: 'artisan_gloves',
+    resultItemRarity: 'rare',
+  },
+  // Costs real farming across two dungeon tiers (steel_ingot from Acte 2,
+  // mithril_shard from Acte 3), capped at 3 distinct materials per recipe
+  // (well under the 5-resource ceiling) with quantities high enough that
+  // gathering them takes real playtime, not a lucky single kill.
   craft_artisan_blade: {
     id: 'craft_artisan_blade',
     name: "Lame de l'artisan",

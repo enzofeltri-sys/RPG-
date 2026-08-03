@@ -1908,6 +1908,78 @@ const TEMPLATES: ItemTemplate[] = [
     signature: true,
   },
 
+  // 8 more signature drops (see CombatScene's SIGNATURE_REWARDS for which
+  // boss grants each) so every equip slot has at least 2 unique items —
+  // weapon/helmet/chest/legs/boots/gloves only had 1 each before, and
+  // 'offhand' had none. Two new panoplies group 6 of them (see ITEM_SETS
+  // below); the 2 offhand pieces stay standalone, like several existing
+  // signature amulets/rings already do.
+  {
+    baseId: 'garrison_blade',
+    name: 'Lame de la garnison',
+    category: 'weapon',
+    weaponType: 'sword',
+    baseStatRolls: { strength: [2, 3, 4], vitality: [1, 2, 2] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'garrison_helm',
+    name: 'Heaume de la garnison',
+    category: 'helmet',
+    baseStatRolls: { vitality: [2, 3, 4], armor: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'garrison_cuirass',
+    name: 'Cuirasse de la garnison',
+    category: 'chest',
+    baseStatRolls: { vitality: [2, 3, 4], armor: [1, 2, 3] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'last_refuge_legs',
+    name: 'Jambières du dernier repli',
+    category: 'legs',
+    baseStatRolls: { agility: [2, 3, 4], vitality: [1, 2, 2] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'hidden_path_boots',
+    name: 'Bottes du passage secret',
+    category: 'boots',
+    baseStatRolls: { agility: [2, 3, 4], vitality: [1, 1, 2] },
+    rareOnlyStatRolls: { agility: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'silent_smith_gloves',
+    name: 'Gants du forgeron silencieux',
+    category: 'gloves',
+    baseStatRolls: { strength: [2, 3, 4], vitality: [1, 2, 2] },
+    rareOnlyStatRolls: { armor: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'garrison_offhand_dagger',
+    name: 'Dague de la garnison',
+    category: 'offhand',
+    baseStatRolls: { agility: [2, 3, 4] },
+    rareOnlyStatRolls: { agility: [1, 2, 2] },
+    signature: true,
+  },
+  {
+    baseId: 'last_refuge_hatchet',
+    name: 'Hachette du dernier repli',
+    category: 'offhand',
+    baseStatRolls: { strength: [2, 3, 4] },
+    rareOnlyStatRolls: { strength: [1, 2, 2] },
+    signature: true,
+  },
+
   // --- Objets d'artisanat (jamais dans le loot, uniquement via recipe.ts) ---
   // Craftable at 'epic' (small, deliberate edge over an equivalent palier-3
   // epic drop) or 'légendaire' (see recipe.ts's craft_artisan_*_legendary
@@ -1996,6 +2068,35 @@ export const ITEM_SETS: ItemSet[] = [
     label: 'Bosquet corrompu',
     baseIds: ['purified_breastplate', 'corrupted_root_gloves'],
     bonuses: [{ pieces: 2, stats: { vitality: 2, armor: 1 } }],
+  },
+  {
+    id: 'aiglemont_garrison',
+    label: "Garnison d'Aiglemont",
+    baseIds: ['bregan_seal', 'garrison_blade', 'garrison_helm', 'garrison_cuirass'],
+    bonuses: [
+      { pieces: 2, stats: { armor: 2 } },
+      { pieces: 3, stats: { vitality: 2 } },
+      { pieces: 4, stats: { strength: 2, armor: 2 } },
+    ],
+  },
+  {
+    id: 'shadow_passage',
+    label: 'Passage des ombres',
+    baseIds: ['last_refuge_legs', 'hidden_path_boots', 'silent_smith_gloves'],
+    bonuses: [
+      { pieces: 2, stats: { agility: 2 } },
+      { pieces: 3, stats: { vitality: 2, agility: 2 } },
+    ],
+  },
+  {
+    id: 'artisan_ensemble',
+    label: "Ensemble de l'artisan",
+    baseIds: ['artisan_blade', 'artisan_amulet', 'artisan_ring', 'artisan_gloves'],
+    bonuses: [
+      { pieces: 2, stats: { armor: 2 } },
+      { pieces: 3, stats: { vitality: 3 } },
+      { pieces: 4, stats: { strength: 2, intelligence: 2, agility: 2 } },
+    ],
   },
 ];
 

@@ -52,6 +52,19 @@ const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
   last_watcher: { baseId: 'last_watcher_boots', rarity: 'epic' },
   broken_sleeper: { baseId: 'broken_sleep_aegis', rarity: 'epic' },
   blight_root: { baseId: 'corrupted_root_gloves', rarity: 'epic' },
+  // Added so every equip slot has at least 2 signature items (see item.ts) —
+  // assigned to existing Acte 2/3 bosses that had no unique reward yet, no
+  // new dungeon needed. Still a guaranteed drop on a specific hard-dungeon
+  // boss kill, same farm gate as every other signature item (re-enterable
+  // dungeons mean it's re-farmable, not a one-shot).
+  smuggler_captain: { baseId: 'garrison_blade', rarity: 'epic' },
+  ruins_delver: { baseId: 'garrison_helm', rarity: 'epic' },
+  demon_envoy: { baseId: 'garrison_cuirass', rarity: 'epic' },
+  blight_sentinel: { baseId: 'last_refuge_legs', rarity: 'epic' },
+  sunken_warden: { baseId: 'hidden_path_boots', rarity: 'epic' },
+  ancestor_warden: { baseId: 'silent_smith_gloves', rarity: 'epic' },
+  seal_echo: { baseId: 'garrison_offhand_dagger', rarity: 'epic' },
+  oath_guardian: { baseId: 'last_refuge_hatchet', rarity: 'epic' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —

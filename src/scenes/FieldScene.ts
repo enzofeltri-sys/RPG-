@@ -31,6 +31,7 @@ const BRIDGE_X = 240;
 const BRIDGE_WIDTH = 80;
 
 interface GatherNode {
+  id: string;
   x: number;
   y: number;
   materialId: MaterialId;
@@ -38,9 +39,20 @@ interface GatherNode {
 }
 
 const GATHER_NODES: GatherNode[] = [
-  { x: 90, y: 380, materialId: 'iron_ore', label: 'Gisement de fer' },
-  { x: 350, y: 400, materialId: 'herb', label: 'Herbes sauvages' },
+  { id: 'field_iron_node', x: 90, y: 380, materialId: 'iron_ore', label: 'Gisement de fer' },
+  { id: 'field_herb_node', x: 350, y: 400, materialId: 'herb', label: 'Herbes sauvages' },
 ];
+
+// A tap fires onTap() immediately (see TapController) with no arrival delay
+// and gather() had no rate limit at all — spamming a node's tap zone granted
+// unlimited iron_ore/herb (and their rare variants) in negligible real time,
+// bypassing the same farm gate every other resource source in the game
+// respects (chests are one-time, combat materials cost a real fight, the
+// merchant's stock caps at 10 slots/15 min). This cooldown closes that hole
+// without turning nodes into a heavy gate — short enough that walking
+// between the two nodes or just waiting a few seconds keeps gathering feel
+// as immediate as it did before for genuine play.
+const GATHER_COOLDOWN_MS = 5000;
 
 // Purely decorative — no collision, no real art yet (increment 10). Just
 // enough visual density that the Champ doesn't read as an empty box.
@@ -305,6 +317,16 @@ export class FieldScene extends Phaser.Scene {
   }
 
   private async gather(node: GatherNode): Promise<void> {
+    const now = Date.now();
+    const last = this.character.gatherCooldowns?.[node.id] ?? 0;
+    const remaining = GATHER_COOLDOWN_MS - (now - last);
+    if (remaining > 0) {
+      this.showMessage(`${node.label} : encore ${Math.ceil(remaining / 1000)}s.`);
+      return;
+    }
+    if (!this.character.gatherCooldowns) this.character.gatherCooldowns = {};
+    this.character.gatherCooldowns[node.id] = now;
+
     this.character.materials[node.materialId] = (this.character.materials[node.materialId] ?? 0) + 1;
     let message = `+1 ${materialLabel(node.materialId)}`;
 

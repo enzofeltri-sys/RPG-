@@ -70,6 +70,11 @@ export interface Character {
   // getMerchantStock() detects and discards it rather than trusting the
   // type here.
   merchantStock?: { entries: MerchantStockEntry[]; refreshedAt: number };
+  // Real-world per-node cooldown for FieldScene's gather nodes, keyed by
+  // GatherNode.id — last-gathered epoch ms. Undefined/missing entry means
+  // never gathered (or an older save from before cooldowns existed), which
+  // getGatherCooldownRemaining() (FieldScene.ts) already treats as "ready".
+  gatherCooldowns?: Partial<Record<string, number>>;
 }
 
 export const RACES: Record<Race, RaceDefinition> = {

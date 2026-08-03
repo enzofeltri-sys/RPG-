@@ -71,22 +71,27 @@ const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 // in a Guerrier's hands — only the profile match below changes how much of
 // that scaling actually lands.
 const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
-  sword_axe: 'strength',
+  sword: 'strength',
+  axe: 'strength',
   bow: 'agility',
   dagger: 'agility',
-  staff_tome: 'intelligence',
+  staff: 'intelligence',
+  tome: 'intelligence',
 };
 
-// Each class is fully trained on exactly one weapon type; anything else
-// still works (no hard equip restriction — a mage CAN pick up a sword) but
-// deals reduced damage, so "un archer avec une épée tape moins qu'avec un
-// arc" holds without needing a dedicated equip-validation system.
-const CLASS_WEAPON_PROFILE: Record<CharClass, WeaponType> = {
-  warrior: 'sword_axe',
-  mage: 'staff_tome',
-  archer: 'bow',
-  rogue: 'dagger',
-  cleric: 'staff_tome',
+// Each class is fully trained on one or two related weapon types; anything
+// else still works (no hard equip restriction — a mage CAN pick up a
+// sword) but deals reduced damage, so "un archer avec une épée tape moins
+// qu'avec un arc" holds without needing a dedicated equip-validation
+// system. Warrior covers both sword and axe (same scaling stat, still two
+// distinct weapon types — see item.ts's WeaponType comment on why they're
+// split at all); mage/cleric likewise cover both staff and tome.
+const CLASS_WEAPON_PROFILE: Record<CharClass, WeaponType[]> = {
+  warrior: ['sword', 'axe'],
+  mage: ['staff', 'tome'],
+  archer: ['bow'],
+  rogue: ['dagger'],
+  cleric: ['staff', 'tome'],
 };
 
 // Applied to the weapon-derived portion of damage only (not the flat 2-5
@@ -269,7 +274,7 @@ export class CombatScene extends Phaser.Scene {
     // profile penalty — bare fists don't punish a class for having nothing
     // equipped on top of already dealing no weapon-line stats.
     const scalingStat: keyof CharacterStats = weaponType ? WEAPON_SCALING_STAT[weaponType] : 'strength';
-    const inProfile = !weaponType || CLASS_WEAPON_PROFILE[this.character.class] === weaponType;
+    const inProfile = !weaponType || CLASS_WEAPON_PROFILE[this.character.class].includes(weaponType);
     const weaponDamage = Math.floor(stats[scalingStat] / 2) * (inProfile ? 1 : OFF_PROFILE_WEAPON_MULTIPLIER);
     const baseDamage = Phaser.Math.Between(2, 5) + Math.round(weaponDamage);
     const elementalDamage =

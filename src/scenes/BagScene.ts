@@ -276,7 +276,10 @@ export class BagScene extends Phaser.Scene {
   // main hand — matching how every other slot here already "replaces on
   // re-equip" when full.
   private isOneHandedMelee(item: Item): boolean {
-    return item.category === 'weapon' && (item.weaponType === 'sword_axe' || item.weaponType === 'dagger');
+    return (
+      item.category === 'weapon' &&
+      (item.weaponType === 'sword' || item.weaponType === 'axe' || item.weaponType === 'dagger')
+    );
   }
 
   private resolveEquipSlot(item: Item): EquipSlot {

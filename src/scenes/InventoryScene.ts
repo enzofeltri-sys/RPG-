@@ -29,7 +29,10 @@ function slotAccepts(slot: EquipSlot, item: Item): boolean {
   if (slot === 'ring1' || slot === 'ring2') return item.category === 'ring';
   if (slot === 'shield') {
     if (item.category === 'shield' || item.category === 'offhand') return true;
-    return item.category === 'weapon' && (item.weaponType === 'sword_axe' || item.weaponType === 'dagger');
+    return (
+      item.category === 'weapon' &&
+      (item.weaponType === 'sword' || item.weaponType === 'axe' || item.weaponType === 'dagger')
+    );
   }
   return item.category === slot;
 }

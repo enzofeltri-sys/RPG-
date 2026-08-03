@@ -272,18 +272,27 @@ export class CombatScene extends Phaser.Scene {
     const inProfile = !weaponType || CLASS_WEAPON_PROFILE[this.character.class] === weaponType;
     const weaponDamage = Math.floor(stats[scalingStat] / 2) * (inProfile ? 1 : OFF_PROFILE_WEAPON_MULTIPLIER);
     const baseDamage = Phaser.Math.Between(2, 5) + Math.round(weaponDamage);
-    const elementalDamage = stats.fireDamage + stats.poisonDamage;
+    const elementalDamage =
+      stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
     const damage = baseDamage + elementalDamage;
     this.monster.hp -= damage;
+    if (stats.lifeSteal > 0) {
+      this.character.hp = Math.min(this.character.maxHp, this.character.hp + stats.lifeSteal);
+    }
     this.refreshBars();
     playHit();
     const elementalParts: string[] = [];
     if (stats.fireDamage > 0) elementalParts.push(`${stats.fireDamage} de feu`);
     if (stats.poisonDamage > 0) elementalParts.push(`${stats.poisonDamage} de poison`);
+    if (stats.iceDamage > 0) elementalParts.push(`${stats.iceDamage} de glace`);
+    if (stats.electricDamage > 0) elementalParts.push(`${stats.electricDamage} électriques`);
+    if (stats.darkDamage > 0) elementalParts.push(`${stats.darkDamage} obscurs`);
+    if (stats.earthDamage > 0) elementalParts.push(`${stats.earthDamage} de terre`);
+    const lifeStealPart = stats.lifeSteal > 0 ? ` Vous drainez ${stats.lifeSteal} PV.` : '';
     this.logText.setText(
-      elementalParts.length > 0
-        ? `Vous infligez ${damage} dégâts (dont ${elementalParts.join(' et ')}).`
-        : `Vous infligez ${damage} dégâts.`,
+      (elementalParts.length > 0
+        ? `Vous infligez ${damage} dégâts (dont ${elementalParts.join(', ')}).`
+        : `Vous infligez ${damage} dégâts.`) + lifeStealPart,
     );
 
     if (this.monster.hp <= 0) {

@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { Character, getEffectiveStats } from '../game/character';
 import {
   Item,
-  ItemCategory,
   EquipSlot,
   RARITY_LABELS,
   RARITY_COLORS,
@@ -22,12 +21,17 @@ const EQUIPPED_BG = '#2a3a2a';
 
 // ring1/ring2 both accept any 'ring'-category item; the shield slot doubles
 // as the dual-wield off-hand (see item.ts's ItemCategory comment) and so
-// accepts either 'shield' or 'offhand' items — every other slot's category
-// matches its own name exactly.
-function slotAccepts(slot: EquipSlot, category: ItemCategory): boolean {
-  if (slot === 'ring1' || slot === 'ring2') return category === 'ring';
-  if (slot === 'shield') return category === 'shield' || category === 'offhand';
-  return category === slot;
+// accepts 'shield'/'offhand' items AND one-handed melee weapons (sword/axe/
+// dagger — not bow/staff, which need both hands), so a real sword or dagger
+// can be dual-wielded, not just the dedicated 'offhand' items — every other
+// slot's category matches its own name exactly.
+function slotAccepts(slot: EquipSlot, item: Item): boolean {
+  if (slot === 'ring1' || slot === 'ring2') return item.category === 'ring';
+  if (slot === 'shield') {
+    if (item.category === 'shield' || item.category === 'offhand') return true;
+    return item.category === 'weapon' && (item.weaponType === 'sword_axe' || item.weaponType === 'dagger');
+  }
+  return item.category === slot;
 }
 
 const CANDIDATE_ROW_H = 20;
@@ -224,7 +228,7 @@ export class InventoryScene extends Phaser.Scene {
     this.detailTitle.setText(equipSlotLabel(slot)).setColor(GOLD);
 
     const equipped = this.character.equipment[slot];
-    const candidates = this.character.inventory.filter((item) => slotAccepts(slot, item.category));
+    const candidates = this.character.inventory.filter((item) => slotAccepts(slot, item));
 
     let y = 82;
     if (equipped) {

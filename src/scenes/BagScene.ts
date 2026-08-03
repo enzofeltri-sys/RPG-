@@ -268,8 +268,24 @@ export class BagScene extends Phaser.Scene {
     this.renderList();
   }
 
+  // One-handed melee weapons (sword/axe/dagger — not bow/staff, which need
+  // both hands) can go in either the weapon slot or the shield/off-hand
+  // slot, so a player can dual-wield two of them (a second dagger, or an
+  // axe and a sword) rather than only ever holding one. Auto-resolve fills
+  // whichever of the two is empty, weapon first, and otherwise replaces the
+  // main hand — matching how every other slot here already "replaces on
+  // re-equip" when full.
+  private isOneHandedMelee(item: Item): boolean {
+    return item.category === 'weapon' && (item.weaponType === 'sword_axe' || item.weaponType === 'dagger');
+  }
+
   private resolveEquipSlot(item: Item): EquipSlot {
     if (item.category === 'offhand') return 'shield';
+    if (this.isOneHandedMelee(item)) {
+      if (!this.character.equipment.weapon) return 'weapon';
+      if (!this.character.equipment.shield) return 'shield';
+      return 'weapon';
+    }
     if (item.category !== 'ring') return item.category;
     if (!this.character.equipment.ring1) return 'ring1';
     if (!this.character.equipment.ring2) return 'ring2';

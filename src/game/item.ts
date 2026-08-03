@@ -44,6 +44,11 @@ export interface ItemStats {
   armor?: number;
   fireDamage?: number;
   poisonDamage?: number;
+  iceDamage?: number;
+  electricDamage?: number;
+  darkDamage?: number;
+  earthDamage?: number;
+  lifeSteal?: number;
 }
 
 const STAT_LABELS: Record<keyof ItemStats, string> = {
@@ -54,6 +59,11 @@ const STAT_LABELS: Record<keyof ItemStats, string> = {
   armor: 'Armure',
   fireDamage: 'Dégâts de feu',
   poisonDamage: 'Dégâts de poison',
+  iceDamage: 'Dégâts de glace',
+  electricDamage: 'Dégâts électriques',
+  darkDamage: 'Dégâts obscurs',
+  earthDamage: 'Dégâts de terre',
+  lifeSteal: 'Vol de vie',
 };
 
 export interface Item {
@@ -134,7 +144,10 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 1,
     baseStatRolls: { agility: [1, 2, 3] },
     rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
-    legendaryOnlyStatRolls: { agility: [1, 2, 2] },
+    // Daggers are the vampiric-weapon family across all 3 paliers (see
+    // marsh_dagger/shadow_dagger) — the "dague vampirique" archetype,
+    // life steal only ever showing up at legendary.
+    legendaryOnlyStatRolls: { agility: [1, 2, 2], lifeSteal: [1, 1, 2] },
   },
   {
     baseId: 'broken_sword',
@@ -157,6 +170,22 @@ const TEMPLATES: ItemTemplate[] = [
     legendaryOnlyStatRolls: { intelligence: [1, 1, 2] },
   },
   {
+    // Palier 1's missing intelligence weapon — until now a Mage/Clerc
+    // had no staff_tome option before palier 2's archivist_wand, meaning
+    // their class's own scaling stat wasn't backed by any early weapon.
+    baseId: 'novice_staff',
+    name: 'Bâton de novice',
+    category: 'weapon',
+    weaponType: 'staff_tome',
+    tier: 1,
+    baseStatRolls: { intelligence: [1, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
+    // Staves carry two elemental lines from the start (see the
+    // staff_tome comment further down for why) — a melee weapon of the
+    // same tier only ever gets one, at a lower magnitude.
+    legendaryOnlyStatRolls: { intelligence: [1, 1, 2], iceDamage: [2, 2, 3] },
+  },
+  {
     baseId: 'short_bow',
     name: 'Arc court',
     category: 'weapon',
@@ -164,7 +193,7 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 1,
     baseStatRolls: { agility: [1, 2, 3] },
     rareOnlyStatRolls: { poisonDamage: [1, 1, 2] },
-    legendaryOnlyStatRolls: { fireDamage: [1, 1, 2] },
+    legendaryOnlyStatRolls: { electricDamage: [1, 1, 2] },
   },
   {
     baseId: 'hatchet',
@@ -173,7 +202,10 @@ const TEMPLATES: ItemTemplate[] = [
     weaponType: 'sword_axe',
     tier: 1,
     baseStatRolls: { strength: [2, 3, 4] },
-    rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
+    // Axes deal earth damage rather than fire across all 3 paliers (see
+    // steel_axe/mithril_axe) — a consistent thematic rule, heavy impact
+    // rather than an elemental enchantment.
+    rareOnlyStatRolls: { earthDamage: [1, 2, 2] },
     legendaryOnlyStatRolls: { strength: [1, 2, 2] },
   },
 
@@ -510,7 +542,7 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 2,
     baseStatRolls: { agility: [3, 4, 5] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 3] },
-    legendaryOnlyStatRolls: { agility: [2, 2, 3] },
+    legendaryOnlyStatRolls: { agility: [2, 2, 3], lifeSteal: [2, 2, 3] },
   },
   {
     baseId: 'steel_greatsword',
@@ -529,8 +561,8 @@ const TEMPLATES: ItemTemplate[] = [
     weaponType: 'staff_tome',
     tier: 2,
     baseStatRolls: { intelligence: [3, 4, 5] },
-    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
-    legendaryOnlyStatRolls: { intelligence: [2, 2, 3] },
+    rareOnlyStatRolls: { fireDamage: [5, 6, 7] },
+    legendaryOnlyStatRolls: { intelligence: [2, 2, 3], electricDamage: [3, 3, 4] },
   },
   {
     baseId: 'hunting_bow',
@@ -540,7 +572,7 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 2,
     baseStatRolls: { agility: [3, 4, 5] },
     rareOnlyStatRolls: { poisonDamage: [2, 3, 3] },
-    legendaryOnlyStatRolls: { fireDamage: [2, 2, 3] },
+    legendaryOnlyStatRolls: { electricDamage: [2, 2, 3] },
   },
   {
     baseId: 'steel_axe',
@@ -549,7 +581,7 @@ const TEMPLATES: ItemTemplate[] = [
     weaponType: 'sword_axe',
     tier: 2,
     baseStatRolls: { strength: [4, 5, 6] },
-    rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
+    rareOnlyStatRolls: { earthDamage: [2, 3, 4] },
     legendaryOnlyStatRolls: { strength: [2, 3, 3] },
   },
 
@@ -880,7 +912,7 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 3,
     baseStatRolls: { agility: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
-    legendaryOnlyStatRolls: { agility: [3, 3, 4] },
+    legendaryOnlyStatRolls: { agility: [3, 3, 4], lifeSteal: [3, 3, 4] },
   },
   {
     baseId: 'mithril_sword',
@@ -899,8 +931,8 @@ const TEMPLATES: ItemTemplate[] = [
     weaponType: 'staff_tome',
     tier: 3,
     baseStatRolls: { intelligence: [5, 6, 7] },
-    rareOnlyStatRolls: { fireDamage: [4, 5, 6] },
-    legendaryOnlyStatRolls: { intelligence: [3, 3, 4] },
+    rareOnlyStatRolls: { fireDamage: [6, 7, 8] },
+    legendaryOnlyStatRolls: { intelligence: [3, 3, 4], darkDamage: [4, 5, 5] },
   },
   {
     baseId: 'watcher_bow',
@@ -910,7 +942,7 @@ const TEMPLATES: ItemTemplate[] = [
     tier: 3,
     baseStatRolls: { agility: [5, 6, 7] },
     rareOnlyStatRolls: { poisonDamage: [4, 5, 5] },
-    legendaryOnlyStatRolls: { fireDamage: [3, 4, 4] },
+    legendaryOnlyStatRolls: { electricDamage: [3, 4, 4] },
   },
   {
     baseId: 'mithril_axe',
@@ -919,7 +951,7 @@ const TEMPLATES: ItemTemplate[] = [
     weaponType: 'sword_axe',
     tier: 3,
     baseStatRolls: { strength: [6, 7, 8] },
-    rareOnlyStatRolls: { fireDamage: [3, 4, 5] },
+    rareOnlyStatRolls: { earthDamage: [3, 4, 5] },
     legendaryOnlyStatRolls: { strength: [3, 4, 4] },
   },
 

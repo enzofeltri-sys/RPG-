@@ -44,6 +44,15 @@ export class StatsScene extends Phaser.Scene {
     if (stats.poisonDamage > 0) {
       statLines.push(`Dégâts de poison ${stats.poisonDamage}`);
     }
+    if (stats.iceDamage > 0 || stats.electricDamage > 0) {
+      statLines.push(`Dégâts de glace ${stats.iceDamage}   Dégâts électriques ${stats.electricDamage}`);
+    }
+    if (stats.darkDamage > 0 || stats.earthDamage > 0) {
+      statLines.push(`Dégâts obscurs ${stats.darkDamage}   Dégâts de terre ${stats.earthDamage}`);
+    }
+    if (stats.lifeSteal > 0) {
+      statLines.push(`Vol de vie ${stats.lifeSteal}`);
+    }
 
     addCrispText(
       this,

@@ -35,6 +35,31 @@ export class TapController {
 
   setInteractables(list: Interactable[]): void {
     this.interactables = list;
+    this.warnOnOverlaps(list);
+  }
+
+  // handlePointerDown resolves a tap to the FIRST interactable within its
+  // radius (Array.find, order-dependent) — two interactables placed close
+  // enough that their radii overlap means the second one silently becomes
+  // untappable wherever the radii intersect. Nothing stops a scene from
+  // introducing that by accident, so this warns in the console the moment
+  // it happens instead of relying on a manual audit to catch it. Dev-only
+  // signal, not a correctness fix: it doesn't change which one wins.
+  private warnOnOverlaps(list: Interactable[]): void {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i];
+        const b = list[j];
+        const minDistance = (a.radius ?? DEFAULT_RADIUS) + (b.radius ?? DEFAULT_RADIUS);
+        if (Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y) < minDistance) {
+          console.warn(
+            `[TapController] Interactables ${i} and ${j} in scene "${this.scene.scene.key}" overlap ` +
+              `(distance ${Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y).toFixed(1)}px < combined radius ${minDistance}px) — ` +
+              'a tap in the overlap always resolves to the first one.',
+          );
+        }
+      }
+    }
   }
 
   setEnabled(enabled: boolean): void {

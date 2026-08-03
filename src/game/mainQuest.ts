@@ -126,6 +126,47 @@ export function getMainQuestStage(character: Character): MainQuestStage {
   return character.mainQuestStage ?? 'not_started';
 }
 
+// Mirrors the union above in the same order the story actually unlocks it —
+// used to derive "how far has this save gotten" as a single number, without
+// duplicating an act boundary check everywhere that needs one (currently:
+// the merchant's rotating stock, see merchantStock.ts).
+const MAIN_QUEST_STAGE_ORDER: MainQuestStage[] = [
+  'not_started', 'dungeon', 'revelation', 'aiglemont', 'complete', 'catacombs', 'trail_found', 'debriefed',
+  'faubourg_lead', 'shard_confirmed', 'shards_beyond', 'trail_west', 'river_lead', 'act1_complete',
+  'crossing_marshes', 'vasenoire_arrival', 'delta_conspiracy', 'limaneux_lead', 'network_exposed',
+  'smugglers_unmasked', 'network_reported', 'sealed_vault_lead', 'vault_uncovered', 'shard_cache_found',
+  'rival_hunters_lead', 'rival_hunters_confirmed', 'threat_acknowledged', 'chercheurs_lead', 'seekers_confronted',
+  'seekers_defeated', 'brotherhood_tomb_hinted', 'tomb_location_found', 'tomb_raided', 'act2_complete',
+  'outpost_corruption_lead', 'corruption_confirmed', 'blighted_grove_lead', 'grove_purified',
+  'corruption_contained', 'original_site_revealed', 'shrine_lead', 'seal_failing', 'antagonist_glimpsed',
+  'identity_search_started', 'identity_hint_gathered', 'upstream_lead', 'watchtower_reached',
+  'watchtower_cleared', 'helm_inscription_studied', 'ward_core_lead', 'ward_core_reached', 'ward_core_cleared',
+  'hermit_lead', 'hermit_confided', 'watchers_vault_lead', 'watchers_vault_reached', 'watchers_vault_cleared',
+  'silhouette_message_found', 'tomb_depths_lead', 'tomb_depths_reached', 'tomb_depths_cleared',
+  'grand_theory_formed', 'grove_depths_lead', 'grove_depths_reached', 'grove_depths_cleared',
+  'watcher_hypothesis_formed', 'seal_depths_lead', 'seal_depths_reached', 'seal_depths_cleared',
+  'second_token_found', 'lodge_lead', 'lodge_reached', 'lodge_cleared', 'reinforcement_plan_started',
+  'rite_archive_lead', 'rite_archive_reached', 'rite_archive_cleared', 'response_sent', 'rite_annex_lead',
+  'rite_annex_reached', 'rite_annex_cleared', 'lineage_traced', 'crypt_lead', 'crypt_reached', 'crypt_cleared',
+  'first_name_given', 'elder_lead', 'grave_reached', 'grave_cleared', 'title_hypothesis', 'notary_lead',
+  'registry_reached', 'registry_cleared', 'meeting_promised', 'road_lead', 'waystation_reached',
+  'waystation_cleared', 'awaiting_meeting', 'first_meeting', 'meeting_debriefed', 'chapel_lead', 'chapel_reached',
+  'chapel_cleared', 'third_site_awaited', 'third_site_lead', 'third_site_reached', 'third_site_cleared',
+  'recruiting_help', 'ally_secured',
+];
+
+const ACT1_COMPLETE_INDEX = MAIN_QUEST_STAGE_ORDER.indexOf('act1_complete');
+const ACT2_COMPLETE_INDEX = MAIN_QUEST_STAGE_ORDER.indexOf('act2_complete');
+
+// Same palier boundaries as DUNGEON_LOOT_TIER (worldMap.ts): palier 1 before
+// Acte 1 is done, palier 2 through Acte 2, palier 3 once Acte 2 is cleared.
+export function getStoryTier(character: Character): 1 | 2 | 3 {
+  const index = MAIN_QUEST_STAGE_ORDER.indexOf(getMainQuestStage(character));
+  if (index < ACT1_COMPLETE_INDEX) return 1;
+  if (index < ACT2_COMPLETE_INDEX) return 2;
+  return 3;
+}
+
 interface StageReward {
   xp: number;
   itemBaseId?: string;

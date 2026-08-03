@@ -1,6 +1,7 @@
 import { Character } from './character';
 import { Item, Rarity, rollLootItem, sellPrice } from './item';
 import { MaterialId } from './material';
+import { getStoryTier } from './mainQuest';
 
 // A real-world timer, not a story/level one — the shop is meant to feel
 // like "come back later and see something different," independent of how
@@ -38,33 +39,39 @@ const STOCK_MATERIALS: { materialId: MaterialId; price: number }[] = [
   { materialId: 'mithril_shard_rare', price: 80 },
 ];
 
-function rollStockEntry(): MerchantStockEntry | null {
+// storyTier caps every roll at what the save has actually unlocked (see
+// getStoryTier in mainQuest.ts, same palier boundaries as
+// DUNGEON_LOOT_TIER) — a fresh Acte 1 character never sees palier 3 gear
+// here, and the stock's top palier rises automatically as the main quest
+// advances, instead of being either stuck at palier 1 forever or fully
+// random regardless of progress.
+function rollStockEntry(storyTier: 1 | 2 | 3): MerchantStockEntry | null {
   const roll = Math.random();
   if (roll < MATERIAL_CHANCE) {
     const pick = STOCK_MATERIALS[Math.floor(Math.random() * STOCK_MATERIALS.length)];
     return { kind: 'material', materialId: pick.materialId, quantity: 1 };
   }
-  // Epic/legendary rolls draw from a random palier (1-3), not just palier
-  // 1 — the whole point is an occasional glimpse of higher-palier gear,
-  // not just a fancier common item.
+  // Epic/legendary rolls draw from a random palier up to storyTier, not a
+  // fixed one — the point is an occasional glimpse of the best gear
+  // currently reachable, never gear from an act not yet unlocked.
   if (roll < MATERIAL_CHANCE + LEGENDARY_CHANCE) {
-    const tier = (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
+    const tier = (Math.floor(Math.random() * storyTier) + 1) as 1 | 2 | 3;
     const item = rollLootItem({ guaranteed: true, legendaryChance: 1, tier });
     return item ? { kind: 'item', item } : null;
   }
   if (roll < MATERIAL_CHANCE + LEGENDARY_CHANCE + EPIC_CHANCE) {
-    const tier = (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
+    const tier = (Math.floor(Math.random() * storyTier) + 1) as 1 | 2 | 3;
     const item = rollLootItem({ guaranteed: true, epicChance: 1, tier });
     return item ? { kind: 'item', item } : null;
   }
-  const item = rollLootItem({ guaranteed: true, tier: 1, rareChance: 0.25 });
+  const item = rollLootItem({ guaranteed: true, tier: storyTier, rareChance: 0.25 });
   return item ? { kind: 'item', item } : null;
 }
 
-function generateStock(): MerchantStockEntry[] {
+function generateStock(storyTier: 1 | 2 | 3): MerchantStockEntry[] {
   const entries: MerchantStockEntry[] = [];
   for (let i = 0; i < STOCK_SIZE; i++) {
-    const entry = rollStockEntry();
+    const entry = rollStockEntry(storyTier);
     if (entry) entries.push(entry);
   }
   return entries;
@@ -87,7 +94,7 @@ export function getMerchantStock(character: Character): MerchantStockEntry[] {
   const now = Date.now();
   const current = character.merchantStock;
   if (!hasCurrentShape(current) || now - current.refreshedAt >= REFRESH_INTERVAL_MS) {
-    character.merchantStock = { entries: generateStock(), refreshedAt: now };
+    character.merchantStock = { entries: generateStock(getStoryTier(character)), refreshedAt: now };
   }
   return (character.merchantStock as { entries: MerchantStockEntry[] }).entries;
 }

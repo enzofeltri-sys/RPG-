@@ -84,5 +84,19 @@
     "width": 54,
     "height": 54,
     "name": "Dague émoussée"
+  },
+  "belt_stiletto": {
+    "asset_id": "49e1f6d2-fd52-4bfb-af29-9fd4392c85f3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/49e1f6d2-fd52-4bfb-af29-9fd4392c85f3/signed-content/pixel?sig=t18y-q9wR1QQw7vzlScI1vh7P9L6vzaUFfGSAyROsWQ&exp=1785845002",
+    "width": 150,
+    "height": 150,
+    "name": "Stylet de ceinture"
+  },
+  "switchblade_dagger": {
+    "asset_id": "4e55db9b-3741-43a2-bee6-eda5c4ee85ca",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4e55db9b-3741-43a2-bee6-eda5c4ee85ca/signed-content/pixel?sig=dMfulDOiNhI-oy99GKGnSXbqD9-NUFm9X4GPOeMVZ-Y&exp=1785845020",
+    "width": 60,
+    "height": 60,
+    "name": "Dague à cran d'arrêt"
   }
 }

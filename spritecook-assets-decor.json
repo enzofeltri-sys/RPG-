@@ -1,0 +1,105 @@
+{
+  "tree": {
+    "asset_id": "6dc5bbd0-e388-4605-9147-cd4815d434f4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6dc5bbd0-e388-4605-9147-cd4815d434f4/signed-content/pixel?sig=O4xc2rRCfs1FkO0XbnkrP5VepDNls6CsjRd3I9tjuIE&exp=1785798450",
+    "width": 42,
+    "height": 42
+  },
+  "bush": {
+    "asset_id": "74926f75-715c-4591-b99c-5b1041906dd4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/74926f75-715c-4591-b99c-5b1041906dd4/signed-content/pixel?sig=rUUK8RGa3nOWquYGvEAFQRq48k5Pi8yye0tVB2g6LH8&exp=1785798473",
+    "width": 40,
+    "height": 40
+  },
+  "rock_small": {
+    "asset_id": "6c783ca0-799e-4c49-afe2-e9e92a829f20",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6c783ca0-799e-4c49-afe2-e9e92a829f20/signed-content/pixel?sig=Hg0wVo6EuYOht0MTU19-_jHfvRsFwXlqRICrhMe6ak8&exp=1785798505",
+    "width": 32,
+    "height": 32
+  },
+  "boulder_large": {
+    "asset_id": "105e24da-0dee-4924-8092-dee83787b7ef",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/105e24da-0dee-4924-8092-dee83787b7ef/signed-content/pixel?sig=m6ZwmUYHzH4INUVfvd2MrLCAID-T0e409-Ulx16MxeE&exp=1785798522",
+    "width": 40,
+    "height": 40
+  },
+  "mushroom": {
+    "asset_id": "c93b553d-73bd-4e98-bd01-1828106da96d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c93b553d-73bd-4e98-bd01-1828106da96d/signed-content/pixel?sig=AxYkFsgQ3tdVHts1zcdzq5fqb59hn4ceVkPlFUyt3UA&exp=1785798542",
+    "width": 32,
+    "height": 32
+  },
+  "crystal_glow": {
+    "asset_id": "8ba69109-c88c-4b0e-b548-91a169bf4245",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8ba69109-c88c-4b0e-b548-91a169bf4245/signed-content/pixel?sig=Ra4Xa97CLsn3TY3BbyNth5RT5Vc2IdfLLuNnPGsO_Tk&exp=1785798559",
+    "width": 78,
+    "height": 78
+  },
+  "lava_pool": {
+    "asset_id": "69f340eb-44b1-4100-8abc-24c7d7574533",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/69f340eb-44b1-4100-8abc-24c7d7574533/signed-content/pixel?sig=cYk6azUS3RJOCV8KCK0ciqN03LbzjKf_4Ss4r0Ww33A&exp=1785798597",
+    "width": 38,
+    "height": 38
+  },
+  "water_murky": {
+    "asset_id": "75af5378-91dd-4f25-8f42-0b24d35dd68d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/75af5378-91dd-4f25-8f42-0b24d35dd68d/signed-content/pixel?sig=aKD6bM-25j-sLdvL0p3aBAL2kvAeIp_5jVeRcicr4O4&exp=1785798615",
+    "width": 54,
+    "height": 54
+  },
+  "river_water": {
+    "asset_id": "ec6f9c87-1661-4243-84b1-186bbc01027d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ec6f9c87-1661-4243-84b1-186bbc01027d/signed-content/pixel?sig=yLbvruczBFnen2FsuHSDmrxPyhDVuP0JIOWAKoQ0o2A&exp=1785798634",
+    "width": 80,
+    "height": 80
+  },
+  "wooden_bridge": {
+    "asset_id": "bd08dd4d-6314-46b3-ab50-6ec8c42c09cb",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bd08dd4d-6314-46b3-ab50-6ec8c42c09cb/signed-content/pixel?sig=JRUYPhOGZJ01hfyV-aOje990KYLDRbAPygDudsyjtfk&exp=1785798654",
+    "width": 68,
+    "height": 68
+  },
+  "wagon_cart": {
+    "asset_id": "bf3e178f-eee8-40e5-b58f-c9a8588f88a1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bf3e178f-eee8-40e5-b58f-c9a8588f88a1/signed-content/pixel?sig=t2V3pN4xphKSav0g-SeXFPzRXwVrh2AWHwHHFHmSwB8&exp=1785798674",
+    "width": 110,
+    "height": 110
+  },
+  "treasure_chest_closed": {
+    "asset_id": "94b7e7dc-3711-4173-9e67-b75840cea1c8",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/94b7e7dc-3711-4173-9e67-b75840cea1c8/signed-content/pixel?sig=-sU2P8YC0kFIZL8RXZ2dW1kz7NsB99Z_G-AATeygCaQ&exp=1785798692",
+    "width": 64,
+    "height": 64
+  },
+  "treasure_chest_open": {
+    "asset_id": "e7f43f77-7278-434f-bcd1-cac7a5beae7a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e7f43f77-7278-434f-bcd1-cac7a5beae7a/signed-content/pixel?sig=dLMOIg34boY_ch3slwAM4O45GKy6xG7WJAC4X8Fyp2M&exp=1785798710",
+    "width": 32,
+    "height": 32
+  },
+  "signpost": {
+    "asset_id": "e1de4833-0c6a-41cd-be5d-b058716199da",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e1de4833-0c6a-41cd-be5d-b058716199da/signed-content/pixel?sig=hxzQcC_lTB8zcrnjZE76yku-yAOPzIXPeq61gIFCoIQ&exp=1785798729",
+    "width": 90,
+    "height": 90
+  },
+  "boardwalk_planks": {
+    "asset_id": "9cc44982-0294-4fc1-b144-aed19e83015d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/9cc44982-0294-4fc1-b144-aed19e83015d/signed-content/pixel?sig=CrrJ57qi8Q6495mkBJaudfa2xtLNoxFIwWgYdRPBAoA&exp=1785798757",
+    "width": 42,
+    "height": 42
+  },
+  "merchant_stall": {
+    "asset_id": "671de063-611d-4247-b5ee-f00a8863eade",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/671de063-611d-4247-b5ee-f00a8863eade/signed-content/pixel?sig=uO4axUpOzqwPdNuppe5YWQ5g3JLpIbbnKxTy5kE3SmU&exp=1785798781",
+    "width": 88,
+    "height": 88
+  },
+  "blacksmith_forge": {
+    "asset_id": "15a88841-6beb-4d77-a23d-41cc094de25e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/15a88841-6beb-4d77-a23d-41cc094de25e/signed-content/pixel?sig=Wf1emWCjyDbOLv_Zj6qqp07-EA35dHCtHS7Kudvu1BM&exp=1785798807",
+    "width": 44,
+    "height": 44
+  },
+  "failures": []
+}

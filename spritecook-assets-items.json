@@ -1,0 +1,74 @@
+{
+  "failures": [],
+  "remaining_unprocessed": [],
+  "short_sword": {
+    "asset_id": "b2b9eee2-2d14-47df-96da-010e0e70eefa",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b2b9eee2-2d14-47df-96da-010e0e70eefa/signed-content/pixel?sig=S6vEvThaFpXEl9GVt2tmPJ3tJSclAN826_v5dXvYteE&exp=1785798637",
+    "width": 60,
+    "height": 60,
+    "name": "Épée courte"
+  },
+  "dagger_thief": {
+    "asset_id": "a24fa5e4-29d1-430c-a509-e1ff83eef30a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a24fa5e4-29d1-430c-a509-e1ff83eef30a/signed-content/pixel?sig=iOoWmWN8oEo4GZxJ7brqmfs1Y78Ofzj-YOae337nF7A&exp=1785798658",
+    "width": 60,
+    "height": 60,
+    "name": "Dague de voleur"
+  },
+  "broken_sword": {
+    "asset_id": "e9db1f6d-7b41-4697-8292-60e8ca429818",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e9db1f6d-7b41-4697-8292-60e8ca429818/signed-content/pixel?sig=hoCAGrsXzyQbojMtP-Gbu6EvRbC523JRZsk1MOVvXfY&exp=1785798679",
+    "width": 70,
+    "height": 70,
+    "name": "Épée cassée"
+  },
+  "apprentice_blade": {
+    "asset_id": "f672572b-8bea-4f1a-801f-d4d088cce5ef",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f672572b-8bea-4f1a-801f-d4d088cce5ef/signed-content/pixel?sig=sP4rgAAUr69Nh8IcBEG5N-Hq_w2CeWQqhV9SC-5IybY&exp=1785798697",
+    "width": 68,
+    "height": 68,
+    "name": "Lame d'apprenti"
+  },
+  "novice_staff": {
+    "asset_id": "4a632b55-114d-4236-a4c1-0e495e457858",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4a632b55-114d-4236-a4c1-0e495e457858/signed-content/pixel?sig=Z8LbNSVUFALbxkNbR5Uj1XFfuat7UCSQ1UrH_yuXCSU&exp=1785798718",
+    "width": 70,
+    "height": 70,
+    "name": "Bâton de novice"
+  },
+  "short_bow": {
+    "asset_id": "d1e321a3-4cdd-4432-84b3-acd2d79317d1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d1e321a3-4cdd-4432-84b3-acd2d79317d1/signed-content/pixel?sig=DrRVl-Vq8Fs1ICPgFS-HSc7ubP0Qw4oFbk1mIeFsO6A&exp=1785798731",
+    "width": 60,
+    "height": 60,
+    "name": "Arc court"
+  },
+  "hatchet": {
+    "asset_id": "79bd57a4-4246-4b9e-b14c-a704dbbf2272",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/79bd57a4-4246-4b9e-b14c-a704dbbf2272/signed-content/pixel?sig=sZs6XjMJxafJ75Zw9bYg5PXRC1YJ7yJHX___QnazzAI&exp=1785798750",
+    "width": 62,
+    "height": 62,
+    "name": "Hachette"
+  },
+  "militia_sword": {
+    "asset_id": "73d7ae62-8980-4c81-923a-f06b9699ae53",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/73d7ae62-8980-4c81-923a-f06b9699ae53/signed-content/pixel?sig=irBSRgk1EqwzgnKQa-mqGsCi1HxXOZFQ5lGZbtVCGjQ&exp=1785798764",
+    "width": 66,
+    "height": 66,
+    "name": "Épée du milicien"
+  },
+  "lumberjack_hatchet": {
+    "asset_id": "05754417-9298-4a5c-ba50-5e255afc285d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/05754417-9298-4a5c-ba50-5e255afc285d/signed-content/pixel?sig=5AFAGbhyfP9Gm92hJ-JKgzghcsbl7IgXvRZ3Pa88yHg&exp=1785798785",
+    "width": 82,
+    "height": 82,
+    "name": "Hachette de bûcheron"
+  },
+  "sentry_axe": {
+    "asset_id": "4db24258-53fa-4198-9982-e558140e4a8c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4db24258-53fa-4198-9982-e558140e4a8c/signed-content/pixel?sig=sdixHfR6_ur33CqC1YA5BCtlkMg50QPyzEtINKmTAfA&exp=1785798809",
+    "width": 74,
+    "height": 74,
+    "name": "Hache de garde"
+  }
+}

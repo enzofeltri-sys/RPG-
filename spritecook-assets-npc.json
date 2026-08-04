@@ -1,0 +1,98 @@
+{
+  "city_captain": {
+    "asset_id": "fda72fc3-e33f-4c2a-b9ef-53c90ad63771",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/fda72fc3-e33f-4c2a-b9ef-53c90ad63771/signed-content/pixel?sig=qPMr5Jbivu_-18N4nDy746kF8GQ_anDq4Bya-aDz0sc&exp=1785798470",
+    "width": 176,
+    "height": 176
+  },
+  "city_mage": {
+    "asset_id": "67e74a0a-c03a-4937-a34d-ba9278d434c9",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/67e74a0a-c03a-4937-a34d-ba9278d434c9/signed-content/pixel?sig=P-ZNEKE6kGV84ruWye5bK5yJzMKDodKFxanDPXIQc2k&exp=1785798495",
+    "width": 148,
+    "height": 148
+  },
+  "merchant_generic": {
+    "asset_id": "a1287b42-ceb5-46e0-8876-5dde0cef0544",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a1287b42-ceb5-46e0-8876-5dde0cef0544/signed-content/pixel?sig=CHswbY_Nte7qHddio0Mf70Hfg0Sx_Ld1NfpnJQ3qjeE&exp=1785798517",
+    "width": 130,
+    "height": 130
+  },
+  "hunter_outpost": {
+    "asset_id": "ff17cce9-917e-4206-bc94-f3840b5b4b05",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ff17cce9-917e-4206-bc94-f3840b5b4b05/signed-content/pixel?sig=7UxceAr3bN8II0Uvj7v6unZ_UNUMk8FMqIdGjxivy3A&exp=1785798535",
+    "width": 220,
+    "height": 220
+  },
+  "shrine_hermit": {
+    "asset_id": "54c04f9f-f81a-4fd5-80f4-8e7d7883df2c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/54c04f9f-f81a-4fd5-80f4-8e7d7883df2c/signed-content/pixel?sig=PJhka_sSZwM8l5KO3t67KZK4XSb8t3HsPLaY4JlYdOY&exp=1785798553",
+    "width": 88,
+    "height": 88
+  },
+  "mysterious_silhouette": {
+    "asset_id": "683f273a-5c64-4f79-a029-b8162b580904",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/683f273a-5c64-4f79-a029-b8162b580904/signed-content/pixel?sig=XVPYbb_xr_kBFab5p7GjC4B8Ci751OtJAo557pHmo9k&exp=1785798571",
+    "width": 56,
+    "height": 56
+  },
+  "guard_generic": {
+    "asset_id": "06075b7a-fc2c-49fa-9f7a-4fa9036013e8",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/06075b7a-fc2c-49fa-9f7a-4fa9036013e8/signed-content/pixel?sig=1EGjdQPStkfD2ypLEY7maIeJsgFETEu6qLooRV8-7R4&exp=1785798606",
+    "width": 90,
+    "height": 90
+  },
+  "vasenoire_local_yenn": {
+    "asset_id": "5ae4b079-1514-4952-9843-2b51f11d133f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5ae4b079-1514-4952-9843-2b51f11d133f/signed-content/pixel?sig=foD_5-kcyYqjhBMpremz6AXTUXskCG3FZWHtGz8uhIQ&exp=1785798625",
+    "width": 104,
+    "height": 104
+  },
+  "vasenoire_local_toma": {
+    "asset_id": "6b224f8d-b650-43de-8b5f-bb317120c5c7",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6b224f8d-b650-43de-8b5f-bb317120c5c7/signed-content/pixel?sig=76SIYTte97zf2tDjxoLz1ugna26g3dAmL801S5MyI3Q&exp=1785798644",
+    "width": 90,
+    "height": 90
+  },
+  "brasque_merchant": {
+    "asset_id": "d033ef03-6346-40a7-9b36-816775a6ce01",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d033ef03-6346-40a7-9b36-816775a6ce01/signed-content/pixel?sig=F8LKbZIzgmKqodt2WMqHrq9KJKagKx5NQJyYjUZosks&exp=1785798666",
+    "width": 208,
+    "height": 208
+  },
+  "farmer_generic": {
+    "asset_id": "40feb834-2192-4e9e-a8d2-0070315d1b43",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/40feb834-2192-4e9e-a8d2-0070315d1b43/signed-content/pixel?sig=PQP-y0XD5T2Prh1r6Ofapax8U25OF9tur2Zd7f0sU9w&exp=1785798687",
+    "width": 46,
+    "height": 46
+  },
+  "informant_faubourg": {
+    "asset_id": "38403a8a-a738-4e13-971e-ae5b34851ddf",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/38403a8a-a738-4e13-971e-ae5b34851ddf/signed-content/pixel?sig=JzC8abO5ehSLu1yHNSoTw5vNx-S615XZ5Y2Vbsy9Q2I&exp=1785798708",
+    "width": 78,
+    "height": 78
+  },
+  "hamlet_mentor": {
+    "asset_id": "830da0d0-df93-4b22-a302-91ccba5f846e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/830da0d0-df93-4b22-a302-91ccba5f846e/signed-content/pixel?sig=M2owUQEL9CdK3I8tm0cUHhkFQUPB8MOgkJQT7YUjQ5c&exp=1785798726",
+    "width": 72,
+    "height": 72
+  },
+  "gontrand_scholar": {
+    "asset_id": "cf3537b0-f084-46f7-ba1d-8727a1412299",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/cf3537b0-f084-46f7-ba1d-8727a1412299/signed-content/pixel?sig=JI7Rz9DeUMuRvvOTiVzP6abEh4uOd1YNtwhBiu5vlRM&exp=1785798750",
+    "width": 56,
+    "height": 56
+  },
+  "bertrand_fisherman": {
+    "asset_id": "32653d29-bfdc-48a9-b0be-4565747b98b3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/32653d29-bfdc-48a9-b0be-4565747b98b3/signed-content/pixel?sig=egjXMiQLVNknmv_H7XNTyS3jwGveXqwRKQWhMV479NE&exp=1785798778",
+    "width": 118,
+    "height": 118
+  },
+  "ombeline_catlady": {
+    "asset_id": "3905441c-fd0a-45f2-b6c4-886ab7d5d3cd",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3905441c-fd0a-45f2-b6c4-886ab7d5d3cd/signed-content/pixel?sig=5zntuTuTRD35cpkLApwxoLBAnM2pNgRd5h2fd7H2g9k&exp=1785798805",
+    "width": 96,
+    "height": 96
+  }
+}

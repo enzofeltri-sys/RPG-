@@ -115,7 +115,7 @@ async function boot(): Promise<void> {
   // while the camera scrolled, plus a noticeable performance drop — worse tradeoffs
   // than the WebGL-context-exhaustion theory it was meant to guard against, which
   // was never actually confirmed as the real cause of the earlier blank-screen bug.
-  new Phaser.Game({
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: 'game',
     width: GAME_WIDTH,
@@ -194,6 +194,22 @@ async function boot(): Promise<void> {
       MerchantStockScene,
     ],
   });
+
+  // Mobile Safari settles into its real visible viewport height (address
+  // bar collapsing, home-indicator area) slightly after the page's initial
+  // resize — later than the CSS 100dvh recalculation and later than any
+  // 'resize' event Phaser's Scale Manager reliably receives on iOS. Without
+  // this, FIT/CENTER_BOTH can center the canvas against a stale, taller
+  // height read at boot, leaving it visibly off-center (all the letterbox
+  // pushed to one side) once the real viewport settles.
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => game.scale.refresh());
+  }
+  window.addEventListener('orientationchange', () => game.scale.refresh());
+  // Covers the case where the viewport settles without ever firing a
+  // resize event at all (seen on some iOS versions for the very first
+  // paint) — one harmless extra refresh shortly after boot.
+  window.setTimeout(() => game.scale.refresh(), 300);
 
   setupFullscreenToggle();
 }

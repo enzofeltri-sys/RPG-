@@ -637,15 +637,18 @@ export class QuestLogScene extends Phaser.Scene {
     );
     y += 50;
 
+    let visibleSideQuests = 0;
     Object.values(QUESTS).forEach((quest) => {
       const progress = getQuestProgress(this.character, quest.id);
+      // Quests never offered by their NPC yet have no progress entry at all —
+      // showing them here would spoil every quest in the game up front
+      // instead of only what the player has actually encountered.
+      if (!progress) return;
+      visibleSideQuests += 1;
 
       let statusLabel: string;
       let color: string;
-      if (!progress) {
-        statusLabel = 'Non commencée';
-        color = MUTED;
-      } else if (progress.state === 'active') {
+      if (progress.state === 'active') {
         statusLabel = `En cours (${progress.progress}/${quest.objective.count})`;
         color = ACTIVE_COLOR;
       } else {
@@ -668,8 +671,8 @@ export class QuestLogScene extends Phaser.Scene {
       y += 50;
     });
 
-    if (Object.keys(QUESTS).length === 0) {
-      addToList(addCrispText(this, 12, y, 'Aucune quête pour le moment.', { fontSize: '10px', color: MUTED }));
+    if (visibleSideQuests === 0) {
+      addToList(addCrispText(this, 12, y, 'Aucune quête secondaire pour le moment.', { fontSize: '10px', color: MUTED }));
     }
 
     this.setupScrolling(y);

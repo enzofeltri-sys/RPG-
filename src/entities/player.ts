@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-const SPEED = 70;
+export const SPEED = 70;
 const ARRIVE_THRESHOLD = 4;
 
 export type PlayerSprite = Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };

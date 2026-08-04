@@ -169,6 +169,16 @@ export class CombatScene extends Phaser.Scene {
     this.continueButton = undefined;
   }
 
+  // Runs after init() (so this.monsterId is already set) and before
+  // create() — Phaser guarantees the texture is ready by the time create()
+  // reads it. Falls back to createTestMonster()'s id to match the same
+  // fallback used below, so preload and create never disagree on which
+  // sprite this encounter needs.
+  preload(): void {
+    const id = this.monsterId ?? 'corrupted_wolf';
+    this.load.image(`monster-${id}`, `${import.meta.env.BASE_URL}sprites/monsters/${id}.png`);
+  }
+
   async create(): Promise<void> {
     const { width } = this.scale;
     this.cameras.main.setBackgroundColor('#1a1410');
@@ -183,7 +193,22 @@ export class CombatScene extends Phaser.Scene {
       color: TIER_NAME_COLOR[this.monster.tier],
     }).setOrigin(0.5);
 
-    this.add.rectangle(width / 2, 90, 64, 64, TIER_ENEMY_TINT[this.monster.tier]).setStrokeStyle(1, 0x2e1414);
+    // Elite/legendary keep a tinted aura behind the sprite for the at-a-glance
+    // signal the old solid-color tint gave — but no longer tinting the
+    // artwork itself, which would just darken/muddy it instead of reading as
+    // a power tier.
+    if (this.monster.tier !== 'normal') {
+      this.add.rectangle(width / 2, 90, 76, 76, TIER_ENEMY_TINT[this.monster.tier], 0.45).setStrokeStyle(1, 0x2e1414);
+    }
+    const monsterKey = `monster-${this.monster.id}`;
+    if (this.textures.exists(monsterKey)) {
+      this.add.image(width / 2, 90, monsterKey).setDisplaySize(64, 64);
+    } else {
+      // Missing sprite (shouldn't happen for a real monster id, but keeps a
+      // fresh id added to monster.ts without matching art from crashing the
+      // scene instead of just looking plain).
+      this.add.rectangle(width / 2, 90, 64, 64, TIER_ENEMY_TINT[this.monster.tier]).setStrokeStyle(1, 0x2e1414);
+    }
 
     const enemyBarX = width / 2 - BAR_WIDTH / 2;
     this.add.rectangle(enemyBarX, 136, BAR_WIDTH, 10, 0x33261f).setOrigin(0, 0.5);

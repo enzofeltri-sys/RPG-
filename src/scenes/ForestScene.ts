@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
-import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -175,6 +175,8 @@ export class ForestScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
 
     if (save?.character) {
+      await setPlayerAppearance(this, this.player, save.character.race, save.character.class);
+      if (!this.scene.isActive()) return;
       new CharacterSheetPanel(
         this,
         save.character,

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
-import { createPlayer, updatePlayerMovement, PlayerSprite } from '../entities/player';
+import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -125,6 +125,8 @@ export class ShardSeekersCampScene extends Phaser.Scene {
 
     if (save?.character) {
       this.character = save.character;
+      await setPlayerAppearance(this, this.player, this.character.race, this.character.class);
+      if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
       }

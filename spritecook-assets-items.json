@@ -1,41 +1,6 @@
 {
-  "failures": ["watcher_ring"],
-  "remaining_unprocessed": [
-    "shadow_ring",
-    "mithril_ring",
-    "ritual_ring",
-    "watcher_amulet",
-    "shadow_amulet",
-    "mithril_amulet",
-    "ritual_amulet",
-    "shadow_offhand_dagger",
-    "mithril_offhand_axe",
-    "guardian_amulet",
-    "shard_pendant",
-    "seeker_signet",
-    "purified_breastplate",
-    "sealed_blade",
-    "watchtower_helm",
-    "eternal_watch_greaves",
-    "last_watcher_boots",
-    "broken_sleep_aegis",
-    "corrupted_root_gloves",
-    "silhouette_keepsake",
-    "bregan_seal",
-    "threefold_ward",
-    "garrison_blade",
-    "garrison_helm",
-    "garrison_cuirass",
-    "last_refuge_legs",
-    "hidden_path_boots",
-    "silent_smith_gloves",
-    "garrison_offhand_dagger",
-    "last_refuge_hatchet",
-    "artisan_blade",
-    "artisan_amulet",
-    "artisan_ring",
-    "artisan_gloves"
-  ],
+  "failures": [],
+  "remaining_unprocessed": [],
   "short_sword": {
     "asset_id": "b2b9eee2-2d14-47df-96da-010e0e70eefa",
     "sprite_url": "https://api.spritecook.ai/v1/assets/b2b9eee2-2d14-47df-96da-010e0e70eefa/signed-content/pixel?sig=S6vEvThaFpXEl9GVt2tmPJ3tJSclAN826_v5dXvYteE&exp=1785798637",
@@ -1183,5 +1148,250 @@
     "width": 122,
     "height": 122,
     "name": "Gants rituels"
+  },
+  "watcher_ring": {
+    "asset_id": "74077fb6-2f46-47aa-bb76-5b0fab9f01e3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/74077fb6-2f46-47aa-bb76-5b0fab9f01e3/signed-content/pixel?sig=JXYtHjpWv1QUe4eeL4rX84hztvulEOFw2uZQEO0eLZQ&exp=1785886099",
+    "width": 98,
+    "height": 98,
+    "name": "Watcher Ring"
+  },
+  "shadow_ring": {
+    "asset_id": "7f271855-a9d4-44e6-8467-36278da12080",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/7f271855-a9d4-44e6-8467-36278da12080/signed-content/pixel?sig=ZhFU1vfq8jeOeRE6WoRLk2D3KsySVa0JXplAE2EC0Bk&exp=1785886125",
+    "width": 58,
+    "height": 58,
+    "name": "Shadow Ring"
+  },
+  "mithril_ring": {
+    "asset_id": "4e2d0b16-bfc9-4095-b1db-acb4951ab315",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4e2d0b16-bfc9-4095-b1db-acb4951ab315/signed-content/pixel?sig=xo2sjwzUig9vEfR1CskejJMi-doumn5sPXgZ2rtsCfs&exp=1785886147",
+    "width": 60,
+    "height": 60,
+    "name": "Mithril Ring"
+  },
+  "ritual_ring": {
+    "asset_id": "50a85685-c6d0-40b4-b0ef-3cc2f180cf3a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/50a85685-c6d0-40b4-b0ef-3cc2f180cf3a/signed-content/pixel?sig=j3dqsCdRpFsDG2Tbs1yZgS223kOsccEEN5PHM4tqQhY&exp=1785886166",
+    "width": 60,
+    "height": 60,
+    "name": "Ritual Ring"
+  },
+  "watcher_amulet": {
+    "asset_id": "4fd4870d-41e2-4566-b5be-9dabd158c475",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4fd4870d-41e2-4566-b5be-9dabd158c475/signed-content/pixel?sig=bAr8-Z0Ep09jSXZPmFcmmYVKOO92wfm5PEMp9jzbsBM&exp=1785886186",
+    "width": 58,
+    "height": 58,
+    "name": "Watcher Amulet"
+  },
+  "shadow_amulet": {
+    "asset_id": "73ecfb0a-0694-4d8c-81ba-43802d52ebec",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/73ecfb0a-0694-4d8c-81ba-43802d52ebec/signed-content/pixel?sig=TnhCV5b74YPBeE6m9hhlYUcCL256XejJinpT8QCrtcc&exp=1785886209",
+    "width": 58,
+    "height": 58,
+    "name": "Shadow Amulet"
+  },
+  "mithril_amulet": {
+    "asset_id": "f11a7648-980c-4564-8241-db727c4bcbfe",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f11a7648-980c-4564-8241-db727c4bcbfe/signed-content/pixel?sig=I6Hj3-6u4w0H3G_CxIP37umZBrigXxrhzJuOmRMMF6c&exp=1785886229",
+    "width": 68,
+    "height": 68,
+    "name": "Mithril Amulet"
+  },
+  "ritual_amulet": {
+    "asset_id": "2e985a5a-79b8-43a9-b1ed-aeb4cc8d75f3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2e985a5a-79b8-43a9-b1ed-aeb4cc8d75f3/signed-content/pixel?sig=C0oQPaQyk7q0di0tFBIZmxowv4sr00gC4VpgNsmfbxE&exp=1785886248",
+    "width": 56,
+    "height": 56,
+    "name": "Ritual Amulet"
+  },
+  "shadow_offhand_dagger": {
+    "asset_id": "8c9ee49a-47ae-464f-baaf-8d953cba6e0f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8c9ee49a-47ae-464f-baaf-8d953cba6e0f/signed-content/pixel?sig=L6liCLqJIGrIGllhYsPiNtcDeF5SwYzV-aCnk2ON8F4&exp=1785886273",
+    "width": 76,
+    "height": 76,
+    "name": "Shadow Offhand Dagger"
+  },
+  "mithril_offhand_axe": {
+    "asset_id": "8a72c045-7938-49e9-abc5-5011b6e3adab",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8a72c045-7938-49e9-abc5-5011b6e3adab/signed-content/pixel?sig=wXWeq1RKDD5lkbphQyja11RQLdoAMGl6S00ONQ1ga3k&exp=1785886294",
+    "width": 60,
+    "height": 60,
+    "name": "Mithril Offhand Axe"
+  },
+  "guardian_amulet": {
+    "asset_id": "f79cdfa6-d553-48d5-8301-21b382125841",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f79cdfa6-d553-48d5-8301-21b382125841/signed-content/pixel?sig=0j3KJJql9_aqbo7WNgUDlf05-2t0pRGU_86xJCyiZQg&exp=1785886315",
+    "width": 68,
+    "height": 68,
+    "name": "Guardian Amulet"
+  },
+  "shard_pendant": {
+    "asset_id": "f4450ea5-112a-48a2-9128-2988cd36277a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f4450ea5-112a-48a2-9128-2988cd36277a/signed-content/pixel?sig=Mtpsnzyh28zUIQXSW8vsHubeduAmljfAWX17i3m_gcU&exp=1785886335",
+    "width": 78,
+    "height": 78,
+    "name": "Shard Pendant"
+  },
+  "seeker_signet": {
+    "asset_id": "6edab8e9-5c49-4c7e-b2ed-dc90fc255a74",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6edab8e9-5c49-4c7e-b2ed-dc90fc255a74/signed-content/pixel?sig=K3gtYlYSCQjzrjCSImiWZhTlQdVZreYE4d3VTBdpnM0&exp=1785886356",
+    "width": 52,
+    "height": 52,
+    "name": "Seeker Signet"
+  },
+  "purified_breastplate": {
+    "asset_id": "729226a0-595a-4427-bfa8-6e364632bf03",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/729226a0-595a-4427-bfa8-6e364632bf03/signed-content/pixel?sig=xjZItd7mnbu9TuvfkJ45-9F2TY-Mlfp7hZyn-n9hZUw&exp=1785886376",
+    "width": 54,
+    "height": 54,
+    "name": "Purified Breastplate"
+  },
+  "sealed_blade": {
+    "asset_id": "37975aff-81d7-412d-ae4c-aa5e02a7cbe5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/37975aff-81d7-412d-ae4c-aa5e02a7cbe5/signed-content/pixel?sig=atrgOeYsw5qJWZeuOh9fW_zbMNPzyG1GCO6vjPY0pMw&exp=1785886398",
+    "width": 160,
+    "height": 160,
+    "name": "Sealed Blade"
+  },
+  "watchtower_helm": {
+    "asset_id": "ad15cd83-6c7b-4fb6-ab91-534e332cb0a5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ad15cd83-6c7b-4fb6-ab91-534e332cb0a5/signed-content/pixel?sig=nvwK885I7nR7-I3KBLwdy_tylhnbdBQSiJNcKRCAHYs&exp=1785886418",
+    "width": 60,
+    "height": 60,
+    "name": "Watchtower Helm"
+  },
+  "eternal_watch_greaves": {
+    "asset_id": "93a2fe68-1fda-4172-b4dd-a34c0f8218f5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/93a2fe68-1fda-4172-b4dd-a34c0f8218f5/signed-content/pixel?sig=6h5xyMv1a3RUmzfW-O9w2OjujZ9JDpEJpSHia_ipE50&exp=1785886441",
+    "width": 140,
+    "height": 140,
+    "name": "Eternal Watch Greaves"
+  },
+  "last_watcher_boots": {
+    "asset_id": "d3a7a877-b906-461e-ac3e-40342730b111",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d3a7a877-b906-461e-ac3e-40342730b111/signed-content/pixel?sig=GelBMlEtzfBnB4HKxiceTed6BHXM5jiAGWjQ90VQ1w4&exp=1785886461",
+    "width": 58,
+    "height": 58,
+    "name": "Last Watcher Boots"
+  },
+  "broken_sleep_aegis": {
+    "asset_id": "2ea39a7c-a27d-4dcd-bc76-18b2636f6073",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2ea39a7c-a27d-4dcd-bc76-18b2636f6073/signed-content/pixel?sig=aFpvecelb_k35ghGAJN2TrEcFO8YkR5NcGdsVHdtGw0&exp=1785886485",
+    "width": 140,
+    "height": 140,
+    "name": "Broken Sleep Aegis"
+  },
+  "corrupted_root_gloves": {
+    "asset_id": "953cb694-e340-4f35-85f6-0c02234795bc",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/953cb694-e340-4f35-85f6-0c02234795bc/signed-content/pixel?sig=tzK-0A-NhPpVouV3NlKR_vpQh-6O62ym-_DknajaHbY&exp=1785886505",
+    "width": 52,
+    "height": 52,
+    "name": "Corrupted Root Gloves"
+  },
+  "silhouette_keepsake": {
+    "asset_id": "6976689f-2e1d-47c7-99f6-fbd8489559d2",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6976689f-2e1d-47c7-99f6-fbd8489559d2/signed-content/pixel?sig=b5n-A1jN0waROo1nkop0WzcU8bGbFVhyjTBC_KGMA-s&exp=1785886525",
+    "width": 64,
+    "height": 64,
+    "name": "Silhouette Keepsake"
+  },
+  "bregan_seal": {
+    "asset_id": "21a3fa10-4b24-41df-a33e-add9308153da",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/21a3fa10-4b24-41df-a33e-add9308153da/signed-content/pixel?sig=cJeb82d92bcRxCAV8cdK-Pn8ujincT-ll-TzPBS9DWk&exp=1785886549",
+    "width": 104,
+    "height": 104,
+    "name": "Bregan Seal"
+  },
+  "threefold_ward": {
+    "asset_id": "a7924b18-0e88-45c7-b882-678a7371bcab",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a7924b18-0e88-45c7-b882-678a7371bcab/signed-content/pixel?sig=_W-OcG7e8n2LWldKYhGdBeO8xnQL1owyUShJNpddkx4&exp=1785886569",
+    "width": 134,
+    "height": 134,
+    "name": "Threefold Ward"
+  },
+  "garrison_blade": {
+    "asset_id": "1610f29f-eb25-49da-a16e-5b5655cbfc9d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/1610f29f-eb25-49da-a16e-5b5655cbfc9d/signed-content/pixel?sig=aXb7Jjs8jNBRH_uXmvnzayfShWQH7jPiCWIlrLGjDZA&exp=1785886589",
+    "width": 76,
+    "height": 76,
+    "name": "Garrison Blade"
+  },
+  "garrison_helm": {
+    "asset_id": "97ddeac2-3f7d-44dc-b70e-cd01aef24d14",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/97ddeac2-3f7d-44dc-b70e-cd01aef24d14/signed-content/pixel?sig=Uf7bDbdonKPuPnzzCX3Pa_1YOj4Y9gC92BySZpoILTY&exp=1785886617",
+    "width": 52,
+    "height": 52,
+    "name": "Garrison Helm"
+  },
+  "garrison_cuirass": {
+    "asset_id": "5954dc95-3efd-44a3-96cc-9193d4227e42",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5954dc95-3efd-44a3-96cc-9193d4227e42/signed-content/pixel?sig=ZGJZyh3N1s_rxUBr0othCSqkojJ8_ZAoeaAoayZ_Zz0&exp=1785886638",
+    "width": 82,
+    "height": 82,
+    "name": "Garrison Cuirass"
+  },
+  "last_refuge_legs": {
+    "asset_id": "5240aac4-aaca-4693-9725-129360352e71",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5240aac4-aaca-4693-9725-129360352e71/signed-content/pixel?sig=MjsyHym1emdsE56lmV8l43kmuBnSEJhrYnTPM5qJKg4&exp=1785886660",
+    "width": 148,
+    "height": 148,
+    "name": "Last Refuge Legs"
+  },
+  "hidden_path_boots": {
+    "asset_id": "b5b3e304-7292-4947-a021-8d5a6bfaf224",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b5b3e304-7292-4947-a021-8d5a6bfaf224/signed-content/pixel?sig=orthNkDk1n1k8Ui-f2GA0GHMy2QM4P0-Aw8RYGls9gI&exp=1785886680",
+    "width": 60,
+    "height": 60,
+    "name": "Hidden Path Boots"
+  },
+  "silent_smith_gloves": {
+    "asset_id": "6d69e7b5-31b3-4dcc-9861-3b8da7aee16a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6d69e7b5-31b3-4dcc-9861-3b8da7aee16a/signed-content/pixel?sig=SRXUDZiLdZgskEW8MB4Ea80juh1bbr2CljvK7ruFxsU&exp=1785886702",
+    "width": 74,
+    "height": 74,
+    "name": "Silent Smith Gloves"
+  },
+  "garrison_offhand_dagger": {
+    "asset_id": "d9e7a835-5e06-4e84-ae2b-03f297ba6895",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d9e7a835-5e06-4e84-ae2b-03f297ba6895/signed-content/pixel?sig=t-LcsJw9ayg8a0gDNgGRa4NFUXAp3WjbME8qIkaPJAA&exp=1785886722",
+    "width": 66,
+    "height": 66,
+    "name": "Garrison Offhand Dagger"
+  },
+  "last_refuge_hatchet": {
+    "asset_id": "5b113c4b-f2af-4b94-951d-7cc1e29b19a1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5b113c4b-f2af-4b94-951d-7cc1e29b19a1/signed-content/pixel?sig=FQtAX_HSpi2ckXDlb4quvGFl-SzCKFBir0gKuA4lCxc&exp=1785886745",
+    "width": 60,
+    "height": 60,
+    "name": "Last Refuge Hatchet"
+  },
+  "artisan_blade": {
+    "asset_id": "ae06e5a6-3f7a-4eac-a5f4-cdd23aa8cfa9",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ae06e5a6-3f7a-4eac-a5f4-cdd23aa8cfa9/signed-content/pixel?sig=nMBwk6WiWmiyzyBbrosNxvf9cwFF4nyDYwiIdA_qCa4&exp=1785886769",
+    "width": 84,
+    "height": 84,
+    "name": "Artisan Blade"
+  },
+  "artisan_amulet": {
+    "asset_id": "6086e1d5-01e0-4230-b462-cf2d5012d76d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6086e1d5-01e0-4230-b462-cf2d5012d76d/signed-content/pixel?sig=oPcM2yABD9J7g1G0F-gFxTZfsP3T7tWKahPCvX49HiM&exp=1785886794",
+    "width": 126,
+    "height": 126,
+    "name": "Artisan Amulet"
+  },
+  "artisan_ring": {
+    "asset_id": "b6128d64-96e7-4b63-beac-a7024cf27485",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b6128d64-96e7-4b63-beac-a7024cf27485/signed-content/pixel?sig=qyy6DSmHXsEHC0BwsJ9cjUITN9xWOSWW5AZi7GM55Xg&exp=1785886816",
+    "width": 58,
+    "height": 58,
+    "name": "Artisan Ring"
+  },
+  "artisan_gloves": {
+    "asset_id": "69560798-cdff-4152-ac2a-2f8f279aa78b",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/69560798-cdff-4152-ac2a-2f8f279aa78b/signed-content/pixel?sig=R_VG0ZBEen5fSi_DiXnZ_E3ZIT9TYTjNkulCWKJvFEc&exp=1785886841",
+    "width": 70,
+    "height": 70,
+    "name": "Artisan Gloves"
   }
 }

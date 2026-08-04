@@ -70,5 +70,19 @@
     "width": 74,
     "height": 74,
     "name": "Hache de garde"
+  },
+  "throwing_hatchet": {
+    "asset_id": "68e0c510-6e1c-416a-8daa-002d1c0e80ec",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/68e0c510-6e1c-416a-8daa-002d1c0e80ec/signed-content/pixel?sig=sRnYQOtxVJMoHnbkkphwmljMDUxeiUgwOGCUJ8kF-tM&exp=1785844725",
+    "width": 60,
+    "height": 60,
+    "name": "Petite hache de jet"
+  },
+  "dull_dagger": {
+    "asset_id": "4284c622-9e54-4dfb-b361-5b050f8be3ea",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4284c622-9e54-4dfb-b361-5b050f8be3ea/signed-content/pixel?sig=tB2_Jpo8tPOCeRbFuSivK2MejIE8GjDEnJFk66fofzQ&exp=1785844895",
+    "width": 54,
+    "height": 54,
+    "name": "Dague émoussée"
   }
 }

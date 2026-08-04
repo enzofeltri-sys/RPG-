@@ -94,5 +94,23 @@
     "sprite_url": "https://api.spritecook.ai/v1/assets/3905441c-fd0a-45f2-b6c4-886ab7d5d3cd/signed-content/pixel?sig=5zntuTuTRD35cpkLApwxoLBAnM2pNgRd5h2fd7H2g9k&exp=1785798805",
     "width": 96,
     "height": 96
+  },
+  "fernand_innkeeper": {
+    "asset_id": "5afdd300-3461-471f-b7dc-7ed1f2a56b8a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5afdd300-3461-471f-b7dc-7ed1f2a56b8a/signed-content/pixel?sig=E9LunwLzn7vjumNwBJupjegk3csyA_X61nU63NR4Wb8&exp=1785844517",
+    "width": 40,
+    "height": 40
+  },
+  "thibault_father": {
+    "asset_id": "1dd9c944-cbef-4496-add6-96cbdb37ddb7",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/1dd9c944-cbef-4496-add6-96cbdb37ddb7/signed-content/pixel?sig=iyq6o4-fdQJ_WpFUQfLOHd_q4jzOASKg_ZOq9BgcTas&exp=1785844712",
+    "width": 104,
+    "height": 104
+  },
+  "solange_weaver": {
+    "asset_id": "eb772507-3ebd-4eb9-9bd7-4cff50db7850",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/eb772507-3ebd-4eb9-9bd7-4cff50db7850/signed-content/pixel?sig=srts4PISBuyHAuI2e-Xn6MsONZQMsmW4zZqhFbQY3Ss&exp=1785844878",
+    "width": 94,
+    "height": 94
   }
 }

@@ -98,5 +98,82 @@
     "width": 60,
     "height": 60,
     "name": "Dague à cran d'arrêt"
+  },
+  "branch_bow": {
+    "asset_id": "4d97d4f4-634c-4994-af2d-b35653030d87",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4d97d4f4-634c-4994-af2d-b35653030d87/signed-content/pixel?sig=gCCN8ENkNZIw9gXtu_pnIOXP8ou8WJKb-mRi3enCqGc&exp=1785845083",
+    "width": 54,
+    "height": 54,
+    "name": "Arc de branche"
+  },
+  "reinforced_bow": {
+    "asset_id": "2c8fc7d6-e27c-4f42-b786-109a78ec4c66",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2c8fc7d6-e27c-4f42-b786-109a78ec4c66/signed-content/pixel?sig=I98vBlrrxycui_BJrrsPzaCZ4fFMYJEQFxsauI8dFIw&exp=1785845108",
+    "width": 64,
+    "height": 64,
+    "name": "Arc renforcé"
+  },
+  "small_composite_bow": {
+    "asset_id": "bd6d4ee0-f039-4710-894c-6557fa6ce8d7",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bd6d4ee0-f039-4710-894c-6557fa6ce8d7/signed-content/pixel?sig=5nDEOY5tlv_nKCkYcR4420qFzB0dePZ-rUnMHas8VmM&exp=1785845138",
+    "width": 62,
+    "height": 62,
+    "name": "Petit arc composite"
+  },
+  "wicker_staff": {
+    "asset_id": "626f0d5c-d87a-4e72-86bd-95234274cbe4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/626f0d5c-d87a-4e72-86bd-95234274cbe4/signed-content/pixel?sig=psh-Kzl3gL86gxEPa8MUDBUPzFeX3xT0W9lKHIXdG1w&exp=1785845170",
+    "width": 182,
+    "height": 182,
+    "name": "Bâton d'osier"
+  },
+  "gnarled_staff": {
+    "asset_id": "3d4af26d-f67b-4b0c-9afc-2e63c3d0cb7a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3d4af26d-f67b-4b0c-9afc-2e63c3d0cb7a/signed-content/pixel?sig=c4tz4hkvagqhEuSr7z5G6B0swjLzoRbtc-2jWjreIIc&exp=1785845205",
+    "width": 76,
+    "height": 76,
+    "name": "Bâton noueux"
+  },
+  "study_cane": {
+    "asset_id": "ad93b60a-0c1f-44bc-a8fa-5a9e3884a9db",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ad93b60a-0c1f-44bc-a8fa-5a9e3884a9db/signed-content/pixel?sig=P6KD-17yM9YetfkMbWyJRgf9YTADE_zVGu_Jf5QqRWw&exp=1785845218",
+    "width": 188,
+    "height": 188,
+    "name": "Canne d'étude"
+  },
+  "elemental_grimoire": {
+    "asset_id": "6c47a400-ace8-4045-b886-d0693babf449",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6c47a400-ace8-4045-b886-d0693babf449/signed-content/pixel?sig=iNvnVg19jLPpptSuaZ73PeaeFSDhclaYGlckDO70MPI&exp=1785845230",
+    "width": 120,
+    "height": 120,
+    "name": "Grimoire élémentaire"
+  },
+  "spell_manual": {
+    "asset_id": "8197777e-386c-4a89-a836-f6656789c2e9",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8197777e-386c-4a89-a836-f6656789c2e9/signed-content/pixel?sig=XMr_4a8oBF9Pu3YtaapSVFIQIy1MavwGUdIwdR3BN00&exp=1785845242",
+    "width": 66,
+    "height": 66,
+    "name": "Manuel de sorts"
+  },
+  "flame_codex": {
+    "asset_id": "d15eb366-e7ac-48e7-8b11-cfcbf560098e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d15eb366-e7ac-48e7-8b11-cfcbf560098e/signed-content/pixel?sig=pWl-jpk2Zs5AZy1anWbRUFsyzGANlrkNWVUONhpR80g&exp=1785845255",
+    "width": 62,
+    "height": 62,
+    "name": "Codex des flammes"
+  },
+  "leather_tome": {
+    "asset_id": "67f7f5da-f38c-4735-b3e0-5fb53528a178",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/67f7f5da-f38c-4735-b3e0-5fb53528a178/signed-content/pixel?sig=6hsj7DxHGLAMGGe1Vk5kBtFZUHNDH43sG7L5INOgv30&exp=1785845269",
+    "width": 56,
+    "height": 56,
+    "name": "Livre relié de cuir"
+  },
+  "wooden_shield": {
+    "asset_id": "d802736d-dc7a-41bc-916f-95a113a741c3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d802736d-dc7a-41bc-916f-95a113a741c3/signed-content/pixel?sig=XCAl6WUQvUoWf7g7vLMVaNun2_SYakFS3nDPsKMx6nI&exp=1785845283",
+    "width": 76,
+    "height": 76,
+    "name": "Bouclier en bois"
   }
 }

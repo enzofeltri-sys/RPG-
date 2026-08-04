@@ -112,5 +112,17 @@
     "sprite_url": "https://api.spritecook.ai/v1/assets/eb772507-3ebd-4eb9-9bd7-4cff50db7850/signed-content/pixel?sig=srts4PISBuyHAuI2e-Xn6MsONZQMsmW4zZqhFbQY3Ss&exp=1785844878",
     "width": 94,
     "height": 94
+  },
+  "fauvette_grandmother": {
+    "asset_id": "0fcc9960-09e1-4088-87b6-7f915a780716",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0fcc9960-09e1-4088-87b6-7f915a780716/signed-content/pixel?sig=HMd9BFU5I3CfDv9-m1B_FYh7P_uXEgpUesVuIOQ3HIg&exp=1785844987",
+    "width": 82,
+    "height": 82
+  },
+  "villager_wanderer": {
+    "asset_id": "6bcea378-73c6-4d75-a9d2-50166cbfd245",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6bcea378-73c6-4d75-a9d2-50166cbfd245/signed-content/pixel?sig=_9-oSTwGjndn28B4dp1DrdHkGd4KvMJmAMleSXhXQMo&exp=1785845008",
+    "width": 72,
+    "height": 72
   }
 }

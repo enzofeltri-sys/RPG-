@@ -101,5 +101,23 @@
     "width": 44,
     "height": 44
   },
+  "village_house": {
+    "asset_id": "898666db-390d-4494-8d81-10fb58e7000a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/898666db-390d-4494-8d81-10fb58e7000a/signed-content/pixel?sig=RcUtyZj26wPvZvqemL4fajdWnPl3ekgyY2AT4SDHLn8&exp=1785844505",
+    "width": 80,
+    "height": 80
+  },
+  "inn_building": {
+    "asset_id": "30ec0570-805c-4f41-9885-2c9a2ece52cd",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/30ec0570-805c-4f41-9885-2c9a2ece52cd/signed-content/pixel?sig=LiI7Pe4fcIoUVzU0JVoQw7u0cBsVKFFHZI6jKyF93Cs&exp=1785844688",
+    "width": 144,
+    "height": 144
+  },
+  "gate_barrier": {
+    "asset_id": "75db2c45-dd76-4417-9dce-8b3f6da5f9c4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/75db2c45-dd76-4417-9dce-8b3f6da5f9c4/signed-content/pixel?sig=uK6d4BfrdZV-BpbENN5ZJ56ppfuA69t6mj1Mqj7ZmoI&exp=1785844869",
+    "width": 146,
+    "height": 146
+  },
   "failures": []
 }

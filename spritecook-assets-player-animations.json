@@ -1,0 +1,21 @@
+{
+  "hero_walk": {
+    "asset_id": "d53cb8f3-3920-4e6c-941a-b70ea90628db",
+    "spritesheet_url": "https://api.spritecook.ai/v1/assets/d53cb8f3-3920-4e6c-941a-b70ea90628db/signed-content/raw",
+    "frame_count": 8,
+    "fps": 8,
+    "frame_width": 64,
+    "frame_height": 64,
+    "based_on_asset_id": "69b0fa55-96d6-4d93-96dd-98d980ce1737"
+  },
+  "hero_attack": {
+    "asset_id": "0c1814fd-84f7-4118-b30a-5ce5fe0a2424",
+    "spritesheet_url": "https://api.spritecook.ai/v1/assets/0c1814fd-84f7-4118-b30a-5ce5fe0a2424/signed-content/raw",
+    "frame_count": 8,
+    "fps": 8,
+    "frame_width": 64,
+    "frame_height": 64,
+    "based_on_asset_id": "69b0fa55-96d6-4d93-96dd-98d980ce1737"
+  },
+  "failures": []
+}

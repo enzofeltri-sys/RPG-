@@ -1,6 +1,41 @@
 {
-  "failures": [],
-  "remaining_unprocessed": [],
+  "failures": ["watcher_ring"],
+  "remaining_unprocessed": [
+    "shadow_ring",
+    "mithril_ring",
+    "ritual_ring",
+    "watcher_amulet",
+    "shadow_amulet",
+    "mithril_amulet",
+    "ritual_amulet",
+    "shadow_offhand_dagger",
+    "mithril_offhand_axe",
+    "guardian_amulet",
+    "shard_pendant",
+    "seeker_signet",
+    "purified_breastplate",
+    "sealed_blade",
+    "watchtower_helm",
+    "eternal_watch_greaves",
+    "last_watcher_boots",
+    "broken_sleep_aegis",
+    "corrupted_root_gloves",
+    "silhouette_keepsake",
+    "bregan_seal",
+    "threefold_ward",
+    "garrison_blade",
+    "garrison_helm",
+    "garrison_cuirass",
+    "last_refuge_legs",
+    "hidden_path_boots",
+    "silent_smith_gloves",
+    "garrison_offhand_dagger",
+    "last_refuge_hatchet",
+    "artisan_blade",
+    "artisan_amulet",
+    "artisan_ring",
+    "artisan_gloves"
+  ],
   "short_sword": {
     "asset_id": "b2b9eee2-2d14-47df-96da-010e0e70eefa",
     "sprite_url": "https://api.spritecook.ai/v1/assets/b2b9eee2-2d14-47df-96da-010e0e70eefa/signed-content/pixel?sig=S6vEvThaFpXEl9GVt2tmPJ3tJSclAN826_v5dXvYteE&exp=1785798637",
@@ -175,5 +210,978 @@
     "width": 76,
     "height": 76,
     "name": "Bouclier en bois"
+  },
+  "buckler": {
+    "asset_id": "db72967c-fecf-40e5-9053-48514e41266d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/db72967c-fecf-40e5-9053-48514e41266d/signed-content/pixel?sig=fRV8cOhvV6pZjTMT32X5zD7s05XCtSAbnULgOvdy9S4&exp=1785845297",
+    "width": 50,
+    "height": 50,
+    "name": "Rondache légère"
+  },
+  "tower_shield": {
+    "asset_id": "5de7bbf7-cafe-4bb6-b732-423448fd8960",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5de7bbf7-cafe-4bb6-b732-423448fd8960/signed-content/pixel?sig=gd-cyYSuNxkE6GxKCv6b-b3TaElU7iz2F2LrGiN5g6U&exp=1785845312",
+    "width": 84,
+    "height": 84,
+    "name": "Bouclier-tour"
+  },
+  "reinforced_shield": {
+    "asset_id": "f8e9bd74-be5f-4839-a7fe-ba165f9fbf44",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f8e9bd74-be5f-4839-a7fe-ba165f9fbf44/signed-content/pixel?sig=JsitYmIEJHBUQyjXZS8lyuEeDvYWVGPZ0aqz9Q2bJ6M&exp=1785845328",
+    "width": 144,
+    "height": 144,
+    "name": "Bouclier renforcé"
+  },
+  "leather_helmet": {
+    "asset_id": "0138c2cf-6f94-46b4-bc23-8a2ccc091624",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0138c2cf-6f94-46b4-bc23-8a2ccc091624/signed-content/pixel?sig=MNHQhgdWWw1AjQMM1QkTgV25CsgMEFmVfdXWK4Cvgxc&exp=1785845342",
+    "width": 64,
+    "height": 64,
+    "name": "Casque de cuir"
+  },
+  "rogue_hood": {
+    "asset_id": "7ef6e645-1a0d-45fe-bd31-31e1d41be881",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/7ef6e645-1a0d-45fe-bd31-31e1d41be881/signed-content/pixel?sig=Hs227BJONe4OMGT6hGvpXHUPUiCbqeZ4ku9mEsY9RPI&exp=1785845355",
+    "width": 66,
+    "height": 66,
+    "name": "Capuche renforcée"
+  },
+  "iron_cap": {
+    "asset_id": "c146fd78-4937-416d-988d-444b8a9f7fdc",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c146fd78-4937-416d-988d-444b8a9f7fdc/signed-content/pixel?sig=jaRcySBi0R-n9caoCJKbTiogArKDoN8qmKtZQ5ZPSo4&exp=1785845373",
+    "width": 100,
+    "height": 100,
+    "name": "Calotte de fer"
+  },
+  "simple_circlet": {
+    "asset_id": "2682b828-5929-4541-abc6-5f8e5df9b2e3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2682b828-5929-4541-abc6-5f8e5df9b2e3/signed-content/pixel?sig=IzrD4MsguPB9jM2cQYLUsXLjJE0Yc4YJIBKdMwpD434&exp=1785845386",
+    "width": 44,
+    "height": 44,
+    "name": "Diadème simple"
+  },
+  "leather_chest": {
+    "asset_id": "99597f29-be09-4092-bc6f-2b9ae2570dfe",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/99597f29-be09-4092-bc6f-2b9ae2570dfe/signed-content/pixel?sig=2Yt_MzdOTTZyuV-e7dzHSomWBhKMhN8HXvxbKEXmUxU&exp=1785845405",
+    "width": 62,
+    "height": 62,
+    "name": "Plastron de cuir"
+  },
+  "padded_vest": {
+    "asset_id": "18961edb-a123-4ff9-90d0-f5501c13aead",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/18961edb-a123-4ff9-90d0-f5501c13aead/signed-content/pixel?sig=txjHhwckYw7JdcX5ynj9Q4FpttiBkw2jzicNyz8PdaA&exp=1785845419",
+    "width": 62,
+    "height": 62,
+    "name": "Gilet matelassé"
+  },
+  "light_chainmail": {
+    "asset_id": "869dec90-53c4-4419-b603-3a73b575e7ba",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/869dec90-53c4-4419-b603-3a73b575e7ba/signed-content/pixel?sig=6TlWrq7bnzD2Kp3OPk5VTA_lxKAoJhFKSre7vg4blCQ&exp=1785845432",
+    "width": 84,
+    "height": 84,
+    "name": "Cotte de mailles légère"
+  },
+  "simple_robe": {
+    "asset_id": "9de0df1a-6fbc-420b-9f3d-37b872d3bb5f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/9de0df1a-6fbc-420b-9f3d-37b872d3bb5f/signed-content/pixel?sig=MqqOlF5cZzwOS0XB5_Ifl0fw7EWoup-GN4xsDuhfeNI&exp=1785845445",
+    "width": 58,
+    "height": 58,
+    "name": "Robe simple"
+  },
+  "leather_legs": {
+    "asset_id": "0e861d99-7dfa-464a-beda-9c5ab5e3cc17",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0e861d99-7dfa-464a-beda-9c5ab5e3cc17/signed-content/pixel?sig=4k3TCpoOIzwt2JTEFO_717-bZ_Samw4wdLIhc9ySaFI&exp=1785845460",
+    "width": 60,
+    "height": 60,
+    "name": "Jambières de cuir"
+  },
+  "studded_legs": {
+    "asset_id": "91d175ed-67ad-4be8-8526-f1678bd00de1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/91d175ed-67ad-4be8-8526-f1678bd00de1/signed-content/pixel?sig=0OKk44g9NmW3McYqOBabu_bpDTMWUqvYu_WepJCeads&exp=1785845473",
+    "width": 52,
+    "height": 52,
+    "name": "Jambières cloutées"
+  },
+  "light_leggings": {
+    "asset_id": "ac2266bf-5056-4308-a3fc-76d8762ea5c6",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ac2266bf-5056-4308-a3fc-76d8762ea5c6/signed-content/pixel?sig=fY3H6z9gTKh8ikM0a3XdumPwsugfWwUnPVd-wzzmjSQ&exp=1785845486",
+    "width": 76,
+    "height": 76,
+    "name": "Chausses légères"
+  },
+  "robe_legs": {
+    "asset_id": "690944ff-30a8-4b1d-a3ad-c3f09213fa7f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/690944ff-30a8-4b1d-a3ad-c3f09213fa7f/signed-content/pixel?sig=N_oa_eARQcaT4EXAFEo7g_XaDkxy-L_-heWDWUAjL2I&exp=1785845500",
+    "width": 54,
+    "height": 54,
+    "name": "Bas de robe"
+  },
+  "leather_boots": {
+    "asset_id": "a97d4362-161d-450a-9b2b-19df9babf584",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a97d4362-161d-450a-9b2b-19df9babf584/signed-content/pixel?sig=JOSNxpvft175s5zNTgKdrBikRYfn_E2pEFsNYz9GkMM&exp=1785845512",
+    "width": 56,
+    "height": 56,
+    "name": "Bottes de cuir"
+  },
+  "swift_boots": {
+    "asset_id": "d2c52ca7-ee87-4f69-be7d-49168a7a4e0f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d2c52ca7-ee87-4f69-be7d-49168a7a4e0f/signed-content/pixel?sig=RKThNwogKbomp3sp0j9FEBdDheqdPRYPpYBNvJHs37U&exp=1785845524",
+    "width": 68,
+    "height": 68,
+    "name": "Bottes légères"
+  },
+  "iron_boots": {
+    "asset_id": "4b239ac1-56f7-4a23-93a7-06ef7afb0b01",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4b239ac1-56f7-4a23-93a7-06ef7afb0b01/signed-content/pixel?sig=O0ovhES58ON5BBwFMLlKzbWL6z-ZLTnxWkkoFUZINFg&exp=1785845537",
+    "width": 70,
+    "height": 70,
+    "name": "Bottes ferrées"
+  },
+  "travelers_boots": {
+    "asset_id": "b6fd8a38-30c5-4f92-bb77-b44c9e524f36",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b6fd8a38-30c5-4f92-bb77-b44c9e524f36/signed-content/pixel?sig=jbCNqU4Cuho5ltHsb4wYsFN2p99Op69TtgwnD8Vmyvc&exp=1785845549",
+    "width": 138,
+    "height": 138,
+    "name": "Bottes de voyageur"
+  },
+  "leather_gloves": {
+    "asset_id": "d390cb50-0899-4710-a921-bd1879159750",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d390cb50-0899-4710-a921-bd1879159750/signed-content/pixel?sig=73h-Qtc3dZcoaE008MAcCBx1kSib2_YfDsrPQdHhWnI&exp=1785845562",
+    "width": 50,
+    "height": 50,
+    "name": "Gants de cuir"
+  },
+  "thief_gloves": {
+    "asset_id": "5012cfc4-fdbb-4d82-ac47-394034400b2e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5012cfc4-fdbb-4d82-ac47-394034400b2e/signed-content/pixel?sig=9DOug-XTI7ZzyWu3YtAXgQ7Z3W6FDVGPmHBRh83mkoE&exp=1785845575",
+    "width": 114,
+    "height": 114,
+    "name": "Gants de voleur"
+  },
+  "scholar_gloves": {
+    "asset_id": "6ce3a0c7-fc4a-44ce-85ff-fe4a72319c27",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6ce3a0c7-fc4a-44ce-85ff-fe4a72319c27/signed-content/pixel?sig=jMihKRzIF_rwYQqcKlaV5ZkVRis-vmhPMPpJf7L9gxY&exp=1785845587",
+    "width": 152,
+    "height": 152,
+    "name": "Gants d'étude"
+  },
+  "iron_gauntlets": {
+    "asset_id": "e764279c-867e-41fc-bb2e-ddb90d115ff5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e764279c-867e-41fc-bb2e-ddb90d115ff5/signed-content/pixel?sig=4WMqtjQ-00xQLt-H7OiGzEtHsuiiOu4oFTZ-ihe2ptU&exp=1785845604",
+    "width": 70,
+    "height": 70,
+    "name": "Gantelets de fer"
+  },
+  "simple_ring": {
+    "asset_id": "c9e2bb75-b694-4699-b62e-a0dda7e83629",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c9e2bb75-b694-4699-b62e-a0dda7e83629/signed-content/pixel?sig=7Idtpbo2zECZKc3uUSZVQIFAKs8b64o9iZ3yvrUUl3c&exp=1785845617",
+    "width": 68,
+    "height": 68,
+    "name": "Anneau simple"
+  },
+  "strength_ring": {
+    "asset_id": "ff07f884-a322-4b9a-9b68-93e1e5c5316d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ff07f884-a322-4b9a-9b68-93e1e5c5316d/signed-content/pixel?sig=87AY0jJNrmysKFk3HPzr-0jg6BZ6Q8SBHDb3SoRPqOc&exp=1785845653",
+    "width": 52,
+    "height": 52,
+    "name": "Anneau de force"
+  },
+  "agility_ring": {
+    "asset_id": "bab24a73-b9ea-4d05-9046-88367763b36e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bab24a73-b9ea-4d05-9046-88367763b36e/signed-content/pixel?sig=7Gl5Fy9szgSDH6jJhVXnOklPUO_-FKCxacH9a8kiRI0&exp=1785845689",
+    "width": 62,
+    "height": 62,
+    "name": "Anneau d'agilité"
+  },
+  "vitality_ring": {
+    "asset_id": "6ac274ed-7970-490f-8ebd-18453a681157",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6ac274ed-7970-490f-8ebd-18453a681157/signed-content/pixel?sig=ud5qGfNNXKF12-WU_ywwAnED3siDbIR_Q5fMBIXFeuM&exp=1785845723",
+    "width": 28,
+    "height": 28,
+    "name": "Anneau de vitalité"
+  },
+  "simple_amulet": {
+    "asset_id": "dda3cc47-d689-492a-82da-87214771c25d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/dda3cc47-d689-492a-82da-87214771c25d/signed-content/pixel?sig=uH8YjrSlBg798G-zqaDk0IkWFReFJnAlE1SLdBa9fz4&exp=1785845778",
+    "width": 76,
+    "height": 76,
+    "name": "Amulette simple"
+  },
+  "flame_amulet": {
+    "asset_id": "bcfbdf47-6208-420f-a5a1-4e7dfd551fcb",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bcfbdf47-6208-420f-a5a1-4e7dfd551fcb/signed-content/pixel?sig=MKg1GUyHWfBxEsf2s3_-5i8b2k2EL8zsbmwKDbLb1xI&exp=1785845816",
+    "width": 104,
+    "height": 104,
+    "name": "Amulette de flamme"
+  },
+  "ward_amulet": {
+    "asset_id": "da0be797-3806-43b5-9333-96394b477ef3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/da0be797-3806-43b5-9333-96394b477ef3/signed-content/pixel?sig=0w0SnJIJsBBAXHVu8a5HWctsl5rW6v7DxysmL9XdKls&exp=1785845853",
+    "width": 84,
+    "height": 84,
+    "name": "Amulette de protection"
+  },
+  "swift_amulet": {
+    "asset_id": "60e2f43f-dc00-419c-b627-02d38cb924fe",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/60e2f43f-dc00-419c-b627-02d38cb924fe/signed-content/pixel?sig=S0IMKG3dE2v6Ovixg0ivJrDBvPfXPH23Fo7VrkU2Qrk&exp=1785845884",
+    "width": 62,
+    "height": 62,
+    "name": "Amulette véloce"
+  },
+  "offhand_dagger": {
+    "asset_id": "e8e8c0e7-c741-4dd3-a5f4-46cb44774540",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e8e8c0e7-c741-4dd3-a5f4-46cb44774540/signed-content/pixel?sig=YIgdVus37O9ib-y5O0RrE-DSP8Nof_--arGi0jddA9Q&exp=1785845897",
+    "width": 62,
+    "height": 62,
+    "name": "Dague de ceinture"
+  },
+  "offhand_hatchet": {
+    "asset_id": "c45911f6-51ea-46fd-9f56-ddb83e12e664",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c45911f6-51ea-46fd-9f56-ddb83e12e664/signed-content/pixel?sig=yiJHwSsGtgw3ImgKunKC_bPC0Pl8eBNKt2bQvCNIN7I&exp=1785845910",
+    "width": 52,
+    "height": 52,
+    "name": "Hachette d'appoint"
+  },
+  "guard_sword": {
+    "asset_id": "57722188-7342-438b-a77e-b16a394c58ed",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/57722188-7342-438b-a77e-b16a394c58ed/signed-content/pixel?sig=6Kg4VF9zdONEz6GwAKyvDdSBYwB4GxbpbjQl-XVHIdQ&exp=1785845923",
+    "width": 168,
+    "height": 168,
+    "name": "Épée de la garde"
+  },
+  "marsh_dagger": {
+    "asset_id": "0b6e3c9f-5856-4655-97fe-6ed750c65fcf",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0b6e3c9f-5856-4655-97fe-6ed750c65fcf/signed-content/pixel?sig=MMRGApxBoXa1R4FSyO-ET80hphLZvwDe_h_QquR9AI4&exp=1785845936",
+    "width": 72,
+    "height": 72,
+    "name": "Dague des marais"
+  },
+  "steel_greatsword": {
+    "asset_id": "23ea46da-7fa1-477c-85aa-49f0ce6380cc",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/23ea46da-7fa1-477c-85aa-49f0ce6380cc/signed-content/pixel?sig=RQbsjqkSw_FykpvMv4pt4gqWy3T2ODNgBuStGYRjuzQ&exp=1785845949",
+    "width": 90,
+    "height": 90,
+    "name": "Épée à deux mains en acier"
+  },
+  "archivist_wand": {
+    "asset_id": "6c387b3c-80d8-4510-b04a-356593a5f897",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6c387b3c-80d8-4510-b04a-356593a5f897/signed-content/pixel?sig=BTdsgM4ok6sET8vaCXiRjR-0tNhXPEMC1VB0i1LP04U&exp=1785845962",
+    "width": 128,
+    "height": 128,
+    "name": "Bâton d'archiviste"
+  },
+  "hunting_bow": {
+    "asset_id": "b3a39130-7f16-42b9-8909-cd5b809c96e7",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b3a39130-7f16-42b9-8909-cd5b809c96e7/signed-content/pixel?sig=V6eqi6eBOVmYRyyqKvafJ-Kr-QliqjrGMd4nBncI_JI&exp=1785845975",
+    "width": 204,
+    "height": 204,
+    "name": "Arc de chasse"
+  },
+  "steel_axe": {
+    "asset_id": "f55a7cba-0404-410a-91e3-df3c7016837f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f55a7cba-0404-410a-91e3-df3c7016837f/signed-content/pixel?sig=Zzw7Zt2U1o2VaLPEqWS2PtE5wCCmuXCbeBM0K5y_WaY&exp=1785845988",
+    "width": 64,
+    "height": 64,
+    "name": "Hache d'armes en acier"
+  },
+  "patrol_sword": {
+    "asset_id": "4a03f57f-cd85-41cc-8294-48a5d0c3e1c1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4a03f57f-cd85-41cc-8294-48a5d0c3e1c1/signed-content/pixel?sig=qd4pO3pLfadEeOk1vS4mJu6qCCX6RLE-HVrSMoF2Ihg&exp=1785846001",
+    "width": 72,
+    "height": 72,
+    "name": "Épée de patrouille"
+  },
+  "smuggler_blade": {
+    "asset_id": "de4723cd-17fa-4200-830a-81616db5529d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/de4723cd-17fa-4200-830a-81616db5529d/signed-content/pixel?sig=lq3_qdXqAZdtVZ0F7ud3UL25BOVSrl0oOfx4y7edG2U&exp=1785846013",
+    "width": 60,
+    "height": 60,
+    "name": "Lame de contrebandier"
+  },
+  "sentinel_axe": {
+    "asset_id": "1f7ac7c3-1cf0-4dec-a373-133626286185",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/1f7ac7c3-1cf0-4dec-a373-133626286185/signed-content/pixel?sig=6U9RpZHEbZLooXZFo5KMS9kSS-eYrXQGz68SUJJJxIE&exp=1785846027",
+    "width": 82,
+    "height": 82,
+    "name": "Hache de sentinelle"
+  },
+  "marsh_hatchet": {
+    "asset_id": "95b894c1-3e09-4834-9df5-a147877c17ae",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/95b894c1-3e09-4834-9df5-a147877c17ae/signed-content/pixel?sig=SD4mCwysluWi_6xtrHN-y-yKsHna2rMGhgIiM2RlEmg&exp=1785846041",
+    "width": 64,
+    "height": 64,
+    "name": "Hachette des marais"
+  },
+  "steel_greataxe": {
+    "asset_id": "f1515d93-827e-41f4-8323-311052a81ea8",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f1515d93-827e-41f4-8323-311052a81ea8/signed-content/pixel?sig=sS912ygf2ka93KuCW1h65RHy-2lOw-IK1v-RPBkZdoA&exp=1785846077",
+    "width": 86,
+    "height": 86,
+    "name": "Grande hache d'acier"
+  },
+  "dock_dagger": {
+    "asset_id": "46168934-3964-4e83-9738-972e257e2875",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/46168934-3964-4e83-9738-972e257e2875/signed-content/pixel?sig=sWUBWEaC2nZJKXrZRFUdXRzeGRs17z49d3n_f42mw_c&exp=1785846090",
+    "width": 70,
+    "height": 70,
+    "name": "Dague des quais"
+  },
+  "archivist_dagger": {
+    "asset_id": "12a7ee34-f750-4a11-8493-2c42fbbd9a09",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/12a7ee34-f750-4a11-8493-2c42fbbd9a09/signed-content/pixel?sig=A8Sr_FoV67_YcO1NBehC1NS-QOGeN_ZHgqfTKwJ9f2I&exp=1785846103",
+    "width": 140,
+    "height": 140,
+    "name": "Poignard d'archiviste"
+  },
+  "frost_dagger": {
+    "asset_id": "29ae728d-4eea-4512-acaf-cc4944011119",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/29ae728d-4eea-4512-acaf-cc4944011119/signed-content/pixel?sig=gIpSZ664qdstKKdFt58pVDuREWAp9t4KdOv7dFuaKks&exp=1785846116",
+    "width": 66,
+    "height": 66,
+    "name": "Dague à froid"
+  },
+  "marsh_bow": {
+    "asset_id": "672cd7d3-e6b0-474b-a386-11a854453de1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/672cd7d3-e6b0-474b-a386-11a854453de1/signed-content/pixel?sig=kksoiHKE9Vs6Bn0Wexd2AEK2oWF8lBBsWO-NA615XDo&exp=1785846129",
+    "width": 148,
+    "height": 148,
+    "name": "Arc des tourbières"
+  },
+  "garrison_longbow": {
+    "asset_id": "5c814c1f-13c0-41c3-98ab-690189ce23d5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5c814c1f-13c0-41c3-98ab-690189ce23d5/signed-content/pixel?sig=THq9k8iW9YeiLXa8mi6uMw_Mt4P28bGaATTWBBdNjXI&exp=1785846141",
+    "width": 142,
+    "height": 142,
+    "name": "Arc long de garnison"
+  },
+  "reinforced_composite_bow": {
+    "asset_id": "c0ae8c21-c6e3-44a9-9f42-457746eb5370",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c0ae8c21-c6e3-44a9-9f42-457746eb5370/signed-content/pixel?sig=HS1UAOKBjmNa4bw8SHgO_4UqMX-F1h4u2mD1cJSTGuc&exp=1785846154",
+    "width": 168,
+    "height": 168,
+    "name": "Arc composite renforcé"
+  },
+  "guard_staff": {
+    "asset_id": "648bb187-ece2-4716-9a11-62d343b3e70d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/648bb187-ece2-4716-9a11-62d343b3e70d/signed-content/pixel?sig=JSEbd_TnowoyL1FfiWIykiIApp2n1mQe6eZ2Ik30MIc&exp=1785846167",
+    "width": 86,
+    "height": 86,
+    "name": "Bâton de la garde"
+  },
+  "marsh_scepter": {
+    "asset_id": "c403a944-88a8-4976-994b-9b8b44f33cfa",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c403a944-88a8-4976-994b-9b8b44f33cfa/signed-content/pixel?sig=mu9-myxK72Igh-Q6LPm16XQB3az9k5dUKsxqv4RjmXg&exp=1785846208",
+    "width": 74,
+    "height": 74,
+    "name": "Sceptre des marais"
+  },
+  "enchanted_steel_staff": {
+    "asset_id": "6c6e6b32-48ae-4951-a7dd-9eb1b8601ea1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6c6e6b32-48ae-4951-a7dd-9eb1b8601ea1/signed-content/pixel?sig=pg9O6QJQcz_l1ajN6HgESnHYn68J_cPyPYkuT_WLTPA&exp=1785846230",
+    "width": 144,
+    "height": 144,
+    "name": "Bâton d'acier enchanté"
+  },
+  "guard_grimoire": {
+    "asset_id": "156cc66c-5981-4a5d-b52b-454c257478b4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/156cc66c-5981-4a5d-b52b-454c257478b4/signed-content/pixel?sig=9P8e-V8zbYqIoaGKOaKj50gyfIYQOeTmhC710Da1Ibg&exp=1785846244",
+    "width": 114,
+    "height": 114,
+    "name": "Grimoire de la garde"
+  },
+  "marsh_codex": {
+    "asset_id": "74cd3e89-395e-4392-8b32-65a214e5dfb5",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/74cd3e89-395e-4392-8b32-65a214e5dfb5/signed-content/pixel?sig=DTJeay29eTq6Tp0MSLkMQbBh6qgZTekLHXFEpqkGmHQ&exp=1785846266",
+    "width": 60,
+    "height": 60,
+    "name": "Codex des marais"
+  },
+  "steel_treatise": {
+    "asset_id": "f00f6ff4-67f6-4315-86cf-9ce3da25f64c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f00f6ff4-67f6-4315-86cf-9ce3da25f64c/signed-content/pixel?sig=dOKumy7hltoX_YyeDetPVVJtapF3J2bpCzPB9HCZmfE&exp=1785846280",
+    "width": 140,
+    "height": 140,
+    "name": "Traité d'acier"
+  },
+  "archivist_manuscript": {
+    "asset_id": "b5a0e1cc-454f-418d-8461-2a0aca04256b",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b5a0e1cc-454f-418d-8461-2a0aca04256b/signed-content/pixel?sig=KFhpc1DIWcVBIML8uc6i4cIPMU1pqluyFeuZd1XDVKk&exp=1785846295",
+    "width": 76,
+    "height": 76,
+    "name": "Manuscrit d'archiviste"
+  },
+  "guard_shield": {
+    "asset_id": "404ca3cd-716d-4622-afd8-eebcacc6898d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/404ca3cd-716d-4622-afd8-eebcacc6898d/signed-content/pixel?sig=RL1iSoT1gyTTntFGRsC2NLrXIQugxYx10Uc8w2f_KbU&exp=1785846309",
+    "width": 118,
+    "height": 118,
+    "name": "Bouclier de la garde"
+  },
+  "marsh_buckler": {
+    "asset_id": "0c1a7456-613f-42f1-85a7-85ab057a5fee",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0c1a7456-613f-42f1-85a7-85ab057a5fee/signed-content/pixel?sig=eF-qpgCEQ35NQ-yQlZtiWNiQqunBkNlDLcx8Hr2_OJM&exp=1785846326",
+    "width": 68,
+    "height": 68,
+    "name": "Targe des marais"
+  },
+  "steel_tower_shield": {
+    "asset_id": "7822b2b9-33ce-4f88-96c2-1402446241c2",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/7822b2b9-33ce-4f88-96c2-1402446241c2/signed-content/pixel?sig=TU3cKn8M88uYTfA9Q7-yHvCjJdG0fgIcJ0kCsjKsA44&exp=1785846341",
+    "width": 76,
+    "height": 76,
+    "name": "Bouclier-tour en acier"
+  },
+  "smuggler_shield": {
+    "asset_id": "78f6bdb9-f641-4add-9dfe-1dc01408c85f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/78f6bdb9-f641-4add-9dfe-1dc01408c85f/signed-content/pixel?sig=1U268OM4i06eL5YKoPmnimbwFk44cmxzt73llcwhlWk&exp=1785846358",
+    "width": 102,
+    "height": 102,
+    "name": "Bouclier du contrebandier"
+  },
+  "guard_helm": {
+    "asset_id": "99868f82-9cf7-4b43-ade6-995d9cbd74c3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/99868f82-9cf7-4b43-ade6-995d9cbd74c3/signed-content/pixel?sig=tzDpEUtISAYx7JJWbR8WhopPLpsUBf1VVHQ4EEXUIk0&exp=1785846371",
+    "width": 62,
+    "height": 62,
+    "name": "Heaume de la garde"
+  },
+  "marsh_hood": {
+    "asset_id": "1a4ae333-4a11-4752-98a6-784dbb20ed80",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/1a4ae333-4a11-4752-98a6-784dbb20ed80/signed-content/pixel?sig=JbceTkn97EwH7Pe0kgd9MV-0FeM0TsKeaooWLxSkIvw&exp=1785846384",
+    "width": 106,
+    "height": 106,
+    "name": "Capuche des marais"
+  },
+  "steel_helm": {
+    "asset_id": "caec8222-2606-4d5e-b0a7-256cc9b71c9c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/caec8222-2606-4d5e-b0a7-256cc9b71c9c/signed-content/pixel?sig=zU_9QqhqDv-mZUWY5Aq2xdXT0hAVlgvTt9p8RBKo_mo&exp=1785846396",
+    "width": 68,
+    "height": 68,
+    "name": "Heaume d'acier"
+  },
+  "archivist_circlet": {
+    "asset_id": "4e0c0ab7-09f4-4780-b05d-73d9b4f29e81",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4e0c0ab7-09f4-4780-b05d-73d9b4f29e81/signed-content/pixel?sig=2TS3miIcO3F1932K7kLiAq8xNvzx9T7I4W0W4XVkLko&exp=1785846409",
+    "width": 70,
+    "height": 70,
+    "name": "Diadème d'archiviste"
+  },
+  "guard_chest": {
+    "asset_id": "4cf9111d-ce10-404f-9699-86398b146ec6",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4cf9111d-ce10-404f-9699-86398b146ec6/signed-content/pixel?sig=qCxu3ntzeXmQ2y8rjE2AUJEzqBWes3a_f6j69n2viaE&exp=1785846422",
+    "width": 64,
+    "height": 64,
+    "name": "Plastron de la garde"
+  },
+  "marsh_vest": {
+    "asset_id": "4085d186-8b87-4cc9-aca9-ae8393c57515",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4085d186-8b87-4cc9-aca9-ae8393c57515/signed-content/pixel?sig=y-eRn7OjcrYSA1fGxO4KAIUf9g2RQIWxMLYd6QLfcwk&exp=1785846434",
+    "width": 56,
+    "height": 56,
+    "name": "Veste des marais"
+  },
+  "steel_chest": {
+    "asset_id": "2b38d95a-9cfd-4f21-87e5-0b0fd2f080ae",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2b38d95a-9cfd-4f21-87e5-0b0fd2f080ae/signed-content/pixel?sig=sp_8TCTeeHsEGlLOEi7BriMCLIeowtPPAERP2qCLo1w&exp=1785846447",
+    "width": 68,
+    "height": 68,
+    "name": "Cuirasse d'acier"
+  },
+  "archivist_robe": {
+    "asset_id": "54128663-305e-45eb-b197-5ae511ff8c3d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/54128663-305e-45eb-b197-5ae511ff8c3d/signed-content/pixel?sig=6Uy3cVDEOFtOJr_U9g5WCT1MoXHIrnvoDg-WLzBVc80&exp=1785846464",
+    "width": 122,
+    "height": 122,
+    "name": "Robe d'archiviste"
+  },
+  "guard_legs": {
+    "asset_id": "2e1f8012-277b-47cb-b561-2c050529ebe6",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2e1f8012-277b-47cb-b561-2c050529ebe6/signed-content/pixel?sig=fH5thTQl1kVFmygopeMbamnFNaDzLwvFwEePOYSCI3g&exp=1785846476",
+    "width": 76,
+    "height": 76,
+    "name": "Jambières de la garde"
+  },
+  "marsh_leggings": {
+    "asset_id": "7aeea140-1348-42af-8d72-c4e17f18544b",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/7aeea140-1348-42af-8d72-c4e17f18544b/signed-content/pixel?sig=jEtquWib4NwkVFH7JCI9Sqv5KY8vOZEk-6WrfenE9xU&exp=1785846489",
+    "width": 138,
+    "height": 138,
+    "name": "Chausses des marais"
+  },
+  "steel_legs": {
+    "asset_id": "b7dc0467-7415-4c8b-a963-d1bb4e297fdd",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b7dc0467-7415-4c8b-a963-d1bb4e297fdd/signed-content/pixel?sig=U47cxOMOJ4f9j2-x9OChtbX5k8lGtOohODXe4ULNu4A&exp=1785846502",
+    "width": 66,
+    "height": 66,
+    "name": "Jambières d'acier"
+  },
+  "archivist_legs": {
+    "asset_id": "3a283535-4082-489d-a357-e16cc2f84f8e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3a283535-4082-489d-a357-e16cc2f84f8e/signed-content/pixel?sig=IljJPiHADziuHkqedM2nohIFNHOMzOnl-QnzBu-Zgew&exp=1785846516",
+    "width": 120,
+    "height": 120,
+    "name": "Bas d'archiviste"
+  },
+  "guard_boots": {
+    "asset_id": "cb14a145-6cf0-4563-b34d-ff84a0efd6d2",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/cb14a145-6cf0-4563-b34d-ff84a0efd6d2/signed-content/pixel?sig=VmqqLMqne8HuV1OarGAo0YEQdP4Ll0fRAAA0GP-OtLo&exp=1785846531",
+    "width": 80,
+    "height": 80,
+    "name": "Bottes de la garde"
+  },
+  "marsh_boots": {
+    "asset_id": "3b36334e-62b3-428b-bf22-78e4810ff268",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3b36334e-62b3-428b-bf22-78e4810ff268/signed-content/pixel?sig=GZmSETLgW1o5nbfjF42W-IVrUYk3aPykGIiYr9PNJr4&exp=1785846548",
+    "width": 130,
+    "height": 130,
+    "name": "Bottes des marais"
+  },
+  "steel_boots": {
+    "asset_id": "8e40e752-51f4-4f3a-bd7b-001a2bfc7eaa",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8e40e752-51f4-4f3a-bd7b-001a2bfc7eaa/signed-content/pixel?sig=yTvMawh0YV-rlyzZdQvN_sU98UH8FruP-78Z2yT-z5c&exp=1785846563",
+    "width": 68,
+    "height": 68,
+    "name": "Bottes d'acier"
+  },
+  "smuggler_boots": {
+    "asset_id": "3f8f5594-d8c3-42f7-9a68-1e67aad66cbc",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3f8f5594-d8c3-42f7-9a68-1e67aad66cbc/signed-content/pixel?sig=nkR1AS8eyGXEAEOdRYdMH9sWdcOLf9I3fExCQRUYDDc&exp=1785846575",
+    "width": 106,
+    "height": 106,
+    "name": "Bottes du contrebandier"
+  },
+  "guard_gloves": {
+    "asset_id": "fd3aa9c9-3b67-4eae-9484-8c22958be602",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/fd3aa9c9-3b67-4eae-9484-8c22958be602/signed-content/pixel?sig=_qd2JEzKHBCY6FGtQGphqOnRQCeDMxS5hlRjkPXKLMA&exp=1785846588",
+    "width": 60,
+    "height": 60,
+    "name": "Gants de la garde"
+  },
+  "marsh_gloves": {
+    "asset_id": "17127653-1b08-44f0-ae13-caf5251dfcda",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/17127653-1b08-44f0-ae13-caf5251dfcda/signed-content/pixel?sig=OqKk9nECnxt1yVMrouBxTnFSPDG0dEm_tORnx4DUk4I&exp=1785846602",
+    "width": 76,
+    "height": 76,
+    "name": "Gants des marais"
+  },
+  "steel_gauntlets_2": {
+    "asset_id": "e745eca2-07c1-434c-a6df-982bd26ce7cb",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e745eca2-07c1-434c-a6df-982bd26ce7cb/signed-content/pixel?sig=JEwm1UVj3en_s-AFc_6KLyThRTOnsJGwYbRT-SdAcME&exp=1785846614",
+    "width": 140,
+    "height": 140,
+    "name": "Gantelets d'acier renforcés"
+  },
+  "archivist_gloves": {
+    "asset_id": "0086566b-0088-45b0-b941-7354eea948e0",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0086566b-0088-45b0-b941-7354eea948e0/signed-content/pixel?sig=hEmHspZm77yo3w6lOJK8qpDWWv3-0qi18JTrsM6R0bs&exp=1785846630",
+    "width": 122,
+    "height": 122,
+    "name": "Gants d'archiviste"
+  },
+  "guard_ring": {
+    "asset_id": "96fceb8d-54b0-4700-88ae-6ecc4901832d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/96fceb8d-54b0-4700-88ae-6ecc4901832d/signed-content/pixel?sig=-_VU739wc3iT9b22w57O8qmDUA69sl6HtUgmICirTvM&exp=1785846650",
+    "width": 60,
+    "height": 60,
+    "name": "Anneau de la garde"
+  },
+  "marsh_ring": {
+    "asset_id": "fcf1aacf-61f9-4f46-83fb-818ceceada61",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/fcf1aacf-61f9-4f46-83fb-818ceceada61/signed-content/pixel?sig=c5ADXvomo5xE-BLMGXRJwaX5X7frsm_Co9wr28rzdtI&exp=1785846663",
+    "width": 68,
+    "height": 68,
+    "name": "Anneau des marais"
+  },
+  "steel_ring": {
+    "asset_id": "c4d159ce-3f0c-4b47-a113-2e153e00c755",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c4d159ce-3f0c-4b47-a113-2e153e00c755/signed-content/pixel?sig=hcgniLz7HCRKJSK_EScui3wl6DXf4tmTIv7AwzzvrxY&exp=1785846676",
+    "width": 54,
+    "height": 54,
+    "name": "Anneau d'acier"
+  },
+  "archivist_ring": {
+    "asset_id": "65efd4d2-3552-448c-bbda-5c96100ad7ff",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/65efd4d2-3552-448c-bbda-5c96100ad7ff/signed-content/pixel?sig=-Q8ZhcY12P4sfFxYAytZDD7OFM3keqQpi7m4aYsxXkU&exp=1785846690",
+    "width": 58,
+    "height": 58,
+    "name": "Anneau d'archiviste"
+  },
+  "watch_amulet": {
+    "asset_id": "649adb04-eb3e-44de-9abd-795e5f288a4a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/649adb04-eb3e-44de-9abd-795e5f288a4a/signed-content/pixel?sig=tLn_2oyfdwJJKNHMJGp0BccqdczIAuqw8YjhZ0VaBA0&exp=1785846703",
+    "width": 148,
+    "height": 148,
+    "name": "Amulette du guet"
+  },
+  "marsh_amulet": {
+    "asset_id": "4114546b-d2dc-42a3-b992-06bb5b9575df",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4114546b-d2dc-42a3-b992-06bb5b9575df/signed-content/pixel?sig=0LxVz3AskdHYJ7YYmCMYZCDdInc7xxuHZV5UumIyuRA&exp=1785846719",
+    "width": 88,
+    "height": 88,
+    "name": "Amulette des marais"
+  },
+  "steel_amulet": {
+    "asset_id": "2ea41811-efee-460a-ab0f-cacbb29ed309",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2ea41811-efee-460a-ab0f-cacbb29ed309/signed-content/pixel?sig=DS2pfAA-cBvFHFh1izXVoMt2X-ZrpbJvkjaL_FCQ214&exp=1785846732",
+    "width": 78,
+    "height": 78,
+    "name": "Amulette d'acier"
+  },
+  "archivist_amulet": {
+    "asset_id": "76de7bcf-097c-47e3-971d-4e9b40754063",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/76de7bcf-097c-47e3-971d-4e9b40754063/signed-content/pixel?sig=4MyS0rBQ67RStDSICTo9d1lhSzNrXSdW1YYZ0CTQ_yo&exp=1785846745",
+    "width": 66,
+    "height": 66,
+    "name": "Amulette d'archiviste"
+  },
+  "marsh_offhand_dagger": {
+    "asset_id": "50ae72d1-6f90-4a99-b30b-2c01c09c7d32",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/50ae72d1-6f90-4a99-b30b-2c01c09c7d32/signed-content/pixel?sig=vkwzgGlyREmxvv6vHJFMWhR-B0aM0kiYFGQcgZnVDT0&exp=1785846760",
+    "width": 70,
+    "height": 70,
+    "name": "Dague des marais (main secondaire)"
+  },
+  "steel_offhand_axe": {
+    "asset_id": "0f7cac05-91d2-4a99-89c1-73ce39f0b912",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/0f7cac05-91d2-4a99-89c1-73ce39f0b912/signed-content/pixel?sig=ZoTT2xZxp8iihdIjXnuXisPtuLPl-zfwdIjNnbBTWNM&exp=1785846772",
+    "width": 52,
+    "height": 52,
+    "name": "Hachette d'acier"
+  },
+  "watcher_blade": {
+    "asset_id": "a476f688-fdc2-4d5e-bfa7-78b3ff7c1ded",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a476f688-fdc2-4d5e-bfa7-78b3ff7c1ded/signed-content/pixel?sig=0tT2azpEigG_VToId8lgKFhcU-j8vV9Z0Zbam4Yu4EY&exp=1785846789",
+    "width": 74,
+    "height": 74,
+    "name": "Lame du Veilleur"
+  },
+  "shadow_dagger": {
+    "asset_id": "553bad08-ec3d-425b-b36b-3d88aef971b6",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/553bad08-ec3d-425b-b36b-3d88aef971b6/signed-content/pixel?sig=_ZjBlrELQEw1d9nNFNMqWsVk76C7Ds3O11j96C-dQ-o&exp=1785846803",
+    "width": 70,
+    "height": 70,
+    "name": "Dague de l'Ombre"
+  },
+  "mithril_sword": {
+    "asset_id": "085b544e-e52a-417b-97a3-78015ddeadaf",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/085b544e-e52a-417b-97a3-78015ddeadaf/signed-content/pixel?sig=INAz3fPtXzOzb0UQiRB7Te49YGPwhOZ8DHNTubEp-yE&exp=1785846817",
+    "width": 68,
+    "height": 68,
+    "name": "Épée de mithril"
+  },
+  "ritual_staff": {
+    "asset_id": "bc7ce900-ae80-493c-ac35-f1925a0cf71f",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bc7ce900-ae80-493c-ac35-f1925a0cf71f/signed-content/pixel?sig=Sd-JJ1IXGAWcy0JhLZJKb0-5aOCDgbzEtn6nGQlx5PA&exp=1785846830",
+    "width": 152,
+    "height": 152,
+    "name": "Bâton rituel"
+  },
+  "watcher_bow": {
+    "asset_id": "8399415d-c251-4d05-956f-df264a1b7699",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8399415d-c251-4d05-956f-df264a1b7699/signed-content/pixel?sig=m4Q3gum9GVpCKFj-slCPbUvl2QdZ9DHxCGC6VoHAdJU&exp=1785846843",
+    "width": 178,
+    "height": 178,
+    "name": "Arc long du Veilleur"
+  },
+  "mithril_axe": {
+    "asset_id": "1a12485a-3819-4813-a9f6-9d6e88939efb",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/1a12485a-3819-4813-a9f6-9d6e88939efb/signed-content/pixel?sig=bbUBq3y-BdwUPacWfEDfagr_PmSN3XtauQqK2MfQTGA&exp=1785846856",
+    "width": 64,
+    "height": 64,
+    "name": "Hache de mithril"
+  },
+  "order_blade": {
+    "asset_id": "dfea8988-144e-484c-a202-28366430ce2d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/dfea8988-144e-484c-a202-28366430ce2d/signed-content/pixel?sig=Q3yr43mv6qEm-EBi77OetxaT0Jw2rQ00BwRYujsArGM&exp=1785846869",
+    "width": 72,
+    "height": 72,
+    "name": "Lame de l'Ordre"
+  },
+  "blackened_sword": {
+    "asset_id": "2c284c69-6f3a-4038-80dd-e0c4e0b4628b",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2c284c69-6f3a-4038-80dd-e0c4e0b4628b/signed-content/pixel?sig=MPQy4PAA2Ycbs4b8ZUQXbjmpa2GyTuKEPx-GnWniobM&exp=1785846882",
+    "width": 152,
+    "height": 152,
+    "name": "Épée noircie"
+  },
+  "watcher_axe": {
+    "asset_id": "b5985dd0-e96b-44d8-82b8-20d763e0f9f1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b5985dd0-e96b-44d8-82b8-20d763e0f9f1/signed-content/pixel?sig=jrJBefg-JWWmqClhlQ_CiC_j8AlNQIUPGb6PMKCd0vY&exp=1785846896",
+    "width": 66,
+    "height": 66,
+    "name": "Hache du Veilleur"
+  },
+  "shadow_hatchet": {
+    "asset_id": "60829c52-acc0-4a58-b193-854654228b5a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/60829c52-acc0-4a58-b193-854654228b5a/signed-content/pixel?sig=KnpwQkg3jukyFU3gFmgLKqHq5Lj70n5hMh2imS9bHgw&exp=1785846909",
+    "width": 68,
+    "height": 68,
+    "name": "Hachette de l'Ombre"
+  },
+  "ritual_greataxe": {
+    "asset_id": "c1f49c1e-7cfb-4e55-a4e0-d4b97a09d62c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c1f49c1e-7cfb-4e55-a4e0-d4b97a09d62c/signed-content/pixel?sig=s_mYNt930unZz3I5xH0hhnP71ipJYT55PMFbMQrIBtg&exp=1785846921",
+    "width": 202,
+    "height": 202,
+    "name": "Grande hache rituelle"
+  },
+  "watcher_dagger": {
+    "asset_id": "6bab51e2-4dde-45c8-865e-56c3b5cb7445",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6bab51e2-4dde-45c8-865e-56c3b5cb7445/signed-content/pixel?sig=9c2SJDJmv11KlV3EQecaPLXSE0Hwo9nZ4IVy2pwU4yM&exp=1785846939",
+    "width": 74,
+    "height": 74,
+    "name": "Dague du Veilleur"
+  },
+  "shadow_fang": {
+    "asset_id": "4fa18356-7c55-413f-8c12-61323f2d7ce1",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/4fa18356-7c55-413f-8c12-61323f2d7ce1/signed-content/pixel?sig=gctm070RwFx2Z8klZ2BCXXHrV_NbNlTFpUmw9Ps7Zxc&exp=1785846969",
+    "width": 66,
+    "height": 66,
+    "name": "Croc de l'Ombre"
+  },
+  "ritual_dagger": {
+    "asset_id": "667a12cb-9454-455e-931f-6b58c6f0c2c7",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/667a12cb-9454-455e-931f-6b58c6f0c2c7/signed-content/pixel?sig=ku90wu9yHnPEDWOoCJVG1n9QouXRHiXkOXIpysNg9Uk&exp=1785846998",
+    "width": 134,
+    "height": 134,
+    "name": "Dague rituelle"
+  },
+  "seal_bow": {
+    "asset_id": "d0a8aec2-6355-4c76-92c6-bf17110a2b4d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d0a8aec2-6355-4c76-92c6-bf17110a2b4d/signed-content/pixel?sig=UMK4gyh2a6MN0lVsXuNGU6yxsJRKmpgWBsk5-DmL7K0&exp=1785847014",
+    "width": 138,
+    "height": 138,
+    "name": "Arc du sceau"
+  },
+  "mithril_bow": {
+    "asset_id": "8a0d6052-3b14-4a26-b8ee-7473bc8e2781",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/8a0d6052-3b14-4a26-b8ee-7473bc8e2781/signed-content/pixel?sig=pvqis7ZhokYlbMqNkkdp-P98gCqvylsdnyC0KSNCKPk&exp=1785847027",
+    "width": 78,
+    "height": 78,
+    "name": "Arc de mithril"
+  },
+  "ritual_bow": {
+    "asset_id": "bfad3165-8e3a-48c1-b015-a2f54b8dcb5a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bfad3165-8e3a-48c1-b015-a2f54b8dcb5a/signed-content/pixel?sig=kdSRY-00Lt9CUx9i65H_8MaZpEVy8SEVKpLrxsdyvkc&exp=1785847041",
+    "width": 168,
+    "height": 168,
+    "name": "Arc rituel"
+  },
+  "watcher_staff": {
+    "asset_id": "37f2f4f7-ade3-474c-87cf-02d7c7660a0e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/37f2f4f7-ade3-474c-87cf-02d7c7660a0e/signed-content/pixel?sig=Exu9SvuNc9AYy0dsDzLpFQZIue2ft9g6zvMUUZt5p_U&exp=1785847054",
+    "width": 86,
+    "height": 86,
+    "name": "Bâton du Veilleur"
+  },
+  "shadow_scepter": {
+    "asset_id": "d4d151f9-3997-44f1-9928-54bbf2180eb3",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d4d151f9-3997-44f1-9928-54bbf2180eb3/signed-content/pixel?sig=sSN93DHREKx3Kh0-HtJi6lQd7dit013Nhhss-UPxRGM&exp=1785847068",
+    "width": 92,
+    "height": 92,
+    "name": "Sceptre de l'Ombre"
+  },
+  "mithril_staff": {
+    "asset_id": "5fde43e7-41c1-46ac-b1b8-f7a52f8e9b13",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5fde43e7-41c1-46ac-b1b8-f7a52f8e9b13/signed-content/pixel?sig=agYJxr7WEMPY334gHyKwfDG1Y4zMJ97dr1dt6WCcCAk&exp=1785847082",
+    "width": 100,
+    "height": 100,
+    "name": "Bâton de mithril"
+  },
+  "watcher_grimoire": {
+    "asset_id": "3d14f4a1-49e2-4934-b9c2-8675f09b413e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3d14f4a1-49e2-4934-b9c2-8675f09b413e/signed-content/pixel?sig=d1lKi00K8kDfa9IIVgUddZGJnYmcZwCk9_jTiXd-LsQ&exp=1785847099",
+    "width": 108,
+    "height": 108,
+    "name": "Grimoire du Veilleur"
+  },
+  "shadow_codex": {
+    "asset_id": "93ef61ed-763f-47c3-aab9-b194aba573c0",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/93ef61ed-763f-47c3-aab9-b194aba573c0/signed-content/pixel?sig=dJ712Ume6h5AbcDIInutsYIjElvPZwmSJoCpV_JvuBM&exp=1785847114",
+    "width": 124,
+    "height": 124,
+    "name": "Codex de l'Ombre"
+  },
+  "mithril_codex": {
+    "asset_id": "62e9e73a-b053-4e33-a2e0-329145833397",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/62e9e73a-b053-4e33-a2e0-329145833397/signed-content/pixel?sig=srjoPnmklCrI43rqexMtPjKyENoa7eOV94gTSkxI_O8&exp=1785847130",
+    "width": 130,
+    "height": 130,
+    "name": "Codex de mithril"
+  },
+  "ritual_grimoire": {
+    "asset_id": "2de96534-818b-4cf6-9606-ab347adff7ae",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/2de96534-818b-4cf6-9606-ab347adff7ae/signed-content/pixel?sig=_YqXOO08vST23lNX6tLxoxTRZj-t7liFicZidvzbGaY&exp=1785847145",
+    "width": 122,
+    "height": 122,
+    "name": "Grimoire rituel"
+  },
+  "watcher_shield": {
+    "asset_id": "5b2af2c6-ff3a-4353-8ef0-8df268f2f528",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/5b2af2c6-ff3a-4353-8ef0-8df268f2f528/signed-content/pixel?sig=Y4GB332hsSRXeGgyRIE4gorVi_rNX2MAtT34HUcqEbs&exp=1785847160",
+    "width": 144,
+    "height": 144,
+    "name": "Bouclier du Veilleur"
+  },
+  "shadow_buckler": {
+    "asset_id": "c9e2e166-5867-4e27-8076-1ebdbbecc592",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c9e2e166-5867-4e27-8076-1ebdbbecc592/signed-content/pixel?sig=EkPDE9TMioh8l9H8Xy8FxozEJ_Ro8aACnouYMgldQGw&exp=1785847174",
+    "width": 58,
+    "height": 58,
+    "name": "Targe de l'Ombre"
+  },
+  "mithril_shield": {
+    "asset_id": "735a62be-a29c-4d20-8321-d86572e3b30a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/735a62be-a29c-4d20-8321-d86572e3b30a/signed-content/pixel?sig=p0PXFylHMP78GmTVnPkIP9pMsBHsOeofFu4qZX5OMjs&exp=1785847187",
+    "width": 60,
+    "height": 60,
+    "name": "Bouclier de mithril"
+  },
+  "ritual_ward": {
+    "asset_id": "c233f989-2bcb-4978-93f0-dfae4b435757",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c233f989-2bcb-4978-93f0-dfae4b435757/signed-content/pixel?sig=W9xPTqNXD_2ebV1nDKyXJcDF7XTL1Hk6MD3fSZr3iMs&exp=1785847202",
+    "width": 126,
+    "height": 126,
+    "name": "Égide rituelle"
+  },
+  "watcher_helm": {
+    "asset_id": "f0d4c95e-ff67-445a-9579-f89ec82a0684",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f0d4c95e-ff67-445a-9579-f89ec82a0684/signed-content/pixel?sig=s4pOt-7XIdLHbr1NzGSWQGV-gJfR0DqKMylmg5QCddo&exp=1785847216",
+    "width": 116,
+    "height": 116,
+    "name": "Heaume du Veilleur"
+  },
+  "shadow_hood": {
+    "asset_id": "e52886a6-9786-465d-b03c-432287d63b9c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e52886a6-9786-465d-b03c-432287d63b9c/signed-content/pixel?sig=b1VDALjcc00-A8g2AHX8Z5MPpxI_Y0IFw3anw-pKemw&exp=1785847231",
+    "width": 60,
+    "height": 60,
+    "name": "Capuche de l'Ombre"
+  },
+  "mithril_helm": {
+    "asset_id": "d3e5af11-0094-4fcf-8ea8-6b8a2bd49dab",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/d3e5af11-0094-4fcf-8ea8-6b8a2bd49dab/signed-content/pixel?sig=9Wmd5kfasDyRuogyUPxizTtKQRYXWvCunynKrcj7Y_I&exp=1785847246",
+    "width": 66,
+    "height": 66,
+    "name": "Heaume de mithril"
+  },
+  "ritual_circlet": {
+    "asset_id": "a98511c6-cbb6-42bb-bfe2-4444d57555a4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/a98511c6-cbb6-42bb-bfe2-4444d57555a4/signed-content/pixel?sig=76ht-tWzBDTDFDaXgyevRASw6cPZgd4OWzrD_IWBPzI&exp=1785847261",
+    "width": 138,
+    "height": 138,
+    "name": "Diadème rituel"
+  },
+  "watcher_chest": {
+    "asset_id": "b2f0f41e-f84e-4998-a55b-1dac4ccdc617",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b2f0f41e-f84e-4998-a55b-1dac4ccdc617/signed-content/pixel?sig=Qwi1WFa6_GHp7kbREhWXzb_4b15SmpGGOPqdbhCOAX8&exp=1785847275",
+    "width": 66,
+    "height": 66,
+    "name": "Plastron du Veilleur"
+  },
+  "shadow_vest": {
+    "asset_id": "58b16bbd-05ad-40c9-ae5f-c09ce3586c36",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/58b16bbd-05ad-40c9-ae5f-c09ce3586c36/signed-content/pixel?sig=40ht3KzJrjwCyJ7B8LaI_MiJZASUbetCdcCNvtOVM44&exp=1785847290",
+    "width": 66,
+    "height": 66,
+    "name": "Veste de l'Ombre"
+  },
+  "mithril_chest": {
+    "asset_id": "029691ab-932e-4b8d-89d7-bb1481d7ce2c",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/029691ab-932e-4b8d-89d7-bb1481d7ce2c/signed-content/pixel?sig=LoRVGa2GxATbA-eJvQxQSKCIcevz2c7u85wZlBuwtu4&exp=1785847304",
+    "width": 80,
+    "height": 80,
+    "name": "Cuirasse de mithril"
+  },
+  "ritual_robe": {
+    "asset_id": "ebbc3fd7-fd9b-4071-b589-9e38dc8aad25",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/ebbc3fd7-fd9b-4071-b589-9e38dc8aad25/signed-content/pixel?sig=TsQOQ_7AZ0C_Ur56Srlf384QDgLypp3oPgLNH8ffFzs&exp=1785847318",
+    "width": 160,
+    "height": 160,
+    "name": "Robe rituelle"
+  },
+  "watcher_legs": {
+    "asset_id": "311f9576-4124-4ec6-897f-7f0bee1520ca",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/311f9576-4124-4ec6-897f-7f0bee1520ca/signed-content/pixel?sig=gxkHOLlpYaV9v5c9Xp4FJS8OuAFkg_Ho0EEpOgUHfBw&exp=1785847334",
+    "width": 132,
+    "height": 132,
+    "name": "Jambières du Veilleur"
+  },
+  "shadow_leggings": {
+    "asset_id": "6df20168-d03a-4141-bd63-ddf1803a8a88",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6df20168-d03a-4141-bd63-ddf1803a8a88/signed-content/pixel?sig=EJUyh-6mEVVn6YHzbYwjVHZZBFUAAngAmXcvRZ6sw5g&exp=1785847349",
+    "width": 52,
+    "height": 52,
+    "name": "Chausses de l'Ombre"
+  },
+  "mithril_legs": {
+    "asset_id": "b8167d4b-6e5e-4b0e-8637-526523b5fa4a",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/b8167d4b-6e5e-4b0e-8637-526523b5fa4a/signed-content/pixel?sig=aTW2a7KL5ui2vFDwycR-00CWyYYl8oXCGrsyYzQZdjM&exp=1785847366",
+    "width": 76,
+    "height": 76,
+    "name": "Jambières de mithril"
+  },
+  "ritual_legs": {
+    "asset_id": "61fa78a8-c303-4629-8929-9f50ec2de933",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/61fa78a8-c303-4629-8929-9f50ec2de933/signed-content/pixel?sig=LKTtpRVBRyLVm5PhkED1A2ZZxf2ePpFZ1H6LU_Ak6BQ&exp=1785847383",
+    "width": 110,
+    "height": 110,
+    "name": "Bas rituels"
+  },
+  "watcher_boots": {
+    "asset_id": "51b18ad6-62d5-46b2-9b78-ff260782931d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/51b18ad6-62d5-46b2-9b78-ff260782931d/signed-content/pixel?sig=mqbXR0MXe_z7KfgrXZb4pqXNeHKCn3FX0Z9KnYOSfe0&exp=1785847397",
+    "width": 124,
+    "height": 124,
+    "name": "Bottes du Veilleur"
+  },
+  "shadow_boots": {
+    "asset_id": "c4091f46-ffe6-44aa-90d7-c2650b73b894",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/c4091f46-ffe6-44aa-90d7-c2650b73b894/signed-content/pixel?sig=CNlNOcacuPHjeWjcxkxHKi6BTMiUyEdj7s-ooaC6BRs&exp=1785847410",
+    "width": 64,
+    "height": 64,
+    "name": "Bottes de l'Ombre"
+  },
+  "mithril_boots": {
+    "asset_id": "e49216e4-ce76-4f7c-9269-42030e5dde4d",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e49216e4-ce76-4f7c-9269-42030e5dde4d/signed-content/pixel?sig=dbj3Fmvk4-9XtG7HweFtlVOwrZFIwxz3AVytrnadRZo&exp=1785847427",
+    "width": 54,
+    "height": 54,
+    "name": "Bottes de mithril"
+  },
+  "ritual_boots": {
+    "asset_id": "e591d505-a16d-4854-ab4e-009053763be4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/e591d505-a16d-4854-ab4e-009053763be4/signed-content/pixel?sig=01S9kHX5X4mvEI-IRTtTwUZVgnOzEZCloH14IiLEmWo&exp=1785847448",
+    "width": 96,
+    "height": 96,
+    "name": "Bottes rituelles"
+  },
+  "watcher_gloves": {
+    "asset_id": "3e7783b3-42c6-4c1e-94ad-c6fee872d72b",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/3e7783b3-42c6-4c1e-94ad-c6fee872d72b/signed-content/pixel?sig=pQd0wPcLy9rzmyUxpBXdZJVqyEHwFdkQ_zJZIsAZ_Gs&exp=1785847463",
+    "width": 62,
+    "height": 62,
+    "name": "Gants du Veilleur"
+  },
+  "shadow_gloves": {
+    "asset_id": "bc5d697d-fe30-4305-8331-3af5836fc505",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/bc5d697d-fe30-4305-8331-3af5836fc505/signed-content/pixel?sig=b4p-XiwpDTaztWiTCTb0WU3rmqqoooRINAkYdrWBQGo&exp=1785847476",
+    "width": 64,
+    "height": 64,
+    "name": "Gants de l'Ombre"
+  },
+  "mithril_gauntlets": {
+    "asset_id": "6e71c8d7-6054-449c-9a13-c6ec9c211f4e",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/6e71c8d7-6054-449c-9a13-c6ec9c211f4e/signed-content/pixel?sig=DY64XavrK1RBtRkBb5DgptmmhJKJggaYtqesq_1LBnk&exp=1785847492",
+    "width": 78,
+    "height": 78,
+    "name": "Gantelets de mithril"
+  },
+  "ritual_gloves": {
+    "asset_id": "f969f5d8-56f4-4582-b600-a81de1eb0fa4",
+    "sprite_url": "https://api.spritecook.ai/v1/assets/f969f5d8-56f4-4582-b600-a81de1eb0fa4/signed-content/pixel?sig=DlrOxIiqCxx3WsWu95fOe0spzYJWV0OX5pcJTsbSitw&exp=1785847511",
+    "width": 122,
+    "height": 122,
+    "name": "Gants rituels"
   }
 }

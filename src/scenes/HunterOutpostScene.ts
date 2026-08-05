@@ -70,7 +70,7 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hunter = this.add.rectangle(160, 190, 14, 20, 0x5a6a3a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.hunter, 'npc-hunter_outpost', `${import.meta.env.BASE_URL}sprites/npc/hunter_outpost.png`, 18);
+    void attachSpriteOverlay(this, this.hunter, 'npc-hunter_outpost', `${import.meta.env.BASE_URL}sprites/npc/hunter_outpost.png`, 24);
     this.physics.add.existing(this.hunter, true);
     addCrispText(this, 160, 170, 'Chasseuse', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

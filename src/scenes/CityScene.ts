@@ -94,17 +94,17 @@ export class CityScene extends Phaser.Scene {
     // Each NPC kept off the straight west-entrance-to-building lines, same
     // lesson as every other location this session.
     this.captain = this.add.rectangle(150, 190, 14, 20, 0x6a5a7a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.captain, 'npc-city_captain', `${import.meta.env.BASE_URL}sprites/npc/city_captain.png`, 18);
+    void attachSpriteOverlay(this, this.captain, 'npc-city_captain', `${import.meta.env.BASE_URL}sprites/npc/city_captain.png`, 24);
     this.physics.add.existing(this.captain, true);
     addCrispText(this, 150, 170, 'Capitaine Bregan', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
     this.mage = this.add.rectangle(400, 220, 14, 20, 0x4a3a7a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.mage, 'npc-city_mage', `${import.meta.env.BASE_URL}sprites/npc/city_mage.png`, 18);
+    void attachSpriteOverlay(this, this.mage, 'npc-city_mage', `${import.meta.env.BASE_URL}sprites/npc/city_mage.png`, 24);
     this.physics.add.existing(this.mage, true);
     addCrispText(this, 400, 200, 'Mage Sélène', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
     this.merchantNpc = this.add.rectangle(280, 260, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 18);
+    void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 24);
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 

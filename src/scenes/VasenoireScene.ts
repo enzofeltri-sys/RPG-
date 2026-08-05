@@ -89,7 +89,7 @@ export class VasenoireScene extends Phaser.Scene {
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
     this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 18);
+    void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 24);
     this.physics.add.existing(this.yenn, true);
     addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
@@ -106,7 +106,7 @@ export class VasenoireScene extends Phaser.Scene {
     // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
     // comment for why every placement in this project double-checks this.
     this.toma = this.add.rectangle(70, 260, 14, 20, 0x5a6a6a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.toma, 'npc-vasenoire_local_toma', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_toma.png`, 18);
+    void attachSpriteOverlay(this, this.toma, 'npc-vasenoire_local_toma', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_toma.png`, 24);
     this.physics.add.existing(this.toma, true);
     addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

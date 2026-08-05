@@ -74,7 +74,7 @@ export class InteriorScene extends Phaser.Scene {
     addCrispText(this, WORLD_WIDTH / 2, 40, this.roomData.npcName, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     if (this.roomData.npcSpriteKey) {
       const key = this.roomData.npcSpriteKey;
-      void attachSpriteOverlay(this, npc, `npc-${key}`, `${import.meta.env.BASE_URL}sprites/npc/${key}.png`, 18);
+      void attachSpriteOverlay(this, npc, `npc-${key}`, `${import.meta.env.BASE_URL}sprites/npc/${key}.png`, 24);
     }
 
     this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30);

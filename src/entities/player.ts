@@ -7,7 +7,10 @@ const ARRIVE_THRESHOLD = 4;
 // Real art renders noticeably larger than the 12x16 collision box (kept
 // unchanged so every existing zone/collider tuned against it still lines
 // up) — this is purely the on-screen size of the overlaid appearance image.
-const APPEARANCE_SIZE = 20;
+// Sized up from an initial 20px: most source portraits are 56px+ natively,
+// so displaying much smaller than that throws away detail the generation
+// actually has instead of it being a resolution ceiling.
+const APPEARANCE_SIZE = 28;
 
 export type PlayerSprite = Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
 
@@ -49,8 +52,6 @@ export function updatePlayerMovement(
   cursors: Phaser.Types.Input.Keyboard.CursorKeys,
   moveTarget: MoveTarget | null,
 ): boolean {
-  syncSpriteOverlay(player);
-
   let dx = 0;
   let dy = 0;
   if (cursors.left.isDown) dx = -1;
@@ -61,11 +62,13 @@ export function updatePlayerMovement(
   if (dx !== 0 || dy !== 0) {
     const length = Math.hypot(dx, dy);
     player.body.setVelocity((dx / length) * SPEED, (dy / length) * SPEED);
+    syncSpriteOverlay(player, true);
     return false;
   }
 
   if (!moveTarget) {
     player.body.setVelocity(0, 0);
+    syncSpriteOverlay(player, false);
     return false;
   }
 
@@ -74,9 +77,11 @@ export function updatePlayerMovement(
   const dist = Math.hypot(tx, ty);
   if (dist < ARRIVE_THRESHOLD) {
     player.body.setVelocity(0, 0);
+    syncSpriteOverlay(player, false);
     return false;
   }
 
   player.body.setVelocity((tx / dist) * SPEED, (ty / dist) * SPEED);
+  syncSpriteOverlay(player, true);
   return true;
 }

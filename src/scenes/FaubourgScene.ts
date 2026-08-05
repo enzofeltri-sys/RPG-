@@ -88,7 +88,7 @@ export class FaubourgScene extends Phaser.Scene {
     // Off the x=130 centerline (spawn sits on it), same lesson as every other
     // location this session.
     this.informant = this.add.rectangle(190, 185, 14, 20, 0x5a6a7a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.informant, 'npc-informant_faubourg', `${import.meta.env.BASE_URL}sprites/npc/informant_faubourg.png`, 18);
+    void attachSpriteOverlay(this, this.informant, 'npc-informant_faubourg', `${import.meta.env.BASE_URL}sprites/npc/informant_faubourg.png`, 24);
     this.physics.add.existing(this.informant, true);
     addCrispText(this, 190, 165, 'Renn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

@@ -113,7 +113,7 @@ export class HamletScene extends Phaser.Scene {
     void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
 
     this.mentor = this.add.rectangle(150, 130, 14, 20, 0x5a4a3a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.mentor, 'npc-hamlet_mentor', `${import.meta.env.BASE_URL}sprites/npc/hamlet_mentor.png`, 18);
+    void attachSpriteOverlay(this, this.mentor, 'npc-hamlet_mentor', `${import.meta.env.BASE_URL}sprites/npc/hamlet_mentor.png`, 24);
     this.physics.add.existing(this.mentor, true);
     addCrispText(this, 150, 110, 'Aldric', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
@@ -127,7 +127,7 @@ export class HamletScene extends Phaser.Scene {
     // see the POST_GAME_STAGES comment above for why he stays quiet until
     // the main quest is done.
     this.gontrand = this.add.rectangle(50, 250, 14, 20, 0x7a6a5a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.gontrand, 'npc-gontrand_scholar', `${import.meta.env.BASE_URL}sprites/npc/gontrand_scholar.png`, 18);
+    void attachSpriteOverlay(this, this.gontrand, 'npc-gontrand_scholar', `${import.meta.env.BASE_URL}sprites/npc/gontrand_scholar.png`, 24);
     addCrispText(this, 50, 230, 'Gontrand', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);

@@ -109,7 +109,7 @@ export class ShrineScene extends Phaser.Scene {
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);
-    void attachSpriteOverlay(this, this.hermit, 'npc-shrine_hermit', `${import.meta.env.BASE_URL}sprites/npc/shrine_hermit.png`, 18);
+    void attachSpriteOverlay(this, this.hermit, 'npc-shrine_hermit', `${import.meta.env.BASE_URL}sprites/npc/shrine_hermit.png`, 24);
     this.physics.add.existing(this.hermit, true);
     addCrispText(this, 140, 80, 'Ermite', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
@@ -174,7 +174,7 @@ export class ShrineScene extends Phaser.Scene {
       // tap-through at (100, 50) so the two never compete for a tap.
       if (getMainQuestStage(this.character) === 'awaiting_meeting') {
         this.silhouette = this.add.rectangle(100, 25, 12, 20, 0x2a2a3a).setStrokeStyle(1, 0xe8d9b5);
-    void attachSpriteOverlay(this, this.silhouette, 'npc-mysterious_silhouette', `${import.meta.env.BASE_URL}sprites/npc/mysterious_silhouette.png`, 18);
+    void attachSpriteOverlay(this, this.silhouette, 'npc-mysterious_silhouette', `${import.meta.env.BASE_URL}sprites/npc/mysterious_silhouette.png`, 24);
         addCrispText(this, 100, 10, 'Silhouette', { fontSize: '8px', color: '#e8d9b5' }).setOrigin(0.5);
         this.tapControl.setInteractables([
           ...this.baseInteractables,

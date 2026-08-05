@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { attachSpriteOverlay, syncSpriteOverlay } from './spriteOverlay';
 
 const WANDER_SPEED = 18;
-const APPEARANCE_SIZE = 18;
+const APPEARANCE_SIZE = 24;
 
 export type WandererSprite = Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
 
@@ -37,6 +37,6 @@ export class Wanderer {
     if (this.sprite.x <= this.minX) this.direction = 1;
     else if (this.sprite.x >= this.maxX) this.direction = -1;
     this.sprite.body.setVelocityX(WANDER_SPEED * this.direction);
-    syncSpriteOverlay(this.sprite);
+    syncSpriteOverlay(this.sprite, true);
   }
 }

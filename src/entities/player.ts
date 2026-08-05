@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Race, CharClass } from '../game/character';
+import { attachSpriteOverlay, syncSpriteOverlay } from './spriteOverlay';
 
 export const SPEED = 70;
 const ARRIVE_THRESHOLD = 4;
@@ -35,24 +36,8 @@ export function createPlayer(scene: Phaser.Scene, x: number, y: number): PlayerS
 // rather than up front.
 export async function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSprite, race: Race, charClass: CharClass): Promise<void> {
   const key = `player-${race}_${charClass}`;
-  if (!scene.textures.exists(key)) {
-    await new Promise<void>((resolve) => {
-      scene.load.image(key, `${import.meta.env.BASE_URL}sprites/player/${race}_${charClass}.png`);
-      scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
-      scene.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, () => resolve());
-      scene.load.start();
-    });
-  }
-  if (!scene.scene.isActive() || !scene.textures.exists(key)) return;
-
-  const existing = player.getData('appearanceImage') as Phaser.GameObjects.Image | undefined;
-  if (existing) {
-    existing.setTexture(key);
-    return;
-  }
-  const image = scene.add.image(player.x, player.y, key).setDisplaySize(APPEARANCE_SIZE, APPEARANCE_SIZE);
-  player.setData('appearanceImage', image);
-  player.setVisible(false);
+  const url = `${import.meta.env.BASE_URL}sprites/player/${race}_${charClass}.png`;
+  await attachSpriteOverlay(scene, player, key, url, APPEARANCE_SIZE);
 }
 
 // Keyboard (still supported as a desktop fallback) always overrides an
@@ -64,8 +49,7 @@ export function updatePlayerMovement(
   cursors: Phaser.Types.Input.Keyboard.CursorKeys,
   moveTarget: MoveTarget | null,
 ): boolean {
-  const appearanceImage = player.getData('appearanceImage') as Phaser.GameObjects.Image | undefined;
-  appearanceImage?.setPosition(player.x, player.y);
+  syncSpriteOverlay(player);
 
   let dx = 0;
   let dy = 0;

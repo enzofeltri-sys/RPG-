@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -109,21 +110,24 @@ export class HamletScene extends Phaser.Scene {
 
     // An old chest stashed beside that third, mostly-abandoned hut.
     this.chest = this.add.rectangle(150, 330, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
 
     this.mentor = this.add.rectangle(150, 130, 14, 20, 0x5a4a3a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.mentor, 'npc-hamlet_mentor', `${import.meta.env.BASE_URL}sprites/npc/hamlet_mentor.png`, 18);
     this.physics.add.existing(this.mentor, true);
     addCrispText(this, 150, 110, 'Aldric', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     // Purely ambient — makes the hamlet read as lived-in rather than a
     // backdrop. Small patrol range, kept clear of the x=120 centerline and
     // every building/zone.
-    this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20);
+    this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20, 'villager_wanderer');
 
     // Kept well clear of every other fixed point here (buildings at
     // (50,90)/(190,90)/(190,300), chest at (150,330), mentor at (150,130)) —
     // see the POST_GAME_STAGES comment above for why he stays quiet until
     // the main quest is done.
     this.gontrand = this.add.rectangle(50, 250, 14, 20, 0x7a6a5a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.gontrand, 'npc-gontrand_scholar', `${import.meta.env.BASE_URL}sprites/npc/gontrand_scholar.png`, 18);
     addCrispText(this, 50, 230, 'Gontrand', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
@@ -204,6 +208,7 @@ export class HamletScene extends Phaser.Scene {
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
+        void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
       }
       new CharacterSheetPanel(
         this,
@@ -233,12 +238,15 @@ export class HamletScene extends Phaser.Scene {
 
   // Purely decorative (no collision).
   private addTree(x: number, y: number): void {
-    this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
-    this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+    const trunk = this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+    const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
+    void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
+    void trunk;
   }
 
   private addBush(x: number, y: number): void {
-    this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+    const bush = this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+    void attachSpriteOverlay(this, bush, 'decor-bush', `${import.meta.env.BASE_URL}sprites/decor/bush.png`, 16);
   }
 
   // The 3 formerly dead-end "personne ne répond" cabanes, each now their
@@ -254,6 +262,7 @@ export class HamletScene extends Phaser.Scene {
         floorColor: 0x2a2420,
         npcName: 'Thibault',
         npcColor: 0x6a5a4a,
+        npcSpriteKey: 'thibault_father',
         lines: [
           "Vous croyez que c'est fini, voyageur ? Moi je dis qu'il y a sûrement encore un gobelin quelque part qui prépare sa revanche.",
           "J'ai muré la fenêtre côté nord. On ne sait jamais, avec les gobelins. Ou les rats. Ou le vent, en fait, mais surtout les gobelins.",
@@ -265,6 +274,7 @@ export class HamletScene extends Phaser.Scene {
         floorColor: 0x28242a,
         npcName: 'Solange',
         npcColor: 0x8a6a7a,
+        npcSpriteKey: 'solange_weaver',
         lines: [
           'Cette marque sur votre bras, voyageur, quelle nuance exacte ? J\'essaie de la reproduire en laine depuis des semaines et rien n\'y fait.',
           'Le bleu-doré, non. Le doré-bleu, peut-être ? Il me faudrait vous regarder d\'encore plus près, tenez-vous tranquille.',
@@ -276,6 +286,7 @@ export class HamletScene extends Phaser.Scene {
         floorColor: 0x242a24,
         npcName: 'Fauvette',
         npcColor: 0x7a8a6a,
+        npcSpriteKey: 'fauvette_grandmother',
         lines: [
           'Le monde a failli se briser, à ce qu\'on raconte. Mes tomates, elles, se portent très bien, merci de demander.',
           "On m'a dit qu'il y avait un roi démon scellé sous le sanctuaire. Personnellement, je me méfie plus des limaces.",
@@ -659,6 +670,7 @@ export class HamletScene extends Phaser.Scene {
     }
     const loot = openChest(this.character, CHEST_ID, 'Hamlet');
     this.chest.setFillStyle(0x3a3428);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
       playChestOpen();

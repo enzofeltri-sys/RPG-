@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -91,6 +92,7 @@ export class BanditCampScene extends Phaser.Scene {
     // Basse-Combe's mentor placement — nothing should block the straight
     // path from spawn into the camp.
     this.guard = this.add.rectangle(190, 185, 14, 20, 0x7a6a4a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 18);
     this.physics.add.existing(this.guard, true);
     addCrispText(this, 190, 165, 'Garde blessé', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

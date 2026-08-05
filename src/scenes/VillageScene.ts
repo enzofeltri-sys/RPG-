@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -101,6 +102,7 @@ export class VillageScene extends Phaser.Scene {
     this.addBush(380, 540);
 
     this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 18);
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
@@ -112,12 +114,13 @@ export class VillageScene extends Phaser.Scene {
     this.add.circle(240, 550, 8, 0x2e5a7a).setStrokeStyle(1, 0x1a3a50);
 
     // Ambient villagers, clear of every building/zone/signpost.
-    this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15), new Wanderer(this, 400, 150, 0x7a8a6a, 25)];
+    this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15, 'villager_wanderer'), new Wanderer(this, 400, 150, 0x7a8a6a, 25, 'villager_wanderer')];
 
     // Kept well clear of every other fixed point here — see the
     // POST_GAME_STAGES comment above for why he stays quiet until the main
     // quest is done.
     this.brasque = this.add.rectangle(60, 470, 14, 20, 0x8a5a2a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.brasque, 'npc-brasque_merchant', `${import.meta.env.BASE_URL}sprites/npc/brasque_merchant.png`, 18);
     addCrispText(this, 60, 450, 'Brasque', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
@@ -461,12 +464,15 @@ export class VillageScene extends Phaser.Scene {
   // Purely decorative (no collision) — a wide-open ground tile between
   // buildings otherwise reads as empty rather than "the edge of a village."
   private addTree(x: number, y: number): void {
-    this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
-    this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+    const trunk = this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
+    const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
+    void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
+    void trunk;
   }
 
   private addBush(x: number, y: number): void {
-    this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+    const bush = this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
+    void attachSpriteOverlay(this, bush, 'decor-bush', `${import.meta.env.BASE_URL}sprites/decor/bush.png`, 16);
   }
 
   // The 3 formerly dead-end "personne ne répond" buildings, now each their
@@ -483,6 +489,7 @@ export class VillageScene extends Phaser.Scene {
         floorColor: 0x2a2420,
         npcName: 'Bertrand',
         npcColor: 0x5a6a7a,
+        npcSpriteKey: 'bertrand_fisherman',
         lines: [
           "Vous auriez dû voir la taille de ce poisson, voyageur. Grand comme... enfin, disons deux fois la taille d'un loup corrompu.",
           "Trois fois. En fait, en y repensant bien, c'était plutôt trois fois la taille d'un loup corrompu.",
@@ -494,6 +501,7 @@ export class VillageScene extends Phaser.Scene {
         floorColor: 0x2a2028,
         npcName: 'Ombeline',
         npcColor: 0x8a5a7a,
+        npcSpriteKey: 'ombeline_catlady',
         lines: [
           'Chut, ne réveillez pas Mistigri. Ni Griselda. Ni les onze autres, d\'ailleurs — je ne me souviens plus très bien de tous leurs noms.',
           "On me dit qu'il n'y a pas de chat dans cette pièce, voyageur. Ces gens n'ont manifestement jamais eu de chat invisible.",
@@ -505,6 +513,7 @@ export class VillageScene extends Phaser.Scene {
         floorColor: 0x2a2418,
         npcName: "Fernand, l'aubergiste",
         npcColor: 0x7a5a3a,
+        npcSpriteKey: 'fernand_innkeeper',
         lines: [
           "Bienvenue à l'auberge, voyageur ! On n'a plus de chambres, plus de bière, et le cuisinier a démissionné la semaine dernière — mais l'accueil, ça, c'est gratuit.",
           "On raconte que le sanctuaire porte chance aux voyageurs. Moi je raconte surtout que ma soupe porte malheur à qui la termine.",

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -93,6 +94,7 @@ export class FarmScene extends Phaser.Scene {
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.farmer = this.add.rectangle(170, 100, 14, 20, 0x8a6a3a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.farmer, 'npc-farmer_generic', `${import.meta.env.BASE_URL}sprites/npc/farmer_generic.png`, 18);
     this.physics.add.existing(this.farmer, true);
     addCrispText(this, 170, 80, 'Fermière', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

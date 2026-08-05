@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -113,6 +114,7 @@ export class WatchersVaultScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
     const interactables: Interactable[] = [
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
@@ -130,6 +132,7 @@ export class WatchersVaultScene extends Phaser.Scene {
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
+        void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
       }
       new CharacterSheetPanel(
         this,
@@ -240,6 +243,7 @@ export class WatchersVaultScene extends Phaser.Scene {
     }
     const loot = openChest(this.character, CHEST_ID, 'WatchersVault');
     this.chest.setFillStyle(0x3a3428);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
       playChestOpen();

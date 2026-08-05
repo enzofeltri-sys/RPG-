@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -89,9 +90,18 @@ export class ForestScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#24401f');
 
-    TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b));
-    MUSHROOMS.forEach((m) => this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10));
-    ROCKS.forEach((r) => this.add.rectangle(r.x, r.y, 16, 12, 0x4a4a48).setStrokeStyle(1, 0x24241f));
+    TREES.forEach((tree) => {
+      const shape = this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b);
+      void attachSpriteOverlay(this, shape, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
+    });
+    MUSHROOMS.forEach((m) => {
+      const shape = this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
+      void attachSpriteOverlay(this, shape, 'decor-mushroom', `${import.meta.env.BASE_URL}sprites/decor/mushroom.png`, 14);
+    });
+    ROCKS.forEach((r) => {
+      const shape = this.add.rectangle(r.x, r.y, 16, 12, 0x4a4a48).setStrokeStyle(1, 0x24241f);
+      void attachSpriteOverlay(this, shape, 'decor-rock_small', `${import.meta.env.BASE_URL}sprites/decor/rock_small.png`, 18);
+    });
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
       '← Champ',

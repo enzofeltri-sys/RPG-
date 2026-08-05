@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -95,7 +96,7 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     // Odren, a refugee wandering clear of the signpost and the water patch —
     // side-quest giver for this region's second ambient threat.
-    this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25);
+    this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25, 'villager_wanderer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.refugee.sprite);
@@ -123,6 +124,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(350, 100, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
 
     // Entrance to the ruins dungeon (SunkenRuinsScene), tucked among the
     // decorative RUINS cluster at (300,340)/(260,370) so it reads as part of
@@ -163,6 +165,7 @@ export class SunkenRoadScene extends Phaser.Scene {
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
+        void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
       }
       new CharacterSheetPanel(
         this,
@@ -312,6 +315,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     }
     const loot = openChest(this.character, CHEST_ID, 'SunkenRoad');
     this.chest.setFillStyle(0x3a3428);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
       playChestOpen();

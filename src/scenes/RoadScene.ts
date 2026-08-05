@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -90,18 +91,25 @@ export class RoadScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#6b5a42');
 
-    WAGONS.forEach((wagon) => this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810));
-    BOULDERS.forEach((b) => this.add.rectangle(b.x, b.y, 20, 16, 0x6a6a62).setStrokeStyle(1, 0x38382f));
+    WAGONS.forEach((wagon) => {
+      const shape = this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
+      void attachSpriteOverlay(this, shape, 'decor-wagon_cart', `${import.meta.env.BASE_URL}sprites/decor/wagon_cart.png`, 26);
+    });
+    BOULDERS.forEach((b) => {
+      const shape = this.add.rectangle(b.x, b.y, 20, 16, 0x6a6a62).setStrokeStyle(1, 0x38382f);
+      void attachSpriteOverlay(this, shape, 'decor-boulder_large', `${import.meta.env.BASE_URL}sprites/decor/boulder_large.png`, 22);
+    });
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Valombre', '→ Aiglemont']);
 
     // Off the horizontal centerline, same lesson as every NPC this session.
     this.guard = this.add.rectangle(150, 60, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 18);
     this.physics.add.existing(this.guard, true);
     addCrispText(this, 150, 40, 'Garde de caravane', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     // Ambient traveler, clear of both the guard and the wagon decorations.
-    this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30);
+    this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30, 'villager_wanderer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.guard);

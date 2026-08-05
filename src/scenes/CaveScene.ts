@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -102,10 +103,17 @@ export class CaveScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#20202a');
 
-    ROCKS.forEach((rock) => this.add.rectangle(rock.x, rock.y, 18, 12, 0x35353f).setStrokeStyle(1, 0x18181c));
-    CRYSTALS.forEach((c) => this.add.circle(c.x, c.y, 5, 0x5a8ac5, 0.8).setStrokeStyle(1, 0x2e4a6a));
-    this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 14, 0xb54a1a).setStrokeStyle(1, 0x5a2410);
+    ROCKS.forEach((rock) => {
+      const shape = this.add.rectangle(rock.x, rock.y, 18, 12, 0x35353f).setStrokeStyle(1, 0x18181c);
+      void attachSpriteOverlay(this, shape, 'decor-rock_small', `${import.meta.env.BASE_URL}sprites/decor/rock_small.png`, 18);
+    });
+    CRYSTALS.forEach((c) => {
+      const shape = this.add.circle(c.x, c.y, 5, 0x5a8ac5, 0.8).setStrokeStyle(1, 0x2e4a6a);
+      void attachSpriteOverlay(this, shape, 'decor-crystal_glow', `${import.meta.env.BASE_URL}sprites/decor/crystal_glow.png`, 14);
+    });
+    const lavaShape = this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 14, 0xb54a1a).setStrokeStyle(1, 0x5a2410);
     this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 7, 0xe8a020, 0.9);
+    void attachSpriteOverlay(this, lavaShape, 'decor-lava_pool', `${import.meta.env.BASE_URL}sprites/decor/lava_pool.png`, 28);
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 40, ['↓ Forêt', '↑ Valombre']);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
@@ -139,6 +147,7 @@ export class CaveScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 240, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
     const interactables: Interactable[] = [
       { x: this.chest.x, y: this.chest.y, radius: 20, onTap: () => this.handleChestTap() },
     ];
@@ -156,6 +165,7 @@ export class CaveScene extends Phaser.Scene {
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
+        void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
       }
       new CharacterSheetPanel(
         this,
@@ -216,6 +226,7 @@ export class CaveScene extends Phaser.Scene {
     }
     const loot = openChest(this.character, CHEST_ID, 'Cave');
     this.chest.setFillStyle(0x3a3428);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
       playChestOpen();

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -74,31 +75,38 @@ export class VasenoireScene extends Phaser.Scene {
     this.add.rectangle(60, 100, 50, 38, 0x4a3a30).setStrokeStyle(1, 0x241d16);
     this.add.rectangle(180, 90, 44, 34, 0x4a3a30).setStrokeStyle(1, 0x241d16);
     this.add.rectangle(120, 220, 60, 40, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 200, 20, 0x3a4a44).setStrokeStyle(1, 0x1c2622);
+    const boardwalk = this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 200, 20, 0x3a4a44).setStrokeStyle(1, 0x1c2622);
+    void attachSpriteOverlay(this, boardwalk, 'decor-boardwalk_planks', `${import.meta.env.BASE_URL}sprites/decor/boardwalk_planks.png`, 40);
 
     // Murky standing water either side of the boardwalk — a swamp town
     // with nothing wet in sight always read as an odd gap. No collision,
     // same reasoning as every other decorative element here.
-    this.add.ellipse(40, 190, 34, 18, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
-    this.add.ellipse(210, 190, 30, 16, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
+    const water1 = this.add.ellipse(40, 190, 34, 18, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
+    const water2 = this.add.ellipse(210, 190, 30, 16, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
+    void attachSpriteOverlay(this, water1, 'decor-water_murky', `${import.meta.env.BASE_URL}sprites/decor/water_murky.png`, 34);
+    void attachSpriteOverlay(this, water2, 'decor-water_murky', `${import.meta.env.BASE_URL}sprites/decor/water_murky.png`, 30);
 
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
     this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 18);
     this.physics.add.existing(this.yenn, true);
     addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.merchantStall = this.add.rectangle(50, 170, 28, 22, 0x5a4a30).setStrokeStyle(1, 0x241d16);
     this.physics.add.existing(this.merchantStall, true);
+    void attachSpriteOverlay(this, this.merchantStall, 'decor-merchant_stall', `${import.meta.env.BASE_URL}sprites/decor/merchant_stall.png`, 30);
     addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     this.forge = this.add.rectangle(190, 230, 32, 26, 0x3a3a3a).setStrokeStyle(1, 0x161616);
     this.physics.add.existing(this.forge, true);
+    void attachSpriteOverlay(this, this.forge, 'decor-blacksmith_forge', `${import.meta.env.BASE_URL}sprites/decor/blacksmith_forge.png`, 32);
     addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
     // comment for why every placement in this project double-checks this.
     this.toma = this.add.rectangle(70, 260, 14, 20, 0x5a6a6a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.toma, 'npc-vasenoire_local_toma', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_toma.png`, 18);
     this.physics.add.existing(this.toma, true);
     addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 

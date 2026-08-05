@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -82,7 +83,7 @@ export class RiverRoadScene extends Phaser.Scene {
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Faubourg des quais', '→ Relais des chasseurs']);
 
     // Ambient fisherman, clear of the signpost and the water patch.
-    this.fisherman = new Wanderer(this, 90, 200, 0x6a8a9a, 25);
+    this.fisherman = new Wanderer(this, 90, 200, 0x6a8a9a, 25, 'villager_wanderer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.fisherman.sprite);
@@ -115,6 +116,7 @@ export class RiverRoadScene extends Phaser.Scene {
     // are plain closures — an object literal's get x()/get y() would
     // otherwise bind `this` to the literal itself, not the scene.
     this.chest = this.add.rectangle(350, 100, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
 
     const fishermanSprite = this.fisherman.sprite;
     const interactables: Interactable[] = [
@@ -144,6 +146,7 @@ export class RiverRoadScene extends Phaser.Scene {
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);
+        void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
       }
       new CharacterSheetPanel(
         this,
@@ -204,6 +207,7 @@ export class RiverRoadScene extends Phaser.Scene {
     }
     const loot = openChest(this.character, CHEST_ID, 'RiverRoad');
     this.chest.setFillStyle(0x3a3428);
+    void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_open', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_open.png`, 16);
     await SaveManager.saveCharacter(this.character);
     if (loot) {
       playChestOpen();

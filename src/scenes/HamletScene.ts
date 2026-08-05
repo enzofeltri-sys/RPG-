@@ -233,15 +233,14 @@ export class HamletScene extends Phaser.Scene {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
+    void attachSpriteOverlay(this, rect, 'decor-village_house', `${import.meta.env.BASE_URL}sprites/decor/village_house.png`, Math.max(w, h));
     return rect;
   }
 
   // Purely decorative (no collision).
   private addTree(x: number, y: number): void {
-    const trunk = this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
     const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
     void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
-    void trunk;
   }
 
   private addBush(x: number, y: number): void {
@@ -301,15 +300,27 @@ export class HamletScene extends Phaser.Scene {
     });
   }
 
+  // Mottled grass rather than a flat 2-tone checker — the checker pattern
+  // read as an obvious placeholder grid rather than ground texture. Still
+  // procedural (no real tileset — SpriteCook's tileset generator is locked
+  // behind a higher account tier), just a less mechanical-looking one.
   private drawGround(): void {
     if (!this.textures.exists('groundTile')) {
       const g = this.make.graphics({}, false);
-      g.fillStyle(0x2d4a2d);
-      g.fillRect(0, 0, 32, 32);
-      g.fillStyle(0x326032);
-      g.fillRect(0, 0, 16, 16);
-      g.fillRect(16, 16, 16, 16);
-      g.generateTexture('groundTile', 32, 32);
+      const SIZE = 64;
+      g.fillStyle(0x2e4d2a);
+      g.fillRect(0, 0, SIZE, SIZE);
+      const spots: [number, number, boolean][] = [
+        [8, 10, true], [22, 6, false], [40, 14, true], [54, 9, false],
+        [14, 28, false], [30, 24, true], [46, 30, false], [60, 26, true],
+        [6, 44, true], [20, 40, false], [36, 48, true], [50, 44, false],
+        [10, 58, false], [26, 54, true], [42, 60, false], [58, 56, true],
+      ];
+      spots.forEach(([x, y, dark]) => {
+        g.fillStyle(dark ? 0x274425 : 0x35572f);
+        g.fillCircle(x, y, 3);
+      });
+      g.generateTexture('groundTile', SIZE, SIZE);
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);

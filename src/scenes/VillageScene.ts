@@ -85,11 +85,11 @@ export class VillageScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(500);
 
-    this.bertrandHouse = this.addBuilding(120, 160, 70, 50);
-    this.ombelineHouse = this.addBuilding(300, 210, 60, 60);
-    this.forgeBuilding = this.addBuilding(190, 360, 90, 50);
+    this.bertrandHouse = this.addBuilding(120, 160, 70, 50, 'village_house');
+    this.ombelineHouse = this.addBuilding(300, 210, 60, 60, 'village_house');
+    this.forgeBuilding = this.addBuilding(190, 360, 90, 50, 'blacksmith_forge');
     addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
-    this.innBuilding = this.addBuilding(340, 460, 60, 70);
+    this.innBuilding = this.addBuilding(340, 460, 60, 70, 'inn_building');
     addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     // Decoration only, no collision — makes the wide-open grass between
@@ -454,20 +454,19 @@ export class VillageScene extends Phaser.Scene {
     this.tapControl.setEnabled(true);
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
+  private addBuilding(x: number, y: number, w: number, h: number, spriteKey: 'village_house' | 'inn_building' | 'blacksmith_forge' = 'village_house'): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
+    void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
     return rect;
   }
 
   // Purely decorative (no collision) — a wide-open ground tile between
   // buildings otherwise reads as empty rather than "the edge of a village."
   private addTree(x: number, y: number): void {
-    const trunk = this.add.rectangle(x, y + 10, 5, 8, 0x4a3a2a);
     const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
     void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
-    void trunk;
   }
 
   private addBush(x: number, y: number): void {
@@ -528,15 +527,27 @@ export class VillageScene extends Phaser.Scene {
     });
   }
 
+  // Mottled grass rather than a flat 2-tone checker — the checker pattern
+  // read as an obvious placeholder grid rather than ground texture. Still
+  // procedural (no real tileset — SpriteCook's tileset generator is locked
+  // behind a higher account tier), just a less mechanical-looking one.
   private drawGround(): void {
     if (!this.textures.exists('groundTile')) {
       const g = this.make.graphics({}, false);
-      g.fillStyle(0x2d4a2d);
-      g.fillRect(0, 0, 32, 32);
-      g.fillStyle(0x326032);
-      g.fillRect(0, 0, 16, 16);
-      g.fillRect(16, 16, 16, 16);
-      g.generateTexture('groundTile', 32, 32);
+      const SIZE = 64;
+      g.fillStyle(0x2e4d2a);
+      g.fillRect(0, 0, SIZE, SIZE);
+      const spots: [number, number, boolean][] = [
+        [8, 10, true], [22, 6, false], [40, 14, true], [54, 9, false],
+        [14, 28, false], [30, 24, true], [46, 30, false], [60, 26, true],
+        [6, 44, true], [20, 40, false], [36, 48, true], [50, 44, false],
+        [10, 58, false], [26, 54, true], [42, 60, false], [58, 56, true],
+      ];
+      spots.forEach(([x, y, dark]) => {
+        g.fillStyle(dark ? 0x274425 : 0x35572f);
+        g.fillCircle(x, y, 3);
+      });
+      g.generateTexture('groundTile', SIZE, SIZE);
       g.destroy();
     }
     this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);

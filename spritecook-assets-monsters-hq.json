@@ -1,3 +1,14 @@
 {
+  "goblin_scout": {"asset_id": "2b8f1818-c0d1-4040-990b-0c258392756f", "width": 64, "height": 64},
+  "cave_spider": {"asset_id": "42336938-5382-4b04-8bc7-14d9f8453d0f", "width": 94, "height": 94},
+  "corrupted_wolf": {"asset_id": "316dddad-9f62-4bd0-bec6-9fb507ebc762", "width": 174, "height": 174},
+  "rat_king": {"asset_id": "86a47404-6703-4b48-a453-ff9d7eb789fa", "width": 78, "height": 78},
+  "goblin_brute": {"asset_id": "b82c4e2b-7880-4f58-888e-90c6819d00fa", "width": 124, "height": 124},
+  "bandit_thug": {"asset_id": "39be2da5-d31a-4dd1-8a37-d1e769e94031", "width": 84, "height": 84},
+  "cave_rat": {"asset_id": "c2e940fc-9c3f-421f-81d8-9bfa795510be", "width": 58, "height": 58},
+  "field_rat": {"asset_id": "27d0bfb2-bc90-4561-b076-e5fad690b711", "width": 58, "height": 58},
+  "bandit_leader": {"asset_id": "1a795693-e620-4f97-8ae7-a8f68e83dbcc", "width": 202, "height": 202},
+  "goblin_chief": {"asset_id": "40478c55-630c-4415-bc53-d1f0bcafe191", "width": 188, "height": 188},
+  "corrupted_boar": {"asset_id": "89774241-12cb-4947-9f08-aaedd3a3aff5", "width": 58, "height": 58},
   "failures": []
 }

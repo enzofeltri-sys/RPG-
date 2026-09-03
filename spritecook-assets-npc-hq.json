@@ -1,2 +1,11 @@
 {
+  "city_captain": {"asset_id": "b76a13f5-46d3-4e0a-8178-2acd567cc173", "width": 96, "height": 96},
+  "city_mage": {"asset_id": "d1767129-0f53-4c5e-b2b2-8d5f4c2b29d0", "width": 60, "height": 60},
+  "merchant_generic": {"asset_id": "552cd8b9-ab83-4a52-a92d-5eb18d31ccef", "width": 84, "height": 84},
+  "hunter_outpost": {"asset_id": "b66af575-5276-4bba-8bc1-584f16048921", "width": 58, "height": 58},
+  "shrine_hermit": {"asset_id": "322065be-01f1-4dc8-999e-36e4da94a15f", "width": 156, "height": 156},
+  "mysterious_silhouette": {"asset_id": "408c0b56-76a5-4d70-823d-fd455ed910c2", "width": 34, "height": 34},
+  "guard_generic": {"asset_id": "50082edf-d665-4f31-aba3-41f58dac1b9c", "width": 62, "height": 62},
+  "vasenoire_local_yenn": {"asset_id": "fe7d817d-3651-4dbf-8fff-3b69dc7e515c", "width": 60, "height": 60},
+  "vasenoire_local_toma": {"asset_id": "9b5da503-d2b5-4a8a-b3f4-5cab0cd8f5c7", "width": 90, "height": 90}
 }

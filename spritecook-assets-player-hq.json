@@ -1,3 +1,13 @@
 {
-  "human_warrior": {"asset_id": "e39c4996-ef4d-4fcc-a8d2-2ed88ccdfa44", "width": 84, "height": 84}
+  "human_warrior": {"asset_id": "e39c4996-ef4d-4fcc-a8d2-2ed88ccdfa44", "width": 84, "height": 84},
+  "human_mage": {"asset_id": "eb33e1ee-188a-4fc2-9603-65f46ce78e59", "width": 64, "height": 64},
+  "human_archer": {"asset_id": "c71b4e0f-daa3-45c0-9cfe-af76f0b6489f", "width": 60, "height": 60},
+  "human_rogue": {"asset_id": "9a2e5262-9b7c-4588-a759-6cb52b0c2d87", "width": 60, "height": 60},
+  "human_cleric": {"asset_id": "008fbadf-8be4-4b52-8504-01508d94a2e7", "width": 60, "height": 60},
+  "elf_warrior": {"asset_id": "b56a3633-9ad0-4908-9aa7-754984d19241", "width": 46, "height": 46},
+  "elf_mage": {"asset_id": "70ff2ecd-4401-46b0-8740-964ec4111e42", "width": 62, "height": 62},
+  "elf_archer": {"asset_id": "66656337-55c6-4471-a082-1269a2e6def4", "width": 56, "height": 56},
+  "elf_rogue": {"asset_id": "fd7b8639-d6a7-4da3-ae3c-dbf65608fa17", "width": 68, "height": 68},
+  "elf_cleric": {"asset_id": "8ff9066b-27ae-45a0-8d6d-e2c648d9b1ed", "width": 158, "height": 158},
+  "dwarf_warrior": {"asset_id": "a42e43bb-8aac-49d2-8881-022fb36c6768", "width": 88, "height": 88}
 }

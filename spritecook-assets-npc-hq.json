@@ -11,5 +11,13 @@
   "brasque_merchant": {"asset_id": "c582b5e3-3d9e-4a1b-b0ce-3d6a1bf56899", "width": 88, "height": 88},
   "farmer_generic": {"asset_id": "48293698-0151-48bf-8cdb-5c9ab21cf700", "width": 64, "height": 64},
   "informant_faubourg": {"asset_id": "d2f011b4-5717-4e02-abf0-b3ae1c85e02a", "width": 48, "height": 48},
-  "hamlet_mentor": {"asset_id": "74b7a02c-a963-4ded-be84-aca45ec827d6", "width": 64, "height": 64}
+  "hamlet_mentor": {"asset_id": "74b7a02c-a963-4ded-be84-aca45ec827d6", "width": 64, "height": 64},
+  "gontrand_scholar": {"asset_id": "d43b333b-c87a-416a-b441-64eb285224bb", "width": 174, "height": 174},
+  "bertrand_fisherman": {"asset_id": "19fa692c-9ec4-4c5f-9cae-60a9f8ea09b5", "width": 168, "height": 168},
+  "ombeline_catlady": {"asset_id": "02da336e-de71-4214-ba61-57f26cf2c23b", "width": 72, "height": 72},
+  "fernand_innkeeper": {"asset_id": "3ee37a73-c55a-4b06-9a18-17301cfbd213", "width": 96, "height": 96},
+  "thibault_father": {"asset_id": "aaa18051-420f-4577-a638-b463e908492d", "width": 100, "height": 100},
+  "solange_weaver": {"asset_id": "a1a79acc-4ade-4709-bedf-9358f87f463e", "width": 80, "height": 80},
+  "fauvette_grandmother": {"asset_id": "ee6fc4a9-fd4a-48df-82c8-5838cb49246e", "width": 82, "height": 82},
+  "villager_wanderer": {"asset_id": "f899be37-6fea-4470-a603-369c9bff715a", "width": 34, "height": 34}
 }

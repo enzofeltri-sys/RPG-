@@ -12,5 +12,13 @@
   "dwarf_warrior": {"asset_id": "a42e43bb-8aac-49d2-8881-022fb36c6768", "width": 88, "height": 88},
   "dwarf_mage": {"asset_id": "5359d350-1bf6-4a4d-884b-cbebfaeb968b", "width": 56, "height": 56},
   "dwarf_archer": {"asset_id": "be4957d2-be20-42df-9561-dd800cb8ccb6", "width": 86, "height": 86},
-  "dwarf_rogue": {"asset_id": "8d1bab79-bbe2-4c12-8149-293ad87e5ea4", "width": 100, "height": 100}
+  "dwarf_rogue": {"asset_id": "8d1bab79-bbe2-4c12-8149-293ad87e5ea4", "width": 100, "height": 100},
+  "dwarf_cleric": {"asset_id": "f5ef1434-ebc3-430a-8c72-e152a0c6a94b", "width": 92, "height": 92},
+  "orc_warrior": {"asset_id": "799fe89b-da0f-4c58-808f-15d6ee159fcc", "width": 78, "height": 78},
+  "orc_mage": {"asset_id": "17ab4c05-7028-4aab-9d32-6ba4d28cb9d0", "width": 86, "height": 86},
+  "orc_archer": {"asset_id": "4fda9dc9-3fe9-4e32-add3-58f71694ab71", "width": 72, "height": 72},
+  "orc_rogue": {"asset_id": "aa528cda-1770-40b0-b8da-39f6bb832ff4", "width": 64, "height": 64},
+  "orc_cleric": {"asset_id": "4f59c7ae-539a-4170-9b0c-888edb4c67bf", "width": 78, "height": 78},
+  "halfling_warrior": {"asset_id": "6cd3686e-11e7-4f1b-abda-bdec171ad191", "width": 52, "height": 52},
+  "halfling_mage": {"asset_id": "92c4d9ec-4d3b-4a46-b5b7-983363d62364", "width": 52, "height": 52}
 }

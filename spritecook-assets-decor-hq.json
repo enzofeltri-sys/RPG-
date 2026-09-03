@@ -2,5 +2,12 @@
   "tree": {"asset_id": "65f7aed5-e2a6-41fb-9805-f0326c595766", "width": 34, "height": 34},
   "bush": {"asset_id": "1088b3c7-1134-40ca-808d-135ca3040066", "width": 92, "height": 92},
   "rock_small": {"asset_id": "efe8a7ea-a760-4b71-8634-2f8990a3b651", "width": 58, "height": 58},
-  "boulder_large": {"asset_id": "a0ca16e5-79d8-4abe-bb35-4ff7810725b4", "width": 92, "height": 92}
+  "boulder_large": {"asset_id": "a0ca16e5-79d8-4abe-bb35-4ff7810725b4", "width": 92, "height": 92},
+  "mushroom": {"asset_id": "f9e83c98-1929-4223-a81d-53c115e23255", "width": 50, "height": 50},
+  "crystal_glow": {"asset_id": "55863430-9674-428a-ab88-40f61c279638", "width": 86, "height": 86},
+  "lava_pool": {"asset_id": "fd119f33-3558-4653-a04a-1151dedf593f", "width": 28, "height": 28},
+  "water_murky": {"asset_id": "35f888cf-5c6d-4d73-815d-3d619a51104b", "width": 56, "height": 56},
+  "river_water": {"asset_id": "31fdf4bb-6e44-4f50-a62e-ec1f2f22e0e9", "width": 128, "height": 128},
+  "wooden_bridge": {"asset_id": "c33802db-1ea3-401e-bfb1-a92134595343", "width": 60, "height": 60},
+  "wagon_cart": {"asset_id": "4e6b402e-78e1-4ea0-9d89-a052e68826c5", "width": 184, "height": 184}
 }

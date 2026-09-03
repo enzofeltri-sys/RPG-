@@ -14,5 +14,11 @@
   "alpha_wolf": {"asset_id": "af616f43-28a1-4329-9bdd-99039029fc4b", "width": 64, "height": 64},
   "smuggler_thug": {"asset_id": "2d768f17-89c6-404d-be98-05f8bb2a1e4a", "width": 70, "height": 70},
   "marsh_serpent": {"asset_id": "9a2065ab-d9e0-48ed-a502-f4254ea3db43", "width": 86, "height": 86},
+  "marsh_matriarch": {"asset_id": "fbda3739-fdda-4034-af2e-5a40c545d516", "width": 86, "height": 86},
+  "corrupted_tome": {"asset_id": "eea7efaa-8bf2-472d-a20a-a386b0834134", "width": 164, "height": 164},
+  "archive_wisp": {"asset_id": "fe36e9c5-991b-4ff1-9d6a-7d630790fa97", "width": 48, "height": 48},
+  "smuggler_captain": {"asset_id": "e4ac4ee7-760f-4e7d-b2f6-c05773c071d1", "width": 176, "height": 176},
+  "corrupted_knight": {"asset_id": "43bff086-1c8b-4411-87a6-e53168a81f1e", "width": 80, "height": 80},
+  "well_guardian": {"asset_id": "7e5a7e19-0384-42c4-bac2-53c988f4e503", "width": 82, "height": 82},
   "failures": []
 }

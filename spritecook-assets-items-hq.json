@@ -1,7 +1,15 @@
 {
   "items": {
     "short_sword": {"asset_id": "ca130a78-bdfc-4e2a-a87a-06157e4921ab", "width": 62, "height": 62, "name": "Épée courte"},
-    "dagger_thief": {"asset_id": "63700ea9-1430-47d6-a886-1d1b2c3753f8", "width": 52, "height": 52, "name": "Dague de voleur"}
+    "dagger_thief": {"asset_id": "63700ea9-1430-47d6-a886-1d1b2c3753f8", "width": 52, "height": 52, "name": "Dague de voleur"},
+    "broken_sword": {"asset_id": "f13f8386-07db-4577-a6d4-1f658abdbce8", "width": 74, "height": 74, "name": "Épée cassée"},
+    "apprentice_blade": {"asset_id": "999d8f90-f891-455c-b26d-31fa8cb4870b", "width": 40, "height": 40, "name": "Lame d'apprenti"},
+    "novice_staff": {"asset_id": "f1979284-2ef8-4e8e-93b2-5ee5d68f9435", "width": 68, "height": 68, "name": "Bâton de novice"},
+    "short_bow": {"asset_id": "9c11e510-68e1-4d4c-8b28-8e457f9054f7", "width": 68, "height": 68, "name": "Arc court"},
+    "hatchet": {"asset_id": "32d5f3a5-557b-4ca2-9459-50cd0cd2d669", "width": 58, "height": 58, "name": "Hachette"},
+    "militia_sword": {"asset_id": "b3190b14-3bc1-4a7e-b592-9a9dc17873fc", "width": 66, "height": 66, "name": "Épée du milicien"},
+    "lumberjack_hatchet": {"asset_id": "0e5057ad-6f2c-41d7-9205-a390775f62fe", "width": 92, "height": 92, "name": "Hachette de bûcheron"},
+    "sentry_axe": {"asset_id": "fd167eda-bc43-4b92-921a-13a8aa70f027", "width": 72, "height": 72, "name": "Hache de garde"}
   },
   "failures": [],
   "remaining_unprocessed": []

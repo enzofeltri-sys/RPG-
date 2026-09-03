@@ -9,5 +9,8 @@
   "water_murky": {"asset_id": "35f888cf-5c6d-4d73-815d-3d619a51104b", "width": 56, "height": 56},
   "river_water": {"asset_id": "31fdf4bb-6e44-4f50-a62e-ec1f2f22e0e9", "width": 128, "height": 128},
   "wooden_bridge": {"asset_id": "c33802db-1ea3-401e-bfb1-a92134595343", "width": 60, "height": 60},
-  "wagon_cart": {"asset_id": "4e6b402e-78e1-4ea0-9d89-a052e68826c5", "width": 184, "height": 184}
+  "wagon_cart": {"asset_id": "4e6b402e-78e1-4ea0-9d89-a052e68826c5", "width": 184, "height": 184},
+  "treasure_chest_closed": {"asset_id": "ef4969c9-44f4-46e8-98a7-be9345274089", "width": 56, "height": 56},
+  "treasure_chest_open": {"asset_id": "3531cee3-1011-4faa-b106-61e778cd4e8c", "width": 64, "height": 64},
+  "signpost": {"asset_id": "ce671bb1-bb47-4082-9dc7-ca8e67f0a194", "width": 76, "height": 76}
 }

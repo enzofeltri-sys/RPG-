@@ -20,5 +20,9 @@
   "smuggler_captain": {"asset_id": "e4ac4ee7-760f-4e7d-b2f6-c05773c071d1", "width": 176, "height": 176},
   "corrupted_knight": {"asset_id": "43bff086-1c8b-4411-87a6-e53168a81f1e", "width": 80, "height": 80},
   "well_guardian": {"asset_id": "7e5a7e19-0384-42c4-bac2-53c988f4e503", "width": 82, "height": 82},
+  "fallen_guardian": {"asset_id": "55c94ed2-a86e-45fe-abcc-9528669d3277", "width": 76, "height": 76},
+  "bog_wraith": {"asset_id": "1803566e-3792-4c60-94e0-49a98fbdfe4d", "width": 76, "height": 76},
+  "ruins_delver": {"asset_id": "127bba58-73b4-4d9c-a52f-a924071cbdfc", "width": 78, "height": 78},
+  "smuggler_lieutenant": {"asset_id": "9979e672-d9aa-43a5-a9f0-ca073062a2be", "width": 182, "height": 182},
   "failures": []
 }

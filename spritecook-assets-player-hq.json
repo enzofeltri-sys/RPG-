@@ -20,5 +20,8 @@
   "orc_rogue": {"asset_id": "aa528cda-1770-40b0-b8da-39f6bb832ff4", "width": 64, "height": 64},
   "orc_cleric": {"asset_id": "4f59c7ae-539a-4170-9b0c-888edb4c67bf", "width": 78, "height": 78},
   "halfling_warrior": {"asset_id": "6cd3686e-11e7-4f1b-abda-bdec171ad191", "width": 52, "height": 52},
-  "halfling_mage": {"asset_id": "92c4d9ec-4d3b-4a46-b5b7-983363d62364", "width": 52, "height": 52}
+  "halfling_mage": {"asset_id": "92c4d9ec-4d3b-4a46-b5b7-983363d62364", "width": 52, "height": 52},
+  "halfling_archer": {"asset_id": "e4067ffd-90c9-408d-8504-c344d54cc853", "width": 50, "height": 50},
+  "halfling_rogue": {"asset_id": "3fd5b187-d812-4b83-8442-723a503e8e9d", "width": 44, "height": 44},
+  "halfling_cleric": {"asset_id": "ce528799-2b08-4c7c-9374-3bd524cf2e31", "width": 74, "height": 74}
 }

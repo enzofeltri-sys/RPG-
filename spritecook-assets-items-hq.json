@@ -9,7 +9,10 @@
     "hatchet": {"asset_id": "32d5f3a5-557b-4ca2-9459-50cd0cd2d669", "width": 58, "height": 58, "name": "Hachette"},
     "militia_sword": {"asset_id": "b3190b14-3bc1-4a7e-b592-9a9dc17873fc", "width": 66, "height": 66, "name": "Épée du milicien"},
     "lumberjack_hatchet": {"asset_id": "0e5057ad-6f2c-41d7-9205-a390775f62fe", "width": 92, "height": 92, "name": "Hachette de bûcheron"},
-    "sentry_axe": {"asset_id": "fd167eda-bc43-4b92-921a-13a8aa70f027", "width": 72, "height": 72, "name": "Hache de garde"}
+    "sentry_axe": {"asset_id": "fd167eda-bc43-4b92-921a-13a8aa70f027", "width": 72, "height": 72, "name": "Hache de garde"},
+    "throwing_hatchet": {"asset_id": "b6483e31-0056-44ab-8d4c-a621cf2302b3", "width": 76, "height": 76, "name": "Petite hache de jet"},
+    "dull_dagger": {"asset_id": "cad9c9c9-d48f-455d-a767-07a044d3a872", "width": 42, "height": 42, "name": "Dague émoussée"},
+    "belt_stiletto": {"asset_id": "a3f0943b-c7be-41fe-aafc-8250141401b7", "width": 48, "height": 48, "name": "Stylet de ceinture"}
   },
   "failures": [],
   "remaining_unprocessed": []

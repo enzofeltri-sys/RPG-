@@ -10,5 +10,8 @@
   "bandit_leader": {"asset_id": "1a795693-e620-4f97-8ae7-a8f68e83dbcc", "width": 202, "height": 202},
   "goblin_chief": {"asset_id": "40478c55-630c-4415-bc53-d1f0bcafe191", "width": 188, "height": 188},
   "corrupted_boar": {"asset_id": "89774241-12cb-4947-9f08-aaedd3a3aff5", "width": 58, "height": 58},
+  "corrupted_boar_alpha": {"asset_id": "b6b8ce7a-f23e-4563-996a-00754c2cef30", "width": 166, "height": 166},
+  "alpha_wolf": {"asset_id": "af616f43-28a1-4329-9bdd-99039029fc4b", "width": 64, "height": 64},
+  "smuggler_thug": {"asset_id": "2d768f17-89c6-404d-be98-05f8bb2a1e4a", "width": 70, "height": 70},
   "failures": []
 }

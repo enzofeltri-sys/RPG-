@@ -1,1 +1,5 @@
-{}
+{
+  "tree": {"asset_id": "65f7aed5-e2a6-41fb-9805-f0326c595766", "width": 34, "height": 34},
+  "bush": {"asset_id": "1088b3c7-1134-40ca-808d-135ca3040066", "width": 92, "height": 92},
+  "rock_small": {"asset_id": "efe8a7ea-a760-4b71-8634-2f8990a3b651", "width": 58, "height": 58}
+}

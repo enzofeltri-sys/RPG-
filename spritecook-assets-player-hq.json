@@ -11,5 +11,6 @@
   "elf_cleric": {"asset_id": "8ff9066b-27ae-45a0-8d6d-e2c648d9b1ed", "width": 158, "height": 158},
   "dwarf_warrior": {"asset_id": "a42e43bb-8aac-49d2-8881-022fb36c6768", "width": 88, "height": 88},
   "dwarf_mage": {"asset_id": "5359d350-1bf6-4a4d-884b-cbebfaeb968b", "width": 56, "height": 56},
-  "dwarf_archer": {"asset_id": "be4957d2-be20-42df-9561-dd800cb8ccb6", "width": 86, "height": 86}
+  "dwarf_archer": {"asset_id": "be4957d2-be20-42df-9561-dd800cb8ccb6", "width": 86, "height": 86},
+  "dwarf_rogue": {"asset_id": "8d1bab79-bbe2-4c12-8149-293ad87e5ea4", "width": 100, "height": 100}
 }

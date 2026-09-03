@@ -10,5 +10,6 @@
   "vasenoire_local_toma": {"asset_id": "9b5da503-d2b5-4a8a-b3f4-5cab0cd8f5c7", "width": 90, "height": 90},
   "brasque_merchant": {"asset_id": "c582b5e3-3d9e-4a1b-b0ce-3d6a1bf56899", "width": 88, "height": 88},
   "farmer_generic": {"asset_id": "48293698-0151-48bf-8cdb-5c9ab21cf700", "width": 64, "height": 64},
-  "informant_faubourg": {"asset_id": "d2f011b4-5717-4e02-abf0-b3ae1c85e02a", "width": 48, "height": 48}
+  "informant_faubourg": {"asset_id": "d2f011b4-5717-4e02-abf0-b3ae1c85e02a", "width": 48, "height": 48},
+  "hamlet_mentor": {"asset_id": "74b7a02c-a963-4ded-be84-aca45ec827d6", "width": 64, "height": 64}
 }

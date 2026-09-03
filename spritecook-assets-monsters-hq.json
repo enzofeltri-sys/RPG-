@@ -13,5 +13,6 @@
   "corrupted_boar_alpha": {"asset_id": "b6b8ce7a-f23e-4563-996a-00754c2cef30", "width": 166, "height": 166},
   "alpha_wolf": {"asset_id": "af616f43-28a1-4329-9bdd-99039029fc4b", "width": 64, "height": 64},
   "smuggler_thug": {"asset_id": "2d768f17-89c6-404d-be98-05f8bb2a1e4a", "width": 70, "height": 70},
+  "marsh_serpent": {"asset_id": "9a2065ab-d9e0-48ed-a502-f4254ea3db43", "width": 86, "height": 86},
   "failures": []
 }

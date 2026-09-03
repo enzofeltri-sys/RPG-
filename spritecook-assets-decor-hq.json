@@ -12,5 +12,6 @@
   "wagon_cart": {"asset_id": "4e6b402e-78e1-4ea0-9d89-a052e68826c5", "width": 184, "height": 184},
   "treasure_chest_closed": {"asset_id": "ef4969c9-44f4-46e8-98a7-be9345274089", "width": 56, "height": 56},
   "treasure_chest_open": {"asset_id": "3531cee3-1011-4faa-b106-61e778cd4e8c", "width": 64, "height": 64},
-  "signpost": {"asset_id": "ce671bb1-bb47-4082-9dc7-ca8e67f0a194", "width": 76, "height": 76}
+  "signpost": {"asset_id": "ce671bb1-bb47-4082-9dc7-ca8e67f0a194", "width": 76, "height": 76},
+  "boardwalk_planks": {"asset_id": "87199204-6223-45c4-9c3c-93ef88d2a2ed", "width": 76, "height": 76}
 }

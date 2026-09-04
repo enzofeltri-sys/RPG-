@@ -24,7 +24,18 @@
     "spell_manual": {"asset_id": "fe944462-08f1-478c-8277-f5de6d8e36a0", "width": 54, "height": 54, "name": "Manuel de sorts"},
     "flame_codex": {"asset_id": "87caf8a5-93df-474d-ae73-ba06ccb9f296", "width": 72, "height": 72, "name": "Codex des flammes"},
     "leather_tome": {"asset_id": "0d7ffcea-81a7-4cfd-9e35-b5e89a62e3c1", "width": 78, "height": 78, "name": "Livre relié de cuir"},
-    "wooden_shield": {"asset_id": "f8dba068-3243-4cc3-9a9d-1eb916cdd54b", "width": 46, "height": 46, "name": "Bouclier en bois"}
+    "wooden_shield": {"asset_id": "f8dba068-3243-4cc3-9a9d-1eb916cdd54b", "width": 46, "height": 46, "name": "Bouclier en bois"},
+    "buckler": {"asset_id": "616e5624-9e92-4426-b32b-f9ba7d007725", "width": 70, "height": 70, "name": "Rondache légère"},
+    "tower_shield": {"asset_id": "56508edd-17d2-4d4f-8c8e-e1e31b155756", "width": 72, "height": 72, "name": "Bouclier-tour"},
+    "reinforced_shield": {"asset_id": "e163563d-cbf3-4664-9f9c-cf4d5d01d2a0", "width": 68, "height": 68, "name": "Bouclier renforcé"},
+    "leather_helmet": {"asset_id": "40eeb512-d0c5-43ad-8d53-962a78287cb1", "width": 34, "height": 34, "name": "Casque de cuir"},
+    "rogue_hood": {"asset_id": "5d3ee622-3f36-416b-bd65-d4610fd226fc", "width": 66, "height": 66, "name": "Capuche renforcée"},
+    "iron_cap": {"asset_id": "d965842b-1705-480c-884d-966bca166a62", "width": 80, "height": 80, "name": "Calotte de fer"},
+    "simple_circlet": {"asset_id": "bc231355-ca65-4ab4-8b2e-0df7785d4c28", "width": 26, "height": 26, "name": "Diadème simple"},
+    "leather_chest": {"asset_id": "ae1ac455-c6c4-4afb-a1f8-96d990f87586", "width": 28, "height": 28, "name": "Plastron de cuir"},
+    "padded_vest": {"asset_id": "bd9f0bcb-8254-4343-9092-862aa8726284", "width": 42, "height": 42, "name": "Gilet matelassé"},
+    "light_chainmail": {"asset_id": "f6cb2094-24e2-4660-93c1-d8ebf505746b", "width": 96, "height": 96, "name": "Cotte de mailles légère"},
+    "simple_robe": {"asset_id": "0044a928-25c7-43f8-993e-2f54fd6725af", "width": 26, "height": 26, "name": "Robe simple"}
   },
   "failures": [],
   "remaining_unprocessed": []

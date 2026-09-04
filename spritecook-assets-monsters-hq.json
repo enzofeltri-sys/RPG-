@@ -37,5 +37,18 @@
   "unnamed_vestige": {"asset_id": "afcd154d-3342-41c0-abac-ee6d8ab1d13b", "width": 84, "height": 84},
   "last_watcher": {"asset_id": "bba3855b-f126-409b-aa89-a6d5f4211b78", "width": 42, "height": 42},
   "broken_sleeper": {"asset_id": "a2b6cbca-f906-4961-94ad-38766b4fff4f", "width": 72, "height": 72},
+  "ancestor_warden": {"asset_id": "2e5b7ed9-908c-4132-9f51-3bc1958390ac", "width": 74, "height": 74},
+  "blight_root": {"asset_id": "42b025a3-7ca4-4630-99ed-f270272e44ce", "width": 96, "height": 96},
+  "blight_sentinel": {"asset_id": "b71e0b87-7972-4de1-868e-51d7769018e7", "width": 176, "height": 176},
+  "blood_keeper": {"asset_id": "5114be36-da0a-4f84-ba21-584696f2964c", "width": 130, "height": 130},
+  "demon_king_echo": {"asset_id": "77c89a0b-5653-4baf-a4e6-bd808b51af90", "width": 78, "height": 78},
+  "grave_warden": {"asset_id": "7199b7be-e787-4fe9-9651-06c2efc2d447", "width": 192, "height": 192},
+  "oath_guardian": {"asset_id": "fd5d60f6-d0f0-4f75-90fd-ce81add0a95d", "width": 138, "height": 138},
+  "record_keeper": {"asset_id": "46ee18c7-b143-498b-8c6b-0a9826553c00", "width": 66, "height": 66},
+  "rite_guardian": {"asset_id": "47f3fbcd-96db-4f9a-8ce6-24d4266610da", "width": 82, "height": 82},
+  "seal_echo": {"asset_id": "f8c4de85-8851-4573-98e8-14d0a0b23b8b", "width": 172, "height": 172},
+  "sunken_warden": {"asset_id": "03b7ae22-e307-4f75-bc07-dd1c90feaf70", "width": 88, "height": 88},
+  "veiled_scribe": {"asset_id": "51a39100-8757-4b7a-91e0-b33e789e95f9", "width": 94, "height": 94},
+  "watcher_echo": {"asset_id": "894e888a-9f43-411c-a1a8-5530ac969af8", "width": 72, "height": 72},
   "failures": []
 }

@@ -31,5 +31,11 @@
   "demon_envoy": {"asset_id": "73292186-4d3a-4ba0-b6da-53f2d9fcb035", "width": 96, "height": 96},
   "blight_spawn": {"asset_id": "a91f46a3-8411-416b-a5c4-fd3fbb0e3769", "width": 60, "height": 60},
   "corruption_heart": {"asset_id": "e9ccddcb-981b-441c-b383-f0013ba75ae6", "width": 74, "height": 74},
+  "brotherhood_specter": {"asset_id": "83a6d576-7fb8-4e8e-b96a-22e5f4b09773", "width": 118, "height": 118},
+  "primordial_guardian": {"asset_id": "89847ecc-a79d-48d5-a090-7bf130eae480", "width": 80, "height": 80},
+  "watchtower_guardian": {"asset_id": "a66b2a56-d835-471c-b7df-b5e7e51ee260", "width": 86, "height": 86},
+  "unnamed_vestige": {"asset_id": "afcd154d-3342-41c0-abac-ee6d8ab1d13b", "width": 84, "height": 84},
+  "last_watcher": {"asset_id": "bba3855b-f126-409b-aa89-a6d5f4211b78", "width": 42, "height": 42},
+  "broken_sleeper": {"asset_id": "a2b6cbca-f906-4961-94ad-38766b4fff4f", "width": 72, "height": 72},
   "failures": []
 }

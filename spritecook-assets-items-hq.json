@@ -18,7 +18,13 @@
     "reinforced_bow": {"asset_id": "20efb5ec-a68a-4247-b0b0-a2bb88bac4d5", "width": 82, "height": 82, "name": "Arc renforcé"},
     "small_composite_bow": {"asset_id": "bcb973b9-34b7-4545-8ff4-906603f2480e", "width": 92, "height": 92, "name": "Petit arc composite"},
     "wicker_staff": {"asset_id": "a9207a4f-7ecf-4247-915b-b09d5dd0b706", "width": 72, "height": 72, "name": "Bâton d'osier"},
-    "gnarled_staff": {"asset_id": "9b7c3769-0082-4dbf-af9c-71f20047c176", "width": 74, "height": 74, "name": "Bâton noueux"}
+    "gnarled_staff": {"asset_id": "9b7c3769-0082-4dbf-af9c-71f20047c176", "width": 74, "height": 74, "name": "Bâton noueux"},
+    "study_cane": {"asset_id": "f2f49da3-d1ec-4acb-93b0-968544d1f777", "width": 30, "height": 30, "name": "Canne d'étude"},
+    "elemental_grimoire": {"asset_id": "31edef63-7d1a-4327-93bd-7f6d89a640d0", "width": 92, "height": 92, "name": "Grimoire élémentaire"},
+    "spell_manual": {"asset_id": "fe944462-08f1-478c-8277-f5de6d8e36a0", "width": 54, "height": 54, "name": "Manuel de sorts"},
+    "flame_codex": {"asset_id": "87caf8a5-93df-474d-ae73-ba06ccb9f296", "width": 72, "height": 72, "name": "Codex des flammes"},
+    "leather_tome": {"asset_id": "0d7ffcea-81a7-4cfd-9e35-b5e89a62e3c1", "width": 78, "height": 78, "name": "Livre relié de cuir"},
+    "wooden_shield": {"asset_id": "f8dba068-3243-4cc3-9a9d-1eb916cdd54b", "width": 46, "height": 46, "name": "Bouclier en bois"}
   },
   "failures": [],
   "remaining_unprocessed": []

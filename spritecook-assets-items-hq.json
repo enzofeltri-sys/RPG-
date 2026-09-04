@@ -13,7 +13,12 @@
     "throwing_hatchet": {"asset_id": "b6483e31-0056-44ab-8d4c-a621cf2302b3", "width": 76, "height": 76, "name": "Petite hache de jet"},
     "dull_dagger": {"asset_id": "cad9c9c9-d48f-455d-a767-07a044d3a872", "width": 42, "height": 42, "name": "Dague émoussée"},
     "belt_stiletto": {"asset_id": "a3f0943b-c7be-41fe-aafc-8250141401b7", "width": 48, "height": 48, "name": "Stylet de ceinture"},
-    "switchblade_dagger": {"asset_id": "51e72087-4d92-4054-b299-af5f16185898", "width": 58, "height": 58, "name": "Dague à cran d'arrêt"}
+    "switchblade_dagger": {"asset_id": "51e72087-4d92-4054-b299-af5f16185898", "width": 58, "height": 58, "name": "Dague à cran d'arrêt"},
+    "branch_bow": {"asset_id": "7772fd8e-8857-48e4-8382-bf64be50de53", "width": 88, "height": 88, "name": "Arc de branche"},
+    "reinforced_bow": {"asset_id": "20efb5ec-a68a-4247-b0b0-a2bb88bac4d5", "width": 82, "height": 82, "name": "Arc renforcé"},
+    "small_composite_bow": {"asset_id": "bcb973b9-34b7-4545-8ff4-906603f2480e", "width": 92, "height": 92, "name": "Petit arc composite"},
+    "wicker_staff": {"asset_id": "a9207a4f-7ecf-4247-915b-b09d5dd0b706", "width": 72, "height": 72, "name": "Bâton d'osier"},
+    "gnarled_staff": {"asset_id": "9b7c3769-0082-4dbf-af9c-71f20047c176", "width": 74, "height": 74, "name": "Bâton noueux"}
   },
   "failures": [],
   "remaining_unprocessed": []

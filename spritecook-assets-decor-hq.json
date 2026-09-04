@@ -13,5 +13,10 @@
   "treasure_chest_closed": {"asset_id": "ef4969c9-44f4-46e8-98a7-be9345274089", "width": 56, "height": 56},
   "treasure_chest_open": {"asset_id": "3531cee3-1011-4faa-b106-61e778cd4e8c", "width": 64, "height": 64},
   "signpost": {"asset_id": "ce671bb1-bb47-4082-9dc7-ca8e67f0a194", "width": 76, "height": 76},
-  "boardwalk_planks": {"asset_id": "87199204-6223-45c4-9c3c-93ef88d2a2ed", "width": 76, "height": 76}
+  "boardwalk_planks": {"asset_id": "87199204-6223-45c4-9c3c-93ef88d2a2ed", "width": 76, "height": 76},
+  "merchant_stall": {"asset_id": "e830e592-ab7c-4123-a80f-a944a738d772", "width": 54, "height": 54},
+  "blacksmith_forge": {"asset_id": "fe56df0f-8938-4a4f-8f9a-4d7fa179ae3d", "width": 62, "height": 62},
+  "village_house": {"asset_id": "3e22de00-7b61-4b14-9920-e0e63b2f75da", "width": 106, "height": 106},
+  "inn_building": {"asset_id": "e062e3c5-b2ff-4d5c-b862-c2333b33ae68", "width": 100, "height": 100},
+  "gate_barrier": {"asset_id": "afdd8b14-5765-4a82-b768-2230151483aa", "width": 88, "height": 88}
 }

@@ -25,5 +25,11 @@
   "ruins_delver": {"asset_id": "127bba58-73b4-4d9c-a52f-a924071cbdfc", "width": 78, "height": 78},
   "smuggler_lieutenant": {"asset_id": "9979e672-d9aa-43a5-a9f0-ca073062a2be", "width": 182, "height": 182},
   "corrupted_sentinel": {"asset_id": "270bee18-830b-48fa-9e88-1aa0a6737a61", "width": 50, "height": 50},
+  "shard_warden": {"asset_id": "d80d029a-6d7f-470f-8a3d-17924f8db70f", "width": 90, "height": 90},
+  "seeker_scout": {"asset_id": "a323e37b-bdb2-43cb-848f-277a3b8016a3", "width": 80, "height": 80},
+  "seeker_archivist": {"asset_id": "b7dcf490-48b2-47b3-8f80-33d31bf69b47", "width": 244, "height": 244},
+  "demon_envoy": {"asset_id": "73292186-4d3a-4ba0-b6da-53f2d9fcb035", "width": 96, "height": 96},
+  "blight_spawn": {"asset_id": "a91f46a3-8411-416b-a5c4-fd3fbb0e3769", "width": 60, "height": 60},
+  "corruption_heart": {"asset_id": "e9ccddcb-981b-441c-b383-f0013ba75ae6", "width": 74, "height": 74},
   "failures": []
 }

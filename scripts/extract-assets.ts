@@ -4,17 +4,23 @@
  * 
  * Usage : npx ts-node scripts/extract-assets.ts
  * 
- * Ce script extrait les ZIP sélectionné¼¼s depuis `asset/` vers `public/assets/`.
+ * Ce script extrait les ZIP sélectionnés depuis `asset/` vers `public/game-assets/`.
  * Il faut avoir installé les dépendances : npm install adm-zip
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import AdmZip from 'adm-zip';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Configuration
 const ASSET_DIR = path.join(__dirname, '..', 'asset');
-const PUBLIC_ASSETS_DIR = path.join(__dirname, '..', 'public', 'assets');
+// Not 'public/assets' — Vite's own build output uses dist/assets/ for its
+// hashed JS/CSS bundle, and public/ is copied verbatim into dist/, so that
+// name would dump raw asset packs into the same folder as the app bundle.
+const PUBLIC_ASSETS_DIR = path.join(__dirname, '..', 'public', 'game-assets');
 
 // Liste des assets à extraire (selon ASSETS-SELECTION.md)
 const ASSETS_TO_EXTRACT = [
@@ -91,7 +97,7 @@ function extractZip(zipPath: string, destPath: string): void {
     
     // Ignorer les fichiers non-PNG (sauf si c'est un PNG direct)
     if (!entry.isDirectory && !entryName.toLowerCase().endsWith('.png')) {
-      console.log(`  ⚠️  Ignoré¼¼ : ${entryName} (pas un PNG)`);
+      console.log(`  ⚠️  Ignoré : ${entryName} (pas un PNG)`);
       continue;
     }
     
@@ -131,26 +137,26 @@ function copyFile(srcPath: string, destPath: string): void {
   
   // Copier le fichier
   fs.copyFileSync(srcPath, destPath);
-  console.log(`  ✅ Copié¼¼`);
+  console.log(`  ✅ Copié`);
 }
 
 /**
- * Point d'entré¼¼e principal
+ * Point d'entrée principal
  */
 function main(): void {
-  console.log('🚀 Dé  but de l\'extraction des assets...\n');
-  
-  // Vé  rifier que le dossier asset existe
+  console.log('🚀 Début de l\'extraction des assets...\n');
+
+  // Vérifier que le dossier asset existe
   if (!fs.existsSync(ASSET_DIR)) {
     console.error(`❌ Dossier asset introuvable : ${ASSET_DIR}`);
     console.error('Assure-toi de lancer le script depuis la racine du projet.');
     process.exit(1);
   }
   
-  // Créer le dossier public/assets s'il n'existe pas
+  // Créer le dossier public/game-assets s'il n'existe pas
   if (!fs.existsSync(PUBLIC_ASSETS_DIR)) {
     fs.mkdirSync(PUBLIC_ASSETS_DIR, { recursive: true });
-    console.log(`📁 Créé¼¼ : ${PUBLIC_ASSETS_DIR}\n`);
+    console.log(`📁 Créé : ${PUBLIC_ASSETS_DIR}\n`);
   }
   
   // Extraire chaque asset
@@ -158,13 +164,14 @@ function main(): void {
     console.log(`\n🎯 ${asset.category}/${asset.name}`);
     console.log(`   ZIP/Fichier : ${asset.zip}`);
     
-    const zipPath = path.join(ASSET_DIR, 
-      asset.category === 'characters' && asset.name === 'fantasy-rpg-toony' ? 'personnages' : 
+    const zipPath = path.join(ASSET_DIR,
+      asset.category === 'characters' && asset.name === 'fantasy-rpg-toony' ? 'personnages' :
       asset.category === 'npc' ? 'pnj' :
       asset.category === 'monsters' ? 'monstres' :
       asset.category === 'decor' ? 'decors' :
       asset.category === 'items' ? 'items' :
-      asset.category === 'tilesets' ? 'tilesets' : 'personnages', 
+      asset.category === 'ui' ? 'interface' :
+      asset.category === 'tilesets' ? 'tilesets' : 'personnages',
       asset.zip);
     
     const destPath = path.join(PUBLIC_ASSETS_DIR, asset.category, asset.name);
@@ -182,10 +189,10 @@ function main(): void {
     }
   }
   
-  console.log('\n✅ Extraction terminé  e !\n');
-  console.log('📁 Les assets sont dans : public/assets/');
-  console.log('\nProchaines é  tapes :');
-  console.log('1. Vé  rifier que les assets sont bien extraits');
+  console.log('\n✅ Extraction terminée !\n');
+  console.log('📁 Les assets sont dans : public/game-assets/');
+  console.log('\nProchaines étapes :');
+  console.log('1. Vérifier que les assets sont bien extraits');
   console.log('2. Lancer le jeu et tester les scènes');
   console.log('3. Ajuster le code si nécessaire\n');
 }

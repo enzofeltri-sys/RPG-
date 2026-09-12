@@ -44,6 +44,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest,woff2}'],
+        // game-assets/ holds raw packs extracted by scripts/extract-assets.ts
+        // for a possible future graphics pass — nothing in the game
+        // references them yet, so precaching them would just add ~11MB of
+        // dead weight to the offline install. Drop this ignore once/if any
+        // of it is wired in.
+        globIgnores: ['game-assets/**'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         skipWaiting: true,
         clientsClaim: true,

@@ -80,19 +80,18 @@ export class FarmScene extends Phaser.Scene {
       .setDepth(500);
 
     // Farmhouse + crop rows, purely decorative.
-    this.add.rectangle(50, 70, 40, 32, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
-    for (let row = 0; row < 3; row += 1) {
-      for (let col = 0; col < 4; col += 1) {
-        this.add.rectangle(110 + col * 22, 40 + row * 26, 16, 10, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
-      }
-    }
+    const farmhouse = this.add.rectangle(50, 70, 40, 32, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
+    void attachSpriteOverlay(this, farmhouse, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 40);
+
+    const cropField1 = this.add.rectangle(143, 66, 82, 62, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
+    void attachSpriteOverlay(this, cropField1, 'decor-farm_field', `${import.meta.env.BASE_URL}sprites/decor/farm_field.png`, 82);
 
     // More crop rows further south, on the approach to the farmhouse.
-    for (let row = 0; row < 3; row += 1) {
-      for (let col = 0; col < 4; col += 1) {
-        this.add.rectangle(30 + col * 22, 250 + row * 26, 16, 10, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
-      }
-    }
+    const cropField2 = this.add.rectangle(63, 276, 82, 62, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
+    void attachSpriteOverlay(this, cropField2, 'decor-farm_field', `${import.meta.env.BASE_URL}sprites/decor/farm_field.png`, 82);
+
+    const scarecrow = this.add.rectangle(190, 260, 10, 26, 0x8a6a3a);
+    void attachSpriteOverlay(this, scarecrow, 'decor-scarecrow', `${import.meta.env.BASE_URL}sprites/decor/scarecrow.png`, 28);
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.farmer = this.add.rectangle(170, 100, 14, 20, 0x8a6a3a).setStrokeStyle(1, 0x0b0c10);

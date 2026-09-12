@@ -1,7 +1,7 @@
 /**
  * Styles pour le rendu pixel art net
  * 
- * Importé·¹ dans main.ts aux cô  té  s de fonts.css
+ * Importé·¹ dans main.ts aux côtés de fonts.css
  */
 
 /* Rendre tous les sprites et images en pixel art net (pas de flou) */
@@ -21,8 +21,8 @@ canvas {
   display: block;
 }
 
-/* Container pour le jeu - ré  solution basse upscale en CSS */
-#game-container {
+/* Container pour le jeu - résolution basse upscale en CSS */
+#game {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
@@ -35,7 +35,7 @@ canvas {
   image-rendering: crisp-edges;
 }
 
-/* Tilemaps - é  viter le flou */
+/* Tilemaps - éviter le flou */
 .tilemap,
 .tile {
   image-rendering: pixelated;

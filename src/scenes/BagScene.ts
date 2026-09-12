@@ -17,6 +17,7 @@ import { QuestItem } from '../game/questItem';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
+import { attachItemIcon } from '../entities/itemIcon';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -186,6 +187,14 @@ export class BagScene extends Phaser.Scene {
         color: RARITY_COLORS[item.rarity],
       }).setOrigin(0.5);
       this.rowObjects.push(label);
+
+      // Real icon on top of the emoji fallback once it loads — the fallback
+      // stays underneath rather than being removed, since a stale async
+      // load (tab switched away and back before it resolves) would
+      // otherwise have nothing left to hide it.
+      void attachItemIcon(this, item.baseId, x + GRID_CELL / 2, y + GRID_CELL / 2, GRID_CELL - 8).then((icon) => {
+        if (icon) this.rowObjects.push(icon);
+      });
     });
 
     const overflow = this.character.inventory.length - GRID_MAX_VISIBLE;

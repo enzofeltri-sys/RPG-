@@ -113,7 +113,10 @@ export class FieldScene extends Phaser.Scene {
     // A bit of grazing livestock — pure ambiance, south bank only (river
     // colliders aren't set up yet at this point, so keep clear of the
     // gather nodes/zones instead of relying on them for placement).
-    this.sheep = [new Wanderer(this, 220, 280, 0xd8cbb0, 25), new Wanderer(this, 350, 320, 0xc8bba0, 20)];
+    this.sheep = [
+      new Wanderer(this, 220, 280, 0xd8cbb0, 25, 'sheep'),
+      new Wanderer(this, 350, 320, 0xc8bba0, 20, 'sheep'),
+    ];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.sheep.forEach((s) => this.physics.add.collider(this.player, s.sprite));

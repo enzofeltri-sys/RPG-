@@ -190,6 +190,7 @@ export class SealDepthsScene extends Phaser.Scene {
     const marker = this.add
       .rectangle(encounter.x, encounter.y, 28, 28, 0x323c48, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',
@@ -212,7 +213,8 @@ export class SealDepthsScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x0e141c, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const marker = this.add.rectangle(x, y, 50, 50, 0x0e141c, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, `monster-${BOSS_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${BOSS_MONSTER_ID}.png`, 40);
     addCrispText(this, x, y - 36, 'La source', {
       fontSize: '9px',
       color: '#e8d9b5',

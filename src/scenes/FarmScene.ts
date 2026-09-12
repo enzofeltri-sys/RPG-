@@ -177,6 +177,7 @@ export class FarmScene extends Phaser.Scene {
     const x = 170;
     const y = 320;
     const marker = this.add.rectangle(x, y, 30, 30, 0x3a2a1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, 'monster-rat_king', `${import.meta.env.BASE_URL}sprites/monsters/rat_king.png`, 30);
     const label = addCrispText(this, x, y - 24, 'Roi des rats', {
       fontSize: '9px',
       color: '#e8d9b5',

@@ -189,6 +189,7 @@ export class CaveScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x4a2a4a, 0.8).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, 'monster-cave_spider', `${import.meta.env.BASE_URL}sprites/monsters/cave_spider.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',

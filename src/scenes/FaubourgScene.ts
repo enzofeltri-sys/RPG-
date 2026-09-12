@@ -329,6 +329,7 @@ export class FaubourgScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x3a4a5a, 0.8).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, 'monster-smuggler_thug', `${import.meta.env.BASE_URL}sprites/monsters/smuggler_thug.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',

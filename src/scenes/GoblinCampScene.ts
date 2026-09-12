@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { addGrassGround } from '../entities/groundTexture';
+import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -293,6 +294,7 @@ export class GoblinCampScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x3a4a2a, 0.8).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, 'monster-goblin_brute', `${import.meta.env.BASE_URL}sprites/monsters/goblin_brute.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',
@@ -320,6 +322,7 @@ export class GoblinCampScene extends Phaser.Scene {
     const x = 130;
     const y = 30;
     const marker = this.add.rectangle(x, y, 34, 34, 0x2a3a20, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, 'monster-goblin_chief', `${import.meta.env.BASE_URL}sprites/monsters/goblin_chief.png`, 34);
     const label = addCrispText(this, x, y - 26, 'Chef des gobelins', {
       fontSize: '9px',
       color: '#e8d9b5',

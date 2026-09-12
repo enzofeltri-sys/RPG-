@@ -190,6 +190,7 @@ export class SanctuaryDepthsScene extends Phaser.Scene {
     const marker = this.add
       .rectangle(encounter.x, encounter.y, 28, 28, 0x383042, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',

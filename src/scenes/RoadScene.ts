@@ -229,6 +229,7 @@ export class RoadScene extends Phaser.Scene {
     const x = 60;
     const y = 250;
     const marker = this.add.rectangle(x, y, 34, 34, 0x4a3a2a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, 'monster-corrupted_boar_alpha', `${import.meta.env.BASE_URL}sprites/monsters/corrupted_boar_alpha.png`, 34);
     const label = addCrispText(this, x, y - 26, 'Sanglier alpha', {
       fontSize: '9px',
       color: '#e8d9b5',

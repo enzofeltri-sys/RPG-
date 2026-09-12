@@ -298,6 +298,7 @@ export class BanditCampScene extends Phaser.Scene {
 
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x6b3a2a, 0.8).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, marker, 'monster-bandit_thug', `${import.meta.env.BASE_URL}sprites/monsters/bandit_thug.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
       color: '#e8d9b5',
@@ -325,6 +326,7 @@ export class BanditCampScene extends Phaser.Scene {
     const x = 130;
     const y = 30;
     const marker = this.add.rectangle(x, y, 34, 34, 0x3a2a20, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, 'monster-bandit_leader', `${import.meta.env.BASE_URL}sprites/monsters/bandit_leader.png`, 34);
     const label = addCrispText(this, x, y - 26, 'Chef des bandits', {
       fontSize: '9px',
       color: '#e8d9b5',

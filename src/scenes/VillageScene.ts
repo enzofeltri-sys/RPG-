@@ -86,9 +86,9 @@ export class VillageScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(500);
 
-    this.bertrandHouse = this.addBuilding(120, 160, 70, 50, 'village_house');
-    this.ombelineHouse = this.addBuilding(300, 210, 60, 60, 'village_house');
-    this.forgeBuilding = this.addBuilding(190, 360, 90, 50, 'blacksmith_forge');
+    this.bertrandHouse = this.addBuilding(120, 160, 70, 50, 'cottage');
+    this.ombelineHouse = this.addBuilding(300, 210, 60, 60, 'stone_house');
+    this.forgeBuilding = this.addBuilding(190, 360, 90, 50, 'blacksmith_shop');
     addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
     this.innBuilding = this.addBuilding(340, 460, 60, 70, 'inn_building');
     addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
@@ -455,7 +455,13 @@ export class VillageScene extends Phaser.Scene {
     this.tapControl.setEnabled(true);
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number, spriteKey: 'village_house' | 'inn_building' | 'blacksmith_forge' = 'village_house'): Phaser.GameObjects.Rectangle {
+  private addBuilding(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    spriteKey: 'village_house' | 'inn_building' | 'blacksmith_forge' | 'cottage' | 'stone_house' | 'blacksmith_shop' = 'village_house',
+  ): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);

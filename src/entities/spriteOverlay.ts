@@ -21,8 +21,17 @@ export async function attachSpriteOverlay(
       scene.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, () => resolve());
       scene.load.start();
     });
+    // Only meaningful right after an actual await: the scene could have been
+    // stopped while the load was in flight. When the texture was already
+    // cached (no await taken above), this synchronous call can run before
+    // Phaser has flagged a brand-new scene as active yet — checking here
+    // unconditionally caused real overlays to silently no-op (e.g. a
+    // building using a texture another scene had already loaded, called
+    // before this scene's first await), even though the scene was in fact
+    // still very much alive.
+    if (!scene.scene.isActive()) return;
   }
-  if (!scene.scene.isActive() || !scene.textures.exists(textureKey)) return;
+  if (!scene.textures.exists(textureKey)) return;
 
   const existing = target.getData('appearanceImage') as Phaser.GameObjects.Image | undefined;
   if (existing) {

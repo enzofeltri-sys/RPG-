@@ -95,12 +95,12 @@ export class HamletScene extends Phaser.Scene {
     // to the exit zone — nothing should block that path (see DESIGN.md's
     // Container/pathing lessons: narrow gaps between colliders make
     // automated and real movement equally unreliable).
-    this.thibaultHouse = this.addBuilding(50, 90, 44, 36);
-    this.solangeHouse = this.addBuilding(190, 90, 44, 36);
+    this.thibaultHouse = this.addBuilding(50, 90, 44, 36, 'cottage');
+    this.solangeHouse = this.addBuilding(190, 90, 44, 36, 'stone_house');
     // A third hut further south, off the x=120 centerline — keeps the
     // extended hamlet from reading as an empty stretch of grass while
     // staying "deliberately sparse" (see the class doc comment).
-    this.fauvetteHouse = this.addBuilding(190, 300, 40, 32);
+    this.fauvetteHouse = this.addBuilding(190, 300, 40, 32, 'cottage');
 
     // Decoration only, no collision. Kept clear of the x=120 centerline and
     // the farm/shrine transition strips at the world's left/right edges.
@@ -230,11 +230,17 @@ export class HamletScene extends Phaser.Scene {
     this.villager.update();
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
+  private addBuilding(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    spriteKey: 'village_house' | 'cottage' | 'stone_house' = 'village_house',
+  ): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
-    void attachSpriteOverlay(this, rect, 'decor-village_house', `${import.meta.env.BASE_URL}sprites/decor/village_house.png`, Math.max(w, h));
+    void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
     return rect;
   }
 

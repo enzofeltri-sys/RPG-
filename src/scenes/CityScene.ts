@@ -83,13 +83,13 @@ export class CityScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(500);
 
-    const garrison = this.addBuilding(150, 100, 80, 60);
+    const garrison = this.addBuilding(150, 100, 80, 60, 'guard_barracks');
     addCrispText(this, 150, 68, 'Caserne', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
-    const tower = this.addBuilding(400, 130, 50, 100);
+    const tower = this.addBuilding(400, 130, 50, 100, 'stone_tower');
     addCrispText(this, 400, 78, 'Tour des Mages', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
-    const market = this.addBuilding(280, 340, 100, 60);
+    const market = this.addBuilding(280, 340, 100, 60, 'market_hall');
     addCrispText(this, 280, 308, 'Marché', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
     // Each NPC kept off the straight west-entrance-to-building lines, same
@@ -252,10 +252,19 @@ export class CityScene extends Phaser.Scene {
     this.showMessage(line);
   }
 
-  private addBuilding(x: number, y: number, w: number, h: number): Phaser.GameObjects.Rectangle {
+  private addBuilding(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    spriteKey?: 'guard_barracks' | 'stone_tower' | 'market_hall',
+  ): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, w, h, 0x5a5468).setStrokeStyle(1, 0x2e2b3a);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
+    if (spriteKey) {
+      void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
+    }
     return rect;
   }
 

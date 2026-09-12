@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addGrassGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -300,30 +301,12 @@ export class HamletScene extends Phaser.Scene {
     });
   }
 
-  // Mottled grass rather than a flat 2-tone checker — the checker pattern
-  // read as an obvious placeholder grid rather than ground texture. Still
-  // procedural (no real tileset — SpriteCook's tileset generator is locked
-  // behind a higher account tier), just a less mechanical-looking one.
+  // Real Kenney tile (see entities/groundTexture.ts) rather than the
+  // procedural mottled texture used before real tilesets were available.
+  // Fire-and-forget: the tile layer is depth-pinned below everything else,
+  // so nothing needs to wait on its (async) texture load.
   private drawGround(): void {
-    if (!this.textures.exists('groundTile')) {
-      const g = this.make.graphics({}, false);
-      const SIZE = 64;
-      g.fillStyle(0x2e4d2a);
-      g.fillRect(0, 0, SIZE, SIZE);
-      const spots: [number, number, boolean][] = [
-        [8, 10, true], [22, 6, false], [40, 14, true], [54, 9, false],
-        [14, 28, false], [30, 24, true], [46, 30, false], [60, 26, true],
-        [6, 44, true], [20, 40, false], [36, 48, true], [50, 44, false],
-        [10, 58, false], [26, 54, true], [42, 60, false], [58, 56, true],
-      ];
-      spots.forEach(([x, y, dark]) => {
-        g.fillStyle(dark ? 0x274425 : 0x35572f);
-        g.fillCircle(x, y, 3);
-      });
-      g.generateTexture('groundTile', SIZE, SIZE);
-      g.destroy();
-    }
-    this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'groundTile').setOrigin(0, 0);
+    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
   }
 
   private talkToVillager(): void {

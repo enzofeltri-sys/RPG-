@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addStoneFloor } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -88,6 +89,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#2a3a3a');
+    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     RUINS.forEach((ruin) => this.add.rectangle(ruin.x, ruin.y, 22, 16, 0x2e3a38).setStrokeStyle(1, 0x141c1c));
     this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 + 40, 280, 34, 0x1f3a3f).setStrokeStyle(1, 0x0f1e20);

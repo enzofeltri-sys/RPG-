@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addPlazaGround } from '../entities/groundTexture';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -69,6 +70,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialogElements = [];
     this.cameras.main.setBackgroundColor('#2e3440');
+    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addCrispText(this, this.scale.width / 2, 12, 'Le Faubourg des quais', {
       fontSize: '10px',

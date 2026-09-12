@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addPlazaGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -258,18 +259,10 @@ export class CityScene extends Phaser.Scene {
     return rect;
   }
 
+  // Real Kenney cobblestone tile (see entities/groundTexture.ts) rather
+  // than the procedural checker used before real tilesets were available.
   private drawGround(): void {
-    if (!this.textures.exists('stoneTile')) {
-      const g = this.make.graphics({}, false);
-      g.fillStyle(0x4a4a52);
-      g.fillRect(0, 0, 32, 32);
-      g.fillStyle(0x545460);
-      g.fillRect(0, 0, 16, 16);
-      g.fillRect(16, 16, 16, 16);
-      g.generateTexture('stoneTile', 32, 32);
-      g.destroy();
-    }
-    this.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'stoneTile').setOrigin(0, 0);
+    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
   }
 
   private talkToCaptain(): void {

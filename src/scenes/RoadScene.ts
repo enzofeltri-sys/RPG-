@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addDirtGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -90,6 +91,7 @@ export class RoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#6b5a42');
+    void addDirtGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     WAGONS.forEach((wagon) => {
       const shape = this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810);

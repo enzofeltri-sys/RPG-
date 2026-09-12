@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
+import { addGrassGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { materialLabel, MaterialId } from '../game/material';
@@ -105,6 +106,7 @@ export class FieldScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
+    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     this.drawDecorations();
 

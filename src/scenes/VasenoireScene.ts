@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addGrassGround } from '../entities/groundTexture';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -61,6 +62,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialogElements = [];
     this.cameras.main.setBackgroundColor('#2e3a34');
+    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addCrispText(this, this.scale.width / 2, 12, 'Vasenoire', {
       fontSize: '11px',

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addGrassGround } from '../entities/groundTexture';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
@@ -53,6 +54,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialogElements = [];
     this.cameras.main.setBackgroundColor('#3a4a32');
+    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addCrispText(this, this.scale.width / 2, 12, 'Relais des chasseurs', {
       fontSize: '10px',

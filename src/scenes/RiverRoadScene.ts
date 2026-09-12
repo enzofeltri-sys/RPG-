@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addGrassGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -76,6 +77,7 @@ export class RiverRoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#38493a');
+    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     REEDS.forEach((reed) => this.add.circle(reed.x, reed.y, 6, 0x2e5a3a).setStrokeStyle(1, 0x14301c));
     this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 + 40, 260, 30, 0x2a4a5a).setStrokeStyle(1, 0x142530);

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addPlazaGround } from '../entities/groundTexture';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -86,6 +87,7 @@ export class ShrineScene extends Phaser.Scene {
     this.dialogElements = [];
     this.loreIndex = 0;
     this.cameras.main.setBackgroundColor('#3a3a4a');
+    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addCrispText(this, this.scale.width / 2, 12, 'Le petit sanctuaire', {
       fontSize: '10px',

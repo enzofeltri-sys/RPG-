@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
+import { addStoneFloor } from '../entities/groundTexture';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -75,6 +76,7 @@ export class AncestralCryptScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#1c1e22');
+    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addCrispText(this, this.scale.width / 2, 12, 'La Crypte des Aînés', {
       fontSize: '10px',

@@ -63,6 +63,7 @@ export interface ReturnContext {
 // gate).
 const RESUMABLE_SCENES = new Set<ReturnSceneKey>([
   'Dungeon',
+  'Forest',
   'Cave',
   'BanditCamp',
   'GoblinCamp',

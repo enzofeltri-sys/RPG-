@@ -72,11 +72,16 @@ export class VasenoireScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(500);
 
-    // Stilt huts and a boardwalk, purely decorative — no real art yet
-    // (increment 10).
-    this.add.rectangle(60, 100, 50, 38, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    this.add.rectangle(180, 90, 44, 34, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    this.add.rectangle(120, 220, 60, 40, 0x4a3a30).setStrokeStyle(1, 0x241d16);
+    // Stilt huts and a boardwalk, purely decorative. No dedicated
+    // stilt-hut-on-water sprite found in the supplied packs (the aquatic
+    // pack is underwater props, not buildings) — reuses the same generic
+    // house sprites as every other hamlet/village for now.
+    const hut1 = this.add.rectangle(60, 100, 50, 38, 0x4a3a30).setStrokeStyle(1, 0x241d16);
+    void attachSpriteOverlay(this, hut1, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 50);
+    const hut2 = this.add.rectangle(180, 90, 44, 34, 0x4a3a30).setStrokeStyle(1, 0x241d16);
+    void attachSpriteOverlay(this, hut2, 'decor-stone_house', `${import.meta.env.BASE_URL}sprites/decor/stone_house.png`, 44);
+    const hut3 = this.add.rectangle(120, 220, 60, 40, 0x4a3a30).setStrokeStyle(1, 0x241d16);
+    void attachSpriteOverlay(this, hut3, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 60);
     const boardwalk = this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 200, 20, 0x3a4a44).setStrokeStyle(1, 0x1c2622);
     void attachSpriteOverlay(this, boardwalk, 'decor-boardwalk_planks', `${import.meta.env.BASE_URL}sprites/decor/boardwalk_planks.png`, 40);
 

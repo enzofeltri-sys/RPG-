@@ -17,7 +17,7 @@ import { QuestItem } from '../game/questItem';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
-import { attachItemIcon } from '../entities/itemIcon';
+import { attachItemIcon, attachConsumableIcon } from '../entities/itemIcon';
 
 const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
@@ -239,7 +239,7 @@ export class BagScene extends Phaser.Scene {
     entries.forEach(([id, count], index) => {
       const y = 56 + index * 20;
       const def = CONSUMABLES[id as ConsumableId];
-      const text = addCrispText(this, 12, y, `${def.name} x${count} — Utiliser`, {
+      const text = addCrispText(this, 30, y, `${def.name} x${count} — Utiliser`, {
         fontSize: '9px',
         color: GOLD,
         backgroundColor: SLOT_BG,
@@ -247,6 +247,10 @@ export class BagScene extends Phaser.Scene {
       }).setInteractive({ useHandCursor: true });
       text.on('pointerdown', () => this.handleUseConsumable(id as ConsumableId));
       this.rowObjects.push(text);
+
+      void attachConsumableIcon(this, id, 20, y + 8, 16).then((icon) => {
+        if (icon) this.rowObjects.push(icon);
+      });
     });
   }
 

@@ -38,7 +38,19 @@ export async function attachSpriteOverlay(
     existing.setTexture(textureKey);
     return;
   }
-  const image = scene.add.image(target.x, target.y, textureKey).setDisplaySize(displaySize, displaySize);
+  // Depth = world Y so a top-down scene's natural front-to-back order falls
+  // out for free: anything below the player's feet draws over the player,
+  // anything above draws behind. Every overlay uses the same convention
+  // (this function is the only place that creates one), so mixing static
+  // decor, buildings, the player, and NPCs in one scene sorts consistently
+  // without each scene having to opt in. The ground TileSprite is pinned to
+  // -1000 and UI/messages to 1000+ (see groundTexture.ts and callers of
+  // setDepth(1001) et al.), well outside any world Y value, so neither can
+  // collide with this range.
+  const image = scene.add
+    .image(target.x, target.y, textureKey)
+    .setDisplaySize(displaySize, displaySize)
+    .setDepth(target.y);
   target.setData('appearanceImage', image);
   target.setVisible(false);
 }
@@ -54,11 +66,11 @@ export function syncSpriteOverlay(target: Phaser.GameObjects.Shape, moving = fal
   if (!image) return;
   if (!moving) {
     target.setData('walkPhase', 0);
-    image.setPosition(target.x, target.y);
+    image.setPosition(target.x, target.y).setDepth(target.y);
     return;
   }
   const phase = ((target.getData('walkPhase') as number | undefined) ?? 0) + 1;
   target.setData('walkPhase', phase);
   const bob = Math.sin(phase * 0.35) * 1.6;
-  image.setPosition(target.x, target.y + bob);
+  image.setPosition(target.x, target.y + bob).setDepth(target.y);
 }

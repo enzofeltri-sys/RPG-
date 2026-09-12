@@ -59,6 +59,19 @@ const ROCKS: { x: number; y: number }[] = [
   { x: 80, y: 200 },
 ];
 
+// Small hand-placed test cluster validating the Pipoya decor pipeline
+// (extraction from the [Base]BaseChip_pipo.png object sheet, see
+// docs/PLAN-ATTAQUE-GRAPHISME.md) and the Y-sort depth in spriteOverlay.ts —
+// spaced so walking through them shows the player draw in front of/behind
+// each one depending on relative Y. Displayed at native size (64px tree,
+// 32px bush/rock) to match the 1:1 scale the Pipoya ground tile already
+// uses, rather than the smaller sizes the existing SpriteCook decor uses.
+const PIPOYA_TEST_DECOR = {
+  tree: { x: 200, y: 210 },
+  bush: { x: 175, y: 235 },
+  rock: { x: 225, y: 235 },
+};
+
 interface ForestData {
   x?: number;
   y?: number;
@@ -104,6 +117,39 @@ export class ForestScene extends Phaser.Scene {
       const shape = this.add.rectangle(r.x, r.y, 16, 12, 0x4a4a48).setStrokeStyle(1, 0x24241f);
       void attachSpriteOverlay(this, shape, 'decor-rock_small', `${import.meta.env.BASE_URL}sprites/decor/rock_small.png`, 18);
     });
+
+    {
+      const treeShape = this.add
+        .rectangle(PIPOYA_TEST_DECOR.tree.x, PIPOYA_TEST_DECOR.tree.y, 30, 20)
+        .setStrokeStyle(1, 0x0e1c0b);
+      void attachSpriteOverlay(
+        this,
+        treeShape,
+        'decor-pipoya_tree',
+        `${import.meta.env.BASE_URL}sprites/decor/pipoya_tree.png`,
+        64,
+      );
+      const bushShape = this.add
+        .rectangle(PIPOYA_TEST_DECOR.bush.x, PIPOYA_TEST_DECOR.bush.y, 20, 14)
+        .setStrokeStyle(1, 0x1a3a1a);
+      void attachSpriteOverlay(
+        this,
+        bushShape,
+        'decor-pipoya_bush',
+        `${import.meta.env.BASE_URL}sprites/decor/pipoya_bush.png`,
+        32,
+      );
+      const rockShape = this.add
+        .rectangle(PIPOYA_TEST_DECOR.rock.x, PIPOYA_TEST_DECOR.rock.y, 20, 12)
+        .setStrokeStyle(1, 0x35352f);
+      void attachSpriteOverlay(
+        this,
+        rockShape,
+        'decor-pipoya_rock',
+        `${import.meta.env.BASE_URL}sprites/decor/pipoya_rock.png`,
+        32,
+      );
+    }
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
       '← Champ',

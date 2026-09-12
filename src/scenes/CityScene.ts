@@ -109,9 +109,9 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
 
-    // Stall near the market + a couple of ambient citizens — no collision on
-    // the stall, no real art yet (increment 10).
-    this.add.rectangle(230, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    // Stall near the market + a couple of ambient citizens — no collision.
+    const stall = this.add.rectangle(230, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    void attachSpriteOverlay(this, stall, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
     this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15, 'villager_wanderer'), new Wanderer(this, 150, 420, 0x8a7a8a, 20, 'villager_wanderer')];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

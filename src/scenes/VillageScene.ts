@@ -108,11 +108,13 @@ export class VillageScene extends Phaser.Scene {
     addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
     // Market stalls near the merchant + a well further south — purely
-    // decorative, no collision, no real art yet (increment 10).
-    this.add.rectangle(260, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
-    this.add.rectangle(340, 250, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
-    this.add.circle(240, 550, 16, 0x4a4a52).setStrokeStyle(2, 0x2e2b3a);
-    this.add.circle(240, 550, 8, 0x2e5a7a).setStrokeStyle(1, 0x1a3a50);
+    // decorative, no collision.
+    const stall1 = this.add.rectangle(260, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    void attachSpriteOverlay(this, stall1, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
+    const stall2 = this.add.rectangle(340, 250, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
+    void attachSpriteOverlay(this, stall2, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
+    const well = this.add.circle(240, 550, 16, 0x4a4a52).setStrokeStyle(2, 0x2e2b3a);
+    void attachSpriteOverlay(this, well, 'decor-well', `${import.meta.env.BASE_URL}sprites/decor/well.png`, 32);
 
     // Ambient villagers, clear of every building/zone/signpost.
     this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15, 'villager_wanderer'), new Wanderer(this, 400, 150, 0x7a8a6a, 25, 'villager_wanderer')];

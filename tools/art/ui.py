@@ -157,7 +157,13 @@ class Canvas:
         for x, y, s, size, color, shadow, anchor in self.texts:
             font = ImageFont.truetype(str(FONT_PATH), size * 2)
             pos = (x * VIEW, y * VIEW)
-            if shadow:
+            if shadow and size >= 20:
+                # Big floating numbers get a full outline, not just a drop shadow.
+                for dx in (-3, 0, 3):
+                    for dy in (-3, 0, 3):
+                        if dx or dy:
+                            d.text((pos[0] + dx, pos[1] + dy), s, font=font, fill=c(shadow), anchor=anchor)
+            elif shadow:
                 d.text((pos[0] + 2, pos[1] + 2), s, font=font, fill=c(shadow), anchor=anchor)
             d.text(pos, s, font=font, fill=c(color), anchor=anchor)
         return out
@@ -427,3 +433,124 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
+
+# ------------------------------------------------- battle v2 (hero visible)
+
+def _flash(im: Image.Image, tint: tuple[int, int, int] = (255, 255, 255), amount: float = 0.6) -> Image.Image:
+    out = im.copy()
+    px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            if a > 0:
+                px[x, y] = (
+                    round(r + (tint[0] - r) * amount),
+                    round(g + (tint[1] - g) * amount),
+                    round(b + (tint[2] - b) * amount),
+                    a,
+                )
+    return out
+
+
+def _x2(im: Image.Image) -> Image.Image:
+    return im.resize((im.width * 2, im.height * 2), Image.NEAREST)
+
+
+def battle_backdrop_v2() -> Image.Image:
+    img = grass_field(7, 12, seed=11).crop((0, 0, ART_W, ART_H))
+    d = ImageDraw.Draw(img)
+    tree = grid_to_image(sprites.tree())
+    for i, x in enumerate(range(-8, ART_W + 8, 18)):
+        img.alpha_composite(tree, (x, -16 + (i % 2) * 5))
+    # Monster platform (upper right) and hero platform (lower left).
+    for cx, cy, rw, rh in ((76, 70, 30, 8), (30, 130, 28, 8)):
+        d.ellipse((cx - rw, cy - rh, cx + rw, cy + rh), fill=c('q'))
+        d.ellipse((cx - rw + 3, cy - rh + 2, cx + rw - 3, cy + rh - 2), fill=c('g'))
+        d.ellipse((cx - rw + 5, cy - rh + 3, cx + rw - 5, cy + rh - 3), fill=c('q'))
+    return img
+
+
+def _slash(cv: Canvas, cx: int, cy: int) -> None:
+    pts = [(cx + i, cy - i) for i in range(-11, 12)]
+    for x, y in pts:
+        for dx, dy in ((-1, -1), (1, 1), (-1, 1), (1, -1), (0, 2), (2, 0), (0, -2), (-2, 0)):
+            cv.px(x + dx, y + dy, 'k')
+    for i, (x, y) in enumerate(pts):
+        core = 'W' if 4 < i < 18 else 'Y'
+        cv.px(x, y, core)
+        cv.px(x + 1, y, core)
+        cv.px(x, y + 1, 'Y')
+
+
+def screen_battle_v2(theme: Theme, phase: int) -> Canvas:
+    cv = Canvas(battle_backdrop_v2())
+    slime = _x2(grid_to_image(ascii_to_grid(sprites.SLIME_FRAMES[0])))
+    hero = _x2(grid_to_image(sprites.hero_frames()['up'][1]))
+
+    mx, my = 76 - 16, 72 - 30
+    hx, hy = 30 - 16, 132 - 47
+    if phase == 1:
+        hx, hy = hx + 10, hy - 8
+    if phase == 2:
+        mx, my = mx - 10, my + 8
+    shadow = Image.new('RGBA', cv.img.size)
+    sd = ImageDraw.Draw(shadow)
+    sd.ellipse((hx + 6, hy + 43, hx + 26, hy + 48), fill=(0, 0, 0, 70))
+    sd.ellipse((mx + 5, my + 26, mx + 27, my + 31), fill=(0, 0, 0, 70))
+    cv.img.alpha_composite(shadow)
+    cv.paste(_flash(slime) if phase == 1 else slime, mx, my)
+    cv.paste(_flash(hero, (255, 70, 60), 0.45) if phase == 2 else hero, hx, hy)
+    if phase == 1:
+        _slash(cv, mx + 16, my + 16)
+        cv.text(mx + 28, my - 8, '-7', 22, 'W', 'X', anchor='ma')
+    if phase == 2:
+        cv.text(hx + 26, hy - 6, '-3', 22, 'y', 'X', anchor='ma')
+
+    # Enemy info top-left, hero info right, like the classic layout.
+    theme.panel(cv, 3, 6, 58, 22)
+    cv.text(7, 9.5, 'Slime des bois', 10, theme.text, theme.text_shadow)
+    cv.text(7, 17, 'Niv. 2', 9, theme.text, theme.text_shadow)
+    bar(cv, theme, 24, 19, 33, 0.7 if phase != 1 else 0.45, 'x', 'y')
+
+    theme.panel(cv, 48, 100, 57, 34)
+    cv.text(52, 103.5, 'Guerrier', 10, theme.text, theme.text_shadow)
+    cv.text(101, 103.5, 'Niv. 3', 9, theme.text, theme.text_shadow, anchor='ra')
+    cv.text(52, 112, 'PV', 9, theme.text, theme.text_shadow)
+    bar(cv, theme, 60, 113, 23, 0.9 if phase != 2 else 0.84, 'h', 'H')
+    cv.text(101, 112, '50/56' if phase != 2 else '47/56', 8, theme.text, theme.text_shadow, anchor='ra')
+    cv.text(52, 121, 'PM', 9, theme.text, theme.text_shadow)
+    bar(cv, theme, 60, 122, 23, 0.6, 'u', 'i')
+    cv.text(101, 121, '13/22', 8, theme.text, theme.text_shadow, anchor='ra')
+
+    theme.panel(cv, 3, 140, 102, 20)
+    logs = ['Un slime des bois surgit !', 'Vous infligez 7 dégâts.', 'Le slime vous frappe : 3 dégâts.']
+    cv.text(54, 145.5, logs[phase], 10, theme.text, theme.text_shadow, anchor='ma')
+
+    theme.button(cv, 3, 163, 102, 13, selected=(phase == 0))
+    cv.paste(icon('sword'), 36, 165)
+    cv.text(48, 165.5, 'Attaquer', 11, theme.button_text, theme.button_shadow)
+    theme.button(cv, 3, 178, 50, 12)
+    cv.paste(icon('potion'), 7, 180)
+    cv.text(17, 180, 'Potion x3', 10, theme.button_text, theme.button_shadow)
+    theme.button(cv, 55, 178, 50, 12)
+    cv.paste(icon('run'), 66, 180)
+    cv.text(77, 180, 'Fuir', 11, theme.button_text, theme.button_shadow)
+    return cv
+
+
+def battle_storyboard(theme: Theme) -> Image.Image:
+    shots = [screen_battle_v2(theme, p).render() for p in range(3)]
+    captions = ['1. Choix de l\'action', '2. Ton héros frappe', '3. Le monstre riposte']
+    gap = 24
+    w = sum(s.width for s in shots) + gap * (len(shots) + 1)
+    h = shots[0].height + gap * 2 + 50
+    out = Image.new('RGBA', (w, h), (30, 32, 40, 255))
+    d = ImageDraw.Draw(out)
+    font = ImageFont.truetype(str(FONT_PATH), 30)
+    x = gap
+    for s, cap in zip(shots, captions):
+        d.text((x, 14), cap, font=font, fill=(240, 230, 200, 255))
+        out.paste(s, (x, 50 + gap // 2))
+        x += s.width + gap
+    return out

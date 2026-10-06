@@ -2,7 +2,7 @@ import type { CharClass, Character } from './character';
 
 // Talent trees (DESIGN.md, gameplay pass step 2). Each class has one free
 // starting skill plus 3 branches of 4 talents, unlocked in branch order at
-// levels 1/5/10/15. One talent point per level from level 2. Passives have
+// levels 1/5/10/15. Talent points: see talentPointsTotal. Passives have
 // ranks; actives have 2 ranks (learn, then one upgrade). At most 4 active
 // skills are equipped for combat.
 
@@ -265,8 +265,13 @@ export function talentRank(character: Character, id: string): number {
   return character.talents?.[id] ?? 0;
 }
 
+// 1 point per level from 2 to 10, then 1 every 2 levels: 19 points at
+// level 30, against 23-26 ranks per tree, so a full tree is out of reach and
+// the build stays a choice.
 export function talentPointsTotal(level: number): number {
-  return Math.max(0, Math.min(level, MAX_LEVEL) - 1);
+  const capped = Math.min(level, MAX_LEVEL);
+  if (capped <= 10) return Math.max(0, capped - 1);
+  return 9 + Math.floor((capped - 10) / 2);
 }
 
 export function talentPointsSpent(character: Character): number {
@@ -365,7 +370,8 @@ export function resetTalents(character: Character): void {
 }
 
 // Older saves (and new characters) get the starter skill; ids from another
-// class or removed talents are dropped.
+// class or removed talents are dropped. A tree holding more points than the
+// level grants (the point rate changed) is reset for free.
 export function ensureTalentDefaults(character: Character): void {
   const starter = STARTER_SKILL[character.class];
   const talents: Record<string, number> = {};
@@ -375,6 +381,11 @@ export function ensureTalentDefaults(character: Character): void {
   });
   if (!talents[starter]) talents[starter] = 1;
   character.talents = talents;
+  if (talentPointsSpent(character) > talentPointsTotal(character.level)) {
+    rescaleMaxHp(character, talentRank(character, 'devotion'), 0);
+    character.talents = { [starter]: 1 };
+    character.equippedSkills = [starter];
+  }
   const equipped = (character.equippedSkills ?? [starter]).filter(
     (id, i, all) => TALENTS[id]?.kind === 'active' && talents[id] > 0 && all.indexOf(id) === i,
   );

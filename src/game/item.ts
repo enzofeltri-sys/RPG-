@@ -22,9 +22,8 @@ export type EquipSlot =
 export type ItemCategory = EquipSlot | 'ring' | 'offhand';
 
 // Which stat a weapon's damage scales from (see CombatScene's
-// WEAPON_SCALING_STAT/CLASS_WEAPON_PROFILE) — a bow hits with Agilité even
-// in a Guerrier's hands, but a class outside a weapon type's profile takes
-// a damage penalty for using it. Only meaningful on 'weapon'-category
+// WEAPON_SCALING_STAT) — a bow hits with Agilité even in a Guerrier's
+// hands, so an off-class weapon is weaker only through stats. Only meaningful on 'weapon'-category
 // items; 'offhand' dual-wield pieces don't need one (see the ItemCategory
 // comment above — their stats just add to the pool, no separate formula).
 // 'sword'/'axe' both scale Force and 'staff'/'tome' both scale Intelligence

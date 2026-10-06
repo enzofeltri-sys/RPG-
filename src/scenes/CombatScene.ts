@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Character, CharClass, CharacterStats, grantXp, getEffectiveStats } from '../game/character';
+import { Character, CharacterStats, grantXp, getEffectiveStats } from '../game/character';
 import { Monster, EncounterTier, createTestMonster, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, WeaponType, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
@@ -80,9 +80,9 @@ const BEAST_LEATHER_CHANCE = 0.25;
 const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 
 // Which CharacterStats field a weapon's damage scales from, by WeaponType
-// (see item.ts's WeaponType comment). A bow always hits with Agilité even
-// in a Guerrier's hands — only the profile match below changes how much of
-// that scaling actually lands.
+// (see item.ts's WeaponType comment). Any class can wield any weapon; a
+// bow hits with Agilité even in a Guerrier's hands, so an off-class weapon
+// is naturally weaker through the wielder's stats rather than a flat cut.
 const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
   sword: 'strength',
   axe: 'strength',
@@ -92,25 +92,6 @@ const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
   tome: 'intelligence',
 };
 
-// Each class is fully trained on one or two related weapon types; anything
-// else still works (no hard equip restriction — a mage CAN pick up a
-// sword) but deals reduced damage, so "un archer avec une épée tape moins
-// qu'avec un arc" holds without needing a dedicated equip-validation
-// system. Warrior covers both sword and axe (same scaling stat, still two
-// distinct weapon types — see item.ts's WeaponType comment on why they're
-// split at all); mage/cleric likewise cover both staff and tome.
-const CLASS_WEAPON_PROFILE: Record<CharClass, WeaponType[]> = {
-  warrior: ['sword', 'axe'],
-  mage: ['staff', 'tome'],
-  archer: ['bow'],
-  rogue: ['dagger'],
-  cleric: ['staff', 'tome'],
-};
-
-// Applied to the weapon-derived portion of damage only (not the flat 2-5
-// random base every class deals regardless of gear) when the equipped
-// weapon's type isn't the wielder's class profile.
-const OFF_PROFILE_WEAPON_MULTIPLIER = 0.7;
 
 // Farmable crafting materials tied to dungeon tier rather than monster
 // identity (see grantMaterial in victory()) — lets the Acte 2/3 "artisan"
@@ -120,6 +101,22 @@ const TIER_MATERIAL: Record<2 | 3, { common: string; rare: string; commonChance:
   2: { common: 'steel_ingot', rare: 'steel_ingot_rare', commonChance: 0.25, rareChance: 0.5 },
   3: { common: 'mithril_shard', rare: 'mithril_shard_rare', commonChance: 0.25, rareChance: 0.5 },
 };
+
+// Combat tuning (Normal difficulty — see DESIGN.md's gameplay pass; the
+// other difficulty modes come after the balancing step).
+const BASE_CRIT_CHANCE = 0.05;
+const CRIT_MULTIPLIER = 1.5;
+const DEFEAT_GOLD_LOSS = 0.2;
+
+// 1% per point of Agilité, capped so dodging can never become the strategy.
+export function dodgeChance(agility: number): number {
+  return Math.min(0.3, Math.max(0, agility) * 0.01);
+}
+
+// Fleeing always had a 100% success rate, which made every fight risk-free.
+export function fleeChance(agility: number): number {
+  return Math.min(0.9, 0.5 + Math.max(0, agility) * 0.02);
+}
 
 const COMBAT_POTIONS: ConsumableId[] = ['health_potion', 'health_potion_greater'];
 const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
@@ -317,16 +314,14 @@ export class CombatScene extends Phaser.Scene {
 
     const stats = getEffectiveStats(this.character);
     const weaponType = this.character.equipment.weapon?.weaponType;
-    // No weapon equipped falls back to a neutral Force scaling with no
-    // profile penalty — bare fists don't punish a class for having nothing
-    // equipped on top of already dealing no weapon-line stats.
+    // No weapon equipped falls back to Force scaling (bare fists).
     const scalingStat: keyof CharacterStats = weaponType ? WEAPON_SCALING_STAT[weaponType] : 'strength';
-    const inProfile = !weaponType || CLASS_WEAPON_PROFILE[this.character.class].includes(weaponType);
-    const weaponDamage = Math.floor(stats[scalingStat] / 2) * (inProfile ? 1 : OFF_PROFILE_WEAPON_MULTIPLIER);
+    const weaponDamage = Math.floor(stats[scalingStat] / 2);
     const baseDamage = Phaser.Math.Between(2, 5) + Math.round(weaponDamage);
     const elementalDamage =
       stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
-    const damage = baseDamage + elementalDamage;
+    const critical = Math.random() < BASE_CRIT_CHANCE;
+    const damage = Math.round((baseDamage + elementalDamage) * (critical ? CRIT_MULTIPLIER : 1));
     this.monster.hp -= damage;
     if (stats.lifeSteal > 0) {
       this.character.hp = Math.min(this.character.maxHp, this.character.hp + stats.lifeSteal);
@@ -342,6 +337,7 @@ export class CombatScene extends Phaser.Scene {
     if (stats.earthDamage > 0) elementalParts.push(`${stats.earthDamage} de terre`);
     const lifeStealPart = stats.lifeSteal > 0 ? ` Vous drainez ${stats.lifeSteal} PV.` : '';
     this.logText.setText(
+      (critical ? 'Coup critique ! ' : '') +
       (elementalParts.length > 0
         ? `Vous infligez ${damage} dégâts (dont ${elementalParts.join(', ')}).`
         : `Vous infligez ${damage} dégâts.`) + lifeStealPart,
@@ -356,7 +352,15 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private enemyTurn(): void {
-    const armor = getEffectiveStats(this.character).armor;
+    const stats = getEffectiveStats(this.character);
+    if (Math.random() < dodgeChance(stats.agility)) {
+      playHit();
+      this.logText.setText(`Vous esquivez l'attaque : ${this.monster.name.toLowerCase()} frappe dans le vide !`);
+      this.busy = false;
+      this.setActionsEnabled(true);
+      return;
+    }
+    const armor = stats.armor;
     const rawAttack = this.monster.attack + Phaser.Math.Between(-1, 2);
     // Armor can mitigate at most 60% of the monster's base attack — a tier-3
     // character stacks armor from several equipped slots at once (helmet/
@@ -410,8 +414,17 @@ export class CombatScene extends Phaser.Scene {
 
   private async flee(): Promise<void> {
     if (this.busy || this.ended) return;
+    if (this.monster.isBoss) {
+      this.logText.setText('Impossible de fuir face à un tel adversaire !');
+      return;
+    }
     this.busy = true;
     this.setActionsEnabled(false);
+    if (Math.random() >= fleeChance(getEffectiveStats(this.character).agility)) {
+      this.logText.setText('Vous ne parvenez pas à fuir !');
+      this.time.delayedCall(900, () => this.enemyTurn());
+      return;
+    }
     this.logText.setText('Vous prenez la fuite.');
     // Without this save, fleeing reloaded the pre-fight save: HP lost and
     // potions drunk during the fight were silently handed back.
@@ -516,9 +529,15 @@ export class CombatScene extends Phaser.Scene {
     this.ended = true;
     this.hideActions();
     this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
+    const goldLost = Math.floor(this.character.gold * DEFEAT_GOLD_LOSS);
+    this.character.gold -= goldLost;
     await SaveManager.saveCharacter(this.character);
     playDefeat();
-    this.logText.setText('Vous avez été vaincu... et ramené au hameau.');
+    this.logText.setText(
+      goldLost > 0
+        ? `Vous avez été vaincu... Vous perdez ${goldLost} pièces d'or et êtes ramené au hameau.`
+        : 'Vous avez été vaincu... et ramené au hameau.',
+    );
     this.showContinue(() => this.leaveTo('Hamlet'));
   }
 

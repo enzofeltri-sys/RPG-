@@ -4,7 +4,7 @@ import { Monster, EncounterTier, createTestMonster, createMonster } from '../gam
 import { Item, Rarity, RARITY_LABELS, WeaponType, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
-import { CONSUMABLES, useConsumable } from '../game/consumable';
+import { CONSUMABLES, ConsumableId, useConsumable } from '../game/consumable';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -121,6 +121,12 @@ const TIER_MATERIAL: Record<2 | 3, { common: string; rare: string; commonChance:
   3: { common: 'mithril_shard', rare: 'mithril_shard_rare', commonChance: 0.25, rareChance: 0.5 },
 };
 
+const COMBAT_POTIONS: ConsumableId[] = ['health_potion', 'health_potion_greater'];
+const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
+  health_potion: 'Potion',
+  health_potion_greater: 'Potion sup.',
+};
+
 interface CombatData {
   returnScene?: ReturnSceneKey;
   monsterId?: string;
@@ -151,7 +157,7 @@ export class CombatScene extends Phaser.Scene {
   private playerMpText!: Phaser.GameObjects.Text;
   private actionButtons: Phaser.GameObjects.Text[] = [];
   private continueButton?: Phaser.GameObjects.Text;
-  private potionButton?: Phaser.GameObjects.Text;
+  private potionButtons: Partial<Record<ConsumableId, Phaser.GameObjects.Text>> = {};
 
   constructor() {
     super('Combat');
@@ -253,9 +259,12 @@ export class CombatScene extends Phaser.Scene {
     this.createActionButton(width / 2 - 55, 330, 'Attaquer', () => this.playerAttack());
     this.createActionButton(width / 2 + 55, 330, 'Fuir', () => this.flee());
 
-    if ((this.character.consumables.health_potion ?? 0) > 0) {
-      this.potionButton = this.createActionButton(width / 2, 302, 'Potion de soin', () => this.usePotion());
-    }
+    this.potionButtons = {};
+    const ownedPotions = COMBAT_POTIONS.filter((id) => (this.character.consumables[id] ?? 0) > 0);
+    ownedPotions.forEach((id, i) => {
+      const x = ownedPotions.length === 1 ? width / 2 : width / 2 + (i === 0 ? -55 : 55);
+      this.potionButtons[id] = this.createActionButton(x, 302, this.potionLabel(id), () => this.usePotion(id));
+    });
 
     this.refreshBars();
   }
@@ -376,27 +385,37 @@ export class CombatScene extends Phaser.Scene {
     this.setActionsEnabled(true);
   }
 
-  private usePotion(): void {
+  private potionLabel(id: ConsumableId): string {
+    return `${COMBAT_POTION_LABELS[id]} x${this.character.consumables[id] ?? 0}`;
+  }
+
+  private usePotion(id: ConsumableId): void {
     if (this.busy || this.ended) return;
-    if ((this.character.consumables.health_potion ?? 0) <= 0) return;
+    if ((this.character.consumables[id] ?? 0) <= 0) return;
     this.busy = true;
     this.setActionsEnabled(false);
 
-    useConsumable(this.character, 'health_potion');
+    useConsumable(this.character, id);
     this.refreshBars();
-    this.logText.setText(`Vous buvez une ${CONSUMABLES.health_potion.name.toLowerCase()}.`);
-    if ((this.character.consumables.health_potion ?? 0) <= 0) {
-      this.potionButton?.setVisible(false);
+    this.logText.setText(`Vous buvez une ${CONSUMABLES[id].name.toLowerCase()}.`);
+    const button = this.potionButtons[id];
+    if ((this.character.consumables[id] ?? 0) <= 0) {
+      button?.setVisible(false);
+    } else {
+      button?.setText(this.potionLabel(id));
     }
 
     this.time.delayedCall(900, () => this.enemyTurn());
   }
 
-  private flee(): void {
+  private async flee(): Promise<void> {
     if (this.busy || this.ended) return;
     this.busy = true;
     this.setActionsEnabled(false);
     this.logText.setText('Vous prenez la fuite.');
+    // Without this save, fleeing reloaded the pre-fight save: HP lost and
+    // potions drunk during the fight were silently handed back.
+    await SaveManager.saveCharacter(this.character);
     this.time.delayedCall(500, () => this.leaveTo(this.returnScene));
   }
 

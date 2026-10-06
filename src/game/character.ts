@@ -1,4 +1,4 @@
-import { EquipSlot, Item, ItemStats, getEquippedSetBonusStats, getWeaponType } from './item';
+import { EquipSlot, Item, ItemStats, WeaponType, getEquippedSetBonusStats, getWeaponType } from './item';
 import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
@@ -34,6 +34,9 @@ export interface RaceDefinition {
   description: string;
   statBonuses: CharacterStats;
   skills: string[];
+  // +10% damage with this weapon type (see CombatEngine). The Orc's
+  // affinity, two-handed weapons, arrives with them at the objects step.
+  weaponAffinity?: WeaponType;
 }
 
 export interface ClassDefinition {
@@ -76,6 +79,9 @@ export interface Character {
   // never gathered (or an older save from before cooldowns existed), which
   // getGatherCooldownRemaining() (FieldScene.ts) already treats as "ready".
   gatherCooldowns?: Partial<Record<string, number>>;
+  // Version of the racial stat bonuses this character was created with —
+  // undefined = before the race pass (DESIGN.md), migrated on load.
+  raceStatsVersion?: number;
   // Talent ranks by talent id (see talents.ts) — the class's free starting
   // skill is always present at rank 1+. Talent points are derived from the
   // level, never stored.
@@ -90,7 +96,12 @@ export const RACES: Record<Race, RaceDefinition> = {
     label: 'Humain',
     description: "Royaumes fracturés depuis la Rupture, mais un tempérament robuste et polyvalent.",
     statBonuses: { strength: 1, intelligence: 1, agility: 1, vitality: 1, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
-    skills: ['Détermination — une fois par combat, survit à un coup fatal avec 1 PV.'],
+    skills: [
+      'Détermination : une fois par combat, survit à un coup mortel avec 1 PV.',
+      'Polyvalent : +1 à chaque statistique.',
+      'Arme favorite : épée (+10 % de dégâts).',
+    ],
+    weaponAffinity: 'sword',
   },
   elf: {
     id: 'elf',
@@ -98,9 +109,11 @@ export const RACES: Record<Race, RaceDefinition> = {
     description: 'Gardiens reclus du savoir ancien : agiles et perspicaces, mais moins résistants.',
     statBonuses: { strength: -1, intelligence: 2, agility: 2, vitality: -1, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
     skills: [
-      'Vue perçante — chance de coup critique augmentée.',
-      'Affinité naturelle — régénération de mana plus rapide.',
+      'Vue perçante : +5 % de chances de coup critique.',
+      'Affinité naturelle : +1 mana ou +2 endurance par tour, ou 10 de rage au départ.',
+      'Arme favorite : arc (+10 % de dégâts).',
     ],
+    weaponAffinity: 'bow',
   },
   dwarf: {
     id: 'dwarf',
@@ -108,29 +121,34 @@ export const RACES: Record<Race, RaceDefinition> = {
     description: 'Peuple des galeries profondes et des forges de pierre, taillé pour encaisser plutôt que pour esquiver.',
     statBonuses: { strength: 2, intelligence: -1, agility: -2, vitality: 3, armor: 1, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
     skills: [
-      'Peau de granit — armure de base légèrement accrue.',
-      'Sang-froid des tréfonds — imperturbable, jamais mis en fuite.',
+      "Peau de granit : +1 d'armure.",
+      'Sang-froid des tréfonds : −10 % de dégâts reçus.',
+      'Arme favorite : hache (+10 % de dégâts).',
     ],
+    weaponAffinity: 'axe',
   },
   orc: {
     id: 'orc',
     label: 'Orc',
     description: "Descendants des clans bannis lors de la Rupture, plus habitués à la force brute qu'à la ruse.",
-    statBonuses: { strength: 3, intelligence: -2, agility: -1, vitality: 3, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
+    statBonuses: { strength: 3, intelligence: -2, agility: -1, vitality: 2, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
     skills: [
-      'Carrure — force et vitalité naturellement élevées.',
-      "Cuir épais — encaisse ce qu'un corps plus frêle ne pourrait pas.",
+      'Carrure : Force et Vitalité élevées.',
+      'Rage de sang : +20 % de dégâts sous 30 % de PV.',
+      'Arme favorite : armes à deux mains (bientôt).',
     ],
   },
   halfling: {
     id: 'halfling',
     label: 'Halfling',
     description: 'Petit peuple des collines et des routes marchandes, plus vif que costaud.',
-    statBonuses: { strength: -2, intelligence: 1, agility: 3, vitality: -1, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
+    statBonuses: { strength: -1, intelligence: 1, agility: 3, vitality: -1, armor: 0, fireDamage: 0, poisonDamage: 0, iceDamage: 0, electricDamage: 0, darkDamage: 0, earthDamage: 0, lifeSteal: 0 },
     skills: [
-      'Pas légers — toujours le premier à esquiver un coup.',
-      'Chanceux — un œil qui repère toujours un peu plus dans un coffre.',
+      "Pas légers : +5 % d'esquive.",
+      "Chanceux : +20 % d'or en combat.",
+      'Arme favorite : dague (+10 % de dégâts).',
     ],
+    weaponAffinity: 'dagger',
   },
 };
 
@@ -210,9 +228,26 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     questItems: [],
     mainQuestStage: 'not_started',
     openedChests: {},
+    raceStatsVersion: RACE_STATS_VERSION,
     talents: { [STARTER_SKILL[charClass]]: 1 },
     equippedSkills: [STARTER_SKILL[charClass]],
   };
+}
+
+// Bumped when RACES' statBonuses change; ensureCharacterDefaults applies the
+// difference to characters created before.
+const RACE_STATS_VERSION = 2;
+
+function migrateRaceStats(character: Character): void {
+  if ((character.raceStatsVersion ?? 1) >= RACE_STATS_VERSION) return;
+  // Version 2 (race pass): Orc Vitalité +3 -> +2, Halfling Force -2 -> -1.
+  if (character.race === 'orc') {
+    character.stats.vitality -= 1;
+    addBaseMaxHp(character, -4);
+    character.hp = Math.min(character.hp, character.maxHp);
+  }
+  if (character.race === 'halfling') character.stats.strength += 1;
+  character.raceStatsVersion = RACE_STATS_VERSION;
 }
 
 // Saves created before equipment/inventory/quests/economy (or armor/fireDamage/
@@ -256,6 +291,7 @@ export function ensureCharacterDefaults(character: Character): Character {
   character.inventory.forEach(backfillWeaponType);
 
   ensureTalentDefaults(character);
+  migrateRaceStats(character);
   return character;
 }
 

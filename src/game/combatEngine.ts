@@ -1,4 +1,4 @@
-import { Character, CharacterStats, getEffectiveStats } from './character';
+import { Character, CharacterStats, RACES, getEffectiveStats } from './character';
 import type { Monster } from './monster';
 import type { WeaponType } from './item';
 import { CONSUMABLES, ConsumableId, useConsumable } from './consumable';
@@ -87,6 +87,7 @@ export interface PlayerEffects {
   chainDiscount: boolean;
   lastBastionUsed: boolean;
   graceUsed: boolean;
+  determinationUsed: boolean;
   hasHit: boolean;
 }
 
@@ -107,6 +108,7 @@ function freshEffects(): PlayerEffects {
     chainDiscount: false,
     lastBastionUsed: false,
     graceUsed: false,
+    determinationUsed: false,
     hasHit: false,
   };
 }
@@ -169,7 +171,8 @@ export class CombatEngine {
     this.kind = CLASS_RESOURCE[character.class];
     if (this.kind === 'rage') {
       this.poolMax = RAGE_MAX;
-      this.pool = 0;
+      // Elfe, Affinité naturelle.
+      this.pool = character.race === 'elf' ? 10 : 0;
     } else if (this.kind === 'endurance') {
       this.poolMax = enduranceMax(this.stats().vitality);
       this.pool = this.poolMax;
@@ -217,7 +220,8 @@ export class CombatEngine {
   }
 
   critChance(): number {
-    return BASE_CRIT_CHANCE + 0.04 * this.rank('lynx_eye');
+    // Elfe, Vue perçante.
+    return BASE_CRIT_CHANCE + 0.04 * this.rank('lynx_eye') + (this.character.race === 'elf' ? 0.05 : 0);
   }
 
   private critMultiplier(): number {
@@ -225,7 +229,9 @@ export class CombatEngine {
   }
 
   playerDodgeChance(): number {
-    const bonus = 0.03 * (this.rank('sidestep') + this.rank('reflexes'));
+    // Halfling, Pas légers: +5%.
+    const bonus =
+      0.03 * (this.rank('sidestep') + this.rank('reflexes')) + (this.character.race === 'halfling' ? 0.05 : 0);
     const cap = this.rank('sidestep') > 0 ? 0.4 : 0.3;
     return dodgeChance(this.stats().agility, bonus, cap) + (this.fx.huntersShadow > 0 ? 0.2 : 0);
   }
@@ -263,6 +269,9 @@ export class CombatEngine {
     if (!spell) {
       m *= 1 + 0.05 * this.rank('weapon_mastery');
       if (this.weaponType() === 'dagger') m *= 1 + 0.06 * this.rank('sharpened_blades');
+      // Racial weapon affinity.
+      const affinity = RACES[this.character.race].weaponAffinity;
+      if (affinity && this.weaponType() === affinity) m *= 1.1;
     } else {
       m *= 1 + 0.08 * this.rank('arcane_power') + 0.05 * this.rank('fervor');
       if (this.fx.overload > 0) m *= 1.2;
@@ -276,6 +285,8 @@ export class CombatEngine {
     }
     if (this.fx.berserk > 0) m *= 1.5;
     if (this.fx.blessing > 0) m *= 1.25;
+    // Orc, Rage de sang.
+    if (this.character.race === 'orc' && this.character.hp < this.character.maxHp * 0.3) m *= 1.2;
     return m;
   }
 
@@ -287,8 +298,10 @@ export class CombatEngine {
     return this.character.hp - before;
   }
 
+  // Vol à la tire (+25%) and the Halfling's Chanceux (+20%) add up.
   goldReward(): number {
-    return Math.round(this.monster.goldReward * (this.rank('pickpocket') > 0 ? 1.25 : 1));
+    const bonus = (this.rank('pickpocket') > 0 ? 0.25 : 0) + (this.character.race === 'halfling' ? 0.2 : 0);
+    return Math.round(this.monster.goldReward * (1 + bonus));
   }
 
   // ------------------------------------------------------------ striking
@@ -736,6 +749,8 @@ export class CombatEngine {
     let damage = Math.max(1, Math.round(raw - effectiveArmor));
     if (stance) damage = Math.max(1, Math.round(damage / 2));
     if (this.fx.berserk > 0) damage = Math.round(damage * 1.25);
+    // Nain, Sang-froid des tréfonds.
+    if (this.character.race === 'dwarf') damage = Math.max(1, Math.round(damage * 0.9));
 
     const absorbed = Math.min(this.fx.shield, damage);
     let frozenByBarrier = false;
@@ -764,6 +779,11 @@ export class CombatEngine {
       this.character.hp = Math.max(1, Math.round(this.character.maxHp * 0.3));
       parts.push('Grâce : une lumière vous retient !');
     }
+    if (this.character.hp <= 0 && this.character.race === 'human' && !this.fx.determinationUsed) {
+      this.fx.determinationUsed = true;
+      this.character.hp = 1;
+      parts.push('Détermination : vous tenez debout avec 1 PV !');
+    }
     if (this.character.hp <= 0) return { log: parts.join(' '), outcome: 'defeat', hit: true };
 
     if (
@@ -784,11 +804,18 @@ export class CombatEngine {
   // Resource regeneration and heal-over-time at the start of the player's turn.
   private startPlayerTurn(): string[] {
     const parts: string[] = [];
+    // Elfe, Affinité naturelle: +1 mana or +2 endurance per turn.
+    const elf = this.character.race === 'elf';
     if (this.kind === 'mana') {
       this.resource =
-        this.resource + MANA_REGEN_PER_TURN + this.rank('quick_mind') + (this.rank('sacred_aura') > 0 ? 1 : 0);
+        this.resource +
+        MANA_REGEN_PER_TURN +
+        this.rank('quick_mind') +
+        (this.rank('sacred_aura') > 0 ? 1 : 0) +
+        (elf ? 1 : 0);
     } else if (this.kind === 'endurance') {
-      this.resource = this.resource + ENDURANCE_REGEN_PER_TURN + (this.rank('second_wind') > 0 ? 4 : 0);
+      this.resource =
+        this.resource + ENDURANCE_REGEN_PER_TURN + (this.rank('second_wind') > 0 ? 4 : 0) + (elf ? 2 : 0);
     }
     let healed = 0;
     if (this.fx.regenTurns > 0) {

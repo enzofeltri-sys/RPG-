@@ -1,5 +1,15 @@
 import Phaser from 'phaser';
 import { RACES, CLASSES, Race, CharClass, computeStats, createCharacter } from '../game/character';
+import {
+  ActiveTalent,
+  BRANCH_NAMES,
+  CLASS_RESOURCE,
+  RAGE_MAX,
+  RESOURCE_LABELS,
+  STARTER_SKILL,
+  TALENTS,
+  enduranceMax,
+} from '../game/talents';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
@@ -76,14 +86,14 @@ export class CharacterCreationScene extends Phaser.Scene {
       lineSpacing: 4,
     });
 
-    this.skillsText = addCrispText(this, 12, infoTop + 48, ' ', {
-      fontSize: '9px',
+    this.skillsText = addCrispText(this, 12, infoTop + 46, ' ', {
+      fontSize: '8px',
       color: MUTED,
       wordWrap: { width: width - 24 },
-      lineSpacing: 4,
+      lineSpacing: 1,
     });
 
-    const startButton = addCrispText(this, width / 2, 328, "Commencer l'aventure", {
+    const startButton = addCrispText(this, width / 2, 366, "Commencer l'aventure", {
       fontSize: '13px',
       color: DARK,
       backgroundColor: GOLD,
@@ -124,18 +134,29 @@ export class CharacterCreationScene extends Phaser.Scene {
     const stats = computeStats(this.race, this.charClass);
     const maxHp = 20 + stats.vitality * 4;
     const maxMp = 10 + stats.intelligence * 3;
+    const resource = CLASS_RESOURCE[this.charClass];
+    const resourceLine =
+      resource === 'mana'
+        ? `Mana ${maxMp}`
+        : resource === 'rage'
+          ? `Rage (0 à ${RAGE_MAX})`
+          : `Endurance ${enduranceMax(stats.vitality)}`;
     this.statsText.setText(
       [
         `Force ${stats.strength}   Intelligence ${stats.intelligence}`,
         `Agilité ${stats.agility}   Vitalité ${stats.vitality}`,
-        `PV ${maxHp}   PM ${maxMp}`,
+        `PV ${maxHp}   ${resourceLine}`,
       ].join('\n'),
     );
 
+    const starter = TALENTS[STARTER_SKILL[this.charClass]] as ActiveTalent;
+    const classLines = [
+      CLASSES[this.charClass].description,
+      `Départ : ${starter.name} (${starter.cost[0]} ${RESOURCE_LABELS[resource].toLowerCase()}) — ${starter.describe(starter.values[0])}`,
+      `Talents : ${BRANCH_NAMES[this.charClass].join(', ')}.`,
+    ];
     const raceSkills = RACES[this.race].skills.join('\n');
-    this.skillsText.setText(
-      `${CLASSES[this.charClass].description}\n${RACES[this.race].description}\n\n${raceSkills}`,
-    );
+    this.skillsText.setText(`${classLines.join('\n')}\n\n${RACES[this.race].description}\n${raceSkills}`);
   }
 
   private async confirm(): Promise<void> {

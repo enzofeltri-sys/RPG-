@@ -277,7 +277,10 @@ export class BagScene extends Phaser.Scene {
     const used = useConsumable(this.character, id);
     if (!used) return;
     await SaveManager.saveCharacter(this.character);
-    this.statusText.setText(`${CONSUMABLES[id].name} utilisée (PV ${this.character.hp}/${this.character.maxHp}).`);
+    const gauge = CONSUMABLES[id].manaAmount
+      ? `Mana ${this.character.mp}/${this.character.maxMp}`
+      : `PV ${this.character.hp}/${this.character.maxHp}`;
+    this.statusText.setText(`${CONSUMABLES[id].name} utilisée (${gauge}).`);
     this.renderList();
   }
 

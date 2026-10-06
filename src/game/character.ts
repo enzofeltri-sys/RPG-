@@ -3,6 +3,7 @@ import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
 import type { MerchantStockEntry } from './merchantStock';
+import { MAX_LEVEL, STARTER_SKILL, addBaseMaxHp, ensureTalentDefaults } from './talents';
 
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling';
 export type CharClass = 'warrior' | 'mage' | 'archer' | 'rogue' | 'cleric';
@@ -75,6 +76,12 @@ export interface Character {
   // never gathered (or an older save from before cooldowns existed), which
   // getGatherCooldownRemaining() (FieldScene.ts) already treats as "ready".
   gatherCooldowns?: Partial<Record<string, number>>;
+  // Talent ranks by talent id (see talents.ts) — the class's free starting
+  // skill is always present at rank 1+. Talent points are derived from the
+  // level, never stored.
+  talents?: Record<string, number>;
+  // Active skills shown in combat, at most MAX_EQUIPPED_SKILLS.
+  equippedSkills?: string[];
 }
 
 export const RACES: Record<Race, RaceDefinition> = {
@@ -203,6 +210,8 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     questItems: [],
     mainQuestStage: 'not_started',
     openedChests: {},
+    talents: { [STARTER_SKILL[charClass]]: 1 },
+    equippedSkills: [STARTER_SKILL[charClass]],
   };
 }
 
@@ -246,6 +255,7 @@ export function ensureCharacterDefaults(character: Character): Character {
   Object.values(character.equipment).forEach((item) => item && backfillWeaponType(item));
   character.inventory.forEach(backfillWeaponType);
 
+  ensureTalentDefaults(character);
   return character;
 }
 
@@ -269,21 +279,27 @@ export function xpToNextLevel(level: number): number {
 }
 
 // Mutates and returns the character; also returns how many levels were gained
-// (0 if the XP wasn't enough to level up).
+// (0 if the XP wasn't enough to level up). Stops at MAX_LEVEL (30): past it,
+// XP no longer accumulates, so the talent tree stays a real choice.
 export function grantXp(character: Character, xp: number): number {
+  if (character.level >= MAX_LEVEL) {
+    character.xp = 0;
+    return 0;
+  }
   character.xp += xp;
   let levelsGained = 0;
 
-  while (character.xp >= xpToNextLevel(character.level)) {
+  while (character.level < MAX_LEVEL && character.xp >= xpToNextLevel(character.level)) {
     character.xp -= xpToNextLevel(character.level);
     character.level += 1;
     character.statPoints += 3;
-    character.maxHp += 5;
+    addBaseMaxHp(character, 5);
     character.maxMp += 3;
     character.hp = character.maxHp;
     character.mp = character.maxMp;
     levelsGained += 1;
   }
+  if (character.level >= MAX_LEVEL) character.xp = 0;
 
   return levelsGained;
 }
@@ -302,8 +318,7 @@ export function allocateStatPoint(character: Character, stat: AllocatableStat): 
   character.statPoints -= 1;
   character.stats[stat] += 1;
   if (stat === 'vitality') {
-    character.maxHp += 4;
-    character.hp += 4;
+    addBaseMaxHp(character, 4);
   }
   if (stat === 'intelligence') {
     character.maxMp += 3;

@@ -1,21 +1,13 @@
 import Phaser from 'phaser';
-import { Character, CharacterStats, grantXp, getEffectiveStats } from '../game/character';
+import { Character, grantXp } from '../game/character';
 import { Monster, EncounterTier, createTestMonster, createMonster } from '../game/monster';
-import { Item, Rarity, RARITY_LABELS, WeaponType, rollLootItem, createItem } from '../game/item';
+import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
-import { CONSUMABLES, ConsumableId, useConsumable } from '../game/consumable';
-import {
-  FROZEN_ATTACK_MULTIPLIER,
-  MonsterStatuses,
-  VULNERABLE_DAMAGE_MULTIPLIER,
-  WEAKENED_ATTACK_MULTIPLIER,
-  consumeStatus,
-  describeApplied,
-  rollElementStatuses,
-  statusLine,
-  tickDamageOverTime,
-} from '../game/combatStatus';
+import { ConsumableId } from '../game/consumable';
+import { statusLine } from '../game/combatStatus';
+import { ActionResult, CombatEngine, DEFEAT_GOLD_LOSS } from '../game/combatEngine';
+import { ResourceKind, TALENTS } from '../game/talents';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -27,6 +19,9 @@ const GOLD = '#e8d9b5';
 const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const BAR_WIDTH = 160;
+const PLAYER_LABEL_X = 12;
+const PLAYER_BAR_X = 40;
+const PLAYER_BAR_WIDTH = 126;
 
 // Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
 // "élite"/"légendaire" the same way they already read rare/épique loot,
@@ -90,20 +85,6 @@ const BEAST_MONSTER_IDS = new Set<string>(['corrupted_wolf', 'alpha_wolf', 'corr
 const BEAST_LEATHER_CHANCE = 0.25;
 const BEAST_BOSS_RARE_LEATHER_CHANCE = 0.5;
 
-// Which CharacterStats field a weapon's damage scales from, by WeaponType
-// (see item.ts's WeaponType comment). Any class can wield any weapon; a
-// bow hits with Agilité even in a Guerrier's hands, so an off-class weapon
-// is naturally weaker through the wielder's stats rather than a flat cut.
-const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
-  sword: 'strength',
-  axe: 'strength',
-  bow: 'agility',
-  dagger: 'agility',
-  staff: 'intelligence',
-  tome: 'intelligence',
-};
-
-
 // Farmable crafting materials tied to dungeon tier rather than monster
 // identity (see grantMaterial in victory()) — lets the Acte 2/3 "artisan"
 // recipes (see recipe.ts) require real, repeatable farming instead of
@@ -113,26 +94,18 @@ const TIER_MATERIAL: Record<2 | 3, { common: string; rare: string; commonChance:
   3: { common: 'mithril_shard', rare: 'mithril_shard_rare', commonChance: 0.25, rareChance: 0.5 },
 };
 
-// Combat tuning (Normal difficulty — see DESIGN.md's gameplay pass; the
-// other difficulty modes come after the balancing step).
-const BASE_CRIT_CHANCE = 0.05;
-const CRIT_MULTIPLIER = 1.5;
-const DEFEAT_GOLD_LOSS = 0.2;
 
-// 1% per point of Agilité, capped so dodging can never become the strategy.
-export function dodgeChance(agility: number): number {
-  return Math.min(0.3, Math.max(0, agility) * 0.01);
-}
-
-// Fleeing always had a 100% success rate, which made every fight risk-free.
-export function fleeChance(agility: number): number {
-  return Math.min(0.9, 0.5 + Math.max(0, agility) * 0.02);
-}
-
-const COMBAT_POTIONS: ConsumableId[] = ['health_potion', 'health_potion_greater'];
+const COMBAT_POTIONS: ConsumableId[] = ['health_potion', 'health_potion_greater', 'mana_potion'];
 const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
-  health_potion: 'Potion',
-  health_potion_greater: 'Potion sup.',
+  health_potion: 'Potion de soin',
+  health_potion_greater: 'Potion de soin sup.',
+  mana_potion: 'Potion de mana',
+};
+
+const RESOURCE_BAR: Record<ResourceKind, { label: string; color: number; bg: number }> = {
+  rage: { label: 'Rage', color: 0xa8482a, bg: 0x2a1a14 },
+  mana: { label: 'Mana', color: 0x4a5aa8, bg: 0x1f1f2a },
+  endurance: { label: 'End.', color: 0x9a8a3a, bg: 0x26241a },
 };
 
 interface CombatData {
@@ -145,9 +118,12 @@ interface CombatData {
   tier?: EncounterTier;
 }
 
+type MenuView = 'main' | 'skills' | 'potions';
+
 export class CombatScene extends Phaser.Scene {
   private character!: Character;
   private monster!: Monster;
+  private engine!: CombatEngine;
   private returnScene: ReturnSceneKey = 'Field';
   private monsterId?: string;
   private tier?: EncounterTier;
@@ -158,16 +134,16 @@ export class CombatScene extends Phaser.Scene {
 
   private logText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
-  private monsterStatuses: MonsterStatuses = {};
+  private effectsText!: Phaser.GameObjects.Text;
   private enemyHpFill!: Phaser.GameObjects.Rectangle;
   private enemyHpText!: Phaser.GameObjects.Text;
   private playerHpFill!: Phaser.GameObjects.Rectangle;
   private playerHpText!: Phaser.GameObjects.Text;
-  private playerMpFill!: Phaser.GameObjects.Rectangle;
-  private playerMpText!: Phaser.GameObjects.Text;
-  private actionButtons: Phaser.GameObjects.Text[] = [];
+  private resourceFill!: Phaser.GameObjects.Rectangle;
+  private resourceText!: Phaser.GameObjects.Text;
+  private menuButtons: Phaser.GameObjects.Text[] = [];
+  private menuView: MenuView = 'main';
   private continueButton?: Phaser.GameObjects.Text;
-  private potionButtons: Partial<Record<ConsumableId, Phaser.GameObjects.Text>> = {};
 
   constructor() {
     super('Combat');
@@ -181,8 +157,8 @@ export class CombatScene extends Phaser.Scene {
     this.returnY = data?.y;
     this.busy = false;
     this.ended = false;
-    this.monsterStatuses = {};
-    this.actionButtons = [];
+    this.menuButtons = [];
+    this.menuView = 'main';
     this.continueButton = undefined;
   }
 
@@ -204,6 +180,7 @@ export class CombatScene extends Phaser.Scene {
     const save = await SaveManager.load();
     this.character = save!.character!;
     this.monster = this.monsterId ? createMonster(this.monsterId, this.tier) : createTestMonster();
+    this.engine = new CombatEngine(this.character, this.monster);
 
     addCrispText(this, width / 2, 34, this.monster.name, {
       fontSize: '15px',
@@ -211,7 +188,7 @@ export class CombatScene extends Phaser.Scene {
     }).setOrigin(0.5);
     // Under the HP readout, where several states can wrap onto two lines
     // without running into the sprite or the player's bars.
-    this.statusText = addCrispText(this, width / 2, 172, '', {
+    this.statusText = addCrispText(this, width / 2, 166, '', {
       fontSize: '9px',
       color: '#e8b45a',
       align: 'center',
@@ -240,32 +217,42 @@ export class CombatScene extends Phaser.Scene {
     this.enemyHpFill = this.add.rectangle(enemyBarX, 136, BAR_WIDTH, 10, 0x8a3a3a).setOrigin(0, 0.5);
     this.enemyHpText = addCrispText(this, width / 2, 150, '', { fontSize: '9px', color: MUTED }).setOrigin(0.5);
 
-    addCrispText(this, width / 2, 190, this.characterLabel(), {
+    addCrispText(this, width / 2, 186, `Niveau ${this.character.level}`, {
       fontSize: '11px',
       color: GOLD,
     }).setOrigin(0.5);
 
-    const playerBarX = width / 2 - BAR_WIDTH / 2;
-    addCrispText(this, playerBarX, 208, 'PV', { fontSize: '9px', color: MUTED });
-    this.add.rectangle(playerBarX + 24, 213, BAR_WIDTH - 24, 10, 0x1f2a1f).setOrigin(0, 0.5);
-    this.playerHpFill = this.add.rectangle(playerBarX + 24, 213, BAR_WIDTH - 24, 10, 0x4a8a4a).setOrigin(0, 0.5);
-    this.playerHpText = addCrispText(this, width / 2 + BAR_WIDTH / 2 + 6, 213, '', {
+    // Labels on the left and values on the right both have to fit inside
+    // the 216px-wide screen, so the player's bars are narrower than the
+    // monster's.
+    addCrispText(this, PLAYER_LABEL_X, 199, 'PV', { fontSize: '9px', color: MUTED });
+    this.add.rectangle(PLAYER_BAR_X, 204, PLAYER_BAR_WIDTH, 10, 0x1f2a1f).setOrigin(0, 0.5);
+    this.playerHpFill = this.add.rectangle(PLAYER_BAR_X, 204, PLAYER_BAR_WIDTH, 10, 0x4a8a4a).setOrigin(0, 0.5);
+    this.playerHpText = addCrispText(this, PLAYER_BAR_X + PLAYER_BAR_WIDTH + 4, 204, '', {
       fontSize: '9px',
       color: MUTED,
     }).setOrigin(0, 0.5);
 
-    addCrispText(this, playerBarX, 228, 'PM', { fontSize: '9px', color: MUTED });
-    this.add.rectangle(playerBarX + 24, 233, BAR_WIDTH - 24, 10, 0x1f1f2a).setOrigin(0, 0.5);
-    this.playerMpFill = this.add.rectangle(playerBarX + 24, 233, BAR_WIDTH - 24, 10, 0x4a4a8a).setOrigin(0, 0.5);
-    this.playerMpText = addCrispText(this, width / 2 + BAR_WIDTH / 2 + 6, 233, '', {
+    const bar = RESOURCE_BAR[this.engine.kind];
+    addCrispText(this, PLAYER_LABEL_X, 217, bar.label, { fontSize: '9px', color: MUTED });
+    this.add.rectangle(PLAYER_BAR_X, 222, PLAYER_BAR_WIDTH, 10, bar.bg).setOrigin(0, 0.5);
+    this.resourceFill = this.add.rectangle(PLAYER_BAR_X, 222, PLAYER_BAR_WIDTH, 10, bar.color).setOrigin(0, 0.5);
+    this.resourceText = addCrispText(this, PLAYER_BAR_X + PLAYER_BAR_WIDTH + 4, 222, '', {
       fontSize: '9px',
       color: MUTED,
     }).setOrigin(0, 0.5);
+
+    this.effectsText = addCrispText(this, width / 2, 238, '', {
+      fontSize: '9px',
+      color: '#8fc0e8',
+      align: 'center',
+      wordWrap: { width: width - 20 },
+    }).setOrigin(0.5);
 
     this.logText = addCrispText(
       this,
       width / 2,
-      270,
+      250,
       `Un ${this.monster.name.toLowerCase()} ${TIER_APPEARANCE_MESSAGE[this.monster.tier]} !`,
       {
         fontSize: '10px',
@@ -273,192 +260,179 @@ export class CombatScene extends Phaser.Scene {
         align: 'center',
         wordWrap: { width: width - 24 },
       },
-    ).setOrigin(0.5);
+    ).setOrigin(0.5, 0);
 
-    this.createActionButton(width / 2 - 55, 330, 'Attaquer', () => this.playerAttack());
-    this.createActionButton(width / 2 + 55, 330, 'Fuir', () => this.flee());
-
-    this.potionButtons = {};
-    const ownedPotions = COMBAT_POTIONS.filter((id) => (this.character.consumables[id] ?? 0) > 0);
-    ownedPotions.forEach((id, i) => {
-      const x = ownedPotions.length === 1 ? width / 2 : width / 2 + (i === 0 ? -55 : 55);
-      this.potionButtons[id] = this.createActionButton(x, 302, this.potionLabel(id), () => this.usePotion(id));
-    });
-
+    this.showMenu('main');
     this.refreshBars();
   }
 
-  private characterLabel(): string {
-    return `Niveau ${this.character.level}`;
+  // ---------------------------------------------------------------- menus
+
+  private clearMenu(): void {
+    this.menuButtons.forEach((button) => button.destroy());
+    this.menuButtons = [];
   }
 
-  private createActionButton(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
+  private addButton(
+    x: number,
+    y: number,
+    label: string,
+    onClick: () => void,
+    options: { enabled?: boolean; small?: boolean } = {},
+  ): Phaser.GameObjects.Text {
+    const small = options.small ?? false;
     const button = addCrispText(this, x, y, label, {
-      fontSize: '12px',
+      fontSize: small ? '9px' : '12px',
       color: DARK,
       backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
+      padding: small ? { x: 4, y: 5 } : { x: 10, y: 6 },
+      align: 'center',
+      fixedWidth: small ? 102 : 0,
     })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-
+    // Disabled buttons stay tappable so they can explain why in the log.
+    button.setAlpha(options.enabled === false ? 0.45 : 1);
     button.on('pointerdown', onClick);
-    this.actionButtons.push(button);
+    this.menuButtons.push(button);
     return button;
   }
 
-  private setActionsEnabled(enabled: boolean): void {
-    this.actionButtons.forEach((button) => {
-      button.input!.enabled = enabled;
-      button.setAlpha(enabled ? 1 : 0.5);
+  private ownedPotions(): ConsumableId[] {
+    return COMBAT_POTIONS.filter(
+      (id) => (this.character.consumables[id] ?? 0) > 0 && (id !== 'mana_potion' || this.engine.kind === 'mana'),
+    );
+  }
+
+  private showMenu(view: MenuView): void {
+    this.clearMenu();
+    this.menuView = view;
+    if (this.ended) return;
+    const { width } = this.scale;
+    const left = width / 2 - 54;
+    const right = width / 2 + 54;
+
+    if (view === 'main') {
+      this.addButton(left, 322, 'Attaquer', () => this.playerAttack());
+      this.addButton(right, 322, 'Compétences', () => this.showMenu('skills'));
+      this.addButton(left, 354, 'Potion', () => this.openPotions(), { enabled: this.ownedPotions().length > 0 });
+      this.addButton(right, 354, 'Fuir', () => this.flee());
+      return;
+    }
+
+    if (view === 'skills') {
+      const skills = this.character.equippedSkills ?? [];
+      skills.forEach((id, i) => {
+        const availability = this.engine.skillAvailability(id);
+        const x = i % 2 === 0 ? left : right;
+        const y = 304 + Math.floor(i / 2) * 25;
+        this.addButton(x, y, `${TALENTS[id].name} ${availability.cost}`, () => this.useSkill(id), {
+          enabled: availability.usable,
+          small: true,
+        });
+      });
+      if (skills.length === 0) this.logText.setText('Aucune compétence équipée (menu Talents).');
+      this.addButton(width / 2, 360, 'Retour', () => this.showMenu('main'), { small: true });
+      return;
+    }
+
+    const potions = this.ownedPotions();
+    potions.forEach((id, i) => {
+      const x = i % 2 === 0 ? left : right;
+      const y = 304 + Math.floor(i / 2) * 25;
+      this.addButton(x, y, `${COMBAT_POTION_LABELS[id]} x${this.character.consumables[id]}`, () => this.usePotion(id), {
+        small: true,
+      });
+    });
+    this.addButton(width / 2, 360, 'Retour', () => this.showMenu('main'), { small: true });
+  }
+
+  private openPotions(): void {
+    if (this.busy || this.ended) return;
+    if (this.ownedPotions().length === 0) {
+      this.logText.setText("Vous n'avez aucune potion utilisable.");
+      return;
+    }
+    this.showMenu('potions');
+  }
+
+  private disableMenu(): void {
+    this.menuButtons.forEach((button) => {
+      button.input!.enabled = false;
+      button.setAlpha(0.45);
     });
   }
 
-  private hideActions(): void {
-    this.actionButtons.forEach((button) => button.setVisible(false));
-  }
+  // --------------------------------------------------------------- display
 
   private refreshStatusLine(): void {
-    this.statusText.setText(statusLine(this.monsterStatuses));
+    this.statusText.setText(statusLine(this.engine.statuses));
+    this.effectsText.setText(this.engine.playerEffectsLine());
   }
 
   private refreshBars(): void {
     this.enemyHpFill.width = BAR_WIDTH * Math.max(0, this.monster.hp / this.monster.maxHp);
     this.enemyHpText.setText(`${Math.max(0, this.monster.hp)}/${this.monster.maxHp}`);
 
-    const hpWidth = BAR_WIDTH - 24;
-    this.playerHpFill.width = hpWidth * Math.max(0, this.character.hp / this.character.maxHp);
+    this.playerHpFill.width = PLAYER_BAR_WIDTH * Math.max(0, this.character.hp / this.character.maxHp);
     this.playerHpText.setText(`${Math.max(0, this.character.hp)}/${this.character.maxHp}`);
-    this.playerMpFill.width = hpWidth * Math.max(0, this.character.mp / this.character.maxMp);
-    this.playerMpText.setText(`${Math.max(0, this.character.mp)}/${this.character.maxMp}`);
+    const max = Math.max(1, this.engine.resourceMax);
+    this.resourceFill.width = PLAYER_BAR_WIDTH * Math.max(0, this.engine.resource / max);
+    this.resourceText.setText(`${this.engine.resource}/${this.engine.resourceMax}`);
+    this.refreshStatusLine();
   }
 
+  // --------------------------------------------------------------- actions
+
   private playerAttack(): void {
+    this.runAction(() => this.engine.attack());
+  }
+
+  private useSkill(id: string): void {
+    this.runAction(() => this.engine.useSkill(id));
+  }
+
+  private usePotion(id: ConsumableId): void {
+    this.runAction(() => this.engine.usePotion(id));
+  }
+
+  private runAction(action: () => ActionResult): void {
     if (this.busy || this.ended) return;
-    this.busy = true;
-    this.setActionsEnabled(false);
-
-    const stats = getEffectiveStats(this.character);
-    const weaponType = this.character.equipment.weapon?.weaponType;
-    // No weapon equipped falls back to Force scaling (bare fists).
-    const scalingStat: keyof CharacterStats = weaponType ? WEAPON_SCALING_STAT[weaponType] : 'strength';
-    const weaponDamage = Math.floor(stats[scalingStat] / 2);
-    const baseDamage = Phaser.Math.Between(2, 5) + Math.round(weaponDamage);
-    const elementalDamage =
-      stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
-    const critical = Math.random() < BASE_CRIT_CHANCE;
-    const vulnerable = consumeStatus(this.monsterStatuses, 'vulnerable');
-    const damage = Math.round(
-      (baseDamage + elementalDamage) * (critical ? CRIT_MULTIPLIER : 1) * (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1),
-    );
-    this.monster.hp -= damage;
-    const applied = this.monster.hp > 0 ? rollElementStatuses(stats, this.monsterStatuses) : [];
-    this.refreshStatusLine();
-    if (stats.lifeSteal > 0) {
-      this.character.hp = Math.min(this.character.maxHp, this.character.hp + stats.lifeSteal);
+    const result = action();
+    if (!result.endsTurn) {
+      // Unusable skill (the log explains why) or a free action.
+      if (result.log) this.logText.setText(result.log);
+      this.refreshBars();
+      this.showMenu(this.menuView);
+      return;
     }
+    this.busy = true;
+    this.disableMenu();
+    this.logText.setText(result.log);
     this.refreshBars();
-    playHit();
-    const lifeStealPart = stats.lifeSteal > 0 ? ` Vous drainez ${stats.lifeSteal} PV.` : '';
-    this.logText.setText(
-      (critical ? 'Coup critique ! ' : '') +
-        `Vous infligez ${damage} dégâts.` +
-        lifeStealPart +
-        describeApplied(this.monster.name, applied),
-    );
-
-    if (this.monster.hp <= 0) {
+    if (result.hit) playHit();
+    if (result.victory) {
       this.time.delayedCall(600, () => this.victory());
       return;
     }
-
     this.time.delayedCall(900, () => this.enemyTurn());
   }
 
   private enemyTurn(): void {
-    const stats = getEffectiveStats(this.character);
-    const dot = tickDamageOverTime(this.monsterStatuses);
-    const dotPrefix = dot.parts.length > 0 ? `${dot.parts.join(' ')} ` : '';
-    if (dot.total > 0) {
-      this.monster.hp -= dot.total;
-      this.refreshBars();
-      this.refreshStatusLine();
-      if (this.monster.hp <= 0) {
-        this.logText.setText(`${dotPrefix}${this.monster.name} succombe !`);
-        this.time.delayedCall(600, () => this.victory());
-        return;
-      }
-    }
-    if (consumeStatus(this.monsterStatuses, 'stunned')) {
-      this.refreshStatusLine();
-      this.logText.setText(`${dotPrefix}${this.monster.name} est étourdi et ne peut pas agir.`);
-      this.busy = false;
-      this.setActionsEnabled(true);
-      return;
-    }
-    const frozen = consumeStatus(this.monsterStatuses, 'frozen');
-    const weakened = consumeStatus(this.monsterStatuses, 'weakened');
-    this.refreshStatusLine();
-    if (Math.random() < dodgeChance(stats.agility)) {
-      playHit();
-      this.logText.setText(`${dotPrefix}Vous esquivez l'attaque : ${this.monster.name.toLowerCase()} frappe dans le vide !`);
-      this.busy = false;
-      this.setActionsEnabled(true);
-      return;
-    }
-    const armor = stats.armor;
-    const rawAttack =
-      (this.monster.attack + Phaser.Math.Between(-1, 2)) *
-      (frozen ? FROZEN_ATTACK_MULTIPLIER : 1) *
-      (weakened ? WEAKENED_ATTACK_MULTIPLIER : 1);
-    // Armor can mitigate at most 60% of the monster's base attack — a tier-3
-    // character stacks armor from several equipped slots at once (helmet/
-    // chest/legs/boots/shield/gloves all roll it), which under plain flat
-    // subtraction could exceed any boss's attack stat outright and floor
-    // every hit to the 1-damage minimum, making a fully-geared player
-    // unkillable regardless of the fight. Capping how much of an attack
-    // armor can ever cancel keeps the flat-subtraction feel identical to
-    // before for any reasonable armor total (the cap only engages once
-    // armor already exceeds 60% of the attack it's mitigating) while
-    // guaranteeing late-game fights keep some real risk no matter how much
-    // armor is stacked.
-    const effectiveArmor = Math.min(armor, this.monster.attack * 0.6);
-    const damage = Math.max(1, Math.round(rawAttack - effectiveArmor));
-    this.character.hp = Math.max(0, this.character.hp - damage);
+    const result = this.engine.monsterTurn();
+    this.logText.setText(result.log);
     this.refreshBars();
-    playHit();
-    this.logText.setText(`${dotPrefix}${this.monster.name} vous inflige ${damage} dégâts.`);
-
-    if (this.character.hp <= 0) {
+    if (result.hit) playHit();
+    if (result.outcome === 'victory') {
+      this.time.delayedCall(600, () => this.victory());
+      return;
+    }
+    if (result.outcome === 'defeat') {
       this.time.delayedCall(600, () => this.defeat());
       return;
     }
-
     this.busy = false;
-    this.setActionsEnabled(true);
-  }
-
-  private potionLabel(id: ConsumableId): string {
-    return `${COMBAT_POTION_LABELS[id]} x${this.character.consumables[id] ?? 0}`;
-  }
-
-  private usePotion(id: ConsumableId): void {
-    if (this.busy || this.ended) return;
-    if ((this.character.consumables[id] ?? 0) <= 0) return;
-    this.busy = true;
-    this.setActionsEnabled(false);
-
-    useConsumable(this.character, id);
-    this.refreshBars();
-    this.logText.setText(`Vous buvez une ${CONSUMABLES[id].name.toLowerCase()}.`);
-    const button = this.potionButtons[id];
-    if ((this.character.consumables[id] ?? 0) <= 0) {
-      button?.setVisible(false);
-    } else {
-      button?.setText(this.potionLabel(id));
-    }
-
-    this.time.delayedCall(900, () => this.enemyTurn());
+    this.showMenu('main');
   }
 
   private async flee(): Promise<void> {
@@ -468,8 +442,8 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     this.busy = true;
-    this.setActionsEnabled(false);
-    if (Math.random() >= fleeChance(getEffectiveStats(this.character).agility)) {
+    this.disableMenu();
+    if (!this.engine.tryFlee()) {
       this.logText.setText('Vous ne parvenez pas à fuir !');
       this.time.delayedCall(900, () => this.enemyTurn());
       return;
@@ -483,11 +457,12 @@ export class CombatScene extends Phaser.Scene {
 
   private async victory(): Promise<void> {
     this.ended = true;
-    this.hideActions();
-    this.monsterStatuses = {};
+    this.clearMenu();
+    this.engine.statuses = {};
     this.refreshStatusLine();
+    const goldReward = this.engine.goldReward();
     const levelsGained = grantXp(this.character, this.monster.xpReward);
-    this.character.gold += this.monster.goldReward;
+    this.character.gold += goldReward;
 
     const lootTier = DUNGEON_LOOT_TIER[this.returnScene] ?? 1;
     const loot: Item | null = this.monster.isBoss
@@ -554,8 +529,8 @@ export class CombatScene extends Phaser.Scene {
 
     const xpPart =
       levelsGained > 0
-        ? `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or — niveau supérieur !`
-        : `Victoire ! +${this.monster.xpReward} XP, +${this.monster.goldReward} or`;
+        ? `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or — niveau supérieur !`
+        : `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
     const materialPart =
@@ -578,7 +553,7 @@ export class CombatScene extends Phaser.Scene {
 
   private async defeat(): Promise<void> {
     this.ended = true;
-    this.hideActions();
+    this.clearMenu();
     this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
     const goldLost = Math.floor(this.character.gold * DEFEAT_GOLD_LOSS);
     this.character.gold -= goldLost;
@@ -593,7 +568,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private showContinue(onClick: () => void): void {
-    this.continueButton = addCrispText(this, this.scale.width / 2, 330, 'Continuer', {
+    this.continueButton = addCrispText(this, this.scale.width / 2, 354, 'Continuer', {
       fontSize: '12px',
       color: DARK,
       backgroundColor: GOLD,

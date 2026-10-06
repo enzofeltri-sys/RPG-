@@ -53,6 +53,7 @@ import { CombatScene } from './scenes/CombatScene';
 import { InventoryScene } from './scenes/InventoryScene';
 import { BagScene } from './scenes/BagScene';
 import { StatsScene } from './scenes/StatsScene';
+import { TalentsScene } from './scenes/TalentsScene';
 import { QuestLogScene } from './scenes/QuestLogScene';
 import { MapScene } from './scenes/MapScene';
 import { CraftingScene } from './scenes/CraftingScene';
@@ -187,6 +188,7 @@ async function boot(): Promise<void> {
       InventoryScene,
       BagScene,
       StatsScene,
+      TalentsScene,
       QuestLogScene,
       MapScene,
       CraftingScene,

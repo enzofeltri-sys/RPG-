@@ -8,6 +8,7 @@ import {
   getEffectiveStats,
   allocateStatPoint,
 } from '../game/character';
+import { CLASS_RESOURCE, MAX_LEVEL, RAGE_MAX, enduranceMax } from '../game/talents';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -56,7 +57,9 @@ export class StatsScene extends Phaser.Scene {
       36,
       [
         `${raceLabel} ${classLabel}`,
-        `Niveau ${this.character.level}  (XP ${this.character.xp}/${xpToNextLevel(this.character.level)})`,
+        this.character.level >= MAX_LEVEL
+          ? `Niveau ${this.character.level} (maximum)`
+          : `Niveau ${this.character.level}  (XP ${this.character.xp}/${xpToNextLevel(this.character.level)})`,
       ].join('\n'),
       { fontSize: '11px', color: GOLD, lineSpacing: 4 },
     );
@@ -102,7 +105,7 @@ export class StatsScene extends Phaser.Scene {
       y,
       [
         `PV ${this.character.hp}/${this.character.maxHp}`,
-        `PM ${this.character.mp}/${this.character.maxMp}`,
+        this.resourceLine(stats.vitality),
         '',
         ...extraLines,
         `Or : ${this.character.gold}`,
@@ -143,6 +146,13 @@ export class StatsScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     button.setAlpha(this.character.statPoints > 0 ? 1 : 0.4);
     button.on('pointerdown', () => this.handleAllocate(stat));
+  }
+
+  private resourceLine(vitality: number): string {
+    const resource = CLASS_RESOURCE[this.character.class];
+    if (resource === 'mana') return `Mana ${this.character.mp}/${this.character.maxMp}`;
+    if (resource === 'rage') return `Rage : 0 à ${RAGE_MAX}, se remplit en combat`;
+    return `Endurance ${enduranceMax(vitality)}, pleine à chaque combat`;
   }
 
   private refreshPointsText(): void {

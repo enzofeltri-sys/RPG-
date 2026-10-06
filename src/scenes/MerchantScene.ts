@@ -27,6 +27,11 @@ const SHOP_CATALOG: ShopEntry[] = [
     price: 15,
     onBuy: (c) => (c.consumables.health_potion = (c.consumables.health_potion ?? 0) + 1),
   },
+  {
+    label: CONSUMABLES.mana_potion.name,
+    price: 20,
+    onBuy: (c) => (c.consumables.mana_potion = (c.consumables.mana_potion ?? 0) + 1),
+  },
 ];
 
 interface MerchantData {

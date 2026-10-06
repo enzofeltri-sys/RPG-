@@ -101,6 +101,15 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultType: 'consumable',
     resultConsumableId: 'health_potion',
   },
+  brew_mana_potion: {
+    id: 'brew_mana_potion',
+    name: 'Potion de mana',
+    description: "Préparer une potion de mana : herbes médicinales infusées sur de la limaille de fer brut.",
+    station: 'alchemy',
+    materials: { herb: 2, iron_ore: 1 },
+    resultType: 'consumable',
+    resultConsumableId: 'mana_potion',
+  },
   // Upgraded recipes — each still needs the common material alongside its
   // rare counterpart, so both tiers stay worth gathering/dropping rather than
   // the rare variant simply replacing the common one outright.

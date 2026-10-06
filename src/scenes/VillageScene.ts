@@ -8,6 +8,7 @@ import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { SaveManager } from '../save/SaveManager';
+import { respecCost, resetTalents, talentPointsSpent } from '../game/talents';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
@@ -58,6 +59,7 @@ export class VillageScene extends Phaser.Scene {
   private ombelineHouse!: Phaser.GameObjects.Rectangle;
   private innBuilding!: Phaser.GameObjects.Rectangle;
   private brasque!: Phaser.GameObjects.Rectangle;
+  private weaponMaster!: Phaser.GameObjects.Rectangle;
   private villagers: Wanderer[] = [];
   private villagerLineIndex = 0;
   private dialogElements: Phaser.GameObjects.GameObject[] = [];
@@ -126,12 +128,20 @@ export class VillageScene extends Phaser.Scene {
     void attachSpriteOverlay(this, this.brasque, 'npc-brasque_merchant', `${import.meta.env.BASE_URL}sprites/npc/brasque_merchant.png`, 24);
     addCrispText(this, 60, 450, 'Brasque', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
 
+    // Resets talents for gold (DESIGN.md, talent system) — next to the
+    // forge, clear of the wandering villager's path.
+    this.weaponMaster = this.add.rectangle(100, 340, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
+    void attachSpriteOverlay(this, this.weaponMaster, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
+    addCrispText(this, 100, 320, "Maître d'armes", { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.merchantNpc);
     this.villagers.forEach((v) => this.physics.add.collider(this.player, v.sprite));
     this.physics.add.existing(this.brasque, true);
     this.physics.add.collider(this.player, this.brasque);
+    this.physics.add.existing(this.weaponMaster, true);
+    this.physics.add.collider(this.player, this.weaponMaster);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -206,6 +216,7 @@ export class VillageScene extends Phaser.Scene {
         };
       }),
       { x: this.brasque.x, y: this.brasque.y, radius: 22, onTap: () => this.talkToBrasque() },
+      { x: this.weaponMaster.x, y: this.weaponMaster.y, radius: 22, onTap: () => this.talkToWeaponMaster() },
     ];
     this.tapControl.setInteractables(interactables);
 
@@ -242,6 +253,42 @@ export class VillageScene extends Phaser.Scene {
     const line = VILLAGER_LINES[this.villagerLineIndex % VILLAGER_LINES.length];
     this.villagerLineIndex += 1;
     this.showMessage(line);
+  }
+
+  private talkToWeaponMaster(): void {
+    if (!this.character) return;
+    const spent = talentPointsSpent(this.character);
+    if (spent === 0) {
+      this.openDialog(
+        "Le maître d'armes vous jauge d'un œil sévère. « Tu n'as encore rien appris que je puisse te faire oublier. Reviens quand tu auras choisi ta voie. »",
+        [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+      );
+      return;
+    }
+    const cost = respecCost(this.character.level);
+    this.openDialog(
+      `« Une technique mal choisie se désapprend, mais ça se paie. Pour ${cost} pièces d'or, je te fais tout reprendre de zéro : tu récupères tes ${spent} point${spent > 1 ? 's' : ''} de talent. » (Vous avez ${this.character.gold} or.)`,
+      [
+        { label: `Tout désapprendre (${cost} or)`, onClick: () => void this.resetTalentsForGold(cost) },
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ],
+    );
+  }
+
+  private async resetTalentsForGold(cost: number): Promise<void> {
+    if (this.character.gold < cost) {
+      this.openDialog("« Reviens avec de quoi payer. Je n'enseigne pas à crédit. »", [
+        { label: 'Fermer', onClick: () => this.closeDialog() },
+      ]);
+      return;
+    }
+    this.character.gold -= cost;
+    resetTalents(this.character);
+    await SaveManager.saveCharacter(this.character);
+    this.openDialog(
+      "« Voilà. Tes talents sont à nouveau à choisir. Passe par ton menu Talents, et cette fois, réfléchis. »",
+      [{ label: 'Fermer', onClick: () => this.closeDialog() }],
+    );
   }
 
   private talkToBrasque(): void {

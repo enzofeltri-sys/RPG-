@@ -53,17 +53,45 @@ export function statusChance(id: MonsterStatusId, value: number): number {
   return Math.min(0.4, 0.13 + value * 0.02);
 }
 
-function applyStatus(statuses: MonsterStatuses, id: MonsterStatusId, value: number): void {
-  const fresh: ActiveStatus =
-    id === 'poisoned'
-      ? { turns: 3, damage: Math.max(1, Math.ceil(value / 2)) }
-      : id === 'burning'
-        ? { turns: 2, damage: Math.max(1, value) }
-        : { turns: id === 'weakened' || id === 'vulnerable' ? 2 : 1 };
+// Talent bonuses on states the player inflicts (Venin, Ignition, Froid
+// mordant — see talents.ts). Applied to gear-triggered states and to the
+// ones skills inflict alike.
+export interface StatusMods {
+  poisonDamage: number;
+  poisonTurns: number;
+  burnDamage: number;
+  freezeTurns: number;
+}
+
+export const NO_STATUS_MODS: StatusMods = { poisonDamage: 0, poisonTurns: 0, burnDamage: 0, freezeTurns: 0 };
+
+// A fresh application refreshes the duration and keeps the stronger tick.
+export function applyStatus(statuses: MonsterStatuses, id: MonsterStatusId, fresh: ActiveStatus): void {
   const current = statuses[id];
   statuses[id] = current
     ? { turns: Math.max(current.turns, fresh.turns), damage: Math.max(current.damage ?? 0, fresh.damage ?? 0) || undefined }
     : fresh;
+}
+
+// Base poison/burn/freeze before talent bonuses, from the strength of the
+// source (an element's value on gear, or a stat for skills).
+export function poisonStatus(power: number, mods: StatusMods, baseTurns = 3): ActiveStatus {
+  return { turns: baseTurns + mods.poisonTurns, damage: Math.max(1, Math.ceil(power / 2)) + mods.poisonDamage };
+}
+
+export function burnStatus(power: number, mods: StatusMods, baseTurns = 2): ActiveStatus {
+  return { turns: baseTurns, damage: Math.max(1, power) + mods.burnDamage };
+}
+
+export function freezeStatus(mods: StatusMods): ActiveStatus {
+  return { turns: 1 + mods.freezeTurns };
+}
+
+function gearStatus(id: MonsterStatusId, value: number, mods: StatusMods): ActiveStatus {
+  if (id === 'poisoned') return poisonStatus(value, mods);
+  if (id === 'burning') return burnStatus(value, mods);
+  if (id === 'frozen') return freezeStatus(mods);
+  return { turns: id === 'weakened' || id === 'vulnerable' ? 2 : 1 };
 }
 
 // Rolls each elemental stat of the player's gear and applies the matching
@@ -72,12 +100,13 @@ export function rollElementStatuses(
   stats: CharacterStats,
   statuses: MonsterStatuses,
   rng: () => number = Math.random,
+  mods: StatusMods = NO_STATUS_MODS,
 ): MonsterStatusId[] {
   const applied: MonsterStatusId[] = [];
   for (const [stat, id] of ELEMENT_STATUS) {
     const value = stats[stat];
     if (value > 0 && rng() < statusChance(id, value)) {
-      applyStatus(statuses, id, value);
+      applyStatus(statuses, id, gearStatus(id, value, mods));
       applied.push(id);
     }
   }

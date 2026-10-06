@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Character, RACES, CLASSES } from '../game/character';
+import { talentPointsAvailable } from '../game/talents';
 import { ReturnSceneKey, returnSceneStartData } from './returnContext';
 import { addCrispText } from './text';
 
@@ -28,6 +29,7 @@ export class CharacterSheetPanel {
   private readonly inventoryButton: Phaser.GameObjects.Text;
   private readonly bagButton: Phaser.GameObjects.Text;
   private readonly statsButton: Phaser.GameObjects.Text;
+  private readonly talentsButton: Phaser.GameObjects.Text;
   private readonly questsButton: Phaser.GameObjects.Text;
   private readonly mapButton: Phaser.GameObjects.Text;
   private readonly optionsButton: Phaser.GameObjects.Text;
@@ -82,14 +84,22 @@ export class CharacterSheetPanel {
     // Kept outside the container: interactive children of a Phaser Container are
     // unreliable for pointer hit-testing, so these buttons are separate top-level
     // objects toggled in lockstep with the panel instead of being nested inside it.
-    // Laid out as a 4x2 grid (Quitter alone on the last row).
+    // Laid out as a 2-column grid.
     this.inventoryButton = this.makeNavButton(scene, 20, 90, 'Inventaire', () => navigateTo('Inventory'));
     this.bagButton = this.makeNavButton(scene, 115, 90, 'Sac', () => navigateTo('Bag'));
     this.statsButton = this.makeNavButton(scene, 20, 120, 'Stats', () => navigateTo('Stats'));
-    this.questsButton = this.makeNavButton(scene, 115, 120, 'Quêtes', () => navigateTo('Quests'));
-    this.mapButton = this.makeNavButton(scene, 20, 150, 'Carte', () => navigateTo('Map'));
-    this.optionsButton = this.makeNavButton(scene, 115, 150, 'Options', () => this.showOptions());
-    this.quitButton = this.makeNavButton(scene, 20, 180, 'Quitter', () => scene.scene.start('Title'));
+    this.questsButton = this.makeNavButton(scene, 20, 150, 'Quêtes', () => navigateTo('Quests'));
+    this.mapButton = this.makeNavButton(scene, 115, 150, 'Carte', () => navigateTo('Map'));
+    this.optionsButton = this.makeNavButton(scene, 20, 180, 'Options', () => this.showOptions());
+    const talentPoints = talentPointsAvailable(character);
+    this.talentsButton = this.makeNavButton(
+      scene,
+      115,
+      120,
+      talentPoints > 0 ? `Talents (${talentPoints})` : 'Talents',
+      () => navigateTo('Talents'),
+    );
+    this.quitButton = this.makeNavButton(scene, 115, 180, 'Quitter', () => scene.scene.start('Title'));
 
     this.optionsInfoText = addCrispText(
       scene,
@@ -138,6 +148,7 @@ export class CharacterSheetPanel {
       this.inventoryButton,
       this.bagButton,
       this.statsButton,
+      this.talentsButton,
       this.questsButton,
       this.mapButton,
       this.quitButton,

@@ -93,6 +93,20 @@ export class TapController {
     }
   }
 
+  // Keyboard alternative to tapping an NPC/object directly: fires the
+  // nearest interactable's onTap() immediately if the player is already
+  // within its radius, with no walk-to-target step (unlike a tap on one
+  // that's out of reach, which queues a walk via handlePointerDown). Meant
+  // to be called from a scene's update() on a fresh keydown (e.g.
+  // Phaser.Input.Keyboard.JustDown(eKey)), not held every frame.
+  interactViaKey(): void {
+    if (!this.enabled) return;
+    const hit = this.interactables.find(
+      (t) => Phaser.Math.Distance.Between(this.player.x, this.player.y, t.x, t.y) < (t.radius ?? DEFAULT_RADIUS),
+    );
+    hit?.onTap();
+  }
+
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     if (!enabled) {

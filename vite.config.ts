@@ -44,11 +44,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest,woff2}'],
-        // game-assets/ holds raw packs extracted by scripts/extract-assets.ts
-        // for a possible future graphics pass — nothing in the game
-        // references them yet, so precaching them would just add ~11MB of
-        // dead weight to the offline install. Drop this ignore once/if any
-        // of it is wired in.
+        // game-assets/ holds raw tiles/packs pulled in for the graphics
+        // rework (scripts/extract-assets.ts) — not everything dropped there
+        // ends up wired into a scene, so precaching all of it by default
+        // would grow the offline install with dead weight as more packs are
+        // extracted. Files actually used by a scene load fine without being
+        // precached; this only affects the "install once, then offline" path.
         globIgnores: ['game-assets/**'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         skipWaiting: true,

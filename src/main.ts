@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './fonts.css';
+import './pixel-art-styles.css';
 import { TitleScene } from './scenes/TitleScene';
 import { CharacterCreationScene } from './scenes/CharacterCreationScene';
 import { HamletScene } from './scenes/HamletScene';

@@ -1,18 +1,18 @@
 # Plan d'attaque – Refonte graphique du RPG
 
-> Objectif : transformer le rendu visuel du jeu pour qu'il corresponde à la DA validé¼¼e  
-> (Pixel Art 2D top-down, style GBA / Zelda / Pok é  mon, couleurs vives, monde riche et vivant).  
-> **On ne touche pas à la logique du jeu** (qu ê  tes, combats, maps, etc.), uniquement aux assets et au rendu.
+> Objectif : transformer le rendu visuel du jeu pour qu'il corresponde à la DA validée
+> (Pixel Art 2D top-down, style GBA / Zelda / Pokémon, couleurs vives, monde riche et vivant).
+> **On ne touche pas à la logique du jeu** (quêtes, combats, maps, etc.), uniquement aux assets et au rendu.
 
 ---
 
 ## 0. Rappels de la DA
 
-- **Style :** Pixel Art 2D top-down, inspir é  Game Boy Advance / SNES.
-- **Ré¼¼é¼¼rences :** *Pok é  mon Gen III*, *Zelda* (A Link to the Past, Minish Cap).
-- **Taille des tuiles :** 32×¼32 pixels (base).
+- **Style :** Pixel Art 2D top-down, inspiré Game Boy Advance / SNES.
+- **Références :** *Pokémon Gen III*, *Zelda* (A Link to the Past, Minish Cap).
+- **Taille des tuiles :** 32×32 pixels (base).
 - **Couleurs :** vives, riches, ni pastel ni trop sombres.
-- **Monde :** herbe, arbres, for ê  ts, rochers, cascades, riviè¼¼res, maisons remplies, PNJ, animaux.
+- **Monde :** herbe, arbres, forêts, rochers, cascades, rivières, maisons remplies, PNJ, animaux.
 - **Objectif :** rendu **beau** et **quali**, lisible sur mobile.
 
 ---
@@ -29,24 +29,36 @@
 
 ### 2.1. Assets à extraire en priorité
 
+> **Chemin réel (voir `docs/ASSETS-CONVENTIONS.md`)** : les ZIP sont extraits sous
+> `public/game-assets/`, pas `public/assets/` — ce dernier entre en collision
+> avec `dist/assets/`, le dossier où Vite place son propre bundle JS/CSS une
+> fois le projet buildé. `public/game-assets/` est exclu du cache hors-ligne
+> de la PWA (`globIgnores` dans `vite.config.ts`) tant que son contenu n'est
+> pas câblé dans une scène.
+
 | Catégorie | Fichier source | Destination |
 |-----------|----------------|-------------|
-| Tileset extérieur | `asset/tilesets/Pipoya RPG Tileset 32x32.zip` | `public/assets/tilesets/pipoya-rpg-32x32/` |
-| Tileset donjon | `asset/tilesets/0x72_DungeonTilesetII_v1.7.zip` | `public/assets/tilesets/dungeon-tileset-ii/` |
-| Personnages | `asset/personnages/72 Character Free.zip` | `public/assets/characters/72-character-free/` |
-| Personnages toony | `asset/personnages/Fantasy RPG (Toony) 32x32.png` | `public/assets/characters/fantasy-rpg-toony/` |
-| PNJ | `asset/pnj/FANTASY_NCP_SPRITES_PACK.zip` | `public/assets/npc/fantasy-npc-pack/` |
-| UI | `asset/interface/Free-Basic-Pixel-Art-UI-for-RPG.zip` | `public/assets/ui/basic-pixel-ui-rpg/` |
-| Décors arbres | `asset/decors/trees_and_bushes_pack.zip` | `public/assets/decor/trees-bushes/` |
-| Décors eau | `asset/decors/rc_art_-_nature_aquatic.zip` | `public/assets/decor/aquatic/` |
-| Monstres | `asset/monstres/Monster_Creatures_Fantasy(Version 1.3).zip` | `public/assets/monsters/fantasy-v1/` |
-| Items | `asset/items/16x16 Weapons RPG Icons.zip` | `public/assets/items/weapons-icons-16x16/` |
+| Tileset extérieur | `asset/tilesets/Pipoya RPG Tileset 32x32.zip` | `public/game-assets/tilesets/pipoya-rpg-32x32/` |
+| Tileset donjon | `asset/tilesets/0x72_DungeonTilesetII_v1.7.zip` | `public/game-assets/tilesets/dungeon-tileset-ii/` |
+| Personnages | `asset/personnages/72 Character Free.zip` | `public/game-assets/characters/72-character-free/` |
+| Personnages toony | `asset/personnages/Fantasy RPG (Toony) 32x32.png` | `public/game-assets/characters/fantasy-rpg-toony/` |
+| PNJ | `asset/pnj/FANTASY_NCP_SPRITES_PACK.zip` | `public/game-assets/npc/fantasy-npc-pack/` |
+| UI | `asset/interface/Free-Basic-Pixel-Art-UI-for-RPG.zip` | `public/game-assets/ui/basic-pixel-ui-rpg/` |
+| Décors arbres | `asset/decors/trees_and_bushes_pack.zip` | `public/game-assets/decor/trees-bushes/` |
+| Décors eau | `asset/decors/rc_art_-_nature_aquatic.zip` | `public/game-assets/decor/aquatic/` |
+| Monstres | `asset/monstres/Monster_Creatures_Fantasy(Version 1.3).zip` | `public/game-assets/monsters/fantasy-v1/` |
+| Items | `asset/items/16x16 Weapons RPG Icons.zip` | `public/game-assets/items/weapons-icons-16x16/` |
+
+> Une fois qu'un asset de `public/game-assets/` est réellement câblé dans une
+> scène (comme la tuile d'herbe Pipoya ci-dessous), il migre vers
+> `public/tiles/` ou `public/sprites/` selon son type — voir
+> `docs/ASSETS-CONVENTIONS.md`.
 
 ### 2.2. Règles d'extraction
 
 - Extraire uniquement les PNG utiles.
 - Organiser par sous-dossiers clairs.
-- Vérifier la taille (32×¼32 ou 16×¼16).
+- Vérifier la taille (32×32 ou 16×16).
 - Supprimer les doublons.
 
 ---
@@ -77,9 +89,36 @@ canvas, img, .sprite {
 }
 ```
 
+### 3.3. Approche actuelle du sol : texture répétée, pas de tilemap
+
+Important à garder en tête pour la suite du plan — deux choses différentes :
+
+- **Pas de tilemap.** Le jeu n'utilise ni l'API `Phaser.Tilemaps`, ni de carte
+  Tiled (JSON/TMX), ni aucune grille logique "ici c'est herbe, ici c'est un
+  bord, ici c'est de l'eau". Chaque scène est une classe TypeScript avec des
+  coordonnées x/y codées en dur pour chaque bâtiment/décor/rencontre — voir
+  `src/scenes/*.ts`.
+- **Une seule tuile répétée, pas d'autotile.** Le "sol" d'une scène
+  (`src/entities/groundTexture.ts`) est une unique tuile 32×32 (ou 16×16 côté
+  Kenney) répétée en plein écran via un `TileSprite` Phaser. Pour Pipoya,
+  cette tuile a été découpée à la main dans la feuille d'autotile RPG Maker
+  `[A]Grass1_pipo.png` (le seul bloc 8×6 sans transparence, herbe "pleine"
+  sans bord) — le système d'autotile de Pipoya (bords herbe/terre/eau qui
+  s'assemblent automatiquement selon les voisins) n'est pas exploité.
+
+Deux façons d'aller plus loin plus tard si des transitions de sol propres
+deviennent nécessaires :
+1. Un petit système d'autotile "maison" qui choisit la bonne frame dans la
+   grille Pipoya selon les tuiles voisines, sans passer par une vraie
+   tilemap.
+2. Une vraie tilemap Phaser (`Phaser.Tilemaps` + JSON Tiled + tileset Pipoya),
+   ce qui impliquerait de convertir les scènes actuelles (coordonnées libres)
+   en grilles — un chantier nettement plus gros, hors scope de ce plan pour
+   l'instant.
+
 ---
 
-## 4. Phase 3 – Inté¼¼gration
+## 4. Phase 3 – Intégration
 
 - Remplacer `roguelike-rpg.png` et `roguelike-dungeon.png` par Pipoya / 0x72.
 - Mapper persos, PNJ, monstres vers nouveaux packs.
@@ -89,9 +128,9 @@ canvas, img, .sprite {
 
 ## 5. Phase 4 – Tests
 
-Scè¼¼nes prioritaires : CityScene, ForestScene, DungeonScene, CombatScene, InteriorScene.
+Scènes prioritaires : CityScene, ForestScene, DungeonScene, CombatScene, InteriorScene.
 
-Points à vé  rifier : tuiles aligné¼¼es, sprites nets, couleurs cohé¼¼rentes, UI lisible mobile, animations fluides, perfs bonnes.
+Points à vérifier : tuiles alignées, sprites nets, couleurs cohérentes, UI lisible mobile, animations fluides, perfs bonnes.
 
 ---
 
@@ -107,7 +146,8 @@ Points à vé  rifier : tuiles aligné¼¼es, sprites nets, couleurs cohé¼¼re
 ## 7. Checklist
 
 - [x] Créer branche `refonte-graphisme`
-- [ ] Extraire Pipoya RPG Tileset 32x32
+- [x] Découper et câbler une tuile d'herbe Pipoya (une seule frame, pas le pack entier — voir 3.3)
+- [ ] Extraire le reste de Pipoya RPG Tileset 32x32 dans `public/game-assets/`
 - [ ] Extraire 0x72 DungeonTileset II
 - [ ] Extraire 72 Character Free
 - [ ] Extraire Fantasy RPG Toony 32x32
@@ -128,4 +168,4 @@ Points à vé  rifier : tuiles aligné¼¼es, sprites nets, couleurs cohé¼¼re
 
 ---
 
-> Prochaine é  tape : extraire les assets et int é grer progressivement.
+> Prochaine étape : extraire les assets et intégrer progressivement.

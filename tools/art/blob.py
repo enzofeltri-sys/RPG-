@@ -24,8 +24,13 @@ def shade_blob(
     ramp: str,
     outline: str,
     thresholds: list[float],
+    bottom_darken: float = 0.0,
 ) -> list[list[str | None]]:
     """clumps: (cx, cy, rx, ry). ramp: palette keys dark -> light.
+
+    bottom_darken: fraction of the shape's height, measured from its bottom
+    edge, pushed one shade darker — cheap ambient occlusion so foliage and
+    rocks read as sitting on the ground instead of floating.
 
     Returns a grid of palette keys (None = transparent).
     """
@@ -57,6 +62,17 @@ def shade_blob(
                 if lit > t:
                     b += 1
             band[y][x] = min(b, len(ramp) - 1)
+
+    if bottom_darken > 0:
+        rows = [y for y in range(h) if any(b >= 0 for b in band[y])]
+        if rows:
+            top, bot = rows[0], rows[-1]
+            cutoff = bot - (bot - top + 1) * bottom_darken
+            for y in range(h):
+                if y > cutoff:
+                    for x in range(w):
+                        if band[y][x] > 0:
+                            band[y][x] -= 1
 
     # Remove isolated pixels whose band matches none of their 4 neighbours.
     for _ in range(2):

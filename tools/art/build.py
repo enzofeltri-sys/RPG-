@@ -25,9 +25,11 @@ def up(img: Image.Image, k: int) -> Image.Image:
 
 def grass_field(tiles_w: int, tiles_h: int, seed: int = 7) -> Image.Image:
     variants = [
-        (grid_to_image(ascii_to_grid(sprites.GRASS_PLAIN)), 70),
-        (grid_to_image(ascii_to_grid(sprites.GRASS_TUFTS)), 22),
-        (grid_to_image(ascii_to_grid(sprites.GRASS_FLOWERS)), 8),
+        (grid_to_image(ascii_to_grid(sprites.GRASS_PLAIN)), 62),
+        (grid_to_image(ascii_to_grid(sprites.GRASS_TUFTS)), 18),
+        (grid_to_image(ascii_to_grid(sprites.GRASS_TALL)), 8),
+        (grid_to_image(ascii_to_grid(sprites.GRASS_PEBBLES)), 5),
+        (grid_to_image(ascii_to_grid(sprites.GRASS_FLOWERS)), 7),
     ]
     rng = random.Random(seed)
     img = Image.new('RGBA', (tiles_w * 16, tiles_h * 16))

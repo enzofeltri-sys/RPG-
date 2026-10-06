@@ -49,6 +49,44 @@ GRASS_TUFTS = [
     'wwwwwwwwwwwwwwww',
 ]
 
+GRASS_TALL = [
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwewwewwwwwww',
+    'wwwwehwehwwwwwww',
+    'wwwweqeeqewwwwww',
+    'wwwqeqhqeqwwwwww',
+    'wwwqqgqgqqwwwwww',
+    'wwwwqqqqqwwwwwww',
+    'wwwwwwwwwwwwwqww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wqwwwwwwwwwewwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+]
+
+GRASS_PEBBLES = [
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwqwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwRrwwwwwwwww',
+    'wwwwrrsqwwwwwwww',
+    'wwwwwqqwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwwwwwwRwwww',
+    'wwqwwwwwwwrsqwww',
+    'wwwwwwwwwwwqwwww',
+    'wwwwwwwwwwwwwwww',
+    'wwwwwwewwwwwwwww',
+    'wwwwwwwwwwwwwwww',
+]
+
 GRASS_FLOWERS = [
     'wwwwwwwwwwwwwwww',
     'wwwwwwwwwwwwwwww',
@@ -75,29 +113,33 @@ def tree() -> Grid:
     size = (32, 32)
     g: Grid = [[None] * 32 for _ in range(32)]
     trunk = ascii_to_grid([
-        '.kbnbbk.',
-        '.kbnbbk.',
-        '.kbnbbk.',
-        '.kbnbbk.',
-        '.kbnbbk.',
-        'kkbnbbkk',
-        'kbbnbbbk',
-        '.kkkkkk.',
+        '..kbnbbk..',
+        '..kbnbbk..',
+        '..kbnbbk..',
+        '..kbnbBk..',
+        '..kbnbBk..',
+        '.kkbnbBkk.',
+        'kbbbnbbBBk',
+        '.kkk..kkk.',
     ])
-    overlay(g, trunk, 12, 21)
+    overlay(g, trunk, 11, 22)
     canopy = shade_blob(
         size,
         [
-            (16, 7.5, 6.5, 5.5),
-            (9.5, 11, 6, 5.5),
-            (22.5, 11, 6, 5.5),
-            (12, 16.5, 6.5, 5),
-            (20, 16.5, 6.5, 5),
-            (16, 12.5, 8, 7.5),
+            (16, 12, 9, 8.5),
+            (16, 5.5, 5, 4),
+            (10, 7.5, 5, 4.5),
+            (22, 7.5, 5, 4.5),
+            (6.5, 12.5, 4.5, 4.5),
+            (25.5, 12.5, 4.5, 4.5),
+            (9, 18, 5.5, 4),
+            (23, 18, 5.5, 4),
+            (16, 19.5, 6, 3.5),
         ],
         ramp='GghH',
         outline='K',
-        thresholds=[0.12, 0.48, 0.8],
+        thresholds=[0.12, 0.5, 0.84],
+        bottom_darken=0.22,
     )
     overlay(g, canopy, 0, 0)
     return g
@@ -111,118 +153,153 @@ def bush() -> Grid:
             (11, 10, 3.8, 3.6),
             (8, 7.5, 4.6, 4),
             (8, 11.5, 5, 3),
+            (4.5, 7.5, 2.5, 2.4),
+            (11.5, 7, 2.6, 2.5),
         ],
         ramp='GghH',
         outline='K',
-        thresholds=[0.12, 0.5, 0.82],
+        thresholds=[0.1, 0.48, 0.8],
+        bottom_darken=0.25,
     )
 
 
 def rock() -> Grid:
-    return shade_blob(
+    g = shade_blob(
         (16, 16),
         [
             (8.5, 10.5, 6, 4.2),
             (6.5, 8.5, 3.6, 3.2),
+            (11, 9, 3, 2.6),
         ],
-        ramp='Ssr' 'R',
+        ramp='SsrR',
         outline='T',
-        thresholds=[0.05, 0.45, 0.85],
+        thresholds=[0.05, 0.42, 0.82],
+        bottom_darken=0.2,
     )
+    # A small crack and a moss patch on the lit top-left.
+    for x, y, k in [(10, 9, 'S'), (11, 10, 'S'), (11, 11, 'S'), (5, 6, 'g'), (6, 6, 'h'), (7, 6, 'g'), (6, 7, 'g')]:
+        if g[y][x] is not None:
+            g[y][x] = k
+    return g
 
 
 # ------------------------------------------------------------------ hero
+#
+# 16x24 frames. Each direction is a 19-row head+torso block plus legs:
+# standing frames use 5 leg rows; step frames drop the whole body by 1px
+# (weight lands on the leading foot) and use 4 leg rows, so the walk cycle
+# [stepA, idle, stepB, idle] bobs naturally instead of gliding.
 
-_HERO_HEAD_DOWN = [
-    '................',
-    '.....kkkkkk.....',
-    '....kbbnnbbk....',
-    '...kbnnnnnnbk...',
-    '...kbnNnnnnbk...',
-    '...kbbFFFFbbk...',
-    '...kFFFFFFFFk...',
-    '...kFkFFFFkFk...',
-    '...kfFFFFFFfk...',
-    '....kfFFFFfk....',
+_DOWN_BODY = [
+    '......AA.A......',
+    '.....AdAAdA.....',
+    '....AadDdDdaA...',
+    '...AadDEEDddaA..',
+    '..AadEDDddddaA..',
+    '..AaddddddddaA..',
+    '..AadFdFFdFdaA..',
+    '..AaFFFFFFFfaA..',
+    '..AaFkFFFFkfaA..',
+    '..AlFJFFFFJflA..',
+    '...lFFFFFFFfl...',
+    '....lfFFFFfl....',
+    '....ZxyyxxxZ....',
+    '...MiuZxxZuUM...',
+    '..MuMiuuuuUMuM..',
+    '..MuMiuuuuUMUM..',
+    '..lFMbbYobbMfl..',
+    '...MiuuuuuUUM...',
+    '...MUUUUUUUUM...',
 ]
-_HERO_BODY_DOWN = [
-    '...kuuuiiuuuk...',
-    '..kukuuuuuukuk..',
-    '..kFkbboobbkFk..',
+_UP_BODY = [
+    '......AA.A......',
+    '.....AdAAdA.....',
+    '....AadDdDdaA...',
+    '...AadDEEDddaA..',
+    '..AadEDDddddaA..',
+    '..AaddDdddddaA..',
+    '..AaddadddadaA..',
+    '..AadaddaddaaA..',
+    '..AaaddaddaaaA..',
+    '...AaaAaaAaaA...',
+    '....lfFFFFfl....',
+    '.....lFFFFl.....',
+    '....ZxxxxxxZ....',
+    '...MiuZxxZuUM...',
+    '..MuMiuZxZuMuM..',
+    '..MuMuuZXZuMUM..',
+    '..lFMbbbbbbMfl..',
+    '...MiuuuuuUUM...',
+    '...MUUUUUUUUM...',
 ]
-_HERO_HEAD_UP = [
-    '................',
-    '.....kkkkkk.....',
-    '....kbbnnbbk....',
-    '...kbnnnnnnbk...',
-    '...kbnNnnnnbk...',
-    '...kbnnnnnnbk...',
-    '...kbbnnnnbbk...',
-    '...kbbbbbbbbk...',
-    '...kFbbbbbbFk...',
-    '....kbbbbbbk....',
+_FRONT_LEGS_IDLE = [
+    '....TmmTTmtT....',
+    '....TmtTTmtT....',
+    '....AnbAAnbA....',
+    '...AnbbAAbbBA...',
+    '...AAAA..AAAA...',
 ]
-_HERO_BODY_UP = [
-    '...kuuuuuuuuk...',
-    '..kukuuuuuukuk..',
-    '..kFkbbbbbbkFk..',
+_FRONT_LEGS_STEP = [
+    '....TmmTTmtT....',
+    '....TmmTAnbA....',
+    '...AnbbAAAAA....',
+    '...AAAAA........',
 ]
-_LEGS_FRONT = {
-    'idle': [
-        '....kUUUUUUk....',
-        '....kBBkkBBk....',
-        '.....kk..kk.....',
-    ],
-    'stepA': [
-        '....kUUkkBBk....',
-        '....kBBk.kk.....',
-        '.....kk.........',
-    ],
-    'stepB': [
-        '....kBBkkUUk....',
-        '.....kk.kBBk....',
-        '..........kk....',
-    ],
-}
 
-_HERO_HEAD_LEFT = [
-    '................',
-    '.....kkkkkk.....',
-    '....kbbnnbbk....',
-    '...kbnnnnnnbk...',
-    '...kbnNnnnnbk...',
-    '...kFFFbbbbbk...',
-    '...kFkFFFbbbk...',
-    '..kFFFFFFFbbk...',
-    '...kfFFFFfbbk...',
-    '....kfFFfbbk....',
+_LEFT_BODY = [
+    '.......AA.A.....',
+    '......AdAAdA....',
+    '....AAadDdDdA...',
+    '...AadDEEDddaA..',
+    '..AadEDDddddddA.',
+    '..AdddddddddaA..',
+    '..AFdFdddddaaA..',
+    '..lFFFFdddddaA..',
+    '..lFkFFfddddA...',
+    '..lFJFFfdddA....',
+    '..FFFFFFfdA.....',
+    '...lfFFFlaA.....',
+    '...ZxyxxxZZ.....',
+    '...MiuuuuMxZ....',
+    '...MiUUuuM......',
+    '...MiUUuuM......',
+    '...MbFlbbM......',
+    '...MiuuuuM......',
+    '...MUUUUUM......',
 ]
-_HERO_BODY_LEFT = [
-    '....kuuuuuuk....',
-    '....kuUUuuuk....',
-    '....kbFbbbbk....',
+_SIDE_LEGS_IDLE = [
+    '....TmmmT.......',
+    '....TmmtT.......',
+    '....AnbbA.......',
+    '...AnnbbbA......',
+    '...AAAAAAA......',
 ]
-_LEGS_SIDE = {
-    'idle': [
-        '.....kUUUUk.....',
-        '.....kBBBBk.....',
-        '....kkkkkk......',
-    ],
-    'stepA': [
-        '....kUUkUUk.....',
-        '...kBBk.kBBk....',
-        '...kkk...kkk....',
-    ],
-    'stepB': [
-        '.....kUUUUk.....',
-        '....kBBkBBk.....',
-        '....kkk.kkk.....',
-    ],
-}
+_SIDE_LEGS_STEP_A = [
+    '...TmmTTmtT.....',
+    '..AnbA..AnbA....',
+    '.AnnbA..AbbbA...',
+    '.AAAAA...AAAA...',
+]
+_SIDE_LEGS_STEP_B = [
+    '...TmtTTmmT.....',
+    '..AbbA..AnnA....',
+    '.AbbbA..AnnbA...',
+    '.AAAAA...AAAA...',
+]
+
+_BLANK = '................'
 
 
-def _hero(head: list[str], body: list[str], legs: list[str]) -> Grid:
-    return ascii_to_grid(head + body + legs)
+def _mirror_rows(rows: list[str]) -> list[str]:
+    return [r[::-1] for r in rows]
+
+
+def _standing(body: list[str], legs: list[str]) -> Grid:
+    return ascii_to_grid(body + legs)
+
+
+def _stepping(body: list[str], legs: list[str]) -> Grid:
+    return ascii_to_grid([_BLANK] + body + legs)
 
 
 def _mirror(g: Grid) -> Grid:
@@ -230,10 +307,25 @@ def _mirror(g: Grid) -> Grid:
 
 
 def hero_frames() -> dict[str, list[Grid]]:
-    """3-frame walk per direction: [stepA, idle, stepB] (play A, idle, B, idle)."""
-    down = [_hero(_HERO_HEAD_DOWN, _HERO_BODY_DOWN, _LEGS_FRONT[k]) for k in ('stepA', 'idle', 'stepB')]
-    up = [_hero(_HERO_HEAD_UP, _HERO_BODY_UP, _LEGS_FRONT[k]) for k in ('stepB', 'idle', 'stepA')]
-    left = [_hero(_HERO_HEAD_LEFT, _HERO_BODY_LEFT, _LEGS_SIDE[k]) for k in ('stepA', 'idle', 'stepB')]
+    """3 unique frames per direction: [stepA, idle, stepB].
+
+    Play as stepA, idle, stepB, idle for the walk loop; idle alone to stand.
+    """
+    down = [
+        _stepping(_DOWN_BODY, _FRONT_LEGS_STEP),
+        _standing(_DOWN_BODY, _FRONT_LEGS_IDLE),
+        _stepping(_DOWN_BODY, _mirror_rows(_FRONT_LEGS_STEP)),
+    ]
+    up = [
+        _stepping(_UP_BODY, _mirror_rows(_FRONT_LEGS_STEP)),
+        _standing(_UP_BODY, _FRONT_LEGS_IDLE),
+        _stepping(_UP_BODY, _FRONT_LEGS_STEP),
+    ]
+    left = [
+        _stepping(_LEFT_BODY, _SIDE_LEGS_STEP_A),
+        _standing(_LEFT_BODY, _SIDE_LEGS_IDLE),
+        _stepping(_LEFT_BODY, _SIDE_LEGS_STEP_B),
+    ]
     right = [_mirror(f) for f in left]
     return {'down': down, 'up': up, 'left': left, 'right': right}
 
@@ -247,16 +339,16 @@ SLIME_FRAMES = [
         '................',
         '................',
         '................',
-        '......kkkk......',
-        '....kkvvcckk....',
-        '...kvWvccccck...',
-        '..kcvvccccccck..',
-        '..kcckcccckcck..',
-        '..kcckcccckcck..',
-        '..kCcccccccCck..',
-        '..kCCccccccCCk..',
-        '...kCCCCCCCCk...',
-        '....kkkkkkkk....',
+        '......CCCC......',
+        '....CCvvccCC....',
+        '...CvWWvccccC...',
+        '..CcvWvcccccCC..',
+        '..CcckcccckccC..',
+        '..CccWcccccWcC..',
+        '..CcckcccckccC..',
+        '..CCcccccccccC..',
+        '...CCCccccCCC...',
+        '....CCCCCCCC....',
         '................',
     ],
     [
@@ -266,15 +358,15 @@ SLIME_FRAMES = [
         '................',
         '................',
         '................',
-        '......kkkk......',
-        '....kkvvcckk....',
-        '..kkvWvcccccck..',
-        '.kcvvcckcccckck.',
-        '.kccccckcccckck.',
-        '.kCCcccccccccCk.',
-        '.kCCCccccccCCCk.',
-        '..kCCCCCCCCCCk..',
-        '...kkkkkkkkkk...',
+        '......CCCC......',
+        '....CCvvccCC....',
+        '..CCvWWvcccccC..',
+        '.CcvWvcccccccCC.',
+        '.CccckcccckcccC.',
+        '.CcccWcccccWccC.',
+        '.CCcccccccccccC.',
+        '..CCCccccccCCC..',
+        '...CCCCCCCCCC...',
         '................',
     ],
 ]
@@ -286,13 +378,13 @@ POTION = [
     '................',
     '................',
     '......kkkk......',
-    '......kNNk......',
+    '......kNnk......',
     '......kbbk......',
-    '......kRRk......',
-    '.....kkRRkk.....',
-    '....kyxxxxxk....',
+    '.....kkRrkk.....',
+    '......kRrk......',
+    '....kkyxxxkk....',
+    '...kyWWxxxxxk...',
     '...kyWxxxxxxk...',
-    '...kyxxxxxxxk...',
     '...kxxxxxxxXk...',
     '...kxxxxxxXXk...',
     '....kXxxxXXk....',
@@ -304,17 +396,17 @@ POTION = [
 CHEST = [
     '................',
     '................',
-    '................',
     '..kkkkkkkkkkkk..',
-    '..knNNNNNNNNnk..',
+    '..ksNNNNNNNNsk..',
     '..knnnnnnnnnnk..',
-    '..kOOOOOOOOOOk..',
+    '..knnnnnnnnnnk..',
+    '..ksOOOOOOOOsk..',
     '..kbbbboobbbbk..',
     '..kbbbbOObbbbk..',
     '..knnnnnnnnnnk..',
     '..knnnnnnnnnnk..',
     '..kbbbbbbbbbbk..',
-    '..kBBBBBBBBBBk..',
+    '..ksBBBBBBBBsk..',
     '..kkkkkkkkkkkk..',
     '................',
     '................',

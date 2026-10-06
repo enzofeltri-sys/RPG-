@@ -1,7 +1,17 @@
 import { Character, CharacterStats, RACES, getEffectiveStats } from './character';
 import type { Monster } from './monster';
-import type { WeaponType } from './item';
-import { CONSUMABLES, ConsumableId, useConsumable } from './consumable';
+import type { Item, WeaponType } from './item';
+import {
+  BARE_SPELL_PROFILE,
+  OFFHAND_HIT_MULTIPLIER,
+  SHIELD_BLOCK_CHANCE,
+  TOME_SPELL_BONUS,
+  WEAPON_PROFILES,
+  WeaponProfile,
+  isMeleeHandItem,
+  weaponProfile,
+} from './weapons';
+import { CONSUMABLES, ConsumableId, bombBurnDamage, bombDamage, useConsumable } from './consumable';
 import {
   FROZEN_ATTACK_MULTIPLIER,
   MonsterStatusId,
@@ -58,17 +68,6 @@ export function dodgeChance(agility: number, bonus = 0, cap = 0.3): number {
 export function fleeChance(agility: number): number {
   return Math.min(0.9, 0.5 + Math.max(0, agility) * 0.02);
 }
-
-// Which stat a weapon's damage scales from. Any class can wield any weapon:
-// a bow hits with Agilité even in a Guerrier's hands.
-export const WEAPON_SCALING_STAT: Record<WeaponType, keyof CharacterStats> = {
-  sword: 'strength',
-  axe: 'strength',
-  bow: 'agility',
-  dagger: 'agility',
-  staff: 'intelligence',
-  tome: 'intelligence',
-};
 
 export interface PlayerEffects {
   shield: number;
@@ -141,6 +140,8 @@ interface StrikeOptions {
   // Roll gear states on every hit instead of once per action (Pluie de flèches).
   gearPerHit?: boolean;
   light?: boolean;
+  // Basic attack with a weapon in each hand: a second hit from the left one.
+  offhand?: boolean;
 }
 
 interface StrikeResult {
@@ -245,35 +246,90 @@ export class CombatEngine {
     };
   }
 
+  private rightHand(): Item | undefined {
+    return this.character.equipment.weapon;
+  }
+
+  private leftHand(): Item | undefined {
+    return this.character.equipment.shield;
+  }
+
+  // The basic attack comes from the right hand; with it empty, from what the
+  // left holds (a tome's spell, or a one-handed weapon). Shields don't attack.
+  private attackWeapon(): Item | undefined {
+    const right = this.rightHand();
+    if (right) return right;
+    const left = this.leftHand();
+    return left && left.category !== 'shield' ? left : undefined;
+  }
+
   private weaponType(): WeaponType | undefined {
-    return this.character.equipment.weapon?.weaponType;
+    return this.rightHand()?.weaponType;
   }
 
   // A staff or tome makes the basic attack a spell (Mage/Clerc's weapon spell).
   private basicIsSpell(): boolean {
-    const type = this.weaponType();
-    return type === 'staff' || type === 'tome';
+    return weaponProfile(this.attackWeapon()).spell;
   }
 
-  private baseDamage(spell: boolean): number {
+  private hasTome(): boolean {
+    return this.leftHand()?.weaponType === 'tome';
+  }
+
+  // Spell skills use the staff's damage range, else the tome's, else a bare spell.
+  private spellProfile(): WeaponProfile {
+    if (this.rightHand()?.weaponType === 'staff') return WEAPON_PROFILES.staff;
+    if (this.hasTome()) return WEAPON_PROFILES.tome;
+    return BARE_SPELL_PROFILE;
+  }
+
+  private dualWielding(): boolean {
+    return isMeleeHandItem(this.rightHand()) && isMeleeHandItem(this.leftHand());
+  }
+
+  // The staff/tome attack is named after the casting item's strongest element.
+  spellName(): string {
+    const item = this.attackWeapon();
+    const elements: [keyof CharacterStats, string][] = [
+      ['fireDamage', 'Trait de feu'],
+      ['iceDamage', 'Éclat de givre'],
+      ['electricDamage', 'Étincelle'],
+      ['poisonDamage', 'Dard toxique'],
+      ['darkDamage', "Trait d'ombre"],
+      ['earthDamage', 'Projection de pierre'],
+    ];
+    let best = 'Trait arcanique';
+    let bestValue = 0;
+    elements.forEach(([stat, name]) => {
+      const value = (item?.stats[stat as keyof typeof item.stats] as number | undefined) ?? 0;
+      if (value > bestValue) {
+        bestValue = value;
+        best = name;
+      }
+    });
+    return best;
+  }
+
+  private baseDamage(spell: boolean, weapon?: Item): number {
     const stats = this.stats();
-    const type = this.weaponType();
-    const scaling: keyof CharacterStats = spell ? 'intelligence' : type ? WEAPON_SCALING_STAT[type] : 'strength';
+    const profile = spell ? this.spellProfile() : weaponProfile(weapon ?? this.attackWeapon());
     const elemental =
       stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
-    return this.randInt(2, 5) + Math.floor(stats[scaling] / 2) + elemental;
+    return this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] / 2) + elemental;
   }
 
-  private damageMultiplier(spell: boolean): number {
+  private damageMultiplier(spell: boolean, weapon?: Item): number {
     let m = 1;
     if (!spell) {
+      const type = (weapon ?? this.attackWeapon())?.weaponType;
       m *= 1 + 0.05 * this.rank('weapon_mastery');
-      if (this.weaponType() === 'dagger') m *= 1 + 0.06 * this.rank('sharpened_blades');
+      if (type === 'dagger') m *= 1 + 0.06 * this.rank('sharpened_blades');
       // Racial weapon affinity.
-      const affinity = RACES[this.character.race].weaponAffinity;
-      if (affinity && this.weaponType() === affinity) m *= 1.1;
+      const affinity = RACES[this.character.race].weaponAffinity ?? [];
+      if (type && affinity.includes(type)) m *= 1.1;
     } else {
       m *= 1 + 0.08 * this.rank('arcane_power') + 0.05 * this.rank('fervor');
+      if (this.hasTome()) m *= 1 + TOME_SPELL_BONUS;
       if (this.fx.overload > 0) m *= 1.2;
     }
     if (this.statuses.burning && this.rank('combustion') > 0) m *= 1.15;
@@ -319,14 +375,15 @@ export class CombatEngine {
     let crits = 0;
     let landed = 0;
 
-    for (let i = 0; i < hits && this.monster.hp > 0; i++) {
-      const crit = forcedCrit || this.rng() < this.critChance();
+    const hitOnce = (mult: number, weapon: Item | undefined) => {
+      const weaponCrit = options.spell ? 0 : weaponProfile(weapon).crit;
+      const crit = forcedCrit || this.rng() < this.critChance() + weaponCrit;
       const damage = Math.max(
         1,
         Math.round(
-          this.baseDamage(options.spell) *
+          this.baseDamage(options.spell, weapon) *
             mult *
-            this.damageMultiplier(options.spell) *
+            this.damageMultiplier(options.spell, weapon) *
             (crit ? this.critMultiplier() : 1) *
             (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1),
         ),
@@ -335,10 +392,15 @@ export class CombatEngine {
       total += damage;
       landed += 1;
       if (crit) crits += 1;
+    };
+
+    for (let i = 0; i < hits && this.monster.hp > 0; i++) {
+      hitOnce(mult, undefined);
       if (options.gearPerHit && this.monster.hp > 0) {
         rollElementStatuses(stats, this.statuses, this.rng, mods).forEach((id) => applied.add(id));
       }
     }
+    if (options.offhand && this.monster.hp > 0) hitOnce(mult * OFFHAND_HIT_MULTIPLIER, this.leftHand());
 
     if (this.monster.hp > 0) {
       if (!options.gearPerHit) {
@@ -415,10 +477,12 @@ export class CombatEngine {
   // ------------------------------------------------------------- actions
 
   attack(): ActionResult {
-    const result = this.strike(1, { spell: this.basicIsSpell() });
+    const spell = this.basicIsSpell();
+    const result = this.strike(1, { spell, offhand: !spell && this.dualWielding() });
     if (this.kind === 'rage') this.resource = this.resource + RAGE_PER_ATTACK;
     this.endAction();
-    return { log: this.describeStrike(result), victory: this.monster.hp <= 0, endsTurn: true, hit: true };
+    const prefix = spell ? `${this.spellName()} : ` : '';
+    return { log: prefix + this.describeStrike(result), victory: this.monster.hp <= 0, endsTurn: true, hit: true };
   }
 
   skillCost(id: string): number {
@@ -438,10 +502,8 @@ export class CombatEngine {
       return { cost, usable: false, reason: REQUIREMENT_LABELS.shield };
     }
     if (def.requires === 'bow' && this.weaponType() !== 'bow') return { cost, usable: false, reason: REQUIREMENT_LABELS.bow };
-    if (def.requires === 'dual') {
-      const offhand = this.character.equipment.shield;
-      const dual = Boolean(this.character.equipment.weapon) && Boolean(offhand) && offhand!.category !== 'shield';
-      if (!dual) return { cost, usable: false, reason: REQUIREMENT_LABELS.dual };
+    if (def.requires === 'dual' && !this.dualWielding()) {
+      return { cost, usable: false, reason: REQUIREMENT_LABELS.dual };
     }
     if (id === 'deadly_venom' && !this.statuses.poisoned) {
       return { cost, usable: false, reason: `${this.monster.name} n'est pas empoisonné.` };
@@ -676,15 +738,36 @@ export class CombatEngine {
   }
 
   usePotion(id: ConsumableId): ActionResult {
+    const def = CONSUMABLES[id];
+    if (id === 'fire_bomb') return this.throwBomb();
     const hpBefore = this.character.hp;
     const mpBefore = this.character.mp;
     if (!useConsumable(this.character, id)) return { log: '', victory: false, endsTurn: false, hit: false };
     this.endAction();
-    const def = CONSUMABLES[id];
-    const gain = def.manaAmount
-      ? `+${this.character.mp - mpBefore} de mana`
-      : `+${this.character.hp - hpBefore} PV`;
+    const gain = def.mana ? `+${this.character.mp - mpBefore} de mana` : `+${this.character.hp - hpBefore} PV`;
     return { log: `Vous buvez une ${def.name.toLowerCase()} (${gain}).`, victory: false, endsTurn: true, hit: false };
+  }
+
+  // Fixed damage (no stats, no crit) so every class can use it.
+  private throwBomb(): ActionResult {
+    const count = this.character.consumables.fire_bomb ?? 0;
+    if (count <= 0) return { log: '', victory: false, endsTurn: false, hit: false };
+    this.character.consumables.fire_bomb = count - 1;
+    const level = this.character.level;
+    const damage = bombDamage(level);
+    this.monster.hp -= damage;
+    let statusPart = '';
+    if (this.monster.hp > 0) {
+      applyStatus(this.statuses, 'burning', { turns: 2, damage: bombBurnDamage(level) + this.statusMods().burnDamage });
+      statusPart = describeApplied(this.monster.name, ['burning']);
+    }
+    this.endAction();
+    return {
+      log: `La bombe explose : ${damage} dégâts.${statusPart}`,
+      victory: this.monster.hp <= 0,
+      endsTurn: true,
+      hit: true,
+    };
   }
 
   // Bosses can't be fled (checked by the caller, which doesn't spend the turn).
@@ -733,6 +816,12 @@ export class CombatEngine {
         parts.push(`Riposte : ${this.describeStrike(riposte)}`);
         if (this.monster.hp <= 0) return { log: parts.join(' '), outcome: 'victory', hit: true };
       }
+      parts.push(...this.startPlayerTurn());
+      return { log: parts.join(' '), outcome: 'ongoing', hit: true };
+    }
+
+    if (this.leftHand()?.category === 'shield' && this.rng() < SHIELD_BLOCK_CHANCE) {
+      parts.push(`Vous bloquez le coup de ${name.toLowerCase()} avec votre bouclier !`);
       parts.push(...this.startPlayerTurn());
       return { log: parts.join(' '), outcome: 'ongoing', hit: true };
     }

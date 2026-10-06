@@ -31,7 +31,9 @@ export type ItemCategory = EquipSlot | 'ring' | 'offhand';
 // so every family across all 3 paliers can carry a full, evenly-sized
 // roster of each (12 of each type total, on the player's request), not
 // because they play any differently in combat.
-export type WeaponType = 'sword' | 'axe' | 'dagger' | 'bow' | 'staff' | 'tome';
+// Combat profile (damage range, hands, crit bonus) per type lives in
+// weapons.ts. greatsword/greataxe are the two-handed melee weapons.
+export type WeaponType = 'sword' | 'axe' | 'dagger' | 'bow' | 'staff' | 'tome' | 'greatsword' | 'greataxe';
 
 // 'legendary' only drops from a 'legendary'-tier monster encounter (see
 // EncounterTier in monster.ts — itself already a ~1% roll), so getting one
@@ -682,6 +684,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'offhand_dagger',
     name: 'Dague de ceinture',
     category: 'offhand',
+    weaponType: 'dagger',
     tier: 1,
     baseStatRolls: { agility: [1, 1, 2] },
     rareOnlyStatRolls: { agility: [1, 1, 2] },
@@ -690,6 +693,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'offhand_hatchet',
     name: "Hachette d'appoint",
     category: 'offhand',
+    weaponType: 'axe',
     tier: 1,
     baseStatRolls: { strength: [1, 1, 2] },
     rareOnlyStatRolls: { strength: [1, 1, 2] },
@@ -728,7 +732,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'steel_greatsword',
     name: 'Épée à deux mains en acier',
     category: 'weapon',
-    weaponType: 'sword',
+    weaponType: 'greatsword',
     tier: 2,
     baseStatRolls: { strength: [5, 6, 7] },
     rareOnlyStatRolls: { fireDamage: [2, 3, 4] },
@@ -808,7 +812,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'steel_greataxe',
     name: "Grande hache d'acier",
     category: 'weapon',
-    weaponType: 'axe',
+    weaponType: 'greataxe',
     tier: 2,
     baseStatRolls: { strength: [4, 5, 6] },
     rareOnlyStatRolls: { earthDamage: [2, 3, 4] },
@@ -1233,6 +1237,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'marsh_offhand_dagger',
     name: 'Dague des marais (main secondaire)',
     category: 'offhand',
+    weaponType: 'dagger',
     tier: 2,
     baseStatRolls: { agility: [2, 3, 3] },
     rareOnlyStatRolls: { agility: [2, 2, 3] },
@@ -1241,6 +1246,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'steel_offhand_axe',
     name: "Hachette d'acier",
     category: 'offhand',
+    weaponType: 'axe',
     tier: 2,
     baseStatRolls: { strength: [2, 3, 3] },
     rareOnlyStatRolls: { strength: [2, 2, 3] },
@@ -1358,10 +1364,42 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'ritual_greataxe',
     name: 'Grande hache rituelle',
     category: 'weapon',
-    weaponType: 'axe',
+    weaponType: 'greataxe',
     tier: 3,
     baseStatRolls: { strength: [6, 7, 8] },
     rareOnlyStatRolls: { earthDamage: [4, 5, 5] },
+    legendaryOnlyStatRolls: { strength: [3, 4, 4] },
+  },
+  // Two-handed weapons completed so every palier has one greatsword and one
+  // greataxe (gameplay pass, objects step) — before, palier 1 had none.
+  {
+    baseId: 'militia_greatsword',
+    name: 'Espadon du milicien',
+    category: 'weapon',
+    weaponType: 'greatsword',
+    tier: 1,
+    baseStatRolls: { strength: [2, 3, 4] },
+    rareOnlyStatRolls: { fireDamage: [1, 2, 2] },
+    legendaryOnlyStatRolls: { strength: [1, 2, 2] },
+  },
+  {
+    baseId: 'woodcutter_greataxe',
+    name: 'Grande hache de bûcheron',
+    category: 'weapon',
+    weaponType: 'greataxe',
+    tier: 1,
+    baseStatRolls: { strength: [2, 3, 4] },
+    rareOnlyStatRolls: { earthDamage: [1, 2, 2] },
+    legendaryOnlyStatRolls: { strength: [1, 2, 2] },
+  },
+  {
+    baseId: 'mithril_greatsword',
+    name: 'Espadon de mithril',
+    category: 'weapon',
+    weaponType: 'greatsword',
+    tier: 3,
+    baseStatRolls: { strength: [7, 8, 9] },
+    rareOnlyStatRolls: { fireDamage: [4, 5, 5] },
     legendaryOnlyStatRolls: { strength: [3, 4, 4] },
   },
   {
@@ -1783,6 +1821,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'shadow_offhand_dagger',
     name: "Dague jumelle de l'Ombre",
     category: 'offhand',
+    weaponType: 'dagger',
     tier: 3,
     baseStatRolls: { agility: [4, 5, 5] },
     rareOnlyStatRolls: { agility: [3, 4, 4] },
@@ -1791,6 +1830,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'mithril_offhand_axe',
     name: 'Hachette de mithril',
     category: 'offhand',
+    weaponType: 'axe',
     tier: 3,
     baseStatRolls: { strength: [4, 5, 5] },
     rareOnlyStatRolls: { strength: [3, 4, 4] },
@@ -1966,6 +2006,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'garrison_offhand_dagger',
     name: 'Dague de la garnison',
     category: 'offhand',
+    weaponType: 'dagger',
     baseStatRolls: { agility: [2, 3, 4] },
     rareOnlyStatRolls: { agility: [1, 2, 2] },
     signature: true,
@@ -1974,6 +2015,7 @@ const TEMPLATES: ItemTemplate[] = [
     baseId: 'last_refuge_hatchet',
     name: 'Hachette du dernier repli',
     category: 'offhand',
+    weaponType: 'axe',
     baseStatRolls: { strength: [2, 3, 4] },
     rareOnlyStatRolls: { strength: [1, 2, 2] },
     signature: true,
@@ -2192,8 +2234,8 @@ export function sellPrice(item: Item): number {
 }
 
 const SLOT_LABELS: Record<EquipSlot, string> = {
-  weapon: 'Arme',
-  shield: 'Bouclier / Main secondaire',
+  weapon: 'Main droite',
+  shield: 'Main gauche',
   helmet: 'Casque',
   chest: 'Torse',
   legs: 'Jambes',

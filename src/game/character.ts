@@ -4,6 +4,7 @@ import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
 import type { MerchantStockEntry } from './merchantStock';
 import { MAX_LEVEL, STARTER_SKILL, addBaseMaxHp, ensureTalentDefaults } from './talents';
+import { enforceHandRules } from './weapons';
 
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling';
 export type CharClass = 'warrior' | 'mage' | 'archer' | 'rogue' | 'cleric';
@@ -34,9 +35,8 @@ export interface RaceDefinition {
   description: string;
   statBonuses: CharacterStats;
   skills: string[];
-  // +10% damage with this weapon type (see CombatEngine). The Orc's
-  // affinity, two-handed weapons, arrives with them at the objects step.
-  weaponAffinity?: WeaponType;
+  // +10% damage with these weapon types (see CombatEngine).
+  weaponAffinity?: WeaponType[];
 }
 
 export interface ClassDefinition {
@@ -82,6 +82,9 @@ export interface Character {
   // Version of the racial stat bonuses this character was created with —
   // undefined = before the race pass (DESIGN.md), migrated on load.
   raceStatsVersion?: number;
+  // One-off message for the player (e.g. equipment the hands rule sent back
+  // to the bag), shown and cleared by the next scene's CharacterSheetPanel.
+  pendingNotice?: string;
   // Talent ranks by talent id (see talents.ts) — the class's free starting
   // skill is always present at rank 1+. Talent points are derived from the
   // level, never stored.
@@ -101,7 +104,7 @@ export const RACES: Record<Race, RaceDefinition> = {
       'Polyvalent : +1 à chaque statistique.',
       'Arme favorite : épée (+10 % de dégâts).',
     ],
-    weaponAffinity: 'sword',
+    weaponAffinity: ['sword'],
   },
   elf: {
     id: 'elf',
@@ -113,7 +116,7 @@ export const RACES: Record<Race, RaceDefinition> = {
       'Affinité naturelle : +1 mana ou +2 endurance par tour, ou 10 de rage au départ.',
       'Arme favorite : arc (+10 % de dégâts).',
     ],
-    weaponAffinity: 'bow',
+    weaponAffinity: ['bow'],
   },
   dwarf: {
     id: 'dwarf',
@@ -125,7 +128,7 @@ export const RACES: Record<Race, RaceDefinition> = {
       'Sang-froid des tréfonds : −10 % de dégâts reçus.',
       'Arme favorite : hache (+10 % de dégâts).',
     ],
-    weaponAffinity: 'axe',
+    weaponAffinity: ['axe'],
   },
   orc: {
     id: 'orc',
@@ -135,8 +138,9 @@ export const RACES: Record<Race, RaceDefinition> = {
     skills: [
       'Carrure : Force et Vitalité élevées.',
       'Rage de sang : +20 % de dégâts sous 30 % de PV.',
-      'Arme favorite : armes à deux mains (bientôt).',
+      'Arme favorite : armes à deux mains (+10 % de dégâts).',
     ],
+    weaponAffinity: ['greatsword', 'greataxe'],
   },
   halfling: {
     id: 'halfling',
@@ -148,7 +152,7 @@ export const RACES: Record<Race, RaceDefinition> = {
       "Chanceux : +20 % d'or en combat.",
       'Arme favorite : dague (+10 % de dégâts).',
     ],
-    weaponAffinity: 'dagger',
+    weaponAffinity: ['dagger'],
   },
 };
 
@@ -289,6 +293,11 @@ export function ensureCharacterDefaults(character: Character): Character {
   };
   Object.values(character.equipment).forEach((item) => item && backfillWeaponType(item));
   character.inventory.forEach(backfillWeaponType);
+
+  const handNotes = enforceHandRules(character.equipment, character.inventory);
+  if (handNotes.length > 0) {
+    character.pendingNotice = [character.pendingNotice, ...handNotes].filter(Boolean).join(' ');
+  }
 
   ensureTalentDefaults(character);
   migrateRaceStats(character);

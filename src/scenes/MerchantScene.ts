@@ -32,6 +32,11 @@ const SHOP_CATALOG: ShopEntry[] = [
     price: 20,
     onBuy: (c) => (c.consumables.mana_potion = (c.consumables.mana_potion ?? 0) + 1),
   },
+  {
+    label: CONSUMABLES.fire_bomb.name,
+    price: 25,
+    onBuy: (c) => (c.consumables.fire_bomb = (c.consumables.fire_bomb ?? 0) + 1),
+  },
 ];
 
 interface MerchantData {
@@ -72,7 +77,7 @@ export class MerchantScene extends Phaser.Scene {
 
     addCrispText(this, 12, 196, 'Acheter :', { fontSize: '9px', color: MUTED });
     SHOP_CATALOG.forEach((entry, index) => {
-      const y = 210 + index * 20;
+      const y = 210 + index * 18;
       const text = addCrispText(this, 12, y, `${entry.label} — ${entry.price} or`, {
         fontSize: '9px',
         color: GOLD,
@@ -82,7 +87,7 @@ export class MerchantScene extends Phaser.Scene {
       text.on('pointerdown', () => this.handleBuy(entry));
     });
 
-    this.statusText = addCrispText(this, width / 2, 288, '', { fontSize: '9px', color: MUTED }).setOrigin(0.5);
+    this.statusText = addCrispText(this, width / 2, 304, '', { fontSize: '9px', color: MUTED }).setOrigin(0.5);
 
     const stockButton = addCrispText(this, width / 2, 326, 'Étal (équipement)', {
       fontSize: '9px',

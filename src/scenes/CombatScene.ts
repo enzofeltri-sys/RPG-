@@ -95,12 +95,21 @@ const TIER_MATERIAL: Record<2 | 3, { common: string; rare: string; commonChance:
 };
 
 
-const COMBAT_POTIONS: ConsumableId[] = ['health_potion', 'health_potion_greater', 'mana_potion'];
+const COMBAT_POTIONS: ConsumableId[] = [
+  'health_potion',
+  'health_potion_greater',
+  'mana_potion',
+  'mana_potion_greater',
+  'fire_bomb',
+];
 const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
   health_potion: 'Potion de soin',
-  health_potion_greater: 'Potion de soin sup.',
+  health_potion_greater: 'Soin supérieur',
   mana_potion: 'Potion de mana',
+  mana_potion_greater: 'Mana supérieure',
+  fire_bomb: 'Bombe',
 };
+const MANA_POTIONS: ConsumableId[] = ['mana_potion', 'mana_potion_greater'];
 
 const RESOURCE_BAR: Record<ResourceKind, { label: string; color: number; bg: number }> = {
   rage: { label: 'Rage', color: 0xa8482a, bg: 0x2a1a14 },
@@ -300,7 +309,7 @@ export class CombatScene extends Phaser.Scene {
 
   private ownedPotions(): ConsumableId[] {
     return COMBAT_POTIONS.filter(
-      (id) => (this.character.consumables[id] ?? 0) > 0 && (id !== 'mana_potion' || this.engine.kind === 'mana'),
+      (id) => (this.character.consumables[id] ?? 0) > 0 && (!MANA_POTIONS.includes(id) || this.engine.kind === 'mana'),
     );
   }
 
@@ -315,7 +324,7 @@ export class CombatScene extends Phaser.Scene {
     if (view === 'main') {
       this.addButton(left, 322, 'Attaquer', () => this.playerAttack());
       this.addButton(right, 322, 'Compétences', () => this.showMenu('skills'));
-      this.addButton(left, 354, 'Potion', () => this.openPotions(), { enabled: this.ownedPotions().length > 0 });
+      this.addButton(left, 354, 'Objets', () => this.openPotions(), { enabled: this.ownedPotions().length > 0 });
       this.addButton(right, 354, 'Fuir', () => this.flee());
       return;
     }
@@ -339,7 +348,7 @@ export class CombatScene extends Phaser.Scene {
     const potions = this.ownedPotions();
     potions.forEach((id, i) => {
       const x = i % 2 === 0 ? left : right;
-      const y = 304 + Math.floor(i / 2) * 25;
+      const y = 300 + Math.floor(i / 2) * 22;
       this.addButton(x, y, `${COMBAT_POTION_LABELS[id]} x${this.character.consumables[id]}`, () => this.usePotion(id), {
         small: true,
       });
@@ -350,7 +359,7 @@ export class CombatScene extends Phaser.Scene {
   private openPotions(): void {
     if (this.busy || this.ended) return;
     if (this.ownedPotions().length === 0) {
-      this.logText.setText("Vous n'avez aucune potion utilisable.");
+      this.logText.setText("Vous n'avez aucun objet utilisable.");
       return;
     }
     this.showMenu('potions');

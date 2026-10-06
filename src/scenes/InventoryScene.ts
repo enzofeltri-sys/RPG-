@@ -9,6 +9,7 @@ import {
   isUpgrade,
   summarizeEquippedSets,
 } from '../game/item';
+import { handSlotAccepts, isTwoHanded, planHandEquip } from '../game/weapons';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -19,21 +20,12 @@ const MUTED = '#9aa0a6';
 const SLOT_BG = '#1c2b1c';
 const EQUIPPED_BG = '#2a3a2a';
 
-// ring1/ring2 both accept any 'ring'-category item; the shield slot doubles
-// as the dual-wield off-hand (see item.ts's ItemCategory comment) and so
-// accepts 'shield'/'offhand' items AND one-handed melee weapons (sword/axe/
-// dagger — not bow/staff, which need both hands), so a real sword or dagger
-// can be dual-wielded, not just the dedicated 'offhand' items — every other
-// slot's category matches its own name exactly.
+// ring1/ring2 both accept any 'ring'-category item; the two hands follow
+// the hands rule (see weapons.ts) — every other slot's category matches its
+// own name exactly.
 function slotAccepts(slot: EquipSlot, item: Item): boolean {
   if (slot === 'ring1' || slot === 'ring2') return item.category === 'ring';
-  if (slot === 'shield') {
-    if (item.category === 'shield' || item.category === 'offhand') return true;
-    return (
-      item.category === 'weapon' &&
-      (item.weaponType === 'sword' || item.weaponType === 'axe' || item.weaponType === 'dagger')
-    );
-  }
+  if (slot === 'weapon' || slot === 'shield') return handSlotAccepts(slot, item);
   return item.category === slot;
 }
 
@@ -103,7 +95,7 @@ export class InventoryScene extends Phaser.Scene {
     });
     this.refreshStats();
 
-    addCrispText(this, 12, 246, 'Astuce : touche un emplacement pour comparer et équiper.', {
+    addCrispText(this, 12, 262, 'Astuce : touche un emplacement pour comparer et équiper.', {
       fontSize: '9px',
       color: MUTED,
       wordWrap: { width: width - 24 },
@@ -142,6 +134,10 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   private slotLabel(slot: EquipSlot, item?: Item): string {
+    // The left hand is taken by a two-handed weapon in the right one.
+    if (slot === 'shield' && !item && isTwoHanded(this.character.equipment.weapon)) {
+      return `${equipSlotLabel(slot)}\n(arme à deux mains)`;
+    }
     return `${equipSlotLabel(slot)}\n${item ? item.name : 'Vide'}`;
   }
 
@@ -156,10 +152,20 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   private async equipInto(slot: EquipSlot, item: Item): Promise<void> {
-    const previous = this.character.equipment[slot];
-    this.character.equipment[slot] = item;
+    let target = slot;
+    let displaced: Item[];
+    if (slot === 'weapon' || slot === 'shield') {
+      const plan = planHandEquip(this.character.equipment, item, slot);
+      target = plan.slot;
+      displaced = plan.displaced;
+      if (displaced.includes(this.character.equipment.weapon!)) delete this.character.equipment.weapon;
+      if (displaced.includes(this.character.equipment.shield!)) delete this.character.equipment.shield;
+    } else {
+      displaced = [this.character.equipment[slot]].filter((i): i is Item => Boolean(i));
+    }
+    this.character.equipment[target] = item;
     this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
-    if (previous) this.character.inventory.push(previous);
+    this.character.inventory.push(...displaced);
 
     await SaveManager.saveCharacter(this.character);
     this.refreshAll();

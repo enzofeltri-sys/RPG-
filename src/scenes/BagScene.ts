@@ -12,6 +12,7 @@ import {
   isCraftOnly,
 } from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
+import { handRule, planHandEquip } from '../game/weapons';
 import { materialLabel, isRareMaterial } from '../game/material';
 import { QuestItem } from '../game/questItem';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -274,38 +275,26 @@ export class BagScene extends Phaser.Scene {
   }
 
   private async handleUseConsumable(id: ConsumableId): Promise<void> {
+    if (CONSUMABLES[id].combatOnly) {
+      this.statusText.setText(`${CONSUMABLES[id].name} : utilisable seulement en combat.`);
+      return;
+    }
     const used = useConsumable(this.character, id);
     if (!used) return;
     await SaveManager.saveCharacter(this.character);
-    const gauge = CONSUMABLES[id].manaAmount
+    const gauge = CONSUMABLES[id].mana
       ? `Mana ${this.character.mp}/${this.character.maxMp}`
       : `PV ${this.character.hp}/${this.character.maxHp}`;
     this.statusText.setText(`${CONSUMABLES[id].name} utilisée (${gauge}).`);
     this.renderList();
   }
 
-  // One-handed melee weapons (sword/axe/dagger — not bow/staff, which need
-  // both hands) can go in either the weapon slot or the shield/off-hand
-  // slot, so a player can dual-wield two of them (a second dagger, or an
-  // axe and a sword) rather than only ever holding one. Auto-resolve fills
-  // whichever of the two is empty, weapon first, and otherwise replaces the
-  // main hand — matching how every other slot here already "replaces on
-  // re-equip" when full.
-  private isOneHandedMelee(item: Item): boolean {
-    return (
-      item.category === 'weapon' &&
-      (item.weaponType === 'sword' || item.weaponType === 'axe' || item.weaponType === 'dagger')
-    );
-  }
-
+  // Held items follow the hands rule (see weapons.ts's planHandEquip): a
+  // one-handed weapon fills the right hand, then the left; a two-handed one
+  // empties both; whatever gets pushed out goes back to the bag.
   private resolveEquipSlot(item: Item): EquipSlot {
-    if (item.category === 'offhand') return 'shield';
-    if (this.isOneHandedMelee(item)) {
-      if (!this.character.equipment.weapon) return 'weapon';
-      if (!this.character.equipment.shield) return 'shield';
-      return 'weapon';
-    }
-    if (item.category !== 'ring') return item.category;
+    if (handRule(item)) return planHandEquip(this.character.equipment, item).slot;
+    if (item.category !== 'ring') return item.category as EquipSlot;
     if (!this.character.equipment.ring1) return 'ring1';
     if (!this.character.equipment.ring2) return 'ring2';
     return 'ring1';
@@ -313,12 +302,17 @@ export class BagScene extends Phaser.Scene {
 
   private async equip(item: Item): Promise<void> {
     const slot = this.resolveEquipSlot(item);
-    const previous = this.character.equipment[slot];
+    const displaced = handRule(item)
+      ? planHandEquip(this.character.equipment, item).displaced
+      : [this.character.equipment[slot]].filter((i): i is Item => Boolean(i));
+    displaced.forEach((old) => {
+      (Object.keys(this.character.equipment) as EquipSlot[]).forEach((s) => {
+        if (this.character.equipment[s]?.id === old.id) delete this.character.equipment[s];
+      });
+    });
     this.character.equipment[slot] = item;
     this.character.inventory = this.character.inventory.filter((i) => i.id !== item.id);
-    if (previous) {
-      this.character.inventory.push(previous);
-    }
+    this.character.inventory.push(...displaced);
 
     await SaveManager.saveCharacter(this.character);
     this.hideDetail();

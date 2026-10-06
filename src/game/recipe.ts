@@ -110,6 +110,15 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultType: 'consumable',
     resultConsumableId: 'mana_potion',
   },
+  brew_fire_bomb: {
+    id: 'brew_fire_bomb',
+    name: 'Bombe incendiaire',
+    description: "Bourrer une gourde de cuir de limaille de fer et d'herbes sèches qui s'enflamment au choc.",
+    station: 'alchemy',
+    materials: { iron_ore: 1, herb: 1, leather: 1 },
+    resultType: 'consumable',
+    resultConsumableId: 'fire_bomb',
+  },
   // Upgraded recipes — each still needs the common material alongside its
   // rare counterpart, so both tiers stay worth gathering/dropping rather than
   // the rare variant simply replacing the common one outright.
@@ -141,6 +150,15 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     materials: { herb: 2, herb_rare: 1 },
     resultType: 'consumable',
     resultConsumableId: 'health_potion_greater',
+  },
+  brew_mana_potion_greater: {
+    id: 'brew_mana_potion_greater',
+    name: 'Potion de mana supérieure',
+    description: "Préparer une potion de mana supérieure : herbe rare infusée sur de la limaille de fer.",
+    station: 'alchemy',
+    materials: { herb: 1, herb_rare: 1, iron_ore: 1 },
+    resultType: 'consumable',
+    resultConsumableId: 'mana_potion_greater',
   },
   // "Artisan" line — the only way to obtain these 4 items (see item.ts's
   // craftOnly flag): never dropped, never rolled. A full commun→légendaire

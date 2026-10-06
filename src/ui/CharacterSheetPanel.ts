@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Character, RACES, CLASSES } from '../game/character';
 import { talentPointsAvailable } from '../game/talents';
+import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from './returnContext';
 import { addCrispText } from './text';
 
@@ -167,6 +168,8 @@ export class CharacterSheetPanel {
     this.container = scene.add.container(0, 0, [panelBg]).setScrollFactor(0).setDepth(999);
     this.container.setVisible(false);
 
+    if (character.pendingNotice) this.showNotice(scene, character);
+
     button.on('pointerdown', () => {
       this.visible = !this.visible;
       this.container.setVisible(this.visible);
@@ -178,6 +181,25 @@ export class CharacterSheetPanel {
       }
       onToggle?.(this.visible);
     });
+  }
+
+  // One-off message left on the character (see Character.pendingNotice),
+  // shown once at the top of the screen, then cleared from the save.
+  private showNotice(scene: Phaser.Scene, character: Character): void {
+    const notice = addCrispText(scene, scene.scale.width / 2, 60, character.pendingNotice!, {
+      fontSize: '10px',
+      color: GOLD,
+      backgroundColor: DARK,
+      padding: { x: 8, y: 6 },
+      align: 'center',
+      wordWrap: { width: scene.scale.width - 30 },
+    })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(1002);
+    delete character.pendingNotice;
+    void SaveManager.saveCharacter(character);
+    scene.time.delayedCall(6000, () => notice.destroy());
   }
 
   private makeNavButton(

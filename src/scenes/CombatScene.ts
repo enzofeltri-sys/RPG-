@@ -5,6 +5,17 @@ import { Item, Rarity, RARITY_LABELS, WeaponType, rollLootItem, createItem } fro
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { CONSUMABLES, ConsumableId, useConsumable } from '../game/consumable';
+import {
+  FROZEN_ATTACK_MULTIPLIER,
+  MonsterStatuses,
+  VULNERABLE_DAMAGE_MULTIPLIER,
+  WEAKENED_ATTACK_MULTIPLIER,
+  consumeStatus,
+  describeApplied,
+  rollElementStatuses,
+  statusLine,
+  tickDamageOverTime,
+} from '../game/combatStatus';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -146,6 +157,8 @@ export class CombatScene extends Phaser.Scene {
   private ended = false;
 
   private logText!: Phaser.GameObjects.Text;
+  private statusText!: Phaser.GameObjects.Text;
+  private monsterStatuses: MonsterStatuses = {};
   private enemyHpFill!: Phaser.GameObjects.Rectangle;
   private enemyHpText!: Phaser.GameObjects.Text;
   private playerHpFill!: Phaser.GameObjects.Rectangle;
@@ -168,6 +181,7 @@ export class CombatScene extends Phaser.Scene {
     this.returnY = data?.y;
     this.busy = false;
     this.ended = false;
+    this.monsterStatuses = {};
     this.actionButtons = [];
     this.continueButton = undefined;
   }
@@ -194,6 +208,14 @@ export class CombatScene extends Phaser.Scene {
     addCrispText(this, width / 2, 34, this.monster.name, {
       fontSize: '15px',
       color: TIER_NAME_COLOR[this.monster.tier],
+    }).setOrigin(0.5);
+    // Under the HP readout, where several states can wrap onto two lines
+    // without running into the sprite or the player's bars.
+    this.statusText = addCrispText(this, width / 2, 172, '', {
+      fontSize: '9px',
+      color: '#e8b45a',
+      align: 'center',
+      wordWrap: { width: width - 20 },
     }).setOrigin(0.5);
 
     // Elite/legendary keep a tinted aura behind the sprite for the at-a-glance
@@ -296,6 +318,10 @@ export class CombatScene extends Phaser.Scene {
     this.actionButtons.forEach((button) => button.setVisible(false));
   }
 
+  private refreshStatusLine(): void {
+    this.statusText.setText(statusLine(this.monsterStatuses));
+  }
+
   private refreshBars(): void {
     this.enemyHpFill.width = BAR_WIDTH * Math.max(0, this.monster.hp / this.monster.maxHp);
     this.enemyHpText.setText(`${Math.max(0, this.monster.hp)}/${this.monster.maxHp}`);
@@ -321,26 +347,24 @@ export class CombatScene extends Phaser.Scene {
     const elementalDamage =
       stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
     const critical = Math.random() < BASE_CRIT_CHANCE;
-    const damage = Math.round((baseDamage + elementalDamage) * (critical ? CRIT_MULTIPLIER : 1));
+    const vulnerable = consumeStatus(this.monsterStatuses, 'vulnerable');
+    const damage = Math.round(
+      (baseDamage + elementalDamage) * (critical ? CRIT_MULTIPLIER : 1) * (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1),
+    );
     this.monster.hp -= damage;
+    const applied = this.monster.hp > 0 ? rollElementStatuses(stats, this.monsterStatuses) : [];
+    this.refreshStatusLine();
     if (stats.lifeSteal > 0) {
       this.character.hp = Math.min(this.character.maxHp, this.character.hp + stats.lifeSteal);
     }
     this.refreshBars();
     playHit();
-    const elementalParts: string[] = [];
-    if (stats.fireDamage > 0) elementalParts.push(`${stats.fireDamage} de feu`);
-    if (stats.poisonDamage > 0) elementalParts.push(`${stats.poisonDamage} de poison`);
-    if (stats.iceDamage > 0) elementalParts.push(`${stats.iceDamage} de glace`);
-    if (stats.electricDamage > 0) elementalParts.push(`${stats.electricDamage} électriques`);
-    if (stats.darkDamage > 0) elementalParts.push(`${stats.darkDamage} obscurs`);
-    if (stats.earthDamage > 0) elementalParts.push(`${stats.earthDamage} de terre`);
     const lifeStealPart = stats.lifeSteal > 0 ? ` Vous drainez ${stats.lifeSteal} PV.` : '';
     this.logText.setText(
       (critical ? 'Coup critique ! ' : '') +
-      (elementalParts.length > 0
-        ? `Vous infligez ${damage} dégâts (dont ${elementalParts.join(', ')}).`
-        : `Vous infligez ${damage} dégâts.`) + lifeStealPart,
+        `Vous infligez ${damage} dégâts.` +
+        lifeStealPart +
+        describeApplied(this.monster.name, applied),
     );
 
     if (this.monster.hp <= 0) {
@@ -353,15 +377,40 @@ export class CombatScene extends Phaser.Scene {
 
   private enemyTurn(): void {
     const stats = getEffectiveStats(this.character);
+    const dot = tickDamageOverTime(this.monsterStatuses);
+    const dotPrefix = dot.parts.length > 0 ? `${dot.parts.join(' ')} ` : '';
+    if (dot.total > 0) {
+      this.monster.hp -= dot.total;
+      this.refreshBars();
+      this.refreshStatusLine();
+      if (this.monster.hp <= 0) {
+        this.logText.setText(`${dotPrefix}${this.monster.name} succombe !`);
+        this.time.delayedCall(600, () => this.victory());
+        return;
+      }
+    }
+    if (consumeStatus(this.monsterStatuses, 'stunned')) {
+      this.refreshStatusLine();
+      this.logText.setText(`${dotPrefix}${this.monster.name} est étourdi et ne peut pas agir.`);
+      this.busy = false;
+      this.setActionsEnabled(true);
+      return;
+    }
+    const frozen = consumeStatus(this.monsterStatuses, 'frozen');
+    const weakened = consumeStatus(this.monsterStatuses, 'weakened');
+    this.refreshStatusLine();
     if (Math.random() < dodgeChance(stats.agility)) {
       playHit();
-      this.logText.setText(`Vous esquivez l'attaque : ${this.monster.name.toLowerCase()} frappe dans le vide !`);
+      this.logText.setText(`${dotPrefix}Vous esquivez l'attaque : ${this.monster.name.toLowerCase()} frappe dans le vide !`);
       this.busy = false;
       this.setActionsEnabled(true);
       return;
     }
     const armor = stats.armor;
-    const rawAttack = this.monster.attack + Phaser.Math.Between(-1, 2);
+    const rawAttack =
+      (this.monster.attack + Phaser.Math.Between(-1, 2)) *
+      (frozen ? FROZEN_ATTACK_MULTIPLIER : 1) *
+      (weakened ? WEAKENED_ATTACK_MULTIPLIER : 1);
     // Armor can mitigate at most 60% of the monster's base attack — a tier-3
     // character stacks armor from several equipped slots at once (helmet/
     // chest/legs/boots/shield/gloves all roll it), which under plain flat
@@ -378,7 +427,7 @@ export class CombatScene extends Phaser.Scene {
     this.character.hp = Math.max(0, this.character.hp - damage);
     this.refreshBars();
     playHit();
-    this.logText.setText(`${this.monster.name} vous inflige ${damage} dégâts.`);
+    this.logText.setText(`${dotPrefix}${this.monster.name} vous inflige ${damage} dégâts.`);
 
     if (this.character.hp <= 0) {
       this.time.delayedCall(600, () => this.defeat());
@@ -435,6 +484,8 @@ export class CombatScene extends Phaser.Scene {
   private async victory(): Promise<void> {
     this.ended = true;
     this.hideActions();
+    this.monsterStatuses = {};
+    this.refreshStatusLine();
     const levelsGained = grantXp(this.character, this.monster.xpReward);
     this.character.gold += this.monster.goldReward;
 

@@ -50,7 +50,10 @@ export class CharacterSheetPanel {
     getPlayerPosition: () => { x: number; y: number },
     onToggle?: (open: boolean) => void,
   ) {
-    const button = addCrispText(scene, 10, 10, 'Menu', {
+    // Flags unspent stat or talent points so a level-up never goes unnoticed.
+    const talentPoints = talentPointsAvailable(character);
+    const unspent = character.statPoints > 0 || talentPoints > 0;
+    const button = addCrispText(scene, 10, 10, unspent ? 'Menu (!)' : 'Menu', {
       fontSize: '13px',
       color: DARK,
       backgroundColor: GOLD,
@@ -87,11 +90,16 @@ export class CharacterSheetPanel {
     // Laid out as a 2-column grid.
     this.inventoryButton = this.makeNavButton(scene, 20, 90, 'Inventaire', () => navigateTo('Inventory'));
     this.bagButton = this.makeNavButton(scene, 115, 90, 'Sac', () => navigateTo('Bag'));
-    this.statsButton = this.makeNavButton(scene, 20, 120, 'Stats', () => navigateTo('Stats'));
+    this.statsButton = this.makeNavButton(
+      scene,
+      20,
+      120,
+      character.statPoints > 0 ? `Stats (${character.statPoints})` : 'Stats',
+      () => navigateTo('Stats'),
+    );
     this.questsButton = this.makeNavButton(scene, 20, 150, 'Quêtes', () => navigateTo('Quests'));
     this.mapButton = this.makeNavButton(scene, 115, 150, 'Carte', () => navigateTo('Map'));
     this.optionsButton = this.makeNavButton(scene, 20, 180, 'Options', () => this.showOptions());
-    const talentPoints = talentPointsAvailable(character);
     this.talentsButton = this.makeNavButton(
       scene,
       115,

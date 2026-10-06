@@ -7,7 +7,7 @@ import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { ConsumableId } from '../game/consumable';
 import { statusLine } from '../game/combatStatus';
 import { ActionResult, CombatEngine, DEFEAT_GOLD_LOSS } from '../game/combatEngine';
-import { ResourceKind, TALENTS } from '../game/talents';
+import { ResourceKind, TALENTS, talentPointsTotal } from '../game/talents';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
@@ -461,6 +461,7 @@ export class CombatScene extends Phaser.Scene {
     this.engine.statuses = {};
     this.refreshStatusLine();
     const goldReward = this.engine.goldReward();
+    const levelBefore = this.character.level;
     const levelsGained = grantXp(this.character, this.monster.xpReward);
     this.character.gold += goldReward;
 
@@ -527,10 +528,13 @@ export class CombatScene extends Phaser.Scene {
     await SaveManager.saveCharacter(this.character);
     this.refreshBars();
 
-    const xpPart =
+    const talentGain = talentPointsTotal(this.character.level) - talentPointsTotal(levelBefore);
+    const levelPart =
       levelsGained > 0
-        ? `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or — niveau supérieur !`
-        : `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or`;
+        ? ` Niveau ${this.character.level} : +${3 * levelsGained} points de statistique` +
+          (talentGain > 0 ? `, +${talentGain} point${talentGain > 1 ? 's' : ''} de talent !` : ' !')
+        : '';
+    const xpPart = `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or.${levelPart}`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
     const materialPart =

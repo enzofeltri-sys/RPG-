@@ -362,3 +362,36 @@ export function allocateStatPoint(character: Character, stat: AllocatableStat): 
   }
   return true;
 }
+
+// Paid at the maître d'armes in Valombre, separately from the talent reset:
+// every point placed in the 4 allocatable stats goes back to the pool.
+// The base is the race + class block (computeStats), so racial bonuses and
+// the Dwarf's armor stay. Returns how many points were refunded.
+export function resetStatPoints(character: Character): number {
+  const base = computeStats(character.race, character.class);
+  let refunded = 0;
+  (['strength', 'intelligence', 'agility', 'vitality'] as AllocatableStat[]).forEach((stat) => {
+    const placed = Math.max(0, character.stats[stat] - base[stat]);
+    if (placed === 0) return;
+    character.stats[stat] -= placed;
+    refunded += placed;
+    if (stat === 'vitality') {
+      addBaseMaxHp(character, -4 * placed);
+      character.hp = Math.max(1, Math.min(character.hp, character.maxHp));
+    }
+    if (stat === 'intelligence') {
+      character.maxMp -= 3 * placed;
+      character.mp = Math.min(character.mp, character.maxMp);
+    }
+  });
+  character.statPoints += refunded;
+  return refunded;
+}
+
+export function placedStatPoints(character: Character): number {
+  const base = computeStats(character.race, character.class);
+  return (['strength', 'intelligence', 'agility', 'vitality'] as AllocatableStat[]).reduce(
+    (sum, stat) => sum + Math.max(0, character.stats[stat] - base[stat]),
+    0,
+  );
+}

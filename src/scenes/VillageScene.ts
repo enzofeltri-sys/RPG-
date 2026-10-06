@@ -4,7 +4,7 @@ import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance }
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { addGrassGround } from '../entities/groundTexture';
 import { Wanderer } from '../entities/wanderer';
-import { Character } from '../game/character';
+import { Character, placedStatPoints, resetStatPoints } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { SaveManager } from '../save/SaveManager';
@@ -257,8 +257,9 @@ export class VillageScene extends Phaser.Scene {
 
   private talkToWeaponMaster(): void {
     if (!this.character) return;
-    const spent = talentPointsSpent(this.character);
-    if (spent === 0) {
+    const talentsSpent = talentPointsSpent(this.character);
+    const statsPlaced = placedStatPoints(this.character);
+    if (talentsSpent === 0 && statsPlaced === 0) {
       this.openDialog(
         "Le maître d'armes vous jauge d'un œil sévère. « Tu n'as encore rien appris que je puisse te faire oublier. Reviens quand tu auras choisi ta voie. »",
         [{ label: 'Fermer', onClick: () => this.closeDialog() }],
@@ -266,16 +267,21 @@ export class VillageScene extends Phaser.Scene {
       return;
     }
     const cost = respecCost(this.character.level);
+    const buttons: { label: string; onClick: () => void }[] = [];
+    if (talentsSpent > 0) {
+      buttons.push({ label: `Talents (${cost} or)`, onClick: () => void this.payWeaponMaster(cost, 'talents') });
+    }
+    if (statsPlaced > 0) {
+      buttons.push({ label: `Statistiques (${cost} or)`, onClick: () => void this.payWeaponMaster(cost, 'stats') });
+    }
+    buttons.push({ label: 'Fermer', onClick: () => this.closeDialog() });
     this.openDialog(
-      `« Une technique mal choisie se désapprend, mais ça se paie. Pour ${cost} pièces d'or, je te fais tout reprendre de zéro : tu récupères tes ${spent} point${spent > 1 ? 's' : ''} de talent. » (Vous avez ${this.character.gold} or.)`,
-      [
-        { label: `Tout désapprendre (${cost} or)`, onClick: () => void this.resetTalentsForGold(cost) },
-        { label: 'Fermer', onClick: () => this.closeDialog() },
-      ],
+      `« Une technique mal choisie se désapprend, mais ça se paie : ${cost} pièces d'or. Je peux te faire reprendre tes talents de zéro, ou te réapprendre à placer ta force. » (${talentsSpent} point${talentsSpent > 1 ? 's' : ''} de talent, ${statsPlaced} point${statsPlaced > 1 ? 's' : ''} de statistique ; vous avez ${this.character.gold} or.)`,
+      buttons,
     );
   }
 
-  private async resetTalentsForGold(cost: number): Promise<void> {
+  private async payWeaponMaster(cost: number, what: 'talents' | 'stats'): Promise<void> {
     if (this.character.gold < cost) {
       this.openDialog("« Reviens avec de quoi payer. Je n'enseigne pas à crédit. »", [
         { label: 'Fermer', onClick: () => this.closeDialog() },
@@ -283,10 +289,13 @@ export class VillageScene extends Phaser.Scene {
       return;
     }
     this.character.gold -= cost;
-    resetTalents(this.character);
+    if (what === 'talents') resetTalents(this.character);
+    else resetStatPoints(this.character);
     await SaveManager.saveCharacter(this.character);
     this.openDialog(
-      "« Voilà. Tes talents sont à nouveau à choisir. Passe par ton menu Talents, et cette fois, réfléchis. »",
+      what === 'talents'
+        ? "« Voilà. Tes talents sont à nouveau à choisir. Passe par ton menu Talents, et cette fois, réfléchis. »"
+        : "« Voilà. Tes points sont à nouveau libres. Répartis-les dans ton menu Stats, et cette fois, réfléchis. »",
       [{ label: 'Fermer', onClick: () => this.closeDialog() }],
     );
   }

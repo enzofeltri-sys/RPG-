@@ -173,7 +173,7 @@ const TALENT_LIST: TalentDef[] = [
   active('heal', 'cleric', -1, 0, 'Soin', [8, 8], [{ hpPct: 0.3 }, { hpPct: 0.4 }],
     (v) => `Rend ${pct(v.hpPct)} de tes PV max.`, 'Rend 40 % des PV max.'),
   active('smite', 'cleric', 0, 0, 'Châtiment', [8, 8], [{ mult: 1.5 }, { mult: 1.8 }],
-    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}.`, 'Dégâts ×1,8.'),
+    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}, doublés contre les spectres.`, 'Dégâts ×1,8.'),
   passive('fervor', 'cleric', 0, 1, 'Ferveur', 3, (r) => `+${5 * r} % de dégâts à tes sorts.`),
   passive('judgment', 'cleric', 0, 2, 'Jugement', 1, () => 'Tes sorts de Lumière ont 15 % de chances d\'Étourdir.'),
   active('divine_wrath', 'cleric', 0, 3, 'Colère divine', [22, 22], [{ mult: 2.8 }, { mult: 3.2 }],

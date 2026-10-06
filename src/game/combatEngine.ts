@@ -13,6 +13,7 @@ import {
 } from './weapons';
 import { CONSUMABLES, ConsumableId, bombBurnDamage, bombDamage, useConsumable } from './consumable';
 import {
+  ActiveStatus,
   FROZEN_ATTACK_MULTIPLIER,
   MonsterStatusId,
   MonsterStatuses,
@@ -26,8 +27,24 @@ import {
   freezeStatus,
   poisonStatus,
   rollElementStatuses,
+  statusLine,
   tickDamageOverTime,
 } from './combatStatus';
+import {
+  ABILITY_LABELS,
+  AttackElement,
+  ELEMENT_LABELS,
+  ELITE_BONUS_POOL,
+  MonsterAbility,
+  MonsterKit,
+  PASSIVE_ABILITIES,
+  RESISTANCE_MULTIPLIER,
+  TYPE_TRAITS,
+  TypeTraits,
+  WEAKNESS_MULTIPLIER,
+  monsterKit,
+  monsterSpeed,
+} from './monsterKit';
 import {
   ActiveTalent,
   CLASS_RESOURCE,
@@ -133,8 +150,103 @@ export interface SkillAvailability {
   reason?: string;
 }
 
+// States monsters inflict on the player. Damage-over-time ticks at the
+// start of the player's turn; the others are spent by player actions
+// (Affaibli on damaging ones, Aveuglé and Silence on any), Étourdi skips the
+// player's next turn. They all end with the fight.
+export type PlayerStatusId = 'poisoned' | 'burning' | 'bleeding' | 'weakened' | 'blinded' | 'silenced' | 'stunned';
+
+export const PLAYER_STATUS_LABELS: Record<PlayerStatusId, string> = {
+  poisoned: 'Empoisonné',
+  burning: 'Brûlure',
+  bleeding: 'Saignement',
+  weakened: 'Affaibli',
+  blinded: 'Aveuglé',
+  silenced: 'Silence',
+  stunned: 'Étourdi',
+};
+
+const PLAYER_STATUS_VERBS: Record<PlayerStatusId, string> = {
+  poisoned: 'vous êtes empoisonné',
+  burning: 'vous brûlez',
+  bleeding: 'vous saignez',
+  weakened: 'vous êtes affaibli',
+  blinded: 'vous êtes aveuglé',
+  silenced: 'vous êtes réduit au silence',
+  stunned: 'vous êtes étourdi',
+};
+
+export type PlayerStatuses = Partial<Record<PlayerStatusId, ActiveStatus>>;
+
+const PLAYER_BLIND_MISS = 0.3;
+const PLAYER_WEAKENED_MULTIPLIER = 0.75;
+const MONSTER_EVASION = 0.15;
+const THORNS_SHARE = 0.15;
+const MONSTER_REGEN = 0.05;
+const BOSS_ENRAGE_MULTIPLIER = 1.3;
+const PHASE2_ATTACK_MULTIPLIER = 1.15;
+const TELEGRAPH_EVERY = 4;
+const MAGIC_RESIST_PER_INT = 0.01;
+const MAGIC_RESIST_CAP = 0.4;
+
+// Monster states and the element that makes a monster immune to them.
+const STATUS_ELEMENT: Record<MonsterStatusId, AttackElement> = {
+  poisoned: 'poison',
+  burning: 'fire',
+  frozen: 'ice',
+  stunned: 'electric',
+  weakened: 'dark',
+  vulnerable: 'earth',
+};
+
+const GEAR_ELEMENTS: [keyof CharacterStats, AttackElement][] = [
+  ['fireDamage', 'fire'],
+  ['iceDamage', 'ice'],
+  ['electricDamage', 'electric'],
+  ['poisonDamage', 'poison'],
+  ['darkDamage', 'dark'],
+  ['earthDamage', 'earth'],
+];
+
+const SPELL_NAMES: Record<string, string> = {
+  fire: 'Trait de feu',
+  ice: 'Éclat de givre',
+  electric: 'Étincelle',
+  poison: 'Dard toxique',
+  dark: "Trait d'ombre",
+  earth: 'Projection de pierre',
+};
+
+interface MonsterEffects {
+  turn: number;
+  telegraph: boolean;
+  // Carapace: halves the player's next action's damage.
+  shell: number;
+  healsLeft: number;
+  frenzy: number;
+  enraged: boolean;
+  phase2: boolean;
+  lastStunTurn: number;
+}
+
+interface MonsterHitOptions {
+  magic?: boolean;
+  label?: string;
+}
+
+interface MonsterHitResult {
+  landed: boolean;
+  damage: number;
+  defeat: boolean;
+  victory: boolean;
+}
+
 interface StrikeOptions {
   spell: boolean;
+  // Element of the action itself (skill or staff), on top of the gear's.
+  element?: AttackElement;
+  // Châtiment: replaces the Light weakness bonus against spectres.
+  vsUndead?: number;
   hits?: number;
   forceCrit?: boolean;
   // Roll gear states on every hit instead of once per action (Pluie de flèches).
@@ -145,6 +257,8 @@ interface StrikeOptions {
 }
 
 interface StrikeResult {
+  missed?: 'blind' | 'evasion';
+  thorns?: number;
   total: number;
   crits: number;
   hits: number;
@@ -163,6 +277,22 @@ export class CombatEngine {
   private pool = 0;
   private poolMax = 0;
   private freshBuffs = new Set<OffensiveBuff>();
+  playerStatuses: PlayerStatuses = {};
+  readonly kit: MonsterKit;
+  readonly traits: TypeTraits;
+  readonly abilities: MonsterAbility[];
+  // The monster is quicker than the player and opens the fight.
+  readonly monsterFirst: boolean;
+  private mfx: MonsterEffects = {
+    turn: 0,
+    telegraph: false,
+    shell: 0,
+    healsLeft: 2,
+    frenzy: 0,
+    enraged: false,
+    phase2: false,
+    lastStunTurn: -10,
+  };
 
   constructor(
     readonly character: Character,
@@ -178,6 +308,52 @@ export class CombatEngine {
       this.poolMax = enduranceMax(this.stats().vitality);
       this.pool = this.poolMax;
     }
+    this.kit = monsterKit(monster.id);
+    this.traits = TYPE_TRAITS[this.kit.type];
+    this.abilities = [...this.kit.abilities];
+    // Elite and legendary variants pick up extra abilities.
+    const extra = monster.tier === 'legendary' ? 2 : monster.tier === 'elite' ? 1 : 0;
+    const pool = ELITE_BONUS_POOL.filter((id) => !this.abilities.some((ab) => ab.id === id));
+    for (let i = 0; i < extra && pool.length > 0; i++) {
+      const [picked] = pool.splice(Math.floor(this.rng() * pool.length), 1);
+      this.abilities.push({ id: picked });
+    }
+    this.monsterFirst = monsterSpeed(this.kit.type, monster.attack, monster.isBoss) > this.stats().agility;
+  }
+
+  private hasAbility(id: string): boolean {
+    return this.abilities.some((ab) => ab.id === id);
+  }
+
+  // Weakness / resistance multiplier for one element against this monster.
+  elementMultiplier(element: AttackElement): number {
+    if (this.traits.weak.includes(element)) return WEAKNESS_MULTIPLIER;
+    if (this.traits.resist.includes(element)) return RESISTANCE_MULTIPLIER;
+    return 1;
+  }
+
+  // Applies a state to the monster unless its type resists the matching element.
+  private inflict(id: MonsterStatusId, status: ActiveStatus): boolean {
+    if (this.traits.resist.includes(STATUS_ELEMENT[id])) return false;
+    applyStatus(this.statuses, id, status);
+    return true;
+  }
+
+  private rollGear(stats: CharacterStats): MonsterStatusId[] {
+    const before = new Set(Object.keys(this.statuses));
+    const applied = rollElementStatuses(stats, this.statuses, this.rng, this.statusMods());
+    return applied.filter((id) => {
+      if (!this.traits.resist.includes(STATUS_ELEMENT[id])) return true;
+      if (!before.has(id)) delete this.statuses[id];
+      return false;
+    });
+  }
+
+  monsterInfoLine(): string {
+    const weak = this.traits.weak.map((e) => ELEMENT_LABELS[e]).join(', ');
+    const resist = this.traits.resist.map((e) => ELEMENT_LABELS[e]).join(', ');
+    const physical = this.traits.physicalResist > 0 ? ' et physique' : '';
+    return `${this.traits.label} · faible : ${weak || 'rien'} · résiste : ${resist || 'rien'}${physical}`;
   }
 
   // ------------------------------------------------------------- resource
@@ -287,35 +463,37 @@ export class CombatEngine {
     return isMeleeHandItem(this.rightHand()) && isMeleeHandItem(this.leftHand());
   }
 
-  // The staff/tome attack is named after the casting item's strongest element.
-  spellName(): string {
+  // The staff/tome attack carries the casting item's strongest element and
+  // is named after it.
+  private weaponElement(): AttackElement | undefined {
     const item = this.attackWeapon();
-    const elements: [keyof CharacterStats, string][] = [
-      ['fireDamage', 'Trait de feu'],
-      ['iceDamage', 'Éclat de givre'],
-      ['electricDamage', 'Étincelle'],
-      ['poisonDamage', 'Dard toxique'],
-      ['darkDamage', "Trait d'ombre"],
-      ['earthDamage', 'Projection de pierre'],
-    ];
-    let best = 'Trait arcanique';
+    let best: AttackElement | undefined;
     let bestValue = 0;
-    elements.forEach(([stat, name]) => {
+    GEAR_ELEMENTS.forEach(([stat, element]) => {
       const value = (item?.stats[stat as keyof typeof item.stats] as number | undefined) ?? 0;
       if (value > bestValue) {
         bestValue = value;
-        best = name;
+        best = element;
       }
     });
     return best;
   }
 
+  spellName(): string {
+    const element = this.weaponElement();
+    return element ? SPELL_NAMES[element] : 'Trait arcanique';
+  }
+
   private baseDamage(spell: boolean, weapon?: Item): number {
     const stats = this.stats();
     const profile = spell ? this.spellProfile() : weaponProfile(weapon ?? this.attackWeapon());
-    const elemental =
-      stats.fireDamage + stats.poisonDamage + stats.iceDamage + stats.electricDamage + stats.darkDamage + stats.earthDamage;
-    return this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] / 2) + elemental;
+    const core = this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] / 2);
+    const physical = spell ? core : core * (1 - this.traits.physicalResist);
+    const elemental = GEAR_ELEMENTS.reduce(
+      (sum, [stat, element]) => sum + stats[stat] * this.elementMultiplier(element),
+      0,
+    );
+    return physical + elemental;
   }
 
   private damageMultiplier(spell: boolean, weapon?: Item): number {
@@ -365,12 +543,25 @@ export class CombatEngine {
   private strike(mult: number, options: StrikeOptions): StrikeResult {
     const stats = this.stats();
     const hits = options.hits ?? 1;
+    // Weapon attacks can miss (Aveuglé, an elusive monster); spells never do.
+    if (!options.spell) {
+      if (this.playerStatuses.blinded && this.rng() < PLAYER_BLIND_MISS) {
+        this.fx.nextCrit = false;
+        return { missed: 'blind', total: 0, crits: 0, hits: 0, applied: [], healed: 0 };
+      }
+      if (this.hasAbility('evasion') && this.rng() < MONSTER_EVASION) {
+        this.fx.nextCrit = false;
+        return { missed: 'evasion', total: 0, crits: 0, hits: 0, applied: [], healed: 0 };
+      }
+    }
+    const weakened = this.consumePlayerStatus('weakened');
+    const actionElement = options.element ? this.actionElementMultiplier(options) : 1;
+    const shell = this.mfx.shell > 0 ? 0.5 : 1;
     const vulnerable = consumeStatus(this.statuses, 'vulnerable');
     const forcedCrit = Boolean(options.forceCrit) || this.fx.nextCrit;
     this.fx.nextCrit = false;
     const wasPoisoned = Boolean(this.statuses.poisoned);
     const applied = new Set<MonsterStatusId>();
-    const mods = this.statusMods();
     let total = 0;
     let crits = 0;
     let landed = 0;
@@ -385,7 +576,10 @@ export class CombatEngine {
             mult *
             this.damageMultiplier(options.spell, weapon) *
             (crit ? this.critMultiplier() : 1) *
-            (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1),
+            (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1) *
+            actionElement *
+            shell *
+            (weakened ? PLAYER_WEAKENED_MULTIPLIER : 1),
         ),
       );
       this.monster.hp -= damage;
@@ -397,32 +591,35 @@ export class CombatEngine {
     for (let i = 0; i < hits && this.monster.hp > 0; i++) {
       hitOnce(mult, undefined);
       if (options.gearPerHit && this.monster.hp > 0) {
-        rollElementStatuses(stats, this.statuses, this.rng, mods).forEach((id) => applied.add(id));
+        this.rollGear(stats).forEach((id) => applied.add(id));
       }
     }
     if (options.offhand && this.monster.hp > 0) hitOnce(mult * OFFHAND_HIT_MULTIPLIER, this.leftHand());
 
     if (this.monster.hp > 0) {
       if (!options.gearPerHit) {
-        rollElementStatuses(stats, this.statuses, this.rng, mods).forEach((id) => applied.add(id));
+        this.rollGear(stats).forEach((id) => applied.add(id));
       }
       if (this.fx.coatedBlade > 0) {
         this.fx.coatedBlade -= 1;
-        applyStatus(this.statuses, 'poisoned', this.skillPoison());
-        applied.add('poisoned');
+        if (this.inflict('poisoned', this.skillPoison())) applied.add('poisoned');
       }
-      if (crits > 0 && this.rank('weak_spot') > 0) {
-        applyStatus(this.statuses, 'vulnerable', { turns: 2 });
+      if (crits > 0 && this.rank('weak_spot') > 0 && this.inflict('vulnerable', { turns: 2 })) {
         applied.add('vulnerable');
       }
-      if (wasPoisoned && this.rank('snare') > 0 && this.rng() < 0.2) {
-        applyStatus(this.statuses, 'stunned', { turns: 1 });
+      if (wasPoisoned && this.rank('snare') > 0 && this.rng() < 0.2 && this.inflict('stunned', { turns: 1 })) {
         applied.add('stunned');
       }
-      if (options.light && this.rank('judgment') > 0 && this.rng() < 0.15) {
-        applyStatus(this.statuses, 'stunned', { turns: 1 });
+      if (options.light && this.rank('judgment') > 0 && this.rng() < 0.15 && this.inflict('stunned', { turns: 1 })) {
         applied.add('stunned');
       }
+    }
+
+    // Épines: weapon hits cost the attacker a share of the damage dealt.
+    let thorns = 0;
+    if (!options.spell && total > 0 && this.hasAbility('thorns')) {
+      thorns = Math.max(1, Math.round(total * THORNS_SHARE));
+      this.character.hp = Math.max(1, this.character.hp - thorns);
     }
 
     let healed = 0;
@@ -438,7 +635,12 @@ export class CombatEngine {
       healed += this.character.hp - before;
     }
     this.fx.hasHit = true;
-    return { total, crits, hits: landed, applied: [...applied], healed };
+    return { total, crits, hits: landed, applied: [...applied], healed, thorns };
+  }
+
+  private actionElementMultiplier(options: StrikeOptions): number {
+    if (options.vsUndead && this.kit.type === 'undead') return options.vsUndead;
+    return this.elementMultiplier(options.element!);
   }
 
   private skillPoison() {
@@ -452,12 +654,15 @@ export class CombatEngine {
   }
 
   private describeStrike(result: StrikeResult, extra: MonsterStatusId[] = []): string {
+    if (result.missed === 'blind') return 'Aveuglé, vous frappez dans le vide !';
+    if (result.missed === 'evasion') return `${this.monster.name} esquive votre attaque !`;
     const critPart =
       result.crits === 0 ? '' : result.hits > 1 ? `${result.crits} coup${result.crits > 1 ? 's' : ''} critique${result.crits > 1 ? 's' : ''} ! ` : 'Coup critique ! ';
     const hitsPart = result.hits > 1 ? ` en ${result.hits} coups` : '';
     const healPart = result.healed > 0 ? ` Vous récupérez ${result.healed} PV.` : '';
     const applied = [...new Set([...result.applied, ...extra])];
-    return `${critPart}Vous infligez ${result.total} dégâts${hitsPart}.${healPart}${describeApplied(this.monster.name, applied)}`;
+    const thornsPart = result.thorns ? ` Les épines vous blessent (-${result.thorns} PV).` : '';
+    return `${critPart}Vous infligez ${result.total} dégâts${hitsPart}.${healPart}${describeApplied(this.monster.name, applied)}${thornsPart}`;
   }
 
   // Ends a player action: offensive bonuses tick down, except the one this
@@ -467,6 +672,30 @@ export class CombatEngine {
       if (this.fx[buff] > 0 && !this.freshBuffs.has(buff)) this.fx[buff] -= 1;
     });
     this.freshBuffs.clear();
+    this.consumePlayerStatus('blinded');
+    this.consumePlayerStatus('silenced');
+    if (this.mfx.shell > 0) this.mfx.shell -= 1;
+  }
+
+  private consumePlayerStatus(id: PlayerStatusId): boolean {
+    const status = this.playerStatuses[id];
+    if (!status) return false;
+    status.turns -= 1;
+    if (status.turns <= 0) delete this.playerStatuses[id];
+    return true;
+  }
+
+  // Étourdi: the player loses this turn (the scene then runs the monster's).
+  consumePlayerStun(): boolean {
+    if (!this.consumePlayerStatus('stunned')) return false;
+    this.endAction();
+    return true;
+  }
+
+  private clearPlayerStatuses(): boolean {
+    const had = Object.keys(this.playerStatuses).length > 0;
+    this.playerStatuses = {};
+    return had;
   }
 
   private grantBuff(buff: OffensiveBuff, turns: number): void {
@@ -478,7 +707,11 @@ export class CombatEngine {
 
   attack(): ActionResult {
     const spell = this.basicIsSpell();
-    const result = this.strike(1, { spell, offhand: !spell && this.dualWielding() });
+    const result = this.strike(1, {
+      spell,
+      offhand: !spell && this.dualWielding(),
+      element: spell ? this.weaponElement() : undefined,
+    });
     if (this.kind === 'rage') this.resource = this.resource + RAGE_PER_ATTACK;
     this.endAction();
     const prefix = spell ? `${this.spellName()} : ` : '';
@@ -498,6 +731,7 @@ export class CombatEngine {
     const def = TALENTS[id];
     const cost = this.skillCost(id);
     if (!def || def.kind !== 'active' || this.rank(id) === 0) return { cost, usable: false, reason: 'Compétence non apprise.' };
+    if (this.playerStatuses.silenced) return { cost, usable: false, reason: 'Vous êtes réduit au silence.' };
     if (def.requires === 'shield' && this.character.equipment.shield?.category !== 'shield') {
       return { cost, usable: false, reason: REQUIREMENT_LABELS.shield };
     }
@@ -538,8 +772,8 @@ export class CombatEngine {
       }
       case 'armor_break': {
         const r = this.strike(v.mult, { spell: false });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'vulnerable', { turns: 2 });
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['vulnerable'] : []);
+        const ok = !r.missed && this.monster.hp > 0 && this.inflict('vulnerable', { turns: 2 });
+        log = this.describeStrike(r, ok ? ['vulnerable'] : []);
         hit = true;
         break;
       }
@@ -552,8 +786,9 @@ export class CombatEngine {
       }
       case 'shield_bash': {
         const r = this.strike(v.mult, { spell: false });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'stunned', { turns: 1 });
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['stunned'] : []);
+        // A stun also breaks a boss's wind-up (see monsterTurn).
+        const ok = !r.missed && this.monster.hp > 0 && this.inflict('stunned', { turns: 1 });
+        log = this.describeStrike(r, ok ? ['stunned'] : []);
         hit = true;
         break;
       }
@@ -562,8 +797,9 @@ export class CombatEngine {
         log = 'Vous adoptez une posture défensive.';
         break;
       case 'war_cry':
-        applyStatus(this.statuses, 'weakened', { turns: v.turns });
-        log = `Votre cri de guerre fait reculer ${name.toLowerCase()} : affaibli !`;
+        log = this.inflict('weakened', { turns: v.turns })
+          ? `Votre cri de guerre fait reculer ${name.toLowerCase()} : affaibli !`
+          : `${name} ne se laisse pas impressionner.`;
         break;
       case 'berserk':
         this.grantBuff('berserk', v.turns);
@@ -572,29 +808,28 @@ export class CombatEngine {
 
       // Mage
       case 'fireball': {
-        const r = this.strike(v.mult, { spell: true });
-        const burn = this.monster.hp > 0 && this.rng() < 0.5;
-        if (burn) applyStatus(this.statuses, 'burning', this.skillBurn(2));
+        const r = this.strike(v.mult, { spell: true, element: 'fire' });
+        const burn = this.monster.hp > 0 && this.rng() < 0.5 && this.inflict('burning', this.skillBurn(2));
         log = this.describeStrike(r, burn ? ['burning'] : []);
         hit = true;
         break;
       }
       case 'flame_wall': {
-        const r = this.strike(v.mult, { spell: true });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'burning', this.skillBurn(3));
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['burning'] : []);
+        const r = this.strike(v.mult, { spell: true, element: 'fire' });
+        const ok = this.monster.hp > 0 && this.inflict('burning', this.skillBurn(3));
+        log = this.describeStrike(r, ok ? ['burning'] : []);
         hit = true;
         break;
       }
       case 'meteor': {
-        log = this.describeStrike(this.strike(v.mult, { spell: true }));
+        log = this.describeStrike(this.strike(v.mult, { spell: true, element: 'fire' }));
         hit = true;
         break;
       }
       case 'frost_bolt': {
-        const r = this.strike(v.mult, { spell: true });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'frozen', freezeStatus(this.statusMods()));
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['frozen'] : []);
+        const r = this.strike(v.mult, { spell: true, element: 'ice' });
+        const ok = this.monster.hp > 0 && this.inflict('frozen', freezeStatus(this.statusMods()));
+        log = this.describeStrike(r, ok ? ['frozen'] : []);
         hit = true;
         break;
       }
@@ -621,11 +856,11 @@ export class CombatEngine {
         log = `Vous récupérez ${this.heal(this.character.maxHp * v.hpPct)} PV.`;
         break;
       case 'smite':
-        log = this.describeStrike(this.strike(v.mult, { spell: true, light: true }));
+        log = this.describeStrike(this.strike(v.mult, { spell: true, light: true, element: 'light', vsUndead: 2 }));
         hit = true;
         break;
       case 'divine_wrath': {
-        const r = this.strike(v.mult, { spell: true, light: true });
+        const r = this.strike(v.mult, { spell: true, light: true, element: 'light' });
         const healed = this.heal(r.total * 0.25);
         log = this.describeStrike(r) + (healed > 0 ? ` La lumière vous rend ${healed} PV.` : '');
         hit = true;
@@ -636,9 +871,12 @@ export class CombatEngine {
         this.fx.regenPct = v.hpPct;
         log = 'Une douce chaleur vous enveloppe.';
         break;
-      case 'purification':
-        log = `Vous êtes purifié et récupérez ${this.heal(this.character.maxHp * v.hpPct)} PV.`;
+      case 'purification': {
+        const cleansed = this.clearPlayerStatuses();
+        const healed = this.heal(this.character.maxHp * v.hpPct);
+        log = cleansed ? `Vos maux se dissipent. Vous récupérez ${healed} PV.` : `Vous récupérez ${healed} PV.`;
         break;
+      }
       case 'faith_shield': {
         const amount = Math.round(v.flat + v.perInt * stats.intelligence);
         if (amount >= this.fx.shield) {
@@ -668,9 +906,9 @@ export class CombatEngine {
         hit = true;
         break;
       case 'poison_arrow': {
-        const r = this.strike(v.mult, { spell: false });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'poisoned', this.skillPoison());
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['poisoned'] : []);
+        const r = this.strike(v.mult, { spell: false, element: 'poison' });
+        const ok = !r.missed && this.monster.hp > 0 && this.inflict('poisoned', this.skillPoison());
+        log = this.describeStrike(r, ok ? ['poisoned'] : []);
         hit = true;
         break;
       }
@@ -690,8 +928,8 @@ export class CombatEngine {
       // Voleur
       case 'low_blow': {
         const r = this.strike(v.mult, { spell: false });
-        if (this.monster.hp > 0) applyStatus(this.statuses, 'weakened', { turns: 2 });
-        log = this.describeStrike(r, this.monster.hp > 0 ? ['weakened'] : []);
+        const ok = !r.missed && this.monster.hp > 0 && this.inflict('weakened', { turns: 2 });
+        log = this.describeStrike(r, ok ? ['weakened'] : []);
         hit = true;
         break;
       }
@@ -740,6 +978,19 @@ export class CombatEngine {
   usePotion(id: ConsumableId): ActionResult {
     const def = CONSUMABLES[id];
     if (id === 'fire_bomb') return this.throwBomb();
+    if (id === 'antidote') {
+      const count = this.character.consumables.antidote ?? 0;
+      if (count <= 0) return { log: '', victory: false, endsTurn: false, hit: false };
+      this.character.consumables.antidote = count - 1;
+      const cured = this.clearPlayerStatuses();
+      this.endAction();
+      return {
+        log: cured ? "L'antidote dissipe vos maux." : "Vous buvez l'antidote, sans effet.",
+        victory: false,
+        endsTurn: true,
+        hit: false,
+      };
+    }
     const hpBefore = this.character.hp;
     const mpBefore = this.character.mp;
     if (!useConsumable(this.character, id)) return { log: '', victory: false, endsTurn: false, hit: false };
@@ -754,11 +1005,13 @@ export class CombatEngine {
     if (count <= 0) return { log: '', victory: false, endsTurn: false, hit: false };
     this.character.consumables.fire_bomb = count - 1;
     const level = this.character.level;
-    const damage = bombDamage(level);
+    const damage = Math.max(1, Math.round(bombDamage(level) * this.elementMultiplier('fire')));
     this.monster.hp -= damage;
     let statusPart = '';
-    if (this.monster.hp > 0) {
-      applyStatus(this.statuses, 'burning', { turns: 2, damage: bombBurnDamage(level) + this.statusMods().burnDamage });
+    if (
+      this.monster.hp > 0 &&
+      this.inflict('burning', { turns: 2, damage: bombBurnDamage(level) + this.statusMods().burnDamage })
+    ) {
       statusPart = describeApplied(this.monster.name, ['burning']);
     }
     this.endAction();
@@ -782,6 +1035,8 @@ export class CombatEngine {
   monsterTurn(): MonsterTurnResult {
     const parts: string[] = [];
     const name = this.monster.name;
+    const mfx = this.mfx;
+    mfx.turn += 1;
 
     const dot = tickDamageOverTime(this.statuses);
     parts.push(...dot.parts);
@@ -793,12 +1048,198 @@ export class CombatEngine {
       }
     }
 
+    if (this.hasAbility('regeneration') && this.monster.hp < this.monster.maxHp) {
+      const before = this.monster.hp;
+      this.monster.hp = Math.min(this.monster.maxHp, this.monster.hp + Math.ceil(this.monster.maxHp * MONSTER_REGEN));
+      parts.push(`${name} se régénère (+${this.monster.hp - before}).`);
+    }
+    if (this.kit.phase2 && !mfx.phase2 && this.monster.hp <= this.monster.maxHp * 0.5) {
+      mfx.phase2 = true;
+      this.abilities.push(...(this.kit.phase2.add ?? []));
+      parts.push(this.kit.phase2.message);
+    }
+    if (this.monster.isBoss && !mfx.enraged && this.monster.hp < this.monster.maxHp * 0.3) {
+      mfx.enraged = true;
+      parts.push(`${name} entre dans une rage folle !`);
+    }
+    if (this.hasAbility('frenzy')) mfx.frenzy = Math.min(5, mfx.frenzy + 1);
+
     if (consumeStatus(this.statuses, 'stunned')) {
       parts.push(`${name} est étourdi et ne peut pas agir.`);
-      parts.push(...this.startPlayerTurn());
-      return { log: parts.join(' '), outcome: 'ongoing', hit: false };
+      if (mfx.telegraph) {
+        mfx.telegraph = false;
+        parts.push('Son élan est brisé !');
+      }
+      return this.endMonsterTurn(parts, false);
     }
 
+    // ---- choose the action
+    if (mfx.telegraph) {
+      mfx.telegraph = false;
+      const r = this.monsterHit(parts, 2, { label: 'Coup dévastateur' });
+      return this.afterMonsterHit(parts, r);
+    }
+    const charge = this.abilities.find((ab) => ab.id === 'charge');
+    if (charge && mfx.turn === 1) {
+      const r = this.monsterHit(parts, 1.8, { label: charge.label ?? ABILITY_LABELS.charge });
+      return this.afterMonsterHit(parts, r);
+    }
+    if (this.monster.isBoss && mfx.turn % TELEGRAPH_EVERY === TELEGRAPH_EVERY - 1) {
+      mfx.telegraph = true;
+      parts.push(`${name} prend son élan… (coup dévastateur au prochain tour)`);
+      return this.endMonsterTurn(parts, false);
+    }
+    const heal = this.abilities.find((ab) => ab.id === 'heal');
+    if (heal && mfx.healsLeft > 0 && this.monster.hp < this.monster.maxHp * 0.5 && this.rng() < 0.6) {
+      mfx.healsLeft -= 1;
+      const before = this.monster.hp;
+      this.monster.hp = Math.min(this.monster.maxHp, this.monster.hp + Math.round(this.monster.maxHp * 0.25));
+      parts.push(`${name} utilise ${heal.label ?? ABILITY_LABELS.heal} (+${this.monster.hp - before} PV).`);
+      return this.endMonsterTurn(parts, false);
+    }
+    const chance = mfx.phase2 ? 0.5 : this.monster.isBoss ? 0.4 : 0.3;
+    const usable = this.abilities.filter((ab) => this.abilityUsable(ab));
+    if (usable.length > 0 && this.rng() < chance) {
+      const ability = usable[Math.floor(this.rng() * usable.length)];
+      return this.useMonsterAbility(parts, ability);
+    }
+    const r = this.monsterHit(parts, 1, {});
+    return this.afterMonsterHit(parts, r);
+  }
+
+  private abilityUsable(ability: MonsterAbility): boolean {
+    if (PASSIVE_ABILITIES.includes(ability.id)) return false;
+    switch (ability.id) {
+      case 'charge':
+      case 'heal':
+        return false;
+      case 'poison':
+        return !this.playerStatuses.poisoned;
+      case 'fire_breath':
+        return true;
+      case 'war_cry':
+        return !this.playerStatuses.weakened;
+      case 'blind':
+        return !this.playerStatuses.blinded;
+      case 'silence':
+        return !this.playerStatuses.silenced;
+      case 'stun_blow':
+        return this.mfx.turn - this.mfx.lastStunTurn >= 3;
+      case 'shell':
+        return this.mfx.shell === 0;
+      default:
+        return true;
+    }
+  }
+
+  private useMonsterAbility(parts: string[], ability: MonsterAbility): MonsterTurnResult {
+    const label = ability.label ?? ABILITY_LABELS[ability.id];
+    const name = this.monster.name;
+    const attack = this.monster.attack;
+    switch (ability.id) {
+      case 'poison': {
+        const r = this.monsterHit(parts, 1, { label });
+        if (r.landed) this.inflictPlayer(parts, 'poisoned', { turns: 3, damage: Math.max(1, Math.round(attack * 0.25)) });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'rend': {
+        const r = this.monsterHit(parts, 1, { label });
+        if (r.landed) {
+          // Bleeding stacks up to 3 times.
+          const tick = Math.max(1, Math.round(attack * 0.2));
+          const current = this.playerStatuses.bleeding;
+          const damage = Math.min(tick * 3, (current?.damage ?? 0) + tick);
+          this.inflictPlayer(parts, 'bleeding', { turns: 3, damage });
+        }
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'fire_breath': {
+        const r = this.monsterHit(parts, 1.2, { label, magic: true });
+        if (r.landed) this.inflictPlayer(parts, 'burning', { turns: 2, damage: Math.max(1, Math.round(attack * 0.35)) });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'war_cry':
+        parts.push(`${name} utilise ${label} !`);
+        this.inflictPlayer(parts, 'weakened', { turns: 2 });
+        return this.endMonsterTurn(parts, false);
+      case 'blind': {
+        const r = this.monsterHit(parts, 0.7, { label });
+        if (r.landed) this.inflictPlayer(parts, 'blinded', { turns: 2 });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'silence': {
+        const r = this.monsterHit(parts, 0.6, { label, magic: true });
+        if (r.landed) this.inflictPlayer(parts, 'silenced', { turns: 2 });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'stun_blow': {
+        this.mfx.lastStunTurn = this.mfx.turn;
+        const r = this.monsterHit(parts, 0.9, { label });
+        if (r.landed) this.inflictPlayer(parts, 'stunned', { turns: 1 });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'double_attack': {
+        parts.push(`${name} utilise ${label} !`);
+        const first = this.monsterHit(parts, 0.6, {});
+        if (first.defeat || first.victory) return this.afterMonsterHit(parts, first);
+        const second = this.monsterHit(parts, 0.6, {});
+        return this.afterMonsterHit(parts, second);
+      }
+      case 'life_drain': {
+        const r = this.monsterHit(parts, 1, { label });
+        if (r.landed && r.damage > 0) {
+          const before = this.monster.hp;
+          this.monster.hp = Math.min(this.monster.maxHp, this.monster.hp + Math.ceil(r.damage / 2));
+          parts.push(`${name} récupère ${this.monster.hp - before} PV.`);
+        }
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'shell':
+        this.mfx.shell = 1;
+        parts.push(`${name} utilise ${label} : votre prochaine action fera moitié moins de dégâts.`);
+        return this.endMonsterTurn(parts, false);
+      case 'curse': {
+        const r = this.monsterHit(parts, 1.3, { label, magic: true });
+        return this.afterMonsterHit(parts, r);
+      }
+      case 'mana_burn': {
+        const r = this.monsterHit(parts, 0.5, { label, magic: true });
+        if (r.landed) {
+          const before = this.resource;
+          this.resource = before - (this.kind === 'rage' ? 20 : 15);
+          const lost = before - this.resource;
+          if (lost > 0) parts.push(`Vous perdez ${lost} de ${this.resourceLabel.toLowerCase()}.`);
+        }
+        return this.afterMonsterHit(parts, r);
+      }
+      default: {
+        const r = this.monsterHit(parts, 1, {});
+        return this.afterMonsterHit(parts, r);
+      }
+    }
+  }
+
+  private inflictPlayer(parts: string[], id: PlayerStatusId, status: ActiveStatus): void {
+    const current = this.playerStatuses[id];
+    this.playerStatuses[id] = current
+      ? { turns: Math.max(current.turns, status.turns), damage: Math.max(current.damage ?? 0, status.damage ?? 0) || undefined }
+      : status;
+    parts.push(`${PLAYER_STATUS_VERBS[id].charAt(0).toUpperCase()}${PLAYER_STATUS_VERBS[id].slice(1)} !`);
+  }
+
+  private monsterAttackMultiplier(): number {
+    return (
+      (1 + 0.1 * this.mfx.frenzy) *
+      (this.mfx.enraged ? BOSS_ENRAGE_MULTIPLIER : 1) *
+      (this.mfx.phase2 ? PHASE2_ATTACK_MULTIPLIER : 1)
+    );
+  }
+
+  // One monster blow: dodge, block, armor or magic resistance, the player's
+  // defensive effects, shields, rage, and the last-chance talents.
+  private monsterHit(parts: string[], mult: number, options: MonsterHitOptions): MonsterHitResult {
+    const name = this.monster.name;
+    const intro = options.label ? `${name} utilise ${options.label} : ` : '';
     const frozen = consumeStatus(this.statuses, 'frozen');
     const weakened = consumeStatus(this.statuses, 'weakened');
     const stance = this.fx.stance > 0;
@@ -807,35 +1248,42 @@ export class CombatEngine {
     const shadow = this.fx.huntersShadow > 0;
     if (shadow) this.fx.huntersShadow -= 1;
 
-    const dodged = this.fx.guaranteedDodge || this.rng() < dodgeRoll;
+    // Spells can't be dodged by chance, but Repli/Feinte/Disparition still work.
+    const dodged = this.fx.guaranteedDodge || (!options.magic && this.rng() < dodgeRoll);
     this.fx.guaranteedDodge = false;
     if (dodged) {
-      parts.push(`Vous esquivez l'attaque : ${name.toLowerCase()} frappe dans le vide !`);
+      parts.push(`${intro}Vous esquivez : ${name.toLowerCase()} frappe dans le vide !`);
       if (shadow) {
-        const riposte = this.strike(1, { spell: this.basicIsSpell() });
+        const riposte = this.strike(1, { spell: this.basicIsSpell(), element: this.basicIsSpell() ? this.weaponElement() : undefined });
         parts.push(`Riposte : ${this.describeStrike(riposte)}`);
-        if (this.monster.hp <= 0) return { log: parts.join(' '), outcome: 'victory', hit: true };
+        if (this.monster.hp <= 0) return { landed: false, damage: 0, defeat: false, victory: true };
       }
-      parts.push(...this.startPlayerTurn());
-      return { log: parts.join(' '), outcome: 'ongoing', hit: true };
+      return { landed: false, damage: 0, defeat: false, victory: false };
     }
-
-    if (this.leftHand()?.category === 'shield' && this.rng() < SHIELD_BLOCK_CHANCE) {
-      parts.push(`Vous bloquez le coup de ${name.toLowerCase()} avec votre bouclier !`);
-      parts.push(...this.startPlayerTurn());
-      return { log: parts.join(' '), outcome: 'ongoing', hit: true };
+    if (!options.magic && this.leftHand()?.category === 'shield' && this.rng() < SHIELD_BLOCK_CHANCE) {
+      parts.push(`${intro}Vous bloquez le coup avec votre bouclier !`);
+      return { landed: false, damage: 0, defeat: false, victory: false };
     }
 
     const toxins = this.rank('toxins') > 0 && Boolean(this.statuses.poisoned);
     const raw =
       (this.monster.attack + this.randInt(-1, 2)) *
+      mult *
+      this.monsterAttackMultiplier() *
       (frozen ? FROZEN_ATTACK_MULTIPLIER : 1) *
       (weakened ? WEAKENED_ATTACK_MULTIPLIER : 1) *
       (toxins ? 0.9 : 1);
-    // Armor can cancel at most 60% of the monster's attack, so stacking it
-    // never makes a fully-geared player unkillable.
-    const effectiveArmor = Math.min(this.armor(), this.monster.attack * 0.6);
-    let damage = Math.max(1, Math.round(raw - effectiveArmor));
+    let damage: number;
+    if (options.magic) {
+      // Magic ignores armor; Intelligence resists it.
+      const resist = Math.min(MAGIC_RESIST_CAP, this.stats().intelligence * MAGIC_RESIST_PER_INT);
+      damage = Math.max(1, Math.round(raw * (1 - resist)));
+    } else {
+      // Armor can cancel at most 60% of the monster's attack, so stacking it
+      // never makes a fully-geared player unkillable.
+      const effectiveArmor = Math.min(this.armor(), this.monster.attack * mult * 0.6);
+      damage = Math.max(1, Math.round(raw - effectiveArmor));
+    }
     if (stance) damage = Math.max(1, Math.round(damage / 2));
     if (this.fx.berserk > 0) damage = Math.round(damage * 1.25);
     // Nain, Sang-froid des tréfonds.
@@ -847,8 +1295,7 @@ export class CombatEngine {
       this.fx.shield -= absorbed;
       damage -= absorbed;
       if (this.fx.iceShield && this.rank('ice_heart') > 0) {
-        applyStatus(this.statuses, 'frozen', freezeStatus(this.statusMods()));
-        frozenByBarrier = true;
+        frozenByBarrier = this.inflict('frozen', freezeStatus(this.statusMods()));
       }
       if (this.fx.shield <= 0) this.fx.iceShield = false;
     }
@@ -856,13 +1303,20 @@ export class CombatEngine {
     this.character.hp = Math.max(0, this.character.hp - damage);
     parts.push(
       absorbed > 0
-        ? `${name} frappe : ${absorbed} absorbés, ${damage} dégâts.`
-        : `${name} vous inflige ${damage} dégâts.`,
+        ? `${intro || `${name} frappe : `}${absorbed} absorbés, ${damage} dégâts.`
+        : intro
+          ? `${intro}${damage} dégâts.`
+          : `${name} vous inflige ${damage} dégâts.`,
     );
     if (frozenByBarrier) parts.push(`${name} est gelé par la barrière !`);
-
     if (this.kind === 'rage') this.resource = this.resource + RAGE_PER_HIT_TAKEN + 5 * this.rank('hot_blood');
 
+    const defeat = !this.survive(parts);
+    return { landed: damage > 0, damage, defeat, victory: false };
+  }
+
+  // Grâce, then Détermination, then Dernier rempart. False if the player falls.
+  private survive(parts: string[]): boolean {
     if (this.character.hp <= 0 && this.rank('grace') > 0 && !this.fx.graceUsed) {
       this.fx.graceUsed = true;
       this.character.hp = Math.max(1, Math.round(this.character.maxHp * 0.3));
@@ -873,26 +1327,49 @@ export class CombatEngine {
       this.character.hp = 1;
       parts.push('Détermination : vous tenez debout avec 1 PV !');
     }
-    if (this.character.hp <= 0) return { log: parts.join(' '), outcome: 'defeat', hit: true };
-
-    if (
-      this.rank('last_bastion') > 0 &&
-      !this.fx.lastBastionUsed &&
-      this.character.hp < this.character.maxHp * 0.25
-    ) {
+    if (this.character.hp <= 0) return false;
+    if (this.rank('last_bastion') > 0 && !this.fx.lastBastionUsed && this.character.hp < this.character.maxHp * 0.25) {
       this.fx.lastBastionUsed = true;
       this.fx.shield = Math.max(this.fx.shield, Math.round(this.character.maxHp * 0.2));
       this.fx.iceShield = false;
       parts.push(`Dernier rempart (${this.fx.shield}) !`);
     }
-
-    parts.push(...this.startPlayerTurn());
-    return { log: parts.join(' '), outcome: 'ongoing', hit: true };
+    return true;
   }
 
-  // Resource regeneration and heal-over-time at the start of the player's turn.
-  private startPlayerTurn(): string[] {
-    const parts: string[] = [];
+  private afterMonsterHit(parts: string[], r: MonsterHitResult): MonsterTurnResult {
+    if (r.victory) return { log: parts.join(' '), outcome: 'victory', hit: true };
+    if (r.defeat) return { log: parts.join(' '), outcome: 'defeat', hit: true };
+    return this.endMonsterTurn(parts, true);
+  }
+
+  private endMonsterTurn(parts: string[], hit: boolean): MonsterTurnResult {
+    const alive = this.startPlayerTurn(parts);
+    return { log: parts.join(' '), outcome: alive ? 'ongoing' : 'defeat', hit };
+  }
+
+  // Start of the player's turn: damage-over-time, resource regeneration and
+  // heal-over-time. False if a damage-over-time state finishes the player.
+  private startPlayerTurn(parts: string[]): boolean {
+    let suffered = 0;
+    const dots: [PlayerStatusId, string][] = [
+      ['poisoned', 'Poison'],
+      ['burning', 'Brûlure'],
+      ['bleeding', 'Saignement'],
+    ];
+    for (const [id, label] of dots) {
+      const status = this.playerStatuses[id];
+      if (!status) continue;
+      const damage = status.damage ?? 1;
+      suffered += damage;
+      parts.push(`${label} : -${damage} PV.`);
+      this.consumePlayerStatus(id);
+    }
+    if (suffered > 0) {
+      this.character.hp = Math.max(0, this.character.hp - suffered);
+      if (!this.survive(parts)) return false;
+    }
+
     // Elfe, Affinité naturelle: +1 mana or +2 endurance per turn.
     const elf = this.character.race === 'elf';
     if (this.kind === 'mana') {
@@ -913,10 +1390,27 @@ export class CombatEngine {
     }
     if (this.rank('sacred_aura') > 0) healed += this.heal(this.character.maxHp * 0.03);
     if (healed > 0) parts.push(`+${healed} PV.`);
-    return parts;
+    return true;
   }
 
   // ------------------------------------------------------------- display
+
+  monsterStatusLine(): string {
+    const parts: string[] = [];
+    if (this.mfx.telegraph) parts.push('Prend son élan !');
+    if (this.mfx.enraged) parts.push('Enragé');
+    if (this.mfx.shell > 0) parts.push('Carapace');
+    if (this.mfx.frenzy > 0) parts.push(`Frénésie +${this.mfx.frenzy * 10} %`);
+    const states = statusLine(this.statuses);
+    if (states) parts.push(states);
+    return parts.join(' · ');
+  }
+
+  playerStatusLine(): string {
+    return (Object.keys(this.playerStatuses) as PlayerStatusId[])
+      .map((id) => `${PLAYER_STATUS_LABELS[id]} (${this.playerStatuses[id]!.turns})`)
+      .join(' · ');
+  }
 
   playerEffectsLine(): string {
     const fx = this.fx;

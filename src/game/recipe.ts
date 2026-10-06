@@ -119,6 +119,15 @@ export const RECIPES: Record<string, RecipeDefinition> = {
     resultType: 'consumable',
     resultConsumableId: 'fire_bomb',
   },
+  brew_antidote: {
+    id: 'brew_antidote',
+    name: 'Antidote',
+    description: "Préparer un antidote : herbes médicinales macérées, en fiole de cuir.",
+    station: 'alchemy',
+    materials: { herb: 1, leather: 1 },
+    resultType: 'consumable',
+    resultConsumableId: 'antidote',
+  },
   // Upgraded recipes — each still needs the common material alongside its
   // rare counterpart, so both tiers stay worth gathering/dropping rather than
   // the rare variant simply replacing the common one outright.

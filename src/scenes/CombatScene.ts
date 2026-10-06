@@ -5,7 +5,6 @@ import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/i
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { ConsumableId } from '../game/consumable';
-import { statusLine } from '../game/combatStatus';
 import { ActionResult, CombatEngine, DEFEAT_GOLD_LOSS } from '../game/combatEngine';
 import { ResourceKind, TALENTS, talentPointsTotal } from '../game/talents';
 import { materialLabel } from '../game/material';
@@ -101,6 +100,7 @@ const COMBAT_POTIONS: ConsumableId[] = [
   'mana_potion',
   'mana_potion_greater',
   'fire_bomb',
+  'antidote',
 ];
 const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
   health_potion: 'Potion de soin',
@@ -108,6 +108,7 @@ const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
   mana_potion: 'Potion de mana',
   mana_potion_greater: 'Mana supérieure',
   fire_bomb: 'Bombe',
+  antidote: 'Antidote',
 };
 const MANA_POTIONS: ConsumableId[] = ['mana_potion', 'mana_potion_greater'];
 
@@ -191,9 +192,16 @@ export class CombatScene extends Phaser.Scene {
     this.monster = this.monsterId ? createMonster(this.monsterId, this.tier) : createTestMonster();
     this.engine = new CombatEngine(this.character, this.monster);
 
-    addCrispText(this, width / 2, 34, this.monster.name, {
+    addCrispText(this, width / 2, 30, this.monster.name, {
       fontSize: '15px',
       color: TIER_NAME_COLOR[this.monster.tier],
+    }).setOrigin(0.5);
+    // Type, weakness and resistance, so the player can pick the right tools.
+    addCrispText(this, width / 2, 47, this.engine.monsterInfoLine(), {
+      fontSize: '8px',
+      color: MUTED,
+      align: 'center',
+      wordWrap: { width: width - 16 },
     }).setOrigin(0.5);
     // Under the HP readout, where several states can wrap onto two lines
     // without running into the sprite or the player's bars.
@@ -273,6 +281,13 @@ export class CombatScene extends Phaser.Scene {
 
     this.showMenu('main');
     this.refreshBars();
+
+    if (this.engine.monsterFirst) {
+      this.busy = true;
+      this.disableMenu();
+      this.logText.setText(`${this.logText.text} Il est plus rapide que vous !`);
+      this.time.delayedCall(1100, () => this.enemyTurn());
+    }
   }
 
   // ---------------------------------------------------------------- menus
@@ -375,8 +390,11 @@ export class CombatScene extends Phaser.Scene {
   // --------------------------------------------------------------- display
 
   private refreshStatusLine(): void {
-    this.statusText.setText(statusLine(this.engine.statuses));
-    this.effectsText.setText(this.engine.playerEffectsLine());
+    this.statusText.setText(this.engine.monsterStatusLine());
+    const harmful = this.engine.playerStatusLine();
+    const helpful = this.engine.playerEffectsLine();
+    this.effectsText.setText([harmful, helpful].filter(Boolean).join(' · '));
+    this.effectsText.setColor(harmful ? '#e88a6a' : '#8fc0e8');
   }
 
   private refreshBars(): void {
@@ -438,6 +456,14 @@ export class CombatScene extends Phaser.Scene {
     }
     if (result.outcome === 'defeat') {
       this.time.delayedCall(600, () => this.defeat());
+      return;
+    }
+    if (this.engine.consumePlayerStun()) {
+      this.time.delayedCall(900, () => {
+        this.logText.setText('Vous êtes étourdi et perdez votre tour !');
+        this.refreshBars();
+        this.time.delayedCall(900, () => this.enemyTurn());
+      });
       return;
     }
     this.busy = false;

@@ -5,7 +5,8 @@ export type ConsumableId =
   | 'health_potion_greater'
   | 'mana_potion'
   | 'mana_potion_greater'
-  | 'fire_bomb';
+  | 'fire_bomb'
+  | 'antidote';
 
 interface ConsumableDefinition {
   id: ConsumableId;
@@ -51,6 +52,12 @@ export const CONSUMABLES: Record<ConsumableId, ConsumableDefinition> = {
     description: 'En combat : 12 + 2 × niveau dégâts, et Brûlure. Toutes classes.',
     combatOnly: true,
   },
+  antidote: {
+    id: 'antidote',
+    name: 'Antidote',
+    description: 'En combat : retire tous vos états négatifs (poison, brûlure, saignement, silence…).',
+    combatOnly: true,
+  },
 };
 
 export function restoreAmount(amount: { flat: number; pct: number }, max: number): number {
@@ -66,7 +73,7 @@ export function bombBurnDamage(level: number): number {
 }
 
 // Drinks and consumes one potion; no-op (returns false) if the character has
-// none, or for a combat-only item (the bomb is handled by CombatEngine).
+// none, or for a combat-only item (bomb, antidote: see CombatEngine).
 export function useConsumable(character: Character, id: ConsumableId): boolean {
   const count = character.consumables[id] ?? 0;
   const def = CONSUMABLES[id];

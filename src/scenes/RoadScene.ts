@@ -9,7 +9,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT } from '../ui/kit';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -92,6 +92,7 @@ export class RoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#6b5a42');
+    addZoneTitle(this, 'Route commerciale');
     void addDirtGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     WAGONS.forEach((wagon) => {

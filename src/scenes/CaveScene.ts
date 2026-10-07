@@ -11,7 +11,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT } from '../ui/kit';
+import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
 
 const CHEST_ID = 'cave_chest_1';
 
@@ -104,6 +104,7 @@ export class CaveScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#20202a');
+    addZoneTitle(this, 'Grotte');
     void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     ROCKS.forEach((rock) => {

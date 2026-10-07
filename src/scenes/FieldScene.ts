@@ -18,7 +18,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT } from '../ui/kit';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 480;
@@ -107,6 +107,7 @@ export class FieldScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
+    addZoneTitle(this, 'Le Champ');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     this.drawDecorations();

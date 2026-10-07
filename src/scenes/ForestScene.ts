@@ -9,7 +9,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT } from '../ui/kit';
+import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -179,6 +179,7 @@ export class ForestScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#24401f');
+    addZoneTitle(this, 'Forêt');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     TREES.forEach((tree) => {

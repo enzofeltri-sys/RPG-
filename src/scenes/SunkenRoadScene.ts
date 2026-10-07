@@ -13,7 +13,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
-import { EXIT_TEXT } from '../ui/kit';
+import { EXIT_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -88,6 +88,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#2a3a3a');
+    addZoneTitle(this, 'Route engloutie');
     void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     RUINS.forEach((ruin) => this.add.rectangle(ruin.x, ruin.y, 22, 16, 0x2e3a38).setStrokeStyle(1, 0x141c1c));

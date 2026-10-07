@@ -10,7 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT } from '../ui/kit';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const CHEST_ID = 'dungeon_chest_1';
 
@@ -82,6 +82,7 @@ export class DungeonScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#1c1c22');
+    addZoneTitle(this, 'Repaire du Loup');
     void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

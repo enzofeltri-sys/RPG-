@@ -145,6 +145,13 @@ export interface MonsterTurnResult {
   hit: boolean;
 }
 
+export interface StateChip {
+  icon: string;
+  count: string;
+  title: string;
+  text: string;
+}
+
 export interface SkillAvailability {
   cost: number;
   usable: boolean;
@@ -348,6 +355,15 @@ export class CombatEngine {
       if (!before.has(id)) delete this.statuses[id];
       return false;
     });
+  }
+
+  // "Faible : Feu · Résiste : Glace et physique" for the monster panel.
+  monsterWeaknessLine(): string {
+    const weak = this.traits.weak.map((e) => ELEMENT_LABELS[e]).join(', ');
+    const resist = this.traits.resist.map((e) => ELEMENT_LABELS[e]);
+    if (this.traits.physicalResist > 0) resist.push('physique');
+    const parts = [weak ? `Faible : ${weak}` : '', resist.length ? `Résiste : ${resist.join(', ')}` : ''].filter(Boolean);
+    return parts.join(' · ');
   }
 
   monsterInfoLine(): string {
@@ -1421,6 +1437,56 @@ export class CombatEngine {
     return (Object.keys(this.playerStatuses) as PlayerStatusId[])
       .map((id) => `${PLAYER_STATUS_LABELS[id]} (${this.playerStatuses[id]!.turns})`)
       .join(' · ');
+  }
+
+  // State chips for the combat screen (icon, turns, and the name/effect a
+  // long press shows).
+  monsterChips(): StateChip[] {
+    const chips: StateChip[] = [];
+    if (this.mfx.enraged) chips.push({ icon: 'rage', count: '', title: 'Enragé', text: 'Frappe 30 % plus fort.' });
+    if (this.mfx.shell > 0) {
+      chips.push({ icon: 'shell', count: '', title: 'Carapace', text: 'Votre prochaine action fait moitié moins de dégâts.' });
+    }
+    if (this.mfx.frenzy > 0) {
+      chips.push({ icon: 'buff', count: `+${this.mfx.frenzy * 10}`, title: 'Frénésie', text: `Frappe ${this.mfx.frenzy * 10} % plus fort, un peu plus à chaque tour.` });
+    }
+    const s = this.statuses;
+    const turns = (n: number) => `${n}`;
+    if (s.burning) chips.push({ icon: 'burn', count: turns(s.burning.turns), title: 'Brûlure', text: `Perd ${s.burning.damage ?? 1} PV au début de son tour.` });
+    if (s.poisoned) chips.push({ icon: 'poison', count: turns(s.poisoned.turns), title: 'Empoisonné', text: `Perd ${s.poisoned.damage ?? 1} PV au début de son tour.` });
+    if (s.frozen) chips.push({ icon: 'frozen', count: turns(s.frozen.turns), title: 'Gelé', text: 'Son prochain coup fait 20 % de dégâts en moins.' });
+    if (s.stunned) chips.push({ icon: 'stun', count: turns(s.stunned.turns), title: 'Étourdi', text: 'Passe son prochain tour.' });
+    if (s.weakened) chips.push({ icon: 'weak', count: turns(s.weakened.turns), title: 'Affaibli', text: 'Ses coups font 25 % de dégâts en moins.' });
+    if (s.vulnerable) chips.push({ icon: 'vulnerable', count: turns(s.vulnerable.turns), title: 'Vulnérable', text: 'Vos coups lui font 20 % de dégâts en plus.' });
+    return chips;
+  }
+
+  playerChips(): StateChip[] {
+    const chips: StateChip[] = [];
+    const ps = this.playerStatuses;
+    const dot = (id: 'poisoned' | 'burning' | 'bleeding', icon: string, title: string) => {
+      const st = ps[id];
+      if (st) chips.push({ icon, count: `${st.turns}`, title, text: `Vous perdez ${st.damage ?? 1} PV au début de votre tour.` });
+    };
+    dot('bleeding', 'bleed', 'Saignement');
+    dot('poisoned', 'poison', 'Empoisonné');
+    dot('burning', 'burn', 'Brûlure');
+    if (ps.weakened) chips.push({ icon: 'weak', count: `${ps.weakened.turns}`, title: 'Affaibli', text: 'Vos coups font 25 % de dégâts en moins.' });
+    if (ps.blinded) chips.push({ icon: 'blind', count: `${ps.blinded.turns}`, title: 'Aveuglé', text: "25 % de chances de rater une attaque d'arme." });
+    if (ps.silenced) chips.push({ icon: 'silence', count: `${ps.silenced.turns}`, title: 'Silence', text: "Impossible d'utiliser vos compétences." });
+    if (ps.stunned) chips.push({ icon: 'stun', count: '', title: 'Étourdi', text: 'Vous perdez votre prochain tour.' });
+    const fx = this.fx;
+    if (fx.shield > 0) chips.push({ icon: 'shield', count: `${fx.shield}`, title: 'Bouclier', text: `Absorbe encore ${fx.shield} dégâts.` });
+    if (fx.stance > 0) chips.push({ icon: 'guard', count: `${fx.stance}`, title: 'Posture défensive', text: 'Dégâts reçus divisés par 2.' });
+    if (fx.berserk > 0) chips.push({ icon: 'rage', count: `${fx.berserk}`, title: 'Berserk', text: '+50 % de dégâts infligés, +25 % de dégâts reçus.' });
+    if (fx.blessing > 0) chips.push({ icon: 'buff', count: `${fx.blessing}`, title: 'Bénédiction', text: "+25 % de dégâts et +3 d'armure." });
+    if (fx.overload > 0) chips.push({ icon: 'buff', count: `${fx.overload}`, title: 'Surcharge', text: 'Sorts à moitié prix et +20 % de dégâts.' });
+    if (fx.huntersShadow > 0) chips.push({ icon: 'dodge', count: `${fx.huntersShadow}`, title: 'Ombre du chasseur', text: "+20 % d'esquive, chaque esquive déclenche une riposte." });
+    if (fx.regenTurns > 0) chips.push({ icon: 'regen', count: `${fx.regenTurns}`, title: 'Régénération', text: `Rend ${Math.round(fx.regenPct * 100)} % de vos PV max au début de votre tour.` });
+    if (fx.coatedBlade > 0) chips.push({ icon: 'blade', count: `${fx.coatedBlade}`, title: 'Lame enduite', text: 'Vos attaques empoisonnent.' });
+    if (fx.nextCrit) chips.push({ icon: 'crit', count: '', title: 'Critique prêt', text: 'Votre prochaine attaque sera un coup critique.' });
+    if (fx.guaranteedDodge) chips.push({ icon: 'dodge', count: '', title: 'Esquive prête', text: 'Vous esquiverez le prochain coup.' });
+    return chips;
   }
 
   playerEffectsLine(): string {

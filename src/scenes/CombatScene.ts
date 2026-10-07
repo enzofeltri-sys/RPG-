@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Character, grantXp } from '../game/character';
+import { CLASSES, Character, grantXp } from '../game/character';
 import { Monster, EncounterTier, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
@@ -12,22 +12,14 @@ import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { DUNGEON_LOOT_TIER, ZONE_LEVEL } from '../game/worldMap';
-import { addCrispText } from '../ui/text';
+import { ChipRow, INK, KitBar, KitButton, PAL, addPanel, drawPanel, panelText, preloadUiKit, toast } from '../ui/kit';
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
-
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-const BAR_WIDTH = 160;
-const PLAYER_LABEL_X = 12;
-const PLAYER_BAR_X = 40;
-const PLAYER_BAR_WIDTH = 126;
 
 // Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
 // "élite"/"légendaire" the same way they already read rare/épique loot,
 // instead of learning a second color code.
 const TIER_NAME_COLOR: Record<EncounterTier, string> = {
-  normal: GOLD,
+  normal: INK.text,
   elite: '#4fa3e3',
   legendary: '#a855f7',
 };
@@ -113,11 +105,18 @@ const COMBAT_POTION_LABELS: Record<ConsumableId, string> = {
 };
 const MANA_POTIONS: ConsumableId[] = ['mana_potion', 'mana_potion_greater'];
 
-const RESOURCE_BAR: Record<ResourceKind, { label: string; color: number; bg: number }> = {
-  rage: { label: 'Rage', color: 0xa8482a, bg: 0x2a1a14 },
-  mana: { label: 'Mana', color: 0x4a5aa8, bg: 0x1f1f2a },
-  endurance: { label: 'End.', color: 0x9a8a3a, bg: 0x26241a },
+const RESOURCE_BAR: Record<ResourceKind, { label: string; fill: number; light: number }> = {
+  rage: { label: 'Rage', fill: PAL.O, light: PAL.o },
+  mana: { label: 'Mana', fill: PAL.u, light: PAL.i },
+  endurance: { label: 'End.', fill: PAL.c, light: PAL.v },
 };
+
+// Screen layout (game pixels), from the validated style A mockup
+// (docs/mockups/ui3_combat.png).
+const MONSTER_CENTER = { x: 152, y: 114 };
+const MONSTER_SIZE = 68;
+const LOG = { x: 6, y: 270, w: 204, h: 48 };
+const ACTIONS_Y = 320;
 
 interface CombatData {
   returnScene?: ReturnSceneKey;
@@ -145,17 +144,19 @@ export class CombatScene extends Phaser.Scene {
   private ended = false;
 
   private logText!: Phaser.GameObjects.Text;
-  private statusText!: Phaser.GameObjects.Text;
-  private effectsText!: Phaser.GameObjects.Text;
-  private enemyHpFill!: Phaser.GameObjects.Rectangle;
+  private logPanel!: Phaser.GameObjects.Graphics;
+  private enemyHpBar!: KitBar;
   private enemyHpText!: Phaser.GameObjects.Text;
-  private playerHpFill!: Phaser.GameObjects.Rectangle;
+  private playerHpBar!: KitBar;
   private playerHpText!: Phaser.GameObjects.Text;
-  private resourceFill!: Phaser.GameObjects.Rectangle;
+  private resourceBar!: KitBar;
   private resourceText!: Phaser.GameObjects.Text;
-  private menuButtons: Phaser.GameObjects.Text[] = [];
+  private monsterChips!: ChipRow;
+  private playerChips!: ChipRow;
+  private telegraphBanner: Phaser.GameObjects.GameObject[] = [];
+  private menuObjects: { destroy(): void }[] = [];
+  private menuButtons: KitButton[] = [];
   private menuView: MenuView = 'main';
-  private continueButton?: Phaser.GameObjects.Text;
 
   constructor() {
     super('Combat');
@@ -170,8 +171,9 @@ export class CombatScene extends Phaser.Scene {
     this.busy = false;
     this.ended = false;
     this.menuButtons = [];
+    this.menuObjects = [];
+    this.telegraphBanner = [];
     this.menuView = 'main';
-    this.continueButton = undefined;
   }
 
   // Runs after init() (so this.monsterId is already set) and before
@@ -182,10 +184,10 @@ export class CombatScene extends Phaser.Scene {
   preload(): void {
     const id = this.monsterId ?? 'corrupted_wolf';
     this.load.image(`monster-${id}`, `${import.meta.env.BASE_URL}sprites/monsters/${id}.png`);
+    preloadUiKit(this);
   }
 
   async create(): Promise<void> {
-    const { width } = this.scale;
     this.cameras.main.setBackgroundColor('#1a1410');
     this.cameras.main.fadeIn(250);
 
@@ -211,92 +213,55 @@ export class CombatScene extends Phaser.Scene {
       });
     }
 
-    addCrispText(this, width / 2, 30, this.monster.name, {
-      fontSize: '15px',
-      color: TIER_NAME_COLOR[this.monster.tier],
-    }).setOrigin(0.5);
-    // Type, weakness and resistance, so the player can pick the right tools.
-    addCrispText(this, width / 2, 47, this.engine.monsterInfoLine(), {
-      fontSize: '8px',
-      color: MUTED,
-      align: 'center',
-      wordWrap: { width: width - 16 },
-    }).setOrigin(0.5);
-    // Under the HP readout, where several states can wrap onto two lines
-    // without running into the sprite or the player's bars.
-    this.statusText = addCrispText(this, width / 2, 166, '', {
-      fontSize: '9px',
-      color: '#e8b45a',
-      align: 'center',
-      wordWrap: { width: width - 20 },
-    }).setOrigin(0.5);
+    this.add.image(0, 0, 'ui-battle-grass').setOrigin(0, 0);
 
-    // Elite/legendary keep a tinted aura behind the sprite for the at-a-glance
-    // signal the old solid-color tint gave — but no longer tinting the
-    // artwork itself, which would just darken/muddy it instead of reading as
-    // a power tier.
+    // Monster: panel top left, sprite on its platform top right.
+    addPanel(this, 6, 8, 136, 66);
+    const nameColor = this.monster.isBoss ? INK.danger : TIER_NAME_COLOR[this.monster.tier];
+    const name = panelText(this, 14, 13, this.monster.name, 10, nameColor);
+    if (name.width > 120) name.setFontSize(Math.round(8 * 1.2));
+    // A boss reads from its red name; the line stays short next to the HP.
+    const kind = `Niv. ${this.monster.level} · ${this.engine.traits.label}`;
+    panelText(this, 14, 29, kind, 8);
+    this.enemyHpText = panelText(this, 134, 29, '', 8).setOrigin(1, 0);
+    this.enemyHpBar = new KitBar(this, 14, 44, 120, PAL.x, PAL.y);
+    panelText(this, 14, 53, this.engine.monsterWeaknessLine(), 8, INK.soft);
+    this.monsterChips = new ChipRow(this, 8, 78, true, 140);
+
     if (this.monster.tier !== 'normal') {
-      this.add.rectangle(width / 2, 90, 76, 76, TIER_ENEMY_TINT[this.monster.tier], 0.45).setStrokeStyle(1, 0x2e1414);
+      this.add.ellipse(MONSTER_CENTER.x, MONSTER_CENTER.y, 84, 84, TIER_ENEMY_TINT[this.monster.tier], 0.35);
     }
     const monsterKey = `monster-${this.monster.id}`;
     if (this.textures.exists(monsterKey)) {
-      this.add.image(width / 2, 90, monsterKey).setDisplaySize(64, 64);
+      this.add.image(MONSTER_CENTER.x, MONSTER_CENTER.y, monsterKey).setDisplaySize(MONSTER_SIZE, MONSTER_SIZE);
     } else {
       // Missing sprite (shouldn't happen for a real monster id, but keeps a
       // fresh id added to monster.ts without matching art from crashing the
       // scene instead of just looking plain).
-      this.add.rectangle(width / 2, 90, 64, 64, TIER_ENEMY_TINT[this.monster.tier]).setStrokeStyle(1, 0x2e1414);
+      this.add.rectangle(MONSTER_CENTER.x, MONSTER_CENTER.y, 64, 64, TIER_ENEMY_TINT[this.monster.tier]);
     }
 
-    const enemyBarX = width / 2 - BAR_WIDTH / 2;
-    this.add.rectangle(enemyBarX, 136, BAR_WIDTH, 10, 0x33261f).setOrigin(0, 0.5);
-    this.enemyHpFill = this.add.rectangle(enemyBarX, 136, BAR_WIDTH, 10, 0x8a3a3a).setOrigin(0, 0.5);
-    this.enemyHpText = addCrispText(this, width / 2, 150, '', { fontSize: '9px', color: MUTED }).setOrigin(0.5);
+    // Hero seen from behind, bottom left (placeholder art until the playable
+    // characters step), and the hero panel beside it.
+    this.add.image(28, 170, 'ui-hero-back').setOrigin(0, 0);
+    addPanel(this, 100, 180, 110, 86);
+    panelText(this, 108, 186, CLASSES[this.character.class].label, 10);
+    panelText(this, 202, 187, `Niv. ${this.character.level}`, 8).setOrigin(1, 0);
+    panelText(this, 108, 202, 'PV', 8);
+    this.playerHpBar = new KitBar(this, 128, 205, 74, PAL.h, PAL.H);
+    this.playerHpText = panelText(this, 202, 213, '', 7).setOrigin(1, 0);
+    const resource = RESOURCE_BAR[this.engine.kind];
+    panelText(this, 108, 222, resource.label, 8);
+    this.resourceBar = new KitBar(this, 128, 225, 74, resource.fill, resource.light);
+    this.resourceText = panelText(this, 202, 233, '', 7).setOrigin(1, 0);
+    this.playerChips = new ChipRow(this, 108, 244, false, 98);
 
-    addCrispText(this, width / 2, 186, `Niveau ${this.character.level}`, {
-      fontSize: '11px',
-      color: GOLD,
-    }).setOrigin(0.5);
-
-    // Labels on the left and values on the right both have to fit inside
-    // the 216px-wide screen, so the player's bars are narrower than the
-    // monster's.
-    addCrispText(this, PLAYER_LABEL_X, 199, 'PV', { fontSize: '9px', color: MUTED });
-    this.add.rectangle(PLAYER_BAR_X, 204, PLAYER_BAR_WIDTH, 10, 0x1f2a1f).setOrigin(0, 0.5);
-    this.playerHpFill = this.add.rectangle(PLAYER_BAR_X, 204, PLAYER_BAR_WIDTH, 10, 0x4a8a4a).setOrigin(0, 0.5);
-    this.playerHpText = addCrispText(this, PLAYER_BAR_X + PLAYER_BAR_WIDTH + 4, 204, '', {
-      fontSize: '9px',
-      color: MUTED,
-    }).setOrigin(0, 0.5);
-
-    const bar = RESOURCE_BAR[this.engine.kind];
-    addCrispText(this, PLAYER_LABEL_X, 217, bar.label, { fontSize: '9px', color: MUTED });
-    this.add.rectangle(PLAYER_BAR_X, 222, PLAYER_BAR_WIDTH, 10, bar.bg).setOrigin(0, 0.5);
-    this.resourceFill = this.add.rectangle(PLAYER_BAR_X, 222, PLAYER_BAR_WIDTH, 10, bar.color).setOrigin(0, 0.5);
-    this.resourceText = addCrispText(this, PLAYER_BAR_X + PLAYER_BAR_WIDTH + 4, 222, '', {
-      fontSize: '9px',
-      color: MUTED,
-    }).setOrigin(0, 0.5);
-
-    this.effectsText = addCrispText(this, width / 2, 238, '', {
-      fontSize: '9px',
-      color: '#8fc0e8',
+    this.logPanel = addPanel(this, LOG.x, LOG.y, LOG.w, LOG.h);
+    this.logText = panelText(this, 108, LOG.y + LOG.h / 2, '', 9, INK.text, {
       align: 'center',
-      wordWrap: { width: width - 20 },
+      wordWrap: { width: LOG.w - 20 },
     }).setOrigin(0.5);
-
-    this.logText = addCrispText(
-      this,
-      width / 2,
-      250,
-      `Un ${this.monster.name.toLowerCase()} ${TIER_APPEARANCE_MESSAGE[this.monster.tier]} !`,
-      {
-        fontSize: '10px',
-        color: GOLD,
-        align: 'center',
-        wordWrap: { width: width - 24 },
-      },
-    ).setOrigin(0.5, 0);
+    this.setLog(`Un ${this.monster.name.toLowerCase()} ${TIER_APPEARANCE_MESSAGE[this.monster.tier]} !`);
 
     this.showMenu('main');
     this.refreshBars();
@@ -304,39 +269,58 @@ export class CombatScene extends Phaser.Scene {
     if (this.engine.monsterFirst) {
       this.busy = true;
       this.disableMenu();
-      this.logText.setText(`${this.logText.text} Il est plus rapide que vous !`);
+      this.setLog(`${this.logText.text} Il est plus rapide que vous !`);
       this.time.delayedCall(1100, () => this.enemyTurn());
     }
+  }
+
+  // The log keeps to its panel: long turns shrink the text a step or two.
+  private setLog(message: string): void {
+    const maxHeight = (this.logPanelHeight ?? LOG.h) - 12;
+    for (const size of [9, 8, 7]) {
+      this.logText.setFontSize(Math.round(size * 1.2));
+      this.logText.setText(message);
+      if (this.logText.height <= maxHeight) break;
+    }
+  }
+
+  private logPanelHeight?: number;
+
+  private resizeLog(height: number): void {
+    this.logPanelHeight = height;
+    this.logPanel.clear();
+    drawPanel(this.logPanel, LOG.x, LOG.y, LOG.w, height);
+    this.logText.setY(LOG.y + height / 2);
+    this.logPanel.setVisible(true);
+    this.logText.setVisible(true);
   }
 
   // ---------------------------------------------------------------- menus
 
   private clearMenu(): void {
     this.menuButtons.forEach((button) => button.destroy());
+    this.menuObjects.forEach((o) => o.destroy());
     this.menuButtons = [];
+    this.menuObjects = [];
   }
 
-  private addButton(
+  private button(
     x: number,
     y: number,
+    w: number,
+    h: number,
     label: string,
     onClick: () => void,
-    options: { enabled?: boolean; small?: boolean } = {},
-  ): Phaser.GameObjects.Text {
-    const small = options.small ?? false;
-    const button = addCrispText(this, x, y, label, {
-      fontSize: small ? '9px' : '12px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: small ? { x: 4, y: 5 } : { x: 10, y: 6 },
-      align: 'center',
-      fixedWidth: small ? 102 : 0,
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    // Disabled buttons stay tappable so they can explain why in the log.
-    button.setAlpha(options.enabled === false ? 0.45 : 1);
-    button.on('pointerdown', onClick);
+    options: { icon?: string; size?: number; cost?: string; enabled?: boolean; align?: 'left' | 'center' } = {},
+  ): KitButton {
+    const button = new KitButton(this, x, y, w, h, label, {
+      icon: options.icon,
+      size: options.size,
+      cost: options.cost,
+      align: options.align,
+      state: options.enabled === false ? 'disabled' : 'normal',
+      onClick,
+    });
     this.menuButtons.push(button);
     return button;
   }
@@ -347,83 +331,106 @@ export class CombatScene extends Phaser.Scene {
     );
   }
 
+  // Skills and items open in a panel that covers the log and the buttons.
+  private submenuPanel(title: string): void {
+    this.logPanel.setVisible(false);
+    this.logText.setVisible(false);
+    this.menuObjects.push(addPanel(this, 6, 270, 204, 114));
+    this.menuObjects.push(panelText(this, 108, 276, title, 9).setOrigin(0.5, 0));
+  }
+
   private showMenu(view: MenuView): void {
     this.clearMenu();
     this.menuView = view;
     if (this.ended) return;
-    const { width } = this.scale;
-    const left = width / 2 - 54;
-    const right = width / 2 + 54;
 
     if (view === 'main') {
-      this.addButton(left, 322, 'Attaquer', () => this.playerAttack());
-      this.addButton(right, 322, 'Compétences', () => this.showMenu('skills'));
-      this.addButton(left, 354, 'Objets', () => this.openPotions(), { enabled: this.ownedPotions().length > 0 });
-      this.addButton(right, 354, 'Fuir', () => this.flee());
+      this.logPanel.setVisible(true);
+      this.logText.setVisible(true);
+      this.button(6, ACTIONS_Y, 102, 28, 'Attaquer', () => this.playerAttack(), { icon: 'sword' });
+      this.button(108, ACTIONS_Y, 102, 28, 'Compétences', () => this.showMenu('skills'), { icon: 'star', size: 9 });
+      this.button(6, ACTIONS_Y + 32, 102, 28, 'Objets', () => this.openPotions(), {
+        icon: 'potion',
+        enabled: this.ownedPotions().length > 0,
+      });
+      this.button(108, ACTIONS_Y + 32, 102, 28, 'Fuir', () => this.flee(), { icon: 'run', enabled: !this.monster.isBoss });
       return;
     }
 
     if (view === 'skills') {
+      this.submenuPanel('Compétences');
       const skills = this.character.equippedSkills ?? [];
       skills.forEach((id, i) => {
         const availability = this.engine.skillAvailability(id);
-        const x = i % 2 === 0 ? left : right;
-        const y = 304 + Math.floor(i / 2) * 25;
-        this.addButton(x, y, `${TALENTS[id].name} ${availability.cost}`, () => this.useSkill(id), {
+        const x = i % 2 === 0 ? 12 : 110;
+        const y = 292 + Math.floor(i / 2) * 28;
+        this.button(x, y, 94, 26, TALENTS[id].name, () => this.useSkill(id), {
+          size: 8,
+          cost: availability.cost > 0 ? `${availability.cost}` : '',
           enabled: availability.usable,
-          small: true,
         });
       });
-      if (skills.length === 0) this.logText.setText('Aucune compétence équipée (menu Talents).');
-      this.addButton(width / 2, 360, 'Retour', () => this.showMenu('main'), { small: true });
+      if (skills.length === 0) {
+        this.menuObjects.push(panelText(this, 108, 310, 'Aucune compétence équipée (menu Talents).', 8, INK.soft).setOrigin(0.5));
+      }
+      this.button(60, 350, 96, 24, 'Retour', () => this.showMenu('main'), { size: 9, align: 'center' });
       return;
     }
 
-    const potions = this.ownedPotions();
-    potions.forEach((id, i) => {
-      const x = i % 2 === 0 ? left : right;
-      const y = 300 + Math.floor(i / 2) * 22;
-      this.addButton(x, y, `${COMBAT_POTION_LABELS[id]} x${this.character.consumables[id]}`, () => this.usePotion(id), {
-        small: true,
+    this.submenuPanel('Objets');
+    this.ownedPotions().forEach((id, i) => {
+      const x = i % 2 === 0 ? 12 : 110;
+      const y = 290 + Math.floor(i / 2) * 24;
+      this.button(x, y, 94, 22, COMBAT_POTION_LABELS[id], () => this.usePotion(id), {
+        size: 8,
+        cost: `×${this.character.consumables[id]}`,
       });
     });
-    this.addButton(width / 2, 360, 'Retour', () => this.showMenu('main'), { small: true });
+    this.button(60, 362, 96, 20, 'Retour', () => this.showMenu('main'), { size: 9, align: 'center' });
   }
 
   private openPotions(): void {
     if (this.busy || this.ended) return;
     if (this.ownedPotions().length === 0) {
-      this.logText.setText("Vous n'avez aucun objet utilisable.");
+      toast(this, 108, 150, "Vous n'avez aucun objet utilisable.");
       return;
     }
     this.showMenu('potions');
   }
 
   private disableMenu(): void {
-    this.menuButtons.forEach((button) => {
-      button.input!.enabled = false;
-      button.setAlpha(0.45);
-    });
+    this.menuButtons.forEach((button) => button.setEnabled(false).setState('disabled'));
   }
 
   // --------------------------------------------------------------- display
 
   private refreshStatusLine(): void {
-    this.statusText.setText(this.engine.monsterStatusLine());
-    const harmful = this.engine.playerStatusLine();
-    const helpful = this.engine.playerEffectsLine();
-    this.effectsText.setText([harmful, helpful].filter(Boolean).join(' · '));
-    this.effectsText.setColor(harmful ? '#e88a6a' : '#8fc0e8');
+    this.monsterChips.set(this.engine.monsterChips());
+    this.playerChips.set(this.engine.playerChips());
+    this.refreshTelegraph();
+  }
+
+  // The boss's announced heavy blow, impossible to miss.
+  private refreshTelegraph(): void {
+    this.telegraphBanner.forEach((o) => o.destroy());
+    this.telegraphBanner = [];
+    if (!this.engine.monsterTelegraphing() || this.ended) return;
+    const g = this.add.graphics();
+    g.fillStyle(PAL.k, 1).fillRect(88, 156, 124, 22);
+    g.fillStyle(PAL.X, 1).fillRect(90, 158, 120, 18);
+    g.fillStyle(PAL.x, 1).fillRect(90, 158, 120, 2);
+    const text = panelText(this, 150, 167, 'PREND SON ÉLAN !', 8, INK.gold, {
+      shadow: { offsetX: 1, offsetY: 1, color: '#221c29', fill: true },
+    }).setOrigin(0.5);
+    this.telegraphBanner = [g, text];
   }
 
   private refreshBars(): void {
-    this.enemyHpFill.width = BAR_WIDTH * Math.max(0, this.monster.hp / this.monster.maxHp);
+    this.enemyHpBar.set(this.monster.hp / this.monster.maxHp);
     this.enemyHpText.setText(`${Math.max(0, this.monster.hp)}/${this.monster.maxHp}`);
-
-    this.playerHpFill.width = PLAYER_BAR_WIDTH * Math.max(0, this.character.hp / this.character.maxHp);
+    this.playerHpBar.set(this.character.hp / this.character.maxHp);
     this.playerHpText.setText(`${Math.max(0, this.character.hp)}/${this.character.maxHp}`);
-    const max = Math.max(1, this.engine.resourceMax);
-    this.resourceFill.width = PLAYER_BAR_WIDTH * Math.max(0, this.engine.resource / max);
+    this.resourceBar.set(this.engine.resource / Math.max(1, this.engine.resourceMax));
     this.resourceText.setText(`${this.engine.resource}/${this.engine.resourceMax}`);
     this.refreshStatusLine();
   }
@@ -446,15 +453,15 @@ export class CombatScene extends Phaser.Scene {
     if (this.busy || this.ended) return;
     const result = action();
     if (!result.endsTurn) {
-      // Unusable skill (the log explains why) or a free action.
-      if (result.log) this.logText.setText(result.log);
+      // Unusable skill (a bubble explains why) or a free action.
+      if (result.log) toast(this, 108, 150, result.log, result.hit ? INK.text : INK.danger);
       this.refreshBars();
       this.showMenu(this.menuView);
       return;
     }
     this.busy = true;
     this.disableMenu();
-    this.logText.setText(result.log);
+    this.setLog(result.log);
     this.refreshBars();
     if (result.hit) playHit();
     if (result.victory) {
@@ -466,7 +473,7 @@ export class CombatScene extends Phaser.Scene {
 
   private enemyTurn(): void {
     const result = this.engine.monsterTurn();
-    this.logText.setText(result.log);
+    this.setLog(result.log);
     this.refreshBars();
     if (result.hit) playHit();
     if (result.outcome === 'victory') {
@@ -479,7 +486,7 @@ export class CombatScene extends Phaser.Scene {
     }
     if (this.engine.consumePlayerStun()) {
       this.time.delayedCall(900, () => {
-        this.logText.setText('Vous êtes étourdi et perdez votre tour !');
+        this.setLog('Vous êtes étourdi et perdez votre tour !');
         this.refreshBars();
         this.time.delayedCall(900, () => this.enemyTurn());
       });
@@ -492,17 +499,17 @@ export class CombatScene extends Phaser.Scene {
   private async flee(): Promise<void> {
     if (this.busy || this.ended) return;
     if (this.monster.isBoss) {
-      this.logText.setText('Impossible de fuir face à un tel adversaire !');
+      toast(this, 108, 150, 'Impossible de fuir face à un tel adversaire !');
       return;
     }
     this.busy = true;
     this.disableMenu();
     if (!this.engine.tryFlee()) {
-      this.logText.setText('Vous ne parvenez pas à fuir !');
+      this.setLog('Vous ne parvenez pas à fuir !');
       this.time.delayedCall(900, () => this.enemyTurn());
       return;
     }
-    this.logText.setText('Vous prenez la fuite.');
+    this.setLog('Vous prenez la fuite.');
     // Without this save, fleeing reloaded the pre-fight save: HP lost and
     // potions drunk during the fight were silently handed back.
     await SaveManager.saveCharacter(this.character);
@@ -608,7 +615,7 @@ export class CombatScene extends Phaser.Scene {
     const questPart =
       completedQuests.length > 0 ? ` Quête "${completedQuests[0].title}" terminée !` : '';
     const mainQuestPart = mainQuestAdvanced ? ' La marque à votre poignet palpite soudain...' : '';
-    this.logText.setText(xpPart + lootPart + signaturePart + materialPart + questPart + mainQuestPart);
+    this.setLog(xpPart + lootPart + signaturePart + materialPart + questPart + mainQuestPart);
     if (levelsGained > 0) {
       playLevelUp();
     } else {
@@ -632,7 +639,7 @@ export class CombatScene extends Phaser.Scene {
         mode: modeLabel(this.character),
       };
       await SaveManager.deleteSave();
-      this.logText.setText(`${this.monster.name} vous terrasse. Votre aventure s'achève ici.`);
+      this.setLog(`${this.monster.name} vous terrasse. Votre aventure s'achève ici.`);
       this.showContinue(() => {
         this.cameras.main.fadeOut(400, 0, 0, 0);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('GameOver', epitaph));
@@ -647,7 +654,7 @@ export class CombatScene extends Phaser.Scene {
     if (rules.defeatLosesXp) this.character.xp = 0;
     await SaveManager.saveCharacter(this.character);
     const losses = [goldLost > 0 ? `${goldLost} pièces d'or` : '', xpLost > 0 ? `${xpLost} XP` : ''].filter(Boolean);
-    this.logText.setText(
+    this.setLog(
       losses.length > 0
         ? `Vous avez été vaincu... Vous perdez ${losses.join(' et ')} et êtes ramené au hameau.`
         : 'Vous avez été vaincu... et ramené au hameau.',
@@ -667,17 +674,13 @@ export class CombatScene extends Phaser.Scene {
     return rewards[index];
   }
 
+  // End of the fight: a taller log for the rewards, one big button.
   private showContinue(onClick: () => void): void {
-    this.continueButton = addCrispText(this, this.scale.width / 2, 354, 'Continuer', {
-      fontSize: '12px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    this.continueButton.on('pointerdown', onClick);
+    this.clearMenu();
+    this.refreshTelegraph();
+    this.resizeLog(78);
+    const button = new KitButton(this, 6, 352, 204, 28, 'Continuer', { size: 11, align: 'center', onClick });
+    this.menuButtons.push(button);
   }
 
   private leaveTo(sceneKey: ReturnSceneKey): void {

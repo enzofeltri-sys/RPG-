@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { GOBLIN_CAMP } from '../world/zones/camps';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -70,21 +71,12 @@ export class GoblinCampScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2a3a24');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Camp de gobelins');
 
-    // Crude huts + bonfire, purely decorative.
-    this.add.rectangle(70, 140, 36, 28, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
-    this.add.rectangle(190, 130, 36, 28, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
-    this.add.circle(130, 145, 8, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
+    // Ground, huts or tents, fire and decor drawn by the game (world/zones/camps.ts).
+    paintZone(this, GOBLIN_CAMP);
 
-    // A few crude totems along the approach south of the camp proper, purely
-    // decorative, no collision.
-    this.add.rectangle(90, 280, 10, 24, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
-    this.add.rectangle(180, 320, 10, 24, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
-
-    // Off the x=130 centerline (spawn sits on it) — see BanditCampScene.
     this.scout = this.add.rectangle(190, 185, 14, 20, 0x3a5a3a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.scout, true);
     addCrispText(this, 190, 165, 'Éclaireuse', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);

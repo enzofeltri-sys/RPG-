@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { OLD_WELL } from '../world/zones/underground';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -66,11 +67,13 @@ export class OldWellScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#20281e');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
+    // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
+    const painted = paintZone(this, OLD_WELL);
 
     addZoneTitle(this, 'Le vieux puits');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -136,7 +139,7 @@ export class OldWellScene extends Phaser.Scene {
 
   private addWalls(): void {
     const wall = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2a3226).setStrokeStyle(1, 0x141a12);
+      const rect = this.add.rectangle(x, y, w, h).setVisible(false);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -172,7 +175,7 @@ export class OldWellScene extends Phaser.Scene {
     const y = 60;
     if (this.clearedMonsterIds.has(TREASURE_MONSTER_ID + y)) return;
 
-    this.add.rectangle(x, y, 40, 40, 0x4a3f1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    // The pool at the bottom of the well is drawn by paintZone().
     addCrispText(this, x, y - 30, 'Fond du puits', {
       fontSize: '9px',
       ...DANGER_TEXT,

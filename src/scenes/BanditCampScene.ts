@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addDirtGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { BANDIT_CAMP } from '../world/zones/camps';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -70,23 +71,12 @@ export class BanditCampScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#4a4636');
-    void addDirtGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Camp de bandits');
 
-    // Tents + campfire, purely decorative.
-    this.add.rectangle(60, 150, 40, 30, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
-    this.add.rectangle(200, 140, 40, 30, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
-    this.add.circle(130, 150, 8, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
+    // Ground, huts or tents, fire and decor drawn by the game (world/zones/camps.ts).
+    paintZone(this, BANDIT_CAMP);
 
-    // A few crates along the approach south of the camp proper, purely
-    // decorative, no collision.
-    this.add.rectangle(80, 270, 20, 14, 0x5a4a38).setStrokeStyle(1, 0x2e2419);
-    this.add.rectangle(190, 310, 20, 14, 0x5a4a38).setStrokeStyle(1, 0x2e2419);
-
-    // Off the x=130 centerline (spawn sits on it), matching the lesson from
-    // Basse-Combe's mentor placement — nothing should block the straight
-    // path from spawn into the camp.
     this.guard = this.add.rectangle(190, 185, 14, 20, 0x7a6a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
     this.physics.add.existing(this.guard, true);

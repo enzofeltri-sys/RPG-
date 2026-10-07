@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GroundJob, GroundResult, runGroundJob } from '../art/groundJob';
-import { renderBridge, renderFence, renderFlowerBed, renderStoneWall } from '../art/props';
-import { renderWallBlock } from '../art/buildings';
+import { renderBridge, renderFence, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../art/props';
+import { GateKind, renderBarrier, renderWallBlock } from '../art/buildings';
 import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
@@ -82,6 +82,18 @@ export function prewarmZone(art: ZoneArt): void {
   void groundFor(jobFor(art));
 }
 
+// A barrier the scene opens later (a gate across the passage at y, width
+// w, centered on x): the scene destroys the returned image when it opens.
+export function placeBarrier(scene: Phaser.Scene, kind: GateKind, x: number, y: number, w: number): Phaser.GameObjects.Image {
+  const a = renderBarrier(kind, w);
+  const key = pixmapTexture(scene, `barrier-${kind}-${w}`, a.pm);
+  const bottom = y + 8;
+  return scene.add
+    .image(Math.round(x - a.anchorX), Math.round(bottom - a.anchorY), key)
+    .setOrigin(0, 0)
+    .setDepth(bottom - FEET_TO_DEPTH);
+}
+
 // Top of a building's picture (for a name label just above its roof).
 export function buildingTop(spot: BuildingSpot): number {
   const a = buildingArt(spot.kind, spot.w, spot.h);
@@ -98,20 +110,31 @@ function tuftKey(scene: Phaser.Scene, seed: number, tall: boolean): string {
 }
 
 export interface PaintedZone {
-  // The hero's own light follows this object (dark zones only).
+  // The hero: his own light follows him (dark zones) and the zone's own
+  // solid walls stop him.
   follow(target: { x: number; y: number }): void;
 }
 
 export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   const job = jobFor(art);
   // Until the ground arrives (first visit only), a plain base color.
-  const placeholder = scene.add.rectangle(0, 0, art.ground.w, art.ground.h, art.ground.base === 'grass' ? 0x5f9a46 : art.ground.base === 'dirt' ? 0x9a7650 : 0x4a4652).setOrigin(0, 0).setDepth(-1001);
+  const placeholder = scene.add.rectangle(0, 0, art.ground.w, art.ground.h, art.ground.base === 'grass' ? 0x5f9a46 : art.ground.base === 'forest' ? 0x4c7a3a : art.ground.base === 'dirt' ? 0x9a7650 : 0x4a4652).setOrigin(0, 0).setDepth(-1001);
   Object.values<BuildingSpot>(art.buildings ?? {}).forEach((b) => placeBuilding(scene, b.kind, b.x, b.y, b.w, b.h));
   (art.props ?? []).forEach((p, idx) => placeProp(scene, p.kind, p.x, p.y, p.seed ?? idx + 1));
   (art.fences ?? []).forEach((f) => {
     const a = renderFence(f.len);
     const key = pixmapTexture(scene, `fence-${f.len}`, softenBase(a.pm, a.anchorY));
     scene.add.image(Math.round(f.x - a.anchorX), Math.round(f.y - a.anchorY), key).setOrigin(0, 0).setDepth(f.y - FEET_TO_DEPTH);
+  });
+  (art.ironFences ?? []).forEach((f) => {
+    const a = renderIronFence(f.len);
+    const key = pixmapTexture(scene, `ironfence-${f.len}`, softenBase(a.pm, a.anchorY));
+    scene.add.image(Math.round(f.x - a.anchorX), Math.round(f.y - a.anchorY), key).setOrigin(0, 0).setDepth(f.y - FEET_TO_DEPTH);
+  });
+  (art.palisades ?? []).forEach((s, idx) => {
+    const a = renderPalisade(s.len, idx + 1);
+    const key = pixmapTexture(scene, `palisade-${s.len}-${idx + 1}`, softenBase(a.pm, a.anchorY));
+    scene.add.image(Math.round(s.x - a.anchorX), Math.round(s.y - a.anchorY), key).setOrigin(0, 0).setDepth(s.y - FEET_TO_DEPTH);
   });
   (art.stoneWalls ?? []).forEach((s, idx) => {
     const a = renderStoneWall(s.len, idx + 1);
@@ -123,13 +146,25 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
     const key = pixmapTexture(scene, `bed-${art.key}-${idx}`, softenBase(a.pm, a.anchorY));
     scene.add.image(Math.round(b.x - a.anchorX), Math.round(b.y - a.anchorY), key).setOrigin(0, 0).setDepth(b.y - FEET_TO_DEPTH);
   });
+  (art.patches ?? []).forEach((pt, idx) => {
+    const key = pixmapTexture(scene, `patch-${art.key}-${idx}`, renderPatch(pt.material, pt.w, pt.h).pm);
+    scene.add.image(pt.x, pt.y, key).setDepth(-850);
+  });
   (art.bridges ?? []).forEach((br, idx) => {
     const a = renderBridge(br.w, br.h);
     const key = pixmapTexture(scene, `bridge-${art.key}-${idx}`, a.pm);
     scene.add.image(br.x - 2, br.y - 4, key).setOrigin(0, 0).setDepth(-800);
   });
+  // Walls the zone itself makes solid (side walls the scene doesn't know).
+  const solids: Phaser.GameObjects.Rectangle[] = [];
+  (art.walls ?? []).forEach((wl) => {
+    if (!wl.solid) return;
+    const rect = scene.add.rectangle(wl.x, wl.y, wl.w, wl.h).setVisible(false);
+    scene.physics.add.existing(rect, true);
+    solids.push(rect);
+  });
   (art.walls ?? []).forEach((wl, idx) => {
-    const a = renderWallBlock(wl.w, wl.h, { niches: wl.niches, face: wl.face, seed: 61 + idx });
+    const a = renderWallBlock(wl.w, wl.h, { niches: wl.niches, face: wl.face, seed: 61 + idx, style: wl.style });
     const key = pixmapTexture(scene, `wall-${art.key}-${idx}`, a.pm);
     const bottom = wl.y + wl.h / 2;
     scene.add
@@ -145,6 +180,8 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
     scene.add.image(Math.round(d.x - a.anchorX), Math.round(d.y - a.anchorY), key).setOrigin(0, 0).setDepth(depth);
   });
   const lighting = art.dark ? addLighting(scene, art) : undefined;
+  // Beyond a small dark zone's edges, the dark itself.
+  if (art.dark) scene.cameras.main.setBackgroundColor(0x0e0c12);
   // Phaser reuses a scene's instance: a ground arriving after the player
   // already left (or re-entered) must not land in the wrong run.
   let alive = true;
@@ -168,7 +205,13 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
       if (nextArt) prewarmZone(nextArt);
     });
   });
-  return { follow: (target) => lighting?.follow(target) };
+  return {
+    follow: (target) => {
+      lighting?.follow(target);
+      const body = target as unknown as Phaser.GameObjects.GameObject;
+      if (solids.length && body.body) scene.physics.add.collider(body, solids);
+    },
+  };
 }
 
 // Zones known to the painter, for drawing neighbors ahead of time.

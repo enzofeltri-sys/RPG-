@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { CAVE } from '../world/zones/underground';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -36,35 +37,6 @@ const ENCOUNTERS: EncounterMarker[] = [
   { id: 'spiders_2', x: WORLD_WIDTH / 2, y: 150, label: 'Araignées' },
 ];
 
-const ROCKS: { x: number; y: number }[] = [
-  { x: 30, y: 340 },
-  { x: 170, y: 320 },
-  { x: 40, y: 220 },
-  { x: 160, y: 200 },
-  { x: 30, y: 90 },
-  { x: 170, y: 60 },
-  { x: 45, y: 380 },
-  { x: 155, y: 380 },
-  { x: 45, y: 20 },
-  { x: 155, y: 20 },
-];
-
-// A little glow in the dark — purely decorative, no collision, no real art
-// yet (increment 10).
-const CRYSTALS: { x: number; y: number }[] = [
-  { x: 55, y: 300 },
-  { x: 150, y: 250 },
-  { x: 55, y: 180 },
-  { x: 145, y: 110 },
-  { x: 60, y: 50 },
-];
-
-// A single vent off to the side, clear of the central corridor (ENCOUNTERS
-// sit at x=110) and the chest (170,240) — no collision, same reasoning as
-// every other purely decorative element here (a lava-shaped gap in the
-// walkable path is exactly the narrow-gap pathing bug DESIGN.md warns
-// about).
-const LAVA_POOL = { x: 175, y: 105 };
 
 interface CaveData {
   // Set by CombatScene (via returnSceneStartData) when handing control back
@@ -105,22 +77,13 @@ export class CaveScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#20202a');
     addZoneTitle(this, 'Grotte');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
+    // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
+    const painted = paintZone(this, CAVE);
 
-    ROCKS.forEach((rock) => {
-      const shape = this.add.rectangle(rock.x, rock.y, 18, 12, 0x35353f).setStrokeStyle(1, 0x18181c);
-      void attachSpriteOverlay(this, shape, 'decor-rock_small', `${import.meta.env.BASE_URL}sprites/decor/rock_small.png`, 18);
-    });
-    CRYSTALS.forEach((c) => {
-      const shape = this.add.circle(c.x, c.y, 5, 0x5a8ac5, 0.8).setStrokeStyle(1, 0x2e4a6a);
-      void attachSpriteOverlay(this, shape, 'decor-crystal_glow', `${import.meta.env.BASE_URL}sprites/decor/crystal_glow.png`, 14);
-    });
-    const lavaShape = this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 14, 0xb54a1a).setStrokeStyle(1, 0x5a2410);
-    this.add.circle(LAVA_POOL.x, LAVA_POOL.y, 7, 0xe8a020, 0.9);
-    void attachSpriteOverlay(this, lavaShape, 'decor-lava_pool', `${import.meta.env.BASE_URL}sprites/decor/lava_pool.png`, 28);
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 40, ['↓ Forêt', '↑ Valombre']);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
     ENCOUNTERS.filter((e) => !this.clearedEncounterIds.has(e.id)).forEach((encounter) =>
       this.addEncounterZone(encounter),
     );

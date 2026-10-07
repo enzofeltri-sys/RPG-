@@ -10,8 +10,8 @@ import { DOLL_FEET_Y, DOLL_H, DOLL_W, Look, renderFrame } from '../../src/art/he
 import { heroLook } from '../../src/art/heroLook';
 import { NPC_LOOKS } from '../../src/art/npcLooks';
 import { runGroundJob } from '../../src/art/groundJob';
-import { renderWallBlock } from '../../src/art/buildings';
-import { renderBridge, renderFence, renderFlowerBed, renderStoneWall } from '../../src/art/props';
+import { GateKind, renderBarrier, renderWallBlock } from '../../src/art/buildings';
+import { renderBridge, renderFence, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../../src/art/props';
 import { renderTuft, softenBase } from '../../src/art/settle';
 import { Pixmap } from '../../src/art/pixmap';
 import { BAYER, ZoneArt, buildingArt, dpropArt, lightMap, plan, propArt } from '../../src/world/zonePlan';
@@ -38,6 +38,19 @@ function render(art: ZoneArt): Pixmap {
     const a = renderFence(f.len);
     at(softenBase(a.pm, a.anchorY), f.x - a.anchorX, f.y - a.anchorY, f.y - 8);
   });
+  (art.ironFences ?? []).forEach((f) => {
+    const a = renderIronFence(f.len);
+    at(softenBase(a.pm, a.anchorY), f.x - a.anchorX, f.y - a.anchorY, f.y - 8);
+  });
+  const g = art.preview?.gate;
+  if (g) {
+    const a = renderBarrier(g[0], g[3]);
+    at(a.pm, g[1] - a.anchorX, g[2] + 8 - a.anchorY, g[2]);
+  }
+  (art.palisades ?? []).forEach((s, i) => {
+    const a = renderPalisade(s.len, i + 1);
+    at(softenBase(a.pm, a.anchorY), s.x - a.anchorX, s.y - a.anchorY, s.y - 8);
+  });
   (art.stoneWalls ?? []).forEach((s, i) => {
     const a = renderStoneWall(s.len, i + 1);
     at(softenBase(a.pm, a.anchorY), s.x - a.anchorX, s.y - a.anchorY, s.y - 8);
@@ -46,9 +59,13 @@ function render(art: ZoneArt): Pixmap {
     const a = renderFlowerBed(b.w, b.h, i + 1);
     at(softenBase(a.pm, a.anchorY), b.x - a.anchorX, b.y - a.anchorY, b.y - 8);
   });
+  (art.patches ?? []).forEach((pt) => {
+    const a = renderPatch(pt.material, pt.w, pt.h);
+    at(a.pm, pt.x - a.anchorX, pt.y - a.anchorY, -850);
+  });
   (art.bridges ?? []).forEach((br) => at(renderBridge(br.w, br.h).pm, br.x - 2, br.y - 4, -800));
   (art.walls ?? []).forEach((wl, i) => {
-    const a = renderWallBlock(wl.w, wl.h, { niches: wl.niches, face: wl.face, seed: 61 + i });
+    const a = renderWallBlock(wl.w, wl.h, { niches: wl.niches, face: wl.face, seed: 61 + i, style: wl.style });
     const bottom = wl.y + wl.h / 2;
     at(a.pm, wl.x - a.anchorX, bottom - a.anchorY, wl.face === 0 ? -500 : bottom - 8);
   });

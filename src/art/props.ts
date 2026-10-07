@@ -1153,6 +1153,265 @@ function herbPatch(seed: number): PropArt {
   return { pm, anchorX: 9, anchorY: 12 };
 }
 
+// A fern: fronds arching out from the root, lit on top.
+function fern(seed: number): PropArt {
+  const pm = new Pixmap(20, 14);
+  groundShadow(pm, 11, 12, 8, 1.6, 50);
+  const F = ramp([84, 146, 70]);
+  const rnd = seeded(seed + 91);
+  const fronds = 5 + Math.floor(rnd() * 3);
+  for (let i = 0; i < fronds; i++) {
+    const a = Math.PI * (1.08 + (i / (fronds - 1)) * 0.84) + (rnd() - 0.5) * 0.15;
+    const len = 6 + rnd() * 3;
+    for (let t = 0; t <= len; t += 0.5) {
+      const droop = (t / len) * (t / len) * 3;
+      const x = Math.round(10 + Math.cos(a) * t);
+      const y = Math.round(12 + Math.sin(a) * t * 0.8 + droop);
+      pm.set(x, y, lit(F, 0.5 - (t / len) * 0.6 + (Math.cos(a) < 0 ? 0.2 : -0.2)));
+      // Leaflets on both sides.
+      if (Math.round(t * 2) % 3 === 0 && t > 1) {
+        pm.set(x, y - 1, lit(F, 0.7 - (t / len) * 0.5));
+        pm.set(x, y + 1, F[3]);
+      }
+    }
+  }
+  outlineOpaque(pm, 0.6);
+  return { pm, anchorX: 10, anchorY: 12 };
+}
+
+// A canvas A-frame tent with an open flap, guy ropes and pegs.
+function tent(seed: number): PropArt {
+  const pm = new Pixmap(44, 34);
+  const base = 31;
+  groundShadow(pm, 24, base, 20, 3);
+  const CAN = ramp(seed % 2 ? [196, 180, 140] : [168, 150, 120], 0.5);
+  const cx = 22;
+  const top = 3;
+  for (let y = top; y <= base; y++) {
+    const t = (y - top) / (base - top);
+    const half = Math.round(2 + t * 18);
+    for (let x = cx - half; x <= cx + half; x++) {
+      const nx = (x - cx) / Math.max(1, half);
+      // Left slope lit, right slope shaded; vertical seams.
+      let level = nx < 0 ? 0.35 - t * 0.3 : -0.45 - t * 0.2;
+      if (Math.abs(x - cx) % 7 === 3) level -= 0.25;
+      if (y === base) level -= 0.4;
+      pm.set(x, y, lit(CAN, level + (hash2(x, y, seed) - 0.5) * 0.12));
+    }
+    pm.set(cx, y, CAN[0]); // ridge seam
+  }
+  // Open flap: a dark triangle with the flap folded back.
+  for (let y = 16; y <= base - 1; y++) {
+    const w = Math.round(((y - 16) / (base - 17)) * 6);
+    for (let x = cx - w; x <= cx + w; x++) pm.set(x, y, [36, 28, 28]);
+    pm.set(cx + w + 1, y, CAN[0]);
+    pm.set(cx + w + 2, y, CAN[1]);
+  }
+  // Ridge pole ends and guy ropes.
+  pm.set(cx, top - 1, WOOD[1]);
+  pm.set(cx, top - 2, WOOD[2]);
+  for (let i = 0; i < 7; i++) {
+    pm.set(cx - 18 - i, 18 + Math.round(i * 1.6), [150, 134, 100]);
+    pm.set(cx + 18 + i, 18 + Math.round(i * 1.6), [120, 106, 82]);
+  }
+  pm.set(cx - 25, 29, WOOD[2]);
+  pm.set(cx + 25, 29, WOOD[2]);
+  outlineOpaque(pm);
+  return { pm, anchorX: cx, anchorY: base };
+}
+
+// A goblin hut: hides stretched over bent poles, bones lashed on top.
+function hideHut(seed: number): PropArt {
+  const pm = new Pixmap(40, 32);
+  const base = 29;
+  groundShadow(pm, 22, base, 18, 3);
+  const HIDE = ramp([140, 104, 74]);
+  const cx = 20;
+  for (let y = 6; y <= base; y++) {
+    for (let x = 2; x <= 38; x++) {
+      const nx = (x - cx) / 18;
+      const ny = (y - base) / (base - 5);
+      if (nx * nx + ny * ny > 1) continue;
+      // Patches of hide with stitched seams.
+      const f = cell(x, y, 7, seed + 5, 1.2);
+      let level = sphere(nx * 0.9, ny * 0.9 + 0.4) * 0.7 + (hash2(f.id, 1, seed) - 0.5) * 0.5;
+      if (f.d2 - f.d1 < 0.08) level = -0.9;
+      pm.set(x, y, lit(HIDE, level));
+    }
+  }
+  // Poles poking out of the top, a dark doorway.
+  for (const [x0, dx] of [[16, -1], [24, 1], [20, 0]] as [number, number][]) for (let j = 0; j < 5; j++) pm.set(x0 + Math.round(j * dx * 0.5), 6 - j, WOOD[j < 2 ? 2 : 1]);
+  for (let y = 19; y <= base; y++) {
+    const w = Math.round(Math.sqrt(Math.max(0, 1 - ((y - base) / 11) ** 2)) * 5);
+    for (let x = cx - w; x <= cx + w; x++) pm.set(x, y, [30, 24, 22]);
+  }
+  // A skull over the door.
+  pm.rect(cx - 1, 15, 3, 2, BONE[1]);
+  pm.set(cx - 1, 16, [40, 30, 34]);
+  pm.set(cx + 1, 16, [40, 30, 34]);
+  outlineOpaque(pm);
+  return { pm, anchorX: cx, anchorY: base };
+}
+
+// A campfire: a ring of stones, crossed logs, flames, a warm glow.
+function campfire(seed: number): PropArt {
+  const pm = new Pixmap(28, 26);
+  const t = new Pixmap(28, 26);
+  const base = 22;
+  for (let a = 0; a < 10; a++) {
+    const ang = (a / 10) * Math.PI * 2;
+    const x = Math.round(14 + Math.cos(ang) * 8);
+    const y = Math.round(19 + Math.sin(ang) * 3.5);
+    t.rect(x - 1, y - 1, 3, 2, lit(STONE, Math.sin(ang) < 0 ? -0.3 : 0.3));
+    t.set(x - 1, y - 1, STONE[0]);
+  }
+  for (let i = 0; i < 9; i++) {
+    t.set(9 + i, 18 + Math.round(i * 0.2), BARK[2]);
+    t.set(18 - i, 18 + Math.round(i * 0.2), BARK[3]);
+  }
+  for (let x = 10; x <= 18; x++) t.set(x, 19, hash2(x, 1, seed) < 0.5 ? [252, 180, 80] : [200, 70, 40]);
+  flame(t, 12, 17, 8);
+  flame(t, 15, 17, 10);
+  t.set(10, 5, [255, 220, 140]);
+  t.set(18, 3, [255, 200, 120]);
+  outlineOpaque(t, 0.7);
+  halo(pm, 14, 13, 14, [255, 180, 90], 120);
+  pm.blit(t, 0, 0);
+  return { pm, anchorX: 14, anchorY: base };
+}
+
+// A goblin totem: a crooked stake with a horned skull and rags.
+function totem(seed: number): PropArt {
+  const pm = new Pixmap(16, 34);
+  const base = 31;
+  groundShadow(pm, 9, base, 4, 1.4);
+  for (let y = 6; y <= base; y++) {
+    const x = 7 + Math.round(Math.sin(y / 5 + seed) * 0.8);
+    pm.set(x, y, WOOD[2]);
+    pm.set(x + 1, y, WOOD[3]);
+  }
+  // Horned skull.
+  for (let y = 3; y <= 7; y++) for (let x = 5; x <= 10; x++) if (!((y === 3 || y === 7) && (x === 5 || x === 10))) pm.set(x, y, lit(BONE, (x < 7 ? 0.5 : x > 9 ? -0.5 : 0.1)));
+  pm.set(6, 5, [40, 30, 34]);
+  pm.set(9, 5, [40, 30, 34]);
+  pm.set(4, 2, BONE[2]);
+  pm.set(3, 1, BONE[3]);
+  pm.set(11, 2, BONE[2]);
+  pm.set(12, 1, BONE[3]);
+  // Rags and feathers tied on.
+  for (let j = 0; j < 6; j++) pm.set(10 + (j % 2), 10 + j, j % 2 ? [150, 50, 50] : [118, 36, 40]);
+  pm.set(5, 11, [60, 120, 70]);
+  pm.set(5, 12, [60, 120, 70]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 8, anchorY: base };
+}
+
+// A weathered gravestone: rounded headstone, cross or plain slab, leaning
+// a little, lichen and a grassy mound in front.
+function gravestone(seed: number): PropArt {
+  const pm = new Pixmap(16, 22);
+  const base = 19;
+  groundShadow(pm, 9, base, 6, 1.6);
+  const GS = ramp([150, 148, 140], 0.5);
+  const kind = seed % 3;
+  const lean = (seed >> 2) % 3 - 1;
+  const put = (x: number, y: number, level: number) => {
+    const sx = x + (y < base - 6 ? lean : 0);
+    let c = lit(GS, level + (noise(sx, y, 3, seed) - 0.5) * 0.4);
+    if (noise(sx, y, 4, seed + 3) > 0.7) c = mix(c, [168, 178, 122], 0.45);
+    pm.set(sx, y, c);
+  };
+  if (kind === 1) {
+    // A cross.
+    for (let y = 3; y <= base; y++) for (let x = 7; x <= 9; x++) put(x, y, x === 7 ? 0.5 : x === 9 ? -0.5 : 0.1);
+    for (let y = 7; y <= 9; y++) for (let x = 3; x <= 13; x++) put(x, y, y === 7 ? 0.5 : y === 9 ? -0.5 : 0.1);
+  } else {
+    const top = kind === 0 ? 5 : 8;
+    for (let y = top; y <= base; y++) {
+      for (let x = 3; x <= 13; x++) {
+        if (kind === 0 && y < top + 3 && Math.hypot(x - 8, y - (top + 3)) > 5.5) continue;
+        put(x, y, (x === 3 ? 0.5 : x === 13 ? -0.6 : 0.05) + (y === top ? 0.4 : 0));
+      }
+    }
+    // Carved lines.
+    for (let x = 6; x <= 10; x++) {
+      pm.set(x + lean, top + 5, GS[4]);
+      if (x % 2) pm.set(x + lean, top + 8, GS[3]);
+    }
+  }
+  // Grassy mound.
+  for (let x = 2; x <= 14; x++) pm.set(x, base, [72, 112, 58]);
+  for (let x = 4; x <= 12; x++) pm.set(x, base + 1, [62, 96, 52]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 8, anchorY: base + 1 };
+}
+
+// A dead tree: bare twisted branches, grey bark.
+function deadTree(seed: number): PropArt {
+  const pm = new Pixmap(34, 44);
+  const base = 41;
+  groundShadow(pm, 19, base, 10, 2.5);
+  const DB = ramp([110, 100, 96], 0.5);
+  const branch = (x: number, y: number, ang: number, len: number, wid: number, depth: number) => {
+    let cx = x;
+    let cy = y;
+    for (let i = 0; i < len; i++) {
+      cx += Math.cos(ang);
+      cy += Math.sin(ang);
+      ang += (hash2(Math.round(cx), Math.round(cy), seed) - 0.5) * 0.4;
+      for (let k = 0; k < wid; k++) pm.set(Math.round(cx) + k, Math.round(cy), lit(DB, k === 0 ? 0.4 : k === wid - 1 ? -0.5 : 0));
+    }
+    if (depth > 0) {
+      branch(cx, cy, ang - 0.6, len * 0.65, Math.max(1, wid - 1), depth - 1);
+      branch(cx, cy, ang + 0.5, len * 0.6, Math.max(1, wid - 1), depth - 1);
+    }
+  };
+  branch(16, base, -Math.PI / 2, 18, 4, 3);
+  for (let x = 13; x <= 21; x++) pm.set(x, base, DB[2]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 17, anchorY: base };
+}
+
+// Wrought-iron cemetery railings with spearhead tips.
+export function renderIronFence(len: number): PropArt {
+  const pm = new Pixmap(len, 22);
+  const base = 20;
+  const IR = ramp([70, 70, 84], 0.4);
+  for (let x = 1; x < len - 1; x += 4) {
+    for (let y = 4; y <= base; y++) pm.set(x, y, lit(IR, (hash2(x, y, 3) - 0.5) * 0.4 + 0.1));
+    pm.set(x, 3, IR[0]);
+    pm.set(x - 1, 4, IR[1]);
+    pm.set(x + 1, 4, IR[2]);
+  }
+  for (const y of [7, base - 3]) for (let x = 0; x < len; x++) pm.set(x, y, lit(IR, -0.2));
+  for (let x = 0; x < len; x += 24) for (let y = 2; y <= base; y++) {
+    pm.set(x, y, IR[1]);
+    pm.set(x + 1, y, IR[3]);
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: Math.round(len / 2), anchorY: base };
+}
+
+// A palisade of sharpened logs (camp walls).
+export function renderPalisade(len: number, seed = 1): PropArt {
+  const pm = new Pixmap(len, 26);
+  const base = 24;
+  for (let x = 0; x + 3 < len; x += 4) {
+    const h = 18 + Math.floor(hash2(x, 1, seed) * 4);
+    for (let y = base - h; y <= base; y++) {
+      const tipRow = y - (base - h);
+      for (let i = 0; i < 4; i++) {
+        if (tipRow < 2 && (i === 0 || i === 3)) continue;
+        if (tipRow < 1 && i !== 1) continue;
+        pm.set(x + i, y, tipRow < 2 ? WOOD[0] : lit(BARK, (i === 0 ? 0.4 : i === 3 ? -0.6 : 0) + (hash2(x + i, y >> 2, seed) - 0.5) * 0.4));
+      }
+    }
+  }
+  for (const ry of [base - 12, base - 5]) pm.hline(0, len - 1, ry, [120, 100, 70]);
+  outlineOpaque(pm);
+  return { pm, anchorX: Math.round(len / 2), anchorY: base };
+}
+
 // A plank bridge across a stream: boards with gaps, two side rails on
 // posts. Flat (drawn under the characters walking on it).
 export function renderBridge(w: number, h: number): PropArt {
@@ -1413,7 +1672,14 @@ export type PropKind =
   | 'ruin_pillar'
   | 'reeds'
   | 'ore_rock'
-  | 'herb_patch';
+  | 'herb_patch'
+  | 'fern'
+  | 'tent'
+  | 'hide_hut'
+  | 'campfire'
+  | 'totem'
+  | 'gravestone'
+  | 'dead_tree';
 
 export function renderProp(kind: PropKind, seed = 1): PropArt {
   switch (kind) {
@@ -1492,6 +1758,20 @@ export function renderProp(kind: PropKind, seed = 1): PropArt {
       return oreRock(seed);
     case 'herb_patch':
       return herbPatch(seed);
+    case 'fern':
+      return fern(seed);
+    case 'tent':
+      return tent(seed);
+    case 'hide_hut':
+      return hideHut(seed);
+    case 'campfire':
+      return campfire(seed);
+    case 'totem':
+      return totem(seed);
+    case 'gravestone':
+      return gravestone(seed);
+    case 'dead_tree':
+      return deadTree(seed);
   }
 }
 

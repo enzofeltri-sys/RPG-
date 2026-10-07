@@ -201,6 +201,13 @@ export const PROP_SETTLE: Record<string, PropSettle> = {
   ruin_pillar: { tufts: [7, 3], vary: true },
   ore_rock: { wear: [12, 5, 'dirt'], tufts: [10, 2] },
   herb_patch: { tufts: [8, 2] },
+  fern: { vary: true },
+  tent: { wear: [22, 7], tufts: [20, 3] },
+  hide_hut: { wear: [20, 7], tufts: [18, 3] },
+  campfire: { wear: [14, 6], strew: undefined },
+  totem: { tufts: [5, 2] },
+  gravestone: { tufts: [6, 2], vary: true },
+  dead_tree: { tufts: [8, 2], vary: true },
 };
 
 // The dark outline under the foot of a sprite reads like a sticker edge:

@@ -16,7 +16,8 @@ export type BuildingKind =
   | 'guard_barracks'
   | 'market_hall'
   | 'stone_tower'
-  | 'barn';
+  | 'barn'
+  | 'mausoleum';
 
 export interface BuildingArt {
   pm: Pixmap;
@@ -604,6 +605,27 @@ function barn(w: number, h: number): BuildingArt {
   return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
+// A small family crypt: cut stone, an iron door, a carved cross, a slate
+// roof, ivy and urns at the corners.
+function mausoleum(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(22, Math.min(26, Math.round(h * 0.7))), Math.max(16, Math.min(24, Math.round(h * 0.6) + 4)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'cut', p.wx0, p.wx1, p.wallTop, p.base, { plinth: 3 });
+  const doorX = Math.round((p.wx0 + p.wx1) / 2);
+  // Iron door with studs, under a stone arch.
+  const dh = Math.min(16, p.base - p.wallTop - 4);
+  door(pm, doorX, p.base, dh, 10, true, true);
+  for (let y = p.base - dh + 2; y <= p.base - 1; y++) for (let x = doorX - 4; x <= doorX + 4; x++) pm.set(x, y, lit(IRON, (x === doorX - 4 ? 0.3 : x === doorX + 4 ? -0.6 : -0.1) + ((x + y) % 4 === 0 ? 0.5 : 0)));
+  // Carved cross above the door.
+  pm.vline(doorX, p.wallTop + 2, p.wallTop + 6, CUT[4]);
+  pm.hline(doorX - 2, doorX + 2, p.wallTop + 3, CUT[4]);
+  ivy(pm, p.wx0 + 2, p.wallTop + 4, p.base, 9);
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'slate');
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
 function stoneCottage(w: number, h: number): BuildingArt {
   const p = plan(w, h, Math.max(24, Math.min(30, Math.round(h * 0.5))), Math.max(20, Math.min(32, Math.round(h * 0.5) + 4)));
   const pm = new Pixmap(p.W, p.H);
@@ -942,6 +964,8 @@ export function renderBuilding(kind: BuildingKind, w: number, h: number): Buildi
       return tower(w, h);
     case 'barn':
       return barn(w, h);
+    case 'mausoleum':
+      return mausoleum(w, h);
   }
 }
 
@@ -954,33 +978,71 @@ const BRICK = ramp([128, 116, 112], 0.4);
 // face of rough stones along the bottom, rising above the footprint.
 // Catacomb walls get burial niches in their face (skulls and bones in
 // arched recesses); face 0 draws only the cap (walls seen side-on).
-export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; face?: number; seed?: number } = {}): BuildingArt {
+export type WallStyle = 'crypt' | 'rock' | 'mossy' | 'carved';
+
+const ROCK_CAP = ramp([58, 52, 56], 0.4);
+const ROCK_FACE = ramp([112, 100, 96], 0.5);
+const CARVED_CAP = ramp([44, 38, 62], 0.4);
+const CARVED_FACE = ramp([92, 84, 118], 0.4);
+
+export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; face?: number; seed?: number; style?: WallStyle } = {}): BuildingArt {
   const seed = opts.seed ?? 61;
+  const style = opts.style ?? 'crypt';
+  const cap = style === 'rock' ? ROCK_CAP : style === 'carved' ? CARVED_CAP : CAP;
+  const brick = style === 'rock' ? ROCK_FACE : style === 'carved' ? CARVED_FACE : BRICK;
   const face = opts.face ?? Math.min(18, Math.max(12, Math.round(h * 0.35)));
   const rise = face ? 8 : 0;
   const H = h + rise;
   const pm = new Pixmap(w, H);
   const capBottom = H - face - 1;
+  // Rock masses have a ragged outline instead of a cut block.
+  const ragged = (x: number, y: number) => {
+    if (style !== 'rock') return false;
+    const edge = Math.min(x, w - 1 - x, y);
+    return edge < 3 && noise(x, y, 4, seed + 9) * 3 > edge + 0.6;
+  };
+  const capCell = style === 'rock' ? 9 : 7;
   for (let y = 0; y <= capBottom; y++) {
     for (let x = 0; x < w; x++) {
-      const s = cell(x, y, 7, seed, 1.3);
-      let c = s.d2 - s.d1 < 0.08 ? CAP[4] : lit(CAP, -s.dx * 0.3 - s.dy * 0.4 + (hash2(s.id, 1, seed + 1) - 0.5) * 0.5);
+      if (ragged(x, y)) continue;
+      const s = cell(x, y, capCell, seed, 1.3);
+      let c = s.d2 - s.d1 < 0.08 ? cap[4] : lit(cap, -s.dx * 0.3 - s.dy * 0.4 + (hash2(s.id, 1, seed + 1) - 0.5) * 0.5);
       // Worn, lit rims along the top edges.
-      if (y === 0 || x === 0) c = [128, 120, 132];
-      else if (y === 1 || x === 1) c = CAP[0];
-      if (x === w - 1) c = CAP[4];
+      if (style !== 'rock') {
+        if (y === 0 || x === 0) c = style === 'carved' ? [120, 108, 150] : [128, 120, 132];
+        else if (y === 1 || x === 1) c = cap[0];
+      } else if (!ragged(x, y - 1) && (y === 0 || ragged(x, y - 1))) c = cap[0];
+      if (x === w - 1) c = cap[4];
+      if (style === 'mossy' && noise(x, y, 5, seed + 3) > 0.62) c = mix(c, [70, 104, 58], 0.6);
       pm.set(x, y, c);
     }
   }
   for (let y = capBottom + 1; y < H; y++) {
     for (let x = 0; x < w; x++) {
-      const s = cell(x, y, 5, seed + 2, 1.5);
-      let c = s.d2 - s.d1 < 0.1 ? BRICK[4] : lit(BRICK, -s.dx * 0.5 - s.dy * 0.7 + (hash2(s.id, 1, seed + 3) - 0.5) * 0.5);
-      if (y === capBottom + 1) c = BRICK[0];
+      if (style === 'rock' && Math.min(x, w - 1 - x) < 2 && noise(x, y, 3, seed + 4) > 0.55) continue;
+      const s = cell(x, y, style === 'rock' ? 6 : 5, seed + 2, style === 'rock' ? 1.2 : 1.5);
+      let c = s.d2 - s.d1 < 0.1 ? brick[4] : lit(brick, -s.dx * 0.5 - s.dy * 0.7 + (hash2(s.id, 1, seed + 3) - 0.5) * 0.5);
+      if (y === capBottom + 1) c = brick[0];
       if (y - capBottom <= 3) c = mix(c, [255, 250, 230], 0.08);
       if (y >= H - 3) c = mix(c, [24, 20, 28], (y - (H - 4)) * 0.15); // grime at the foot
       if (x === w - 1) c = mix(c, [24, 20, 28], 0.3);
+      if (style === 'mossy') {
+        if (noise(x, y, 4, seed + 5) > 0.6) c = mix(c, [74, 112, 60], 0.55);
+        if (hash2(x, 1, seed + 6) < 0.12 && y - capBottom < 8) c = mix(c, [40, 52, 46], 0.5); // damp streaks
+      }
       pm.set(x, y, c);
+    }
+  }
+  if (style === 'carved' && face >= 10) {
+    // A band of carved runes glowing faintly violet.
+    const by = capBottom + Math.round(face / 2);
+    for (let x = 2; x < w - 2; x++) {
+      pm.set(x, by - 2, brick[3]);
+      pm.set(x, by + 2, brick[1]);
+      const k = x % 6;
+      const glyph = hash2(Math.floor(x / 6), 1, seed + 7);
+      const on = (k === 1 || k === 3) && glyph < 0.8 ? true : k === 2 && glyph < 0.5;
+      if (on) for (let j = -1; j <= 1; j++) if (hash2(x, j, seed + 8) < 0.75) pm.set(x, by + j, [190, 140, 250]);
     }
   }
   if (opts.niches && face >= 10) {
@@ -1000,7 +1062,7 @@ export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; 
             pm.set(nx + k, ny + j, j === 0 ? [20, 16, 24] : [30, 24, 32]);
           }
         }
-        pm.hline(nx, nx + 5, ny + nh, BRICK[0]); // sill
+        pm.hline(nx, nx + 5, ny + nh, brick[0]); // sill
         const kind = hash2(i, r, seed + 5);
         const B: RGB = [214, 204, 178];
         const D: RGB = [150, 140, 120];
@@ -1023,6 +1085,79 @@ export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; 
   pm.outline(OUTLINE);
   return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
 }
+
+export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade';
+
+// A barrier closing a passage of width w, standing on its base line: an
+// iron portcullis, rusty graveyard railings, a veil of runes, or a wooden
+// barricade of planks and stakes.
+export function renderBarrier(kind: GateKind, w: number): BuildingArt {
+  if (kind === 'portcullis') return renderGate(w);
+  const H = kind === 'runes' ? 34 : 28;
+  const pm = new Pixmap(w, H);
+  const post = 9;
+  const postStyle = kind === 'runes' ? CARVED_FACE : kind === 'rusty' ? FIELD : WOOD;
+  if (kind !== 'barricade') {
+    for (const px of [0, w - post]) {
+      for (let y = 0; y < H; y++) for (let x = px; x < px + post; x++) pm.set(x, y, kind === 'rusty' ? fieldstone(x, y) : lit(postStyle, (x === px ? 0.5 : x === px + post - 1 ? -0.6 : 0) + ((y + Math.floor(x / 3)) % 7 === 0 ? -0.4 : 0)));
+      pm.hline(px, px + post - 1, 0, postStyle[0]);
+    }
+  }
+  if (kind === 'rusty') {
+    const RUST = ramp([126, 78, 56], 0.6);
+    for (let x = post + 1; x < w - post - 1; x += 4) {
+      const lean = hash2(x, 1, 3) < 0.15 ? 1 : 0;
+      for (let y = 4; y < H; y++) pm.set(x + (y < 10 ? lean : 0), y, lit(RUST, (hash2(x, y, 4) - 0.5) * 0.8 + 0.1));
+      pm.set(x, 3, RUST[1]);
+      pm.set(x, 2, RUST[0]); // spike
+    }
+    for (const y of [8, H - 5]) for (let x = post; x < w - post; x++) pm.set(x, y, lit(RUST, (hash2(x, y, 5) - 0.5) * 0.6 - 0.2));
+  } else if (kind === 'runes') {
+    // A shimmering veil with runes hanging in it.
+    for (let y = 2; y < H - 1; y++) {
+      for (let x = post; x < w - post; x++) {
+        const wave = Math.sin(x / 7 + y / 5) * 0.5 + 0.5;
+        pm.set(x, y, [150, 100, 230], Math.round(50 + wave * 50));
+      }
+    }
+    for (let x = post + 6; x < w - post - 6; x += 12) {
+      const gy = 10 + Math.round(hash2(x, 2, 6) * 10);
+      for (let j = 0; j < 6; j++) {
+        pm.set(x + 1, gy + j, [230, 200, 255]);
+        if (j % 2 === 0) pm.set(x + (hash2(x, j, 7) < 0.5 ? 0 : 2), gy + j, [210, 170, 255]);
+      }
+    }
+    for (let x = post; x < w - post; x++) pm.set(x, H - 2, [190, 140, 250], 200);
+  } else {
+    // Barricade: planks nailed across stakes, a few crossed.
+    for (let x = 2; x < w - 2; x += 14) {
+      for (let y = 2; y < H; y++) {
+        pm.set(x, y, BARK_W[1]);
+        pm.set(x + 1, y, BARK_W[2]);
+        pm.set(x + 2, y, BARK_W[3]);
+      }
+      pm.set(x + 1, 1, WOOD[0]);
+    }
+    for (const y of [7, 15]) {
+      for (let x = 0; x < w; x++) {
+        const off = Math.round(Math.sin(x / 23 + y) * 1.2);
+        pm.set(x, y + off, lit(WOOD, 0.4 + (hash2(Math.floor(x / 18), y, 8) - 0.5) * 0.5));
+        pm.set(x, y + off + 1, lit(WOOD, 0));
+        pm.set(x, y + off + 2, lit(WOOD, -0.5));
+      }
+    }
+    for (let x = 6; x < w - 20; x += 40) {
+      for (let i = 0; i < 18; i++) {
+        pm.set(x + i, 4 + Math.round(i * 1.1), WOOD[1]);
+        pm.set(x + i, 5 + Math.round(i * 1.1), WOOD[3]);
+      }
+    }
+  }
+  if (kind !== 'runes') pm.outline(OUTLINE);
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
+const BARK_W = ramp([112, 80, 58]);
 
 // An iron portcullis between two stone posts, on a footprint of width w.
 export function renderGate(w: number): BuildingArt {

@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone, placeBarrier } from '../world/zoneArt';
+import { WOLF_DEN } from '../world/zones/underground';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -60,6 +61,7 @@ export class DungeonScene extends Phaser.Scene {
   // wipe them on a resume.
   private clearedMonsterIds = new Set<string>();
   private gate?: Phaser.GameObjects.Rectangle;
+  private gateArt?: Phaser.GameObjects.Image;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
   private gateLabel?: Phaser.GameObjects.Text;
   private character!: Character;
@@ -83,9 +85,11 @@ export class DungeonScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#1c1c22');
     addZoneTitle(this, 'Repaire du Loup');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
+    // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
+    const painted = paintZone(this, WOLF_DEN);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -157,7 +161,7 @@ export class DungeonScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=100) that
     // the encounters, gate, and boss zone all sit on.
     const wall = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x37373f).setStrokeStyle(1, 0x18181c);
+      const rect = this.add.rectangle(x, y, w, h).setVisible(false);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -168,9 +172,8 @@ export class DungeonScene extends Phaser.Scene {
   }
 
   private addGate(): void {
-    this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x37373f)
-      .setStrokeStyle(1, 0x18181c);
+    this.gate = this.add.rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16).setVisible(false);
+    this.gateArt = placeBarrier(this, 'barricade', WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
     this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Barrière scellée', {
@@ -183,6 +186,7 @@ export class DungeonScene extends Phaser.Scene {
     if (this.clearedMonsterIds.size < ENCOUNTERS.length) return;
     this.gateCollider?.destroy();
     this.gate?.destroy();
+    this.gateArt?.destroy();
     this.gateLabel?.destroy();
   }
 

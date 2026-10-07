@@ -3,7 +3,7 @@
 // fixed light of dark zones. Shared by the game (world/zoneArt.ts) and the
 // mockup scripts.
 
-import { BuildingArt, BuildingKind, renderBuilding } from '../art/buildings';
+import { BuildingArt, BuildingKind, GateKind, WallStyle, renderBuilding } from '../art/buildings';
 import { GroundSpec } from '../art/ground';
 import { Blocker, GroundJob, GroundOp } from '../art/groundJob';
 import { RGB } from '../art/pixmap';
@@ -61,20 +61,24 @@ export interface ZoneArt<B extends string = string> {
   props?: PropSpot[];
   fences?: { x: number; y: number; len: number }[];
   stoneWalls?: { x: number; y: number; len: number }[];
+  palisades?: { x: number; y: number; len: number }[];
   beds?: { x: number; y: number; w: number; h: number }[];
   // Plank bridges (deck's top-left corner and size), flat under walkers.
   bridges?: { x: number; y: number; w: number; h: number }[];
   meadow?: { n: number; seed: number };
   // Dungeon pieces (walls with burial niches, torches, tombs…).
-  walls?: { x: number; y: number; w: number; h: number; niches?: boolean; face?: number }[];
+  walls?: { x: number; y: number; w: number; h: number; niches?: boolean; face?: number; style?: WallStyle; solid?: boolean }[];
+  ironFences?: { x: number; y: number; len: number }[];
   dprops?: { kind: DungeonPropKind; x: number; y: number }[];
   // Dark places: ambient light (0..1) and fixed lights; the hero carries a
   // small light of his own.
-  dark?: { ambient: number; lights?: ZoneLight[] };
+  dark?: { ambient: number; lights?: ZoneLight[]; shade?: [number, number, number] };
+  // Flat patches laid on the ground (a lava vent, a field of crops…).
+  patches?: { material: 'crop' | 'water' | 'planks' | 'lava' | 'marsh'; x: number; y: number; w: number; h: number }[];
   // Zones to draw ahead of time while this one is shown (next door).
   next?: string[];
   // Mockups only (scripts/art/zoneart.ts): who stands where, as in the scene.
-  preview?: { hero: [number, number]; npcs?: [string, number, number][] };
+  preview?: { hero: [number, number]; npcs?: [string, number, number][]; gate?: [GateKind, number, number, number] };
 }
 
 export interface ZoneLight {
@@ -151,6 +155,17 @@ export function plan(art: ZoneArt): GroundJob {
     for (let px = 1; px < f.len - 1; px += 8) tufts.push(...tuftsAround(x0 + px + 1, f.y, 2, idx * 3 + px, 1));
     blockers.push({ kind: 'rect', x0: x0 - 6, y0: f.y - 12, x1: x0 + f.len + 6, y1: f.y + 12 });
   });
+  (art.ironFences ?? []).forEach((f, idx) => {
+    const x0 = f.x - Math.round(f.len / 2);
+    ops.push({ op: 'occlude', x0, x1: x0 + f.len - 1, y: Math.round(f.y + 1), depth: 2, strength: 0.3 });
+    for (let px = 1; px < f.len - 1; px += 12) tufts.push(...tuftsAround(x0 + px, f.y, 3, idx * 5 + px, 1));
+    blockers.push({ kind: 'rect', x0: x0 - 6, y0: f.y - 12, x1: x0 + f.len + 6, y1: f.y + 12 });
+  });
+  (art.palisades ?? []).forEach((s) => {
+    const x0 = s.x - Math.round(s.len / 2);
+    ops.push({ op: 'occlude', x0, x1: x0 + s.len - 1, y: Math.round(s.y + 1), depth: 3, strength: 0.4 });
+    blockers.push({ kind: 'rect', x0: x0 - 6, y0: s.y - 14, x1: x0 + s.len + 6, y1: s.y + 12 });
+  });
   (art.stoneWalls ?? []).forEach((s, idx) => {
     const x0 = s.x - Math.round(s.len / 2);
     ops.push({ op: 'occlude', x0, x1: x0 + s.len - 1, y: Math.round(s.y + 1), depth: 2, strength: 0.3 });
@@ -222,7 +237,8 @@ export function lightMap(art: ZoneArt): Uint8ClampedArray {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       let level = amb;
-      let tint = SHADE;
+      const shade = art.dark!.shade ?? SHADE;
+      let tint = shade;
       let best = 0;
       for (const l of lights) {
         const d = Math.hypot(x - l.x, (y - l.y) * 1.1) / l.r;
@@ -234,7 +250,7 @@ export function lightMap(art: ZoneArt): Uint8ClampedArray {
           best = q;
           const t = TINTS[l.kind];
           const k = Math.min(1, q * 1.6);
-          tint = [SHADE[0] + (t[0] - SHADE[0]) * k, SHADE[1] + (t[1] - SHADE[1]) * k, SHADE[2] + (t[2] - SHADE[2]) * k];
+          tint = [shade[0] + (t[0] - shade[0]) * k, shade[1] + (t[1] - shade[1]) * k, shade[2] + (t[2] - shade[2]) * k];
         }
       }
       const o = (y * w + x) * 4;

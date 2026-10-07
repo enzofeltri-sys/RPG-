@@ -64,6 +64,6 @@ export const FIELD: ZoneArt = {
   ],
   stoneWalls: [{ x: 120, y: 420, len: 56 }],
   meadow: { n: 40, seed: 51 },
-  next: ['basse-combe'],
+  next: ['basse-combe', 'forest', 'bandit-camp'],
   preview: { hero: [280, 300] },
 };

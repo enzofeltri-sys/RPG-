@@ -7,12 +7,12 @@
 
 import { Pixmap, RGB, Ramp, cell, hash2, lit, mix, noise, ramp } from './pixmap';
 
-export type GroundMaterial = 'grass' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop';
+export type GroundMaterial = 'grass' | 'forest' | 'cave' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop';
 
 export type GroundShape =
-  | { kind: 'path'; material: GroundMaterial; points: [number, number][]; width: number }
-  | { kind: 'rect'; material: GroundMaterial; x: number; y: number; w: number; h: number }
-  | { kind: 'ellipse'; material: GroundMaterial; x: number; y: number; w: number; h: number };
+  | { kind: 'path'; material: GroundMaterial; points: [number, number][]; width: number; rough?: number }
+  | { kind: 'rect'; material: GroundMaterial; x: number; y: number; w: number; h: number; rough?: number }
+  | { kind: 'ellipse'; material: GroundMaterial; x: number; y: number; w: number; h: number; rough?: number };
 
 export interface GroundSpec {
   w: number;
@@ -123,6 +123,60 @@ function grass(x: number, y: number, seed: number): RGB {
   return c;
 }
 
+// Forest floor: shaded grass and moss with patches of leaf litter, fallen
+// leaves and twigs.
+const FOREST = ramp([78, 128, 60]);
+const LITTER = ramp([122, 96, 62]);
+function forestFloor(x: number, y: number, seed: number): RGB {
+  const patch = noise(x, y, 26, seed + 70) + (noise(x, y, 7, seed + 71) - 0.5) * 0.35;
+  const v = (noise(x, y, 11, seed + 72) - 0.5) * 0.7 + (hash2(x, y, seed + 73) - 0.5) * 0.4;
+  if (patch < 0.24) {
+    // Leaf litter: browns with lighter leaves and dark gaps.
+    const h = hash2(x, y, seed + 74);
+    if (h < 0.06) return [196, 132, 64];
+    if (h < 0.1) return [168, 76, 48];
+    return lit(LITTER, v * 1.2);
+  }
+  let c = v > 0.25 ? FOREST[1] : v < -0.25 ? FOREST[3] : FOREST[2];
+  if (patch < 0.32 && hash2(x, y, seed + 75) < (0.32 - patch) * 6) c = mix(c, LITTER[2], 0.55);
+  // Blades and the odd fallen leaf.
+  const bx = Math.floor(x / 3);
+  const by = Math.floor(y / 4);
+  if (hash2(bx, by, seed + 76) < 0.5) {
+    const col = bx * 3 + Math.floor(hash2(bx, by, seed + 77) * 3);
+    const tip = by * 4 + Math.floor(hash2(bx, by, seed + 78) * 2);
+    if (x === col && y === tip) return mix(c, FOREST[0], 0.5);
+    if (x === col && y === tip + 1) return mix(c, FOREST[4], 0.5);
+  }
+  if (hash2(x, y, seed + 79) < 0.012) return [190, 128, 60];
+  // Twigs: short dark diagonals.
+  const tx = Math.floor(x / 14);
+  const ty = Math.floor(y / 12);
+  if (hash2(tx, ty, seed + 80) < 0.18) {
+    const ox = tx * 14 + 3 + Math.floor(hash2(tx, ty, seed + 81) * 7);
+    const oy = ty * 12 + 3 + Math.floor(hash2(tx, ty, seed + 82) * 6);
+    const k = x - ox;
+    if (k >= 0 && k < 4 && y === oy + Math.floor(k / 2)) return [92, 66, 46];
+  }
+  return c;
+}
+
+// Cave floor: uneven rock in broad plates, gravel, cracks, damp patches.
+const CAVE = ramp([92, 86, 92], 0.5);
+function caveFloor(x: number, y: number, seed: number): RGB {
+  const plate = cell(x, y, 17, seed + 90, 1.3);
+  // Cracks between the plates, broken (not a paving's joints).
+  if (plate.d2 - plate.d1 < 0.05 && noise(x, y, 5, seed + 95) > 0.45) return CAVE[4];
+  let level = (-plate.dx * 0.2 - plate.dy * 0.3) * 0.7 + (hash2(plate.id, 1, seed) - 0.5) * 0.5 + (noise(x, y, 6, seed + 91) - 0.5) * 0.5;
+  // Gravel.
+  const g = cell(x, y, 3, seed + 92);
+  if (g.d1 < 0.22 && hash2(g.id, 2, seed) < 0.3) level += g.dy < 0 ? 0.5 : -0.5;
+  let c = lit(CAVE, level + (hash2(x, y, seed + 93) - 0.5) * 0.25);
+  // Damp, darker patches with a cold sheen.
+  if (noise(x, y, 30, seed + 94) > 0.68) c = mix(c, [40, 50, 66], 0.35);
+  return c;
+}
+
 function dirt(x: number, y: number, seed: number, r: Ramp = DIRT): RGB {
   const level = (noise(x, y, 16, seed) - 0.5) * 0.7 + (noise(x, y, 4, seed + 1) - 0.5) * 0.35 + (hash2(x, y, seed + 2) - 0.5) * 0.18;
   let c = level > 0.28 ? r[1] : level < -0.28 ? r[3] : r[2];
@@ -206,6 +260,10 @@ function material(m: GroundMaterial, x: number, y: number, seed: number): RGB {
   switch (m) {
     case 'grass':
       return grass(x, y, seed);
+    case 'forest':
+      return forestFloor(x, y, seed);
+    case 'cave':
+      return caveFloor(x, y, seed);
     case 'dirt':
       return dirt(x, y, seed + 11);
     case 'cobble':
@@ -235,6 +293,7 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
   cobble: COBBLE[4],
   flagstone: SLAB[4],
   aisle: AISLE[4],
+  cave: CAVE[4],
   water: [38, 72, 112],
   sand: SAND[3],
   marsh: MARSH[4],
@@ -255,6 +314,8 @@ export function renderGround(spec: GroundSpec): Pixmap {
   const seed = spec.seed ?? 1;
   const shapes = spec.shapes ?? [];
   const pm = new Pixmap(w, h);
+  const grassy = base === 'grass' || base === 'forest';
+  const G = base === 'forest' ? FOREST : GRASS;
   const wobbleAt = (x: number, y: number) => (noise(x, y, 9, seed + 51) - 0.5) * 3.2 + (noise(x, y, 3, seed + 52) - 0.5) * 1.2;
   // Paved shapes get a broader, lumpier outline.
   const pavedWobble = (x: number, y: number) => (noise(x, y, 18, seed + 53) - 0.5) * 6 + wobbleAt(x, y);
@@ -262,7 +323,7 @@ export function renderGround(spec: GroundSpec): Pixmap {
   // edge can wobble or fray: skipping the rest keeps a big zone fast.
   const boxes = shapes.map((s) => {
     const paved = PAVED[s.material];
-    const m = paved ? paved.fray + paved.size * paved.stretch + 12 : 8;
+    const m = (paved ? paved.fray + paved.size * paved.stretch + 12 : 8) + (s.rough ?? 0);
     if (s.kind === 'path') {
       const xs = s.points.map((p) => p[0]);
       const ys = s.points.map((p) => p[1]);
@@ -301,7 +362,9 @@ export function renderGround(spec: GroundSpec): Pixmap {
           continue;
         }
         if (Number.isNaN(wobble)) wobble = wobbleAt(x, y);
-        const d = shapeDist(s, x, y) + (s.kind === 'path' || s.kind === 'ellipse' ? wobble : 0);
+        // Rough shapes (clearings, ponds) get a broad lumpy outline too.
+        const rough = s.rough ? (noise(x, y, 20, seed + 54 + i) - 0.5) * 2 * s.rough : 0;
+        const d = shapeDist(s, x, y) + (s.kind === 'path' || s.kind === 'ellipse' ? wobble : 0) + rough;
         if (d < 0) {
           m = s.material;
           edge = -d;
@@ -315,15 +378,15 @@ export function renderGround(spec: GroundSpec): Pixmap {
         const pc = cell(x, y, paved.size, seed + paved.seed, paved.stretch);
         const gap = pc.d2 - pc.d1 < 0.1;
         const creep = Math.max(0, 1 - pavedEdge / (paved.fray * 1.6));
-        if (gap && base === 'grass' && hash2(x, y, seed + 61) < 0.08 + creep * 0.6) c = hash2(x, y, seed + 62) < 0.5 ? GRASS[2] : GRASS[3];
+        if (gap && grassy && hash2(x, y, seed + 61) < 0.08 + creep * 0.6) c = hash2(x, y, seed + 62) < 0.5 ? G[2] : G[3];
         // Loose stones near the edge sit a little lower and darker.
         else if (pavedEdge < paved.fray * 0.5) c = mix(c, [40, 36, 30], 0.12);
       } else if (m !== base) {
         // Grass spilling over the edge of a path, then a shaded rim.
-        if (base === 'grass' && m !== 'water' && edge < 1.6 && hash2(x, y, seed + 60) < 0.45) c = grass(x, y, seed) === GRASS[1] ? GRASS[2] : GRASS[3];
+        if (grassy && m !== 'water' && edge < 1.6 && hash2(x, y, seed + 60) < 0.45) c = hash2(x, y, seed + 63) < 0.5 ? G[2] : G[3];
         else if (edge < 1.1 && RIM[m]) c = RIM[m]!;
         else if (edge < 2.2 && m === 'water') c = mix(c, WATER[3], 0.6);
-      } else if (base === 'grass' && outside < 2) c = mix(c, GRASS[4], 0.22); // grass shade along edges
+      } else if (grassy && outside < 2) c = mix(c, G[4], 0.22); // grass shade along edges
       pm.set(x, y, c);
     }
   }

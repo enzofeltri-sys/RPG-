@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { FOREST } from '../world/zones/forest';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -19,84 +20,6 @@ const WORLD_HEIGHT = 400;
 const MIN_ENCOUNTER_DISTANCE = 200;
 const MAX_ENCOUNTER_DISTANCE = 380;
 const FOREST_MONSTERS = ['corrupted_wolf', 'goblin_scout'];
-
-// Deliberately dense — a forest reads as a forest mostly through decoration
-// density, not layout. No collision on any of it (see DESIGN.md's note on
-// narrow-gap pathing bugs) — real art comes in increment 10.
-const TREES: { x: number; y: number }[] = [
-  { x: 60, y: 40 },
-  { x: 120, y: 90 },
-  { x: 60, y: 220 },
-  { x: 140, y: 250 },
-  { x: 260, y: 50 },
-  { x: 320, y: 100 },
-  { x: 340, y: 230 },
-  { x: 270, y: 260 },
-  { x: 90, y: 150 },
-  { x: 310, y: 160 },
-  { x: 30, y: 100 },
-  { x: 180, y: 40 },
-  { x: 370, y: 60 },
-  { x: 380, y: 190 },
-  { x: 220, y: 280 },
-  { x: 60, y: 280 },
-  { x: 100, y: 350 },
-  { x: 300, y: 340 },
-  { x: 200, y: 380 },
-  { x: 40, y: 370 },
-  { x: 360, y: 380 },
-];
-
-const MUSHROOMS: { x: number; y: number }[] = [
-  { x: 100, y: 60 },
-  { x: 250, y: 190 },
-  { x: 160, y: 130 },
-  { x: 330, y: 260 },
-];
-
-const ROCKS: { x: number; y: number }[] = [
-  { x: 200, y: 150 },
-  { x: 150, y: 320 },
-  { x: 340, y: 150 },
-  { x: 80, y: 200 },
-];
-
-// Pipoya decor (extracted from [Base]BaseChip_pipo.png, see
-// docs/PLAN-ATTAQUE-GRAPHISME.md) at native size (64px tree, 32px bush/rock)
-// to match the 1:1 scale the Pipoya ground tile already uses, rather than
-// the smaller sizes the existing SpriteCook decor above uses. Started as a
-// single 3-item test cluster to validate the pipeline and the Y-sort depth
-// in spriteOverlay.ts; extended here into real density now that both are
-// confirmed working. Positions are hand-picked to clear the existing
-// TREES/MUSHROOMS/ROCKS above (and each other) by 30px+.
-const PIPOYA_TREES: { x: number; y: number }[] = [
-  { x: 200, y: 210 },
-  { x: 50, y: 130 },
-  { x: 355, y: 300 },
-  { x: 120, y: 300 },
-  { x: 280, y: 120 },
-  { x: 360, y: 320 },
-  { x: 30, y: 300 },
-  { x: 250, y: 350 },
-  { x: 365, y: 110 },
-];
-
-const PIPOYA_BUSHES: { x: number; y: number }[] = [
-  { x: 175, y: 235 },
-  { x: 130, y: 60 },
-  { x: 320, y: 200 },
-  { x: 95, y: 270 },
-  { x: 240, y: 90 },
-  { x: 370, y: 250 },
-];
-
-const PIPOYA_ROCKS: { x: number; y: number }[] = [
-  { x: 225, y: 235 },
-  { x: 270, y: 300 },
-  { x: 45, y: 160 },
-  { x: 190, y: 320 },
-  { x: 330, y: 60 },
-];
 
 interface SimpleNpc {
   x: number;
@@ -180,33 +103,9 @@ export class ForestScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#24401f');
     addZoneTitle(this, 'Forêt');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    TREES.forEach((tree) => {
-      const shape = this.add.circle(tree.x, tree.y, 11, 0x1a3016).setStrokeStyle(1, 0x0e1c0b);
-      void attachSpriteOverlay(this, shape, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
-    });
-    MUSHROOMS.forEach((m) => {
-      const shape = this.add.circle(m.x, m.y, 4, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
-      void attachSpriteOverlay(this, shape, 'decor-mushroom', `${import.meta.env.BASE_URL}sprites/decor/mushroom.png`, 14);
-    });
-    ROCKS.forEach((r) => {
-      const shape = this.add.rectangle(r.x, r.y, 16, 12, 0x4a4a48).setStrokeStyle(1, 0x24241f);
-      void attachSpriteOverlay(this, shape, 'decor-rock_small', `${import.meta.env.BASE_URL}sprites/decor/rock_small.png`, 18);
-    });
-
-    PIPOYA_TREES.forEach((t) => {
-      const shape = this.add.rectangle(t.x, t.y, 30, 20).setStrokeStyle(1, 0x0e1c0b);
-      void attachSpriteOverlay(this, shape, 'decor-pipoya_tree', `${import.meta.env.BASE_URL}sprites/decor/pipoya_tree.png`, 64);
-    });
-    PIPOYA_BUSHES.forEach((b) => {
-      const shape = this.add.rectangle(b.x, b.y, 20, 14).setStrokeStyle(1, 0x1a3a1a);
-      void attachSpriteOverlay(this, shape, 'decor-pipoya_bush', `${import.meta.env.BASE_URL}sprites/decor/pipoya_bush.png`, 32);
-    });
-    PIPOYA_ROCKS.forEach((r) => {
-      const shape = this.add.rectangle(r.x, r.y, 20, 12).setStrokeStyle(1, 0x35352f);
-      void attachSpriteOverlay(this, shape, 'decor-pipoya_rock', `${import.meta.env.BASE_URL}sprites/decor/pipoya_rock.png`, 32);
-    });
+    // Ground, woods and trails drawn by the game (world/zones/forest.ts).
+    paintZone(this, FOREST);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
       '← Champ',

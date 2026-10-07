@@ -2,12 +2,8 @@ import Phaser from 'phaser';
 import { CharClass, Race, createCharacter } from '../game/character';
 import { Difficulty, newRandomizerSeed } from '../game/difficulty';
 import { SaveManager } from '../save/SaveManager';
-import { addCrispText } from '../ui/text';
-
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-const OPTION_BG = '#1c2b1c';
+import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
 
 type Mode = Difficulty | 'nuzlocke';
 
@@ -61,91 +57,75 @@ export class DifficultyScene extends Phaser.Scene {
     this.randomizer = false;
   }
 
+  preload(): void {
+    preloadUiKit(this);
+  }
+
   create(): void {
     this.render();
   }
 
   private render(): void {
     this.children.removeAll(true);
-    const { width } = this.scale;
-    addCrispText(this, width / 2, 14, 'Mode de jeu', { fontSize: '14px', color: GOLD }).setOrigin(0.5);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Mode de jeu', 12).setOrigin(0.5, 0);
 
+    const cols = buttonRow(2, SCREEN_LEFT, SCREEN_INNER_W);
     MODES.forEach((mode, i) => {
-      const selected = mode.id === this.mode;
-      const button = addCrispText(this, 12 + (i % 2) * 98, 38 + Math.floor(i / 2) * 26, mode.label, {
-        fontSize: '11px',
-        color: selected ? DARK : GOLD,
-        backgroundColor: selected ? GOLD : OPTION_BG,
-        padding: { x: 6, y: 5 },
-        fixedWidth: 92,
+      const { x, w } = cols[i % 2];
+      new KitButton(this, x, 34 + Math.floor(i / 2) * 28, w, 24, mode.label, {
+        size: 10,
         align: 'center',
-      }).setInteractive({ useHandCursor: true });
-      button.on('pointerdown', () => {
-        this.mode = mode.id;
-        this.render();
+        state: mode.id === this.mode ? 'pressed' : 'normal',
+        onClick: () => {
+          this.mode = mode.id;
+          this.render();
+        },
       });
     });
-
     const current = MODES.find((m) => m.id === this.mode)!;
-    addCrispText(this, 12, 96, current.description, {
-      fontSize: '9px',
-      color: MUTED,
-      wordWrap: { width: width - 24 },
-      lineSpacing: 3,
-    });
+    detailPanel(this, { text: current.label, color: INK.text }, [{ text: current.description, color: INK.text }], 92, 78);
 
-    let y = 160;
+    let y = 178;
     if (this.mode === 'hard') {
-      this.toggle(y, 'Mort définitive', this.hardPermadeath, () => {
+      this.toggle(y, 'Mort définitive', this.hardPermadeath, 'Une seule défaite et la partie est effacée.', () => {
         this.hardPermadeath = !this.hardPermadeath;
         this.render();
       });
-      addCrispText(this, 12, y + 22, 'Une seule défaite et la partie est effacée.', { fontSize: '8px', color: MUTED });
-      y += 46;
+      y += 54;
     }
-    this.toggle(y, 'Randomizer', this.randomizer, () => {
-      this.randomizer = !this.randomizer;
-      this.render();
-    });
-    addCrispText(
-      this,
-      12,
-      y + 22,
+    this.toggle(
+      y,
+      'Randomizer',
+      this.randomizer,
       'Les monstres de chaque zone et les récompenses uniques des boss sont mélangés, toujours au niveau de la zone.',
-      { fontSize: '8px', color: MUTED, wordWrap: { width: width - 24 }, lineSpacing: 2 },
+      () => {
+        this.randomizer = !this.randomizer;
+        this.render();
+      },
     );
 
-    addCrispText(this, width / 2, 300, 'Le mode Nuzlocke, la mort définitive et le Randomizer ne pourront plus être changés.', {
-      fontSize: '8px',
-      color: MUTED,
+    panelText(this, this.scale.width / 2, 306, 'Le mode Nuzlocke, la mort définitive et le Randomizer ne pourront plus être changés.', 7, INK.danger, {
       align: 'center',
-      wordWrap: { width: width - 30 },
-    }).setOrigin(0.5);
+      wordWrap: { width: SCREEN_INNER_W - 10 },
+    }).setOrigin(0.5, 0);
 
-    const start = addCrispText(this, width / 2, 336, "Commencer l'aventure", {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 8, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    start.on('pointerdown', () => void this.confirm());
-
-    const back = addCrispText(this, width / 2, 368, 'Retour', { fontSize: '10px', color: GOLD })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    back.on('pointerdown', () => this.scene.start('CharacterCreation'));
+    actionRow(this, [
+      { label: 'Retour', onClick: () => this.scene.start('CharacterCreation') },
+      { label: "Commencer", onClick: () => void this.confirm() },
+    ]);
   }
 
-  private toggle(y: number, label: string, value: boolean, onClick: () => void): void {
-    const text = addCrispText(this, 12, y, `${label} : ${value ? 'oui' : 'non'}`, {
-      fontSize: '11px',
-      color: value ? DARK : GOLD,
-      backgroundColor: value ? GOLD : OPTION_BG,
-      padding: { x: 6, y: 4 },
-    }).setInteractive({ useHandCursor: true });
-    text.on('pointerdown', onClick);
+  // An on/off option: a wooden switch (pressed when on) with its effect below.
+  private toggle(y: number, label: string, value: boolean, effect: string, onClick: () => void): void {
+    new KitButton(this, SCREEN_LEFT, y, SCREEN_INNER_W, 24, label, {
+      size: 10,
+      cost: value ? 'Oui' : 'Non',
+      costSize: 10,
+      state: value ? 'pressed' : 'normal',
+      onClick,
+    });
+    panelText(this, SCREEN_LEFT + 4, y + 28, effect, 7, INK.soft, { wordWrap: { width: SCREEN_INNER_W - 8 }, lineSpacing: 1 });
   }
 
   private async confirm(): Promise<void> {

@@ -11,156 +11,88 @@ import {
   enduranceMax,
   manaMax,
 } from '../game/talents';
-import { addCrispText } from '../ui/text';
+import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-
-// 3 columns keep 5 race/class options within the 216px game width — a
-// single row (the original 2-race/2-class layout) no longer fits once Nain/
-// Orc/Halfling and Archer/Voleur/Clerc were added.
-const GRID_COLS = 3;
-const GRID_COL_W = 68;
-const GRID_ROW_H = 22;
-const GRID_MARGIN_X = 10;
-
+// Création de personnage in UI style A: race and class pickers, the
+// resulting stats, then everything the choice implies (class, starting
+// skill, talent branches, race traits) in a parchment panel.
 export class CharacterCreationScene extends Phaser.Scene {
   private race: Race = 'human';
   private charClass: CharClass = 'warrior';
-  private raceButtons: Record<Race, Phaser.GameObjects.Text> = {} as Record<Race, Phaser.GameObjects.Text>;
-  private classButtons: Record<CharClass, Phaser.GameObjects.Text> = {} as Record<CharClass, Phaser.GameObjects.Text>;
-  private statsText!: Phaser.GameObjects.Text;
-  private skillsText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('CharacterCreation');
   }
 
+  preload(): void {
+    preloadUiKit(this);
+  }
+
   create(): void {
-    const { width } = this.scale;
-
-    addCrispText(this, width / 2, 12, 'Création de personnage', {
-      fontSize: '14px',
-      color: GOLD,
-    }).setOrigin(0.5);
-
-    const raceRows = Math.ceil((Object.keys(RACES) as Race[]).length / GRID_COLS);
-    const raceGridTop = 40;
-    addCrispText(this, 12, raceGridTop - 12, 'Race', { fontSize: '10px', color: MUTED });
-    (Object.keys(RACES) as Race[]).forEach((race, i) => {
-      const col = i % GRID_COLS;
-      const row = Math.floor(i / GRID_COLS);
-      this.raceButtons[race] = this.createOption(
-        GRID_MARGIN_X + col * GRID_COL_W,
-        raceGridTop + row * GRID_ROW_H,
-        RACES[race].label,
-        () => {
-          this.race = race;
-          this.refresh();
-        },
-      );
-    });
-
-    const classGridTop = raceGridTop + raceRows * GRID_ROW_H + 18;
-    addCrispText(this, 12, classGridTop - 12, 'Classe', { fontSize: '10px', color: MUTED });
-    const classRows = Math.ceil((Object.keys(CLASSES) as CharClass[]).length / GRID_COLS);
-    (Object.keys(CLASSES) as CharClass[]).forEach((charClass, i) => {
-      const col = i % GRID_COLS;
-      const row = Math.floor(i / GRID_COLS);
-      this.classButtons[charClass] = this.createOption(
-        GRID_MARGIN_X + col * GRID_COL_W,
-        classGridTop + row * GRID_ROW_H,
-        CLASSES[charClass].label,
-        () => {
-          this.charClass = charClass;
-          this.refresh();
-        },
-      );
-    });
-
-    const infoTop = classGridTop + classRows * GRID_ROW_H + 14;
-    this.statsText = addCrispText(this, 12, infoTop, ' ', {
-      fontSize: '10px',
-      color: GOLD,
-      lineSpacing: 4,
-    });
-
-    this.skillsText = addCrispText(this, 12, infoTop + 46, ' ', {
-      fontSize: '8px',
-      color: MUTED,
-      wordWrap: { width: width - 24 },
-      lineSpacing: 1,
-    });
-
-    const startButton = addCrispText(this, width / 2, 366, 'Suivant', {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 8, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    startButton.on('pointerdown', () => this.confirm());
-
-    this.refresh();
+    this.render();
   }
 
-  private createOption(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
-    const text = addCrispText(this, x, y, label, {
-      fontSize: '10px',
-      color: GOLD,
-      backgroundColor: '#1c2b1c',
-      padding: { x: 5, y: 4 },
-    }).setInteractive({ useHandCursor: true });
-
-    text.on('pointerdown', onClick);
-    return text;
+  private picker<T extends string>(top: number, label: string, options: Record<T, { label: string }>, current: T, pick: (v: T) => void): number {
+    panelText(this, SCREEN_LEFT + 2, top, label, 8, INK.soft);
+    const keys = Object.keys(options) as T[];
+    const cols = buttonRow(3, SCREEN_LEFT, SCREEN_INNER_W, 4);
+    keys.forEach((key, i) => {
+      const { x, w } = cols[i % 3];
+      new KitButton(this, x, top + 12 + Math.floor(i / 3) * 24, w, 20, options[key].label, {
+        size: 9,
+        align: 'center',
+        state: key === current ? 'pressed' : 'normal',
+        onClick: () => {
+          pick(key);
+          this.render();
+        },
+      });
+    });
+    return top + 12 + Math.ceil(keys.length / 3) * 24;
   }
 
-  private refresh(): void {
-    (Object.keys(this.raceButtons) as Race[]).forEach((race) => {
-      const selected = race === this.race;
-      this.raceButtons[race].setBackgroundColor(selected ? GOLD : '#1c2b1c');
-      this.raceButtons[race].setColor(selected ? DARK : GOLD);
-    });
-    (Object.keys(this.classButtons) as CharClass[]).forEach((charClass) => {
-      const selected = charClass === this.charClass;
-      this.classButtons[charClass].setBackgroundColor(selected ? GOLD : '#1c2b1c');
-      this.classButtons[charClass].setColor(selected ? DARK : GOLD);
-    });
+  private render(): void {
+    this.children.removeAll(true);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Création du personnage', 12).setOrigin(0.5, 0);
+    let y = this.picker(32, 'Race', RACES, this.race, (r) => (this.race = r));
+    y = this.picker(y + 4, 'Classe', CLASSES, this.charClass, (c) => (this.charClass = c));
 
     const stats = computeStats(this.race, this.charClass);
     const maxHp = 20 + stats.vitality * 4;
-    const maxMp = manaMax(stats.intelligence);
     const resource = CLASS_RESOURCE[this.charClass];
     const resourceLine =
       resource === 'mana'
-        ? `Mana ${maxMp}`
+        ? `Mana ${manaMax(stats.intelligence)}`
         : resource === 'rage'
-          ? `Rage (0 à ${RAGE_MAX})`
+          ? `Rage 0 à ${RAGE_MAX}`
           : `Endurance ${enduranceMax(stats.vitality)}`;
-    this.statsText.setText(
-      [
-        `Force ${stats.strength}   Intelligence ${stats.intelligence}`,
-        `Agilité ${stats.agility}   Vitalité ${stats.vitality}`,
-        `PV ${maxHp}   ${resourceLine}`,
-      ].join('\n'),
-    );
+    panelText(this, this.scale.width / 2, y + 4, `Force ${stats.strength} · Intelligence ${stats.intelligence} · Agilité ${stats.agility}`, 8).setOrigin(0.5, 0);
+    panelText(this, this.scale.width / 2, y + 16, `Vitalité ${stats.vitality} · PV ${maxHp} · ${resourceLine}`, 8).setOrigin(0.5, 0);
 
     const starter = TALENTS[STARTER_SKILL[this.charClass]] as ActiveTalent;
-    const classLines = [
-      CLASSES[this.charClass].description,
-      `Départ : ${starter.name} (${starter.cost[0]} ${RESOURCE_LABELS[resource].toLowerCase()}) — ${starter.describe(starter.values[0])}`,
-      `Talents : ${BRANCH_NAMES[this.charClass].join(', ')}.`,
-    ];
-    const raceSkills = RACES[this.race].skills.join('\n');
-    this.skillsText.setText(`${classLines.join('\n')}\n\n${RACES[this.race].description}\n${raceSkills}`);
-  }
-
-  // The character itself is created after the mode is chosen (DifficultyScene).
-  private confirm(): void {
-    this.scene.start('Difficulty', { race: this.race, charClass: this.charClass });
+    const top = y + 32;
+    detailPanel(
+      this,
+      { text: `${RACES[this.race].label} ${CLASSES[this.charClass].label}`, color: INK.text },
+      [
+        { text: CLASSES[this.charClass].description, color: INK.text },
+        {
+          text: `Départ : ${starter.name} (${starter.cost[0]} ${RESOURCE_LABELS[resource].toLowerCase()}) : ${starter.describe(starter.values[0])}`,
+          color: INK.soft,
+        },
+        { text: `Talents : ${BRANCH_NAMES[this.charClass].join(', ')}.`, color: INK.soft },
+        { text: RACES[this.race].description, color: INK.text },
+        ...RACES[this.race].skills.map((skill) => ({ text: skill, color: INK.soft })),
+      ],
+      top,
+      340 - top,
+    );
+    actionRow(this, [
+      { label: 'Retour', onClick: () => this.scene.start('Title') },
+      // The character itself is created after the mode is chosen (DifficultyScene).
+      { label: 'Suivant', onClick: () => this.scene.start('Difficulty', { race: this.race, charClass: this.charClass }) },
+    ]);
   }
 }

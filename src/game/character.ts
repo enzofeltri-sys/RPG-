@@ -82,6 +82,12 @@ export interface Character {
   // Version of the racial stat bonuses this character was created with —
   // undefined = before the race pass (DESIGN.md), migrated on load.
   raceStatsVersion?: number;
+  // Difficulty mode (see difficulty.ts) — undefined on older saves = Normal.
+  difficulty?: 'easy' | 'normal' | 'hard';
+  // Nuzlocke, or Difficile + mort définitive: a defeat ends the game.
+  permadeath?: boolean;
+  // Randomizer option: the playthrough's shuffle seed (absent = off).
+  randomizerSeed?: number;
   // One-off message for the player (e.g. equipment the hands rule sent back
   // to the bag), shown and cleared by the next scene's CharacterSheetPanel.
   pendingNotice?: string;

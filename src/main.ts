@@ -3,6 +3,8 @@ import './fonts.css';
 import './pixel-art-styles.css';
 import { TitleScene } from './scenes/TitleScene';
 import { CharacterCreationScene } from './scenes/CharacterCreationScene';
+import { DifficultyScene } from './scenes/DifficultyScene';
+import { GameOverScene } from './scenes/GameOverScene';
 import { HamletScene } from './scenes/HamletScene';
 import { VillageScene } from './scenes/VillageScene';
 import { FieldScene } from './scenes/FieldScene';
@@ -138,6 +140,8 @@ async function boot(): Promise<void> {
     scene: [
       TitleScene,
       CharacterCreationScene,
+      DifficultyScene,
+      GameOverScene,
       HamletScene,
       VillageScene,
       FieldScene,

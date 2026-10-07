@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { RACES, CLASSES, Race, CharClass, computeStats, createCharacter } from '../game/character';
+import { RACES, CLASSES, Race, CharClass, computeStats } from '../game/character';
 import {
   ActiveTalent,
   BRANCH_NAMES,
@@ -11,7 +11,6 @@ import {
   enduranceMax,
   manaMax,
 } from '../game/talents';
-import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
 
 const GOLD = '#e8d9b5';
@@ -94,7 +93,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       lineSpacing: 1,
     });
 
-    const startButton = addCrispText(this, width / 2, 366, "Commencer l'aventure", {
+    const startButton = addCrispText(this, width / 2, 366, 'Suivant', {
       fontSize: '13px',
       color: DARK,
       backgroundColor: GOLD,
@@ -160,9 +159,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.skillsText.setText(`${classLines.join('\n')}\n\n${RACES[this.race].description}\n${raceSkills}`);
   }
 
-  private async confirm(): Promise<void> {
-    const character = createCharacter(this.race, this.charClass);
-    await SaveManager.saveCharacter(character);
-    this.scene.start('Hamlet');
+  // The character itself is created after the mode is chosen (DifficultyScene).
+  private confirm(): void {
+    this.scene.start('Difficulty', { race: this.race, charClass: this.charClass });
   }
 }

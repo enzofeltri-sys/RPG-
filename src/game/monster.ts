@@ -21,12 +21,20 @@ const TIER_STAT_MULTIPLIER: Record<EncounterTier, { hp: number; attack: number; 
   legendary: { hp: 2.5, attack: 1.7, xp: 2.5, gold: 2.5 },
 };
 
-export function rollEncounterTier(isBoss: boolean): EncounterTier {
+// eliteMultiplier raises both chances (Difficile mode, see difficulty.ts).
+export function rollEncounterTier(isBoss: boolean, eliteMultiplier = 1): EncounterTier {
   if (isBoss) return 'normal';
   const roll = Math.random();
-  if (roll < LEGENDARY_CHANCE) return 'legendary';
-  if (roll < LEGENDARY_CHANCE + ELITE_CHANCE) return 'elite';
+  if (roll < LEGENDARY_CHANCE * eliteMultiplier) return 'legendary';
+  if (roll < (LEGENDARY_CHANCE + ELITE_CHANCE) * eliteMultiplier) return 'elite';
   return 'normal';
+}
+
+// Difficulty adjustments applied on top of the level curve.
+export interface MonsterModifiers {
+  monsterHp: number;
+  monsterAttack: number;
+  eliteChance: number;
 }
 
 export interface Monster {
@@ -629,13 +637,13 @@ export function standardMonsterAttack(level: number): number {
 // already the toughest, best-rewarding version of themselves by design, so
 // this invariant is enforced here rather than trusted to every call site.
 // level defaults to the monster's native level.
-export function createMonster(id: string, tier?: EncounterTier, level?: number): Monster {
+export function createMonster(id: string, tier?: EncounterTier, level?: number, mods?: MonsterModifiers): Monster {
   const template = TEMPLATES[id];
   if (!template) {
     throw new Error(`Unknown monster template: ${id}`);
   }
   const isBoss = Boolean(template.isBoss);
-  const resolvedTier = isBoss ? 'normal' : (tier ?? rollEncounterTier(false));
+  const resolvedTier = isBoss ? 'normal' : (tier ?? rollEncounterTier(false, mods?.eliteChance ?? 1));
   const mult = TIER_STAT_MULTIPLIER[resolvedTier];
   const native = NATIVE_LEVEL[id] ?? 1;
   const at = Math.max(1, Math.round(level ?? native));
@@ -649,14 +657,14 @@ export function createMonster(id: string, tier?: EncounterTier, level?: number):
     ? MONSTER_TUNING.bossAttack * weight.attack
     : Math.sqrt(template.attack / TEMPLATE_SCALE.attack(native));
   const rewardScale = TEMPLATE_SCALE.xp(at) / TEMPLATE_SCALE.xp(native);
-  const maxHp = Math.max(1, Math.round(hpShare * standardMonsterHp(at) * mult.hp));
+  const maxHp = Math.max(1, Math.round(hpShare * standardMonsterHp(at) * mult.hp * (mods?.monsterHp ?? 1)));
   return {
     id: template.id,
     name: template.name + TIER_LABELS[resolvedTier],
     level: at,
     hp: maxHp,
     maxHp,
-    attack: Math.max(1, Math.round(attackShare * standardMonsterAttack(at) * mult.attack)),
+    attack: Math.max(1, Math.round(attackShare * standardMonsterAttack(at) * mult.attack * (mods?.monsterAttack ?? 1))),
     xpReward: Math.round(template.xpReward * rewardScale * mult.xp),
     goldReward: Math.round(template.goldReward * rewardScale * mult.gold),
     isBoss,
@@ -664,7 +672,8 @@ export function createMonster(id: string, tier?: EncounterTier, level?: number):
   };
 }
 
-// Kept for the Field's random encounters, which only ever fight this one test monster.
-export function createTestMonster(): Monster {
-  return createMonster('corrupted_wolf');
+
+// Every monster id, for the Randomizer's pools (see difficulty.ts).
+export function monsterIds(): { id: string; isBoss: boolean }[] {
+  return Object.values(TEMPLATES).map((t) => ({ id: t.id, isBoss: Boolean(t.isBoss) }));
 }

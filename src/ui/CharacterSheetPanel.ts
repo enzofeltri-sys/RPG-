@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Character, RACES, CLASSES } from '../game/character';
 import { talentPointsAvailable } from '../game/talents';
 import { SaveManager } from '../save/SaveManager';
+import { DIFFICULTY_LABELS, Difficulty, canChangeDifficulty, difficultyOf, modeLabel } from '../game/difficulty';
 import { ReturnSceneKey, returnSceneStartData } from './returnContext';
 import { addCrispText } from './text';
 
@@ -140,7 +141,7 @@ export class CharacterSheetPanel {
       .setVisible(false);
     this.clearCacheButton.on('pointerdown', () => clearCacheAndReload());
 
-    this.backFromOptionsButton = addCrispText(scene, 20, 200, 'Retour', {
+    this.backFromOptionsButton = addCrispText(scene, 20, 320, 'Retour', {
       fontSize: '10px',
       color: DARK,
       backgroundColor: GOLD,
@@ -163,7 +164,46 @@ export class CharacterSheetPanel {
       this.quitButton,
       this.optionsButton,
     ];
-    this.optionsViewObjects = [this.optionsInfoText, this.clearCacheButton, this.backFromOptionsButton];
+    // Difficulty: Facile/Normal/Difficile switch freely; permadeath and the
+    // Randomizer stay as chosen at creation.
+    const modeText = addCrispText(scene, 20, 200, '', {
+      fontSize: '10px',
+      color: GOLD,
+      lineSpacing: 4,
+      wordWrap: { width: 170 },
+    })
+      .setScrollFactor(0)
+      .setDepth(1001)
+      .setVisible(false);
+    const refreshMode = () => {
+      const lines = [`Mode : ${modeLabel(character)}${canChangeDifficulty(character) ? '' : ' (définitif)'}`];
+      if (character.randomizerSeed !== undefined) lines.push('Randomizer actif');
+      modeText.setText(lines.join('\n'));
+    };
+    refreshMode();
+    const modeObjects: Phaser.GameObjects.Text[] = [modeText];
+    if (canChangeDifficulty(character)) {
+      const order: Difficulty[] = ['easy', 'normal', 'hard'];
+      const modeButton = addCrispText(scene, 20, 250, 'Changer la difficulté', {
+        fontSize: '10px',
+        color: DARK,
+        backgroundColor: GOLD,
+        padding: { x: 6, y: 5 },
+      })
+        .setScrollFactor(0)
+        .setDepth(1001)
+        .setInteractive({ useHandCursor: true })
+        .setVisible(false);
+      modeButton.on('pointerdown', () => {
+        const next = order[(order.indexOf(difficultyOf(character)) + 1) % order.length];
+        character.difficulty = next;
+        refreshMode();
+        void SaveManager.saveCharacter(character);
+        modeButton.setText(`Changer la difficulté (${DIFFICULTY_LABELS[next]})`);
+      });
+      modeObjects.push(modeButton);
+    }
+    this.optionsViewObjects = [this.optionsInfoText, this.clearCacheButton, this.backFromOptionsButton, ...modeObjects];
 
     this.container = scene.add.container(0, 0, [panelBg]).setScrollFactor(0).setDepth(999);
     this.container.setVisible(false);

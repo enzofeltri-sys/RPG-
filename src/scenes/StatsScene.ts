@@ -8,6 +8,7 @@ import {
   getEffectiveStats,
   allocateStatPoint,
 } from '../game/character';
+import { modeLabel } from '../game/difficulty';
 import { CLASS_RESOURCE, MAX_LEVEL, RAGE_MAX, enduranceMax } from '../game/talents';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
@@ -56,7 +57,7 @@ export class StatsScene extends Phaser.Scene {
       12,
       36,
       [
-        `${raceLabel} ${classLabel}`,
+        `${raceLabel} ${classLabel} — ${modeLabel(this.character)}${this.character.randomizerSeed !== undefined ? ' · Randomizer' : ''}`,
         this.character.level >= MAX_LEVEL
           ? `Niveau ${this.character.level} (maximum)`
           : `Niveau ${this.character.level}  (XP ${this.character.xp}/${xpToNextLevel(this.character.level)})`,

@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { Character, grantXp } from '../game/character';
-import { Monster, EncounterTier, createTestMonster, createMonster } from '../game/monster';
+import { Monster, EncounterTier, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { ConsumableId } from '../game/consumable';
-import { ActionResult, CombatEngine, DEFEAT_GOLD_LOSS } from '../game/combatEngine';
+import { ActionResult, CombatEngine } from '../game/combatEngine';
+import { DIFFICULTY_RULES, VICTORY_HEAL, difficultyOf, modeLabel, randomizedMonsterId, seededShuffle } from '../game/difficulty';
 import { ResourceKind, TALENTS, talentPointsTotal } from '../game/talents';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
@@ -136,6 +137,7 @@ export class CombatScene extends Phaser.Scene {
   private engine!: CombatEngine;
   private returnScene: ReturnSceneKey = 'Field';
   private monsterId?: string;
+  private originalMonsterId = 'corrupted_wolf';
   private tier?: EncounterTier;
   private returnX?: number;
   private returnY?: number;
@@ -174,7 +176,7 @@ export class CombatScene extends Phaser.Scene {
 
   // Runs after init() (so this.monsterId is already set) and before
   // create() — Phaser guarantees the texture is ready by the time create()
-  // reads it. Falls back to createTestMonster()'s id to match the same
+  // reads it. Falls back to the wolf (random Field encounters) to match the same
   // fallback used below, so preload and create never disagree on which
   // sprite this encounter needs.
   preload(): void {
@@ -189,10 +191,25 @@ export class CombatScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     this.character = save!.character!;
-    this.monster = this.monsterId
-      ? createMonster(this.monsterId, this.tier, ZONE_LEVEL[this.returnScene])
-      : createTestMonster();
+    // Randomizer: the zone's monster is swapped for another of the same kind
+    // (regular or boss), while quests still count the original one.
+    this.originalMonsterId = this.monsterId ?? 'corrupted_wolf';
+    const shownId = randomizedMonsterId(this.character, this.returnScene, this.originalMonsterId);
+    this.monster = createMonster(
+      shownId,
+      this.tier,
+      ZONE_LEVEL[this.returnScene],
+      DIFFICULTY_RULES[difficultyOf(this.character)],
+    );
     this.engine = new CombatEngine(this.character, this.monster);
+    const shownKey = `monster-${shownId}`;
+    if (!this.textures.exists(shownKey)) {
+      await new Promise<void>((resolve) => {
+        this.load.image(shownKey, `${import.meta.env.BASE_URL}sprites/monsters/${shownId}.png`);
+        this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+        this.load.start();
+      });
+    }
 
     addCrispText(this, width / 2, 30, this.monster.name, {
       fontSize: '15px',
@@ -500,6 +517,13 @@ export class CombatScene extends Phaser.Scene {
     const goldReward = this.engine.goldReward();
     const levelBefore = this.character.level;
     const levelsGained = grantXp(this.character, this.monster.xpReward);
+    // A level-up already refilled everything; otherwise a victory restores
+    // a quarter of max HP.
+    const hpBeforeHeal = this.character.hp;
+    if (levelsGained === 0) {
+      this.character.hp = Math.min(this.character.maxHp, this.character.hp + Math.round(this.character.maxHp * VICTORY_HEAL));
+    }
+    const victoryHeal = this.character.hp - hpBeforeHeal;
     this.character.gold += goldReward;
 
     const lootTier = DUNGEON_LOOT_TIER[this.returnScene] ?? 1;
@@ -516,7 +540,7 @@ export class CombatScene extends Phaser.Scene {
       this.character.inventory.push(loot);
     }
 
-    const signature = SIGNATURE_REWARDS[this.monster.id];
+    const signature = this.signatureReward();
     const signatureItem = signature ? createItem(signature.baseId, signature.rarity) : null;
     if (signatureItem) {
       this.character.inventory.push(signatureItem);
@@ -559,8 +583,8 @@ export class CombatScene extends Phaser.Scene {
       );
     }
 
-    const completedQuests = advanceQuestsOnDefeat(this.character, this.monster.id);
-    const mainQuestAdvanced = advanceMainQuestOnBossDefeat(this.character, this.monster.id);
+    const completedQuests = advanceQuestsOnDefeat(this.character, this.originalMonsterId);
+    const mainQuestAdvanced = advanceMainQuestOnBossDefeat(this.character, this.originalMonsterId);
 
     await SaveManager.saveCharacter(this.character);
     this.refreshBars();
@@ -571,7 +595,8 @@ export class CombatScene extends Phaser.Scene {
         ? ` Niveau ${this.character.level} : +${3 * levelsGained} points de statistique` +
           (talentGain > 0 ? `, +${talentGain} point${talentGain > 1 ? 's' : ''} de talent !` : ' !')
         : '';
-    const xpPart = `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or.${levelPart}`;
+    const healPart = victoryHeal > 0 ? ` +${victoryHeal} PV.` : '';
+    const xpPart = `Victoire ! +${this.monster.xpReward} XP, +${goldReward} or.${levelPart}${healPart}`;
     const lootPart = loot ? ` Butin : ${loot.name} (${RARITY_LABELS[loot.rarity]}).` : '';
     const signaturePart = signatureItem ? ` Récompense unique : ${signatureItem.name} !` : '';
     const materialPart =
@@ -595,17 +620,51 @@ export class CombatScene extends Phaser.Scene {
   private async defeat(): Promise<void> {
     this.ended = true;
     this.clearMenu();
-    this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
-    const goldLost = Math.floor(this.character.gold * DEFEAT_GOLD_LOSS);
-    this.character.gold -= goldLost;
-    await SaveManager.saveCharacter(this.character);
     playDefeat();
+    if (this.character.permadeath) {
+      // Mort définitive: the save is gone, the run ends on its epitaph.
+      const epitaph = {
+        race: this.character.race,
+        charClass: this.character.class,
+        level: this.character.level,
+        monster: this.monster.name,
+        scene: this.returnScene,
+        mode: modeLabel(this.character),
+      };
+      await SaveManager.deleteSave();
+      this.logText.setText(`${this.monster.name} vous terrasse. Votre aventure s'achève ici.`);
+      this.showContinue(() => {
+        this.cameras.main.fadeOut(400, 0, 0, 0);
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('GameOver', epitaph));
+      });
+      return;
+    }
+    const rules = DIFFICULTY_RULES[difficultyOf(this.character)];
+    this.character.hp = Math.max(1, Math.floor(this.character.maxHp * 0.2));
+    const goldLost = Math.floor(this.character.gold * rules.defeatGoldLoss);
+    this.character.gold -= goldLost;
+    const xpLost = rules.defeatLosesXp ? this.character.xp : 0;
+    if (rules.defeatLosesXp) this.character.xp = 0;
+    await SaveManager.saveCharacter(this.character);
+    const losses = [goldLost > 0 ? `${goldLost} pièces d'or` : '', xpLost > 0 ? `${xpLost} XP` : ''].filter(Boolean);
     this.logText.setText(
-      goldLost > 0
-        ? `Vous avez été vaincu... Vous perdez ${goldLost} pièces d'or et êtes ramené au hameau.`
+      losses.length > 0
+        ? `Vous avez été vaincu... Vous perdez ${losses.join(' et ')} et êtes ramené au hameau.`
         : 'Vous avez été vaincu... et ramené au hameau.',
     );
     this.showContinue(() => this.leaveTo('Hamlet'));
+  }
+
+  // The zone's unique boss reward; the Randomizer shuffles which boss
+  // carries which (fixed for the whole playthrough).
+  private signatureReward(): { baseId: string; rarity: Rarity } | undefined {
+    const seed = this.character.randomizerSeed;
+    if (seed === undefined) return SIGNATURE_REWARDS[this.originalMonsterId];
+    const keys = Object.keys(SIGNATURE_REWARDS);
+    const index = keys.indexOf(this.originalMonsterId);
+    if (index < 0) return undefined;
+    const rewards = seededShuffle(seed, 'signature', keys.map((k) => SIGNATURE_REWARDS[k]));
+    return rewards[index];
   }
 
   private showContinue(onClick: () => void): void {

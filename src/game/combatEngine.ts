@@ -76,7 +76,6 @@ import {
 export const BASE_CRIT_CHANCE = 0.05;
 export const CRIT_MULTIPLIER = 1.5;
 export const KILLER_CRIT_MULTIPLIER = 1.8;
-export const DEFEAT_GOLD_LOSS = 0.2;
 
 // 1% per point of Agilité plus talent bonuses, capped so dodging can never
 // become the whole strategy (Pas de côté raises the cap to 40%).

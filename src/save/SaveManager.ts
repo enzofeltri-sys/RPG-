@@ -56,6 +56,18 @@ export class SaveManager {
     });
   }
 
+  // Mort définitive: the slot is wiped, so the title screen no longer offers
+  // to continue.
+  static async deleteSave(): Promise<void> {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).delete(SLOT_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   static async createNewGame(): Promise<SaveData> {
     const now = Date.now();
     const data: SaveData = { version: 1, createdAt: now, updatedAt: now };

@@ -4,6 +4,7 @@
 //
 //   npm run simulate              -> summary table
 //   npm run simulate -- --detail  -> also every regular monster per zone
+//   npm run simulate -- --difficulty=easy|hard
 //
 // The story path, the XP a player has at each zone and the gear they wear
 // are modelled here (see ZONES, levelAt, gearProgression); the fights themselves use
@@ -14,6 +15,7 @@ import { CombatEngine } from '../../src/game/combatEngine';
 import { EquipSlot, Item, ItemStats, WeaponType, rollLootItem } from '../../src/game/item';
 import { BOSS_WEIGHTS, MONSTER_TUNING, createMonster, standardMonsterAttack, standardMonsterHp } from '../../src/game/monster';
 import { ZONE_LEVEL } from '../../src/game/worldMap';
+import { DIFFICULTY_RULES, Difficulty } from '../../src/game/difficulty';
 import type { ReturnSceneKey } from '../../src/ui/returnContext';
 import { handRule, handSlotAccepts } from '../../src/game/weapons';
 import { monsterKit } from '../../src/game/monsterKit';
@@ -87,7 +89,7 @@ function zoneLevel(zone: Zone): number {
 }
 
 function spawn(zone: Zone, id: string) {
-  return createMonster(id, 'normal', zoneLevel(zone));
+  return createMonster(id, 'normal', zoneLevel(zone), DIFFICULTY_RULES[DIFFICULTY]);
 }
 
 // Player level on entering each zone, and when reaching its boss.
@@ -384,6 +386,7 @@ function newStats(): FightStats {
 
 const RUNS = Number(process.argv.find((a) => a.startsWith('--runs='))?.slice(7) ?? 150);
 const DETAIL = process.argv.includes('--detail');
+const DIFFICULTY = (process.argv.find((a) => a.startsWith('--difficulty='))?.slice(13) ?? 'normal') as Difficulty;
 const BOSS_TURNS = Number(process.argv.find((a) => a.startsWith('--boss-turns='))?.slice(13) ?? 11);
 const REGULAR_TURNS = Number(process.argv.find((a) => a.startsWith('--turns='))?.slice(8) ?? 5);
 

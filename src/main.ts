@@ -69,8 +69,11 @@ const GAME_WIDTH = 216;
 const GAME_HEIGHT = gameHeight();
 
 function gameHeight(): number {
-  const w = window.innerWidth || 1;
-  const h = window.innerHeight || 1;
+  // The area the game gets (index.html keeps it clear of the status bar
+  // and the home indicator).
+  const box = document.getElementById('game')?.getBoundingClientRect();
+  const w = box?.width || window.innerWidth || 1;
+  const h = box?.height || window.innerHeight || 1;
   const rows = Math.round((GAME_WIDTH * h) / w / 2) * 2;
   return Math.max(384, Math.min(520, rows));
 }

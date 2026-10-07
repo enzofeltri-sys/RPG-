@@ -11,6 +11,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
 import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import type { PixelText } from '../ui/pixelFont';
 
 const CHEST_ID = 'warehouse_chest_1';
 
@@ -54,7 +55,7 @@ export class WarehouseScene extends Phaser.Scene {
   private clearedMonsterIds = new Set<string>();
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
-  private gateLabel?: Phaser.GameObjects.Text;
+  private gateLabel?: PixelText;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private spawnX?: number;

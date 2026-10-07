@@ -13,7 +13,7 @@ export function addSignpost(scene: Phaser.Scene, x: number, y: number, direction
   placeProp(scene, 'signpost', Math.round(x), Math.round(y) + 12, 3);
 
   addCrispText(scene, x, y - 30, directions.join('\n'), {
-    fontSize: '9px',
+    fontSize: '7px',
     ...EXIT_TEXT,
     align: 'center',
     lineSpacing: 3,

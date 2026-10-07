@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 import { INK, KitButton, drawPanel, panelText } from './kit';
+import type { PixelText } from './pixelFont';
 
 export interface DialogButton {
   label: string;
   onClick: () => void;
 }
 
-const DEPTH = 800;
+// Above world labels (900) and the zone title (960).
+const DEPTH = 970;
 const PANEL_X = 6;
 const TEXT_SIZE = 9;
 const BUTTON_H = 24;
@@ -42,7 +44,7 @@ export class DialogBox {
     return Math.min(196, available);
   }
 
-  private measure(probe: Phaser.GameObjects.Text, text: string): number {
+  private measure(probe: PixelText, text: string): number {
     probe.setText(text);
     return probe.height;
   }
@@ -95,18 +97,20 @@ export class DialogBox {
       wordWrap: { width: this.width - 24 },
       lineSpacing: 3,
     });
-    const panelH = Math.ceil((body.height + 30 + buttons.length * BUTTON_STEP) / 2) * 2;
+    // A page count ("1/2") gets a row of its own above the text.
+    const paged = this.pages.length > 1 ? 6 : 0;
+    const panelH = Math.ceil((body.height + 30 + paged + buttons.length * BUTTON_STEP) / 2) * 2;
     const top = Math.round((scene.scale.height - 6 - panelH) / 2) * 2;
     const g = scene.add.graphics();
     drawPanel(g, PANEL_X, top, this.width, panelH);
-    body.setY(top + 12);
+    body.setY(top + 12 + paged);
     this.objects.push(g, body);
     if (this.pages.length > 1) {
       this.objects.push(
-        panelText(scene, PANEL_X + this.width - 12, top + 6, `${this.page + 1}/${this.pages.length}`, 7, INK.soft).setOrigin(1, 0),
+        panelText(scene, PANEL_X + this.width - 12, top + 5, `${this.page + 1}/${this.pages.length}`, 7, INK.soft).setOrigin(1, 0),
       );
     }
-    const buttonsTop = top + 18 + body.height;
+    const buttonsTop = top + 18 + paged + body.height;
     buttons.forEach((button, i) => {
       this.objects.push(
         new KitButton(scene, PANEL_X + 12, buttonsTop + i * BUTTON_STEP, this.width - 24, BUTTON_H, button.label, {

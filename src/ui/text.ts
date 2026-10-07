@@ -1,12 +1,9 @@
 import Phaser from 'phaser';
+import { PixelText } from './pixelFont';
 
-const CRISP_RESOLUTION = 3;
-
-// VT323 (see fonts.css) is a monospaced pixel/terminal font — legible at
-// small sizes, but its glyphs sit smaller within their em box than the
-// Georgia serif this UI was originally sized for. Scaling every requested
-// fontSize up compensates for that in one place instead of hand-tuning
-// dozens of call sites.
+// Sizes are asked for as they were made for the old vector font, which
+// were scaled up by 1.2 in one place; setFontSize() callers pass scaled
+// sizes. The pixel font maps them to 1x or 2x.
 const FONT_SIZE_MULTIPLIER = 1.2;
 
 function scaleFontSize(fontSize: string | number | undefined): string | number | undefined {
@@ -16,24 +13,18 @@ function scaleFontSize(fontSize: string | number | undefined): string | number |
   return `${Math.round(parseFloat(match[1]) * FONT_SIZE_MULTIPLIER)}px`;
 }
 
-// The game renders with pixelArt:true (nearest-neighbor scaling) so sprites stay crisp,
-// but that same filtering makes normal anti-aliased text look blurry/chunky once scaled
-// up to fill a phone screen. Rendering text at a higher internal resolution and forcing
-// linear filtering on just that texture keeps UI text legible without affecting sprites.
+// Every text of the game, in the pixel font (ui/pixelFont.ts): crisp on
+// the pixel grid instead of a vector font blurred at 8–12 px. Takes the
+// same style options as Phaser text (color, outline, shadow, word wrap,
+// alignment) and maps the requested size to 1x or 2x.
 export function addCrispText(
   scene: Phaser.Scene,
   x: number,
   y: number,
   content: string | string[],
   style: Phaser.Types.GameObjects.Text.TextStyle = {},
-): Phaser.GameObjects.Text {
-  const text = scene.add.text(x, y, content, {
-    fontFamily: 'VT323, Menlo, monospace',
-    resolution: CRISP_RESOLUTION,
-    ...style,
-    fontSize: scaleFontSize(style.fontSize) ?? '17px',
-  });
-  text.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+): PixelText {
+  const text = new PixelText(scene, Math.round(x), Math.round(y), content, { ...style, fontSize: scaleFontSize(style.fontSize) ?? '20px' });
   // World labels (names, exits, monsters — ui/kit.ts's outlined styles)
   // float above the world art, which is depth-sorted by ground y.
   if (style.stroke === '#221c29' && style.strokeThickness === 3) text.setDepth(900);

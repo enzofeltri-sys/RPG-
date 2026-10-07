@@ -173,8 +173,8 @@ export class MapScene extends Phaser.Scene {
         this,
         { text: 'Légende', color: INK.text },
         [
-          { text: 'Rouge : tu es ici · Bleu : une quête mène ici.', color: INK.soft },
-          { text: 'Touche un lieu pour voir le niveau de ses monstres.', color: INK.soft },
+          { text: 'Rouge : tu es ici. Bleu : une quête.', color: INK.soft },
+          { text: 'Touche un lieu : niveau des monstres.', color: INK.soft },
         ],
         top,
         340 - top,

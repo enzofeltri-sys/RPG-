@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { addCrispText } from './text';
+import type { PixelText } from './pixelFont';
 
 // UI style A "Parchemin & bois" (graphics pass, UI step), drawn by the game
 // itself so panels, buttons and bars stay crisp at any size. Same palette
@@ -152,7 +153,7 @@ export function panelText(
   size: number,
   color: string = INK.text,
   extra: Phaser.Types.GameObjects.Text.TextStyle = {},
-): Phaser.GameObjects.Text {
+): PixelText {
   return addCrispText(scene, x, y, text, { fontSize: `${size}px`, color, ...extra });
 }
 
@@ -180,9 +181,9 @@ export interface KitButtonOptions {
 // right. Disabled buttons stay tappable so the caller can explain why.
 export class KitButton {
   private readonly g: Phaser.GameObjects.Graphics;
-  private readonly label: Phaser.GameObjects.Text;
-  private readonly costText?: Phaser.GameObjects.Text;
-  private readonly tagText?: Phaser.GameObjects.Text;
+  private readonly label: PixelText;
+  private readonly costText?: PixelText;
+  private readonly tagText?: PixelText;
   private readonly iconImage?: Phaser.GameObjects.Image;
   private readonly zone: Phaser.GameObjects.Zone;
   private state: ButtonState;
@@ -227,10 +228,11 @@ export class KitButton {
         ...shadowed(INK.gold, INK.buttonShadow),
       }).setOrigin(1, 0.5);
     }
-    // A label too long for the button shrinks a notch, then ends in "…".
-    if (!centered) {
-      const room = x + width - tx - (this.costText ? this.costText.width + 10 : 6);
-      if (this.label.width > room && size > 8) this.label.setFontSize(Math.round(8 * 1.2));
+    // A label too long for the button switches to the narrow cut of the
+    // font, then ends in "…".
+    {
+      const room = centered ? width - 8 : x + width - tx - (this.costText ? this.costText.width + 10 : 6);
+      if (this.label.width > room) this.label.setNarrow();
       if (this.label.width > room) {
         let t = text;
         while (t.length > 1 && this.label.width > room) {

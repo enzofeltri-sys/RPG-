@@ -16,6 +16,7 @@ import { ChipRow, INK, KitBar, KitButton, PAL, addPanel, drawPanel, panelText, p
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
 import { heroLook } from '../art/heroLook';
+import type { PixelText } from '../ui/pixelFont';
 
 // Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
 // "élite"/"légendaire" the same way they already read rare/épique loot,
@@ -145,14 +146,14 @@ export class CombatScene extends Phaser.Scene {
   private busy = false;
   private ended = false;
 
-  private logText!: Phaser.GameObjects.Text;
+  private logText!: PixelText;
   private logPanel!: Phaser.GameObjects.Graphics;
   private enemyHpBar!: KitBar;
-  private enemyHpText!: Phaser.GameObjects.Text;
+  private enemyHpText!: PixelText;
   private playerHpBar!: KitBar;
-  private playerHpText!: Phaser.GameObjects.Text;
+  private playerHpText!: PixelText;
   private resourceBar!: KitBar;
-  private resourceText!: Phaser.GameObjects.Text;
+  private resourceText!: PixelText;
   private monsterChips!: ChipRow;
   private playerChips!: ChipRow;
   private telegraphBanner: Phaser.GameObjects.GameObject[] = [];
@@ -221,13 +222,14 @@ export class CombatScene extends Phaser.Scene {
     addPanel(this, 6, 8, 136, 66);
     const nameColor = this.monster.isBoss ? INK.danger : TIER_NAME_COLOR[this.monster.tier];
     const name = panelText(this, 14, 13, this.monster.name, 10, nameColor);
-    if (name.width > 120) name.setFontSize(Math.round(8 * 1.2));
+    if (name.width > 120) name.setNarrow();
     // A boss reads from its red name; the line stays short next to the HP.
     const kind = `Niv. ${this.monster.level} · ${this.engine.traits.label}`;
     panelText(this, 14, 29, kind, 8);
     this.enemyHpText = panelText(this, 134, 29, '', 8).setOrigin(1, 0);
     this.enemyHpBar = new KitBar(this, 14, 44, 120, PAL.x, PAL.y);
-    panelText(this, 14, 53, this.engine.monsterWeaknessLine(), 8, INK.soft);
+    const weakness = panelText(this, 14, 53, this.engine.monsterWeaknessLine(), 8, INK.soft, { wordWrap: { width: 124 } });
+    if (weakness.height > 12) weakness.setNarrow();
     this.monsterChips = new ChipRow(this, 8, 78, true, 140);
 
     if (this.monster.tier !== 'normal') {

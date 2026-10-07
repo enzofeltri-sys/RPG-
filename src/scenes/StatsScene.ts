@@ -131,12 +131,15 @@ export class StatsScene extends Phaser.Scene {
   private statRow(entry: (typeof ALLOCATABLE_STATS)[number], y: number, effective: number): void {
     const base = this.character.stats[entry.stat];
     const x = LEFT + 10;
-    panelText(this, x, y + 2, entry.label, 9);
-    const value = panelText(this, LEFT + INNER_W - 40, y + 2, `${base}`, 10).setOrigin(1, 0);
+    panelText(this, x, y + 1, entry.label, 9);
+    const value = panelText(this, LEFT + INNER_W - 40, y + 1, `${base}`, 10).setOrigin(1, 0);
     if (effective !== base) {
-      panelText(this, value.x - value.width - 4, y + 3, `(${effective} équipé)`, 8, INK.soft).setOrigin(1, 0);
+      panelText(this, value.x - value.width - 4, y + 1, `(${effective} équipé)`, 8, INK.soft).setOrigin(1, 0);
     }
-    panelText(this, x, y + 16, entry.effect(CLASS_RESOURCE[this.character.class]), 7, INK.soft);
+    // Up to two lines beside the "+" button.
+    panelText(this, x, y + 13, entry.effect(CLASS_RESOURCE[this.character.class]), 7, INK.soft, {
+      wordWrap: { width: INNER_W - 50 },
+    });
     const hasPoints = this.character.statPoints > 0;
     new KitButton(this, LEFT + INNER_W - 34, y + 2, 24, 24, '+', {
       size: 12,

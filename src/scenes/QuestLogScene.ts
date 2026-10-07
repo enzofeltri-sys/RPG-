@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { fitText } from '../ui/pixelFont';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress } from '../game/quest';
 import { MAIN_QUEST_TITLE, MainQuestStage, getMainQuestStage } from '../game/mainQuest';
@@ -633,8 +634,8 @@ export class QuestLogScene extends Phaser.Scene {
     const main = MAIN_QUEST_STATUS[getMainQuestStage(this.character)];
     addPanel(this, SCREEN_LEFT, 34, SCREEN_INNER_W, 66);
     this.add.image(SCREEN_LEFT + 8, 42, 'ui-icon-star').setOrigin(0, 0);
-    panelText(this, SCREEN_LEFT + 28, 43, MAIN_QUEST_TITLE, 9);
-    panelText(this, SCREEN_LEFT + SCREEN_INNER_W - 10, 44, main.label, 7, main.color).setOrigin(1, 0);
+    const tag = panelText(this, SCREEN_LEFT + SCREEN_INNER_W - 10, 44, main.label, 7, main.color).setOrigin(1, 0);
+    fitText(panelText(this, SCREEN_LEFT + 28, 43, MAIN_QUEST_TITLE, 9), tag.x - tag.width - 6 - (SCREEN_LEFT + 28));
     const objective = panelText(this, SCREEN_LEFT + 10, 62, main.description, 8, INK.text, {
       wordWrap: { width: SCREEN_INNER_W - 20 },
       lineSpacing: 1,

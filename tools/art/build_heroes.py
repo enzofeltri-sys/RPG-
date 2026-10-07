@@ -2,8 +2,9 @@
 
 Usage: python3 tools/art/build_heroes.py   (writes into public/sprites/heroes/)
 
-- <race>_<class>.png: 3 columns (stepA, idle, stepB) x 4 rows (down, left,
-  right, up) of 24x32 frames, 1 art pixel = 1 game pixel like the world.
+- <race>_<class>.png: 4 columns (stepA, idle, stepB, breathe) x 4 rows
+  (down, left, right, up) of 24x32 frames, 1 art pixel = 1 game pixel like
+  the world.
 - <race>_<class>_face.png: head and shoulders for the interface, at 2x
   (the interface's pixel size), 32x26.
 """
@@ -15,7 +16,6 @@ from PIL import Image
 import heroes
 
 OUT = Path(__file__).resolve().parents[2] / 'public/sprites/heroes'
-VIEWS = ['down', 'left', 'right', 'up']
 
 
 def main() -> None:
@@ -23,10 +23,11 @@ def main() -> None:
     for race in heroes.RACES:
         for cls in heroes.CLASSES:
             hero = heroes.Hero(race, cls)
-            sheet = Image.new('RGBA', (heroes.W * 3, heroes.H * 4), (0, 0, 0, 0))
-            for row, view in enumerate(VIEWS):
-                for col, step in enumerate((-1, 0, 1)):
-                    sheet.paste(hero.frame(view, step), (col * heroes.W, row * heroes.H))
+            cols = len(heroes.COLUMNS)
+            sheet = Image.new('RGBA', (heroes.W * cols, heroes.H * len(heroes.VIEWS)), (0, 0, 0, 0))
+            for row, view in enumerate(heroes.VIEWS):
+                for col, (step, breathe) in enumerate(heroes.COLUMNS):
+                    sheet.paste(hero.frame(view, step, breathe), (col * heroes.W, row * heroes.H))
             sheet.save(OUT / f'{race}_{cls}.png')
             top = hero.rows()['head_top']
             face = hero.frame('down', 0).crop((4, top - 1, 20, top + 12))

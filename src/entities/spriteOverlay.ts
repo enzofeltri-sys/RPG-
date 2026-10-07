@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Facing, facingFrom, idleFrame } from './heroSprite';
+import { Facing, facingFrom } from './heroSprite';
 
 // Shared by player.ts, wanderer.ts, and any scene overlaying a real sprite
 // on top of an existing collision rectangle: loads the texture on demand
@@ -71,12 +71,10 @@ export function syncSpriteOverlay(target: Phaser.GameObjects.Shape, moving = fal
     const body = target.body as Phaser.Physics.Arcade.Body | null;
     const facing = facingFrom(body?.velocity.x ?? 0, body?.velocity.y ?? 0, target.getData('facing') as Facing);
     target.setData('facing', facing);
-    if (moving) image.anims.play(`${heroSheet}-walk-${facing}`, true);
-    else {
-      image.anims.stop();
-      image.setFrame(idleFrame(facing));
-    }
+    image.anims.play(`${heroSheet}-${moving ? 'walk' : 'idle'}-${facing}`, true);
     image.setPosition(target.x, target.y).setDepth(target.y);
+    const shadow = target.getData('shadow') as Phaser.GameObjects.Ellipse | undefined;
+    shadow?.setPosition(target.x, target.y + target.height / 2).setDepth(target.y - 1);
     return;
   }
   if (!moving) {

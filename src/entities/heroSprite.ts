@@ -2,13 +2,14 @@ import Phaser from 'phaser';
 import { CharClass, Race } from '../game/character';
 
 // The playable heroes drawn by tools/art/heroes.py (build_heroes.py): one
-// sheet per race/class of 24x32 frames, 3 columns (stepA, idle, stepB) x 4
-// rows (down, left, right, up), at the world's pixel size; plus a 32x26
-// portrait for the interface.
+// sheet per race/class of 24x32 frames, 4 columns (stepA, idle, stepB,
+// breathe) x 4 rows (down, left, right, up), at the world's pixel size; plus
+// a 32x26 portrait for the interface.
 
 export type Facing = 'down' | 'left' | 'right' | 'up';
 
 const ROWS: Record<Facing, number> = { down: 0, left: 1, right: 2, up: 3 };
+const COLUMNS = 4;
 export const HERO_FRAME_W = 24;
 export const HERO_FRAME_H = 32;
 // Bottom row of the boots inside a frame (feet stand on the body's bottom).
@@ -23,7 +24,7 @@ export function heroFaceKey(race: Race, charClass: CharClass): string {
 }
 
 export function idleFrame(facing: Facing): number {
-  return ROWS[facing] * 3 + 1;
+  return ROWS[facing] * COLUMNS + 1;
 }
 
 // Loads the sheet and portrait (once; textures are shared by every scene).
@@ -47,19 +48,30 @@ export async function loadHero(scene: Phaser.Scene, race: Race, charClass: CharC
   });
 }
 
-// Walk cycles stepA, idle, stepB, idle, registered once per sheet.
+// Per facing: the walk (stepA, idle, stepB, idle) and a slow breathing
+// loop for standing still (idle, breathe). Registered once per sheet.
 export function ensureHeroAnimations(scene: Phaser.Scene, race: Race, charClass: CharClass): void {
   const sheet = heroSheetKey(race, charClass);
   (Object.keys(ROWS) as Facing[]).forEach((facing) => {
-    const key = `${sheet}-walk-${facing}`;
-    if (scene.anims.exists(key)) return;
-    const row = ROWS[facing] * 3;
-    scene.anims.create({
-      key,
-      frames: [row, row + 1, row + 2, row + 1].map((frame) => ({ key: sheet, frame })),
-      frameRate: 8,
-      repeat: -1,
-    });
+    const row = ROWS[facing] * COLUMNS;
+    if (!scene.anims.exists(`${sheet}-walk-${facing}`)) {
+      scene.anims.create({
+        key: `${sheet}-walk-${facing}`,
+        frames: [row, row + 1, row + 2, row + 1].map((frame) => ({ key: sheet, frame })),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+    if (!scene.anims.exists(`${sheet}-idle-${facing}`)) {
+      scene.anims.create({
+        key: `${sheet}-idle-${facing}`,
+        frames: [
+          { key: sheet, frame: row + 1, duration: 900 },
+          { key: sheet, frame: row + 3, duration: 600 },
+        ],
+        repeat: -1,
+      });
+    }
   });
 }
 

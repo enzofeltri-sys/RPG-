@@ -49,6 +49,10 @@ export async function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSpr
     .sprite(player.x, player.y, heroSheetKey(race, charClass), idleFrame('down'))
     .setOrigin(0.5, (HERO_FEET_Y - player.height / 2) / HERO_FRAME_H)
     .setDepth(player.y);
+  // A soft shadow under the feet grounds the hero on any floor.
+  (player.getData('shadow') as Phaser.GameObjects.Ellipse | undefined)?.destroy();
+  const shadow = scene.add.ellipse(player.x, player.y + player.height / 2, 14, 5, 0x221c29, 0.35).setDepth(player.y - 1);
+  player.setData('shadow', shadow);
   player.setData('appearanceImage', sprite);
   player.setData('heroSheet', heroSheetKey(race, charClass));
   player.setData('facing', 'down');

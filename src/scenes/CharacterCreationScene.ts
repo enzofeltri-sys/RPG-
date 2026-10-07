@@ -9,6 +9,7 @@ import {
   STARTER_SKILL,
   TALENTS,
   enduranceMax,
+  manaMax,
 } from '../game/talents';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
@@ -133,7 +134,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     const stats = computeStats(this.race, this.charClass);
     const maxHp = 20 + stats.vitality * 4;
-    const maxMp = 10 + stats.intelligence * 3;
+    const maxMp = manaMax(stats.intelligence);
     const resource = CLASS_RESOURCE[this.charClass];
     const resourceLine =
       resource === 'mana'

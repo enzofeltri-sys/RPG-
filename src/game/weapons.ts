@@ -16,13 +16,13 @@ export interface WeaponProfile {
 }
 
 export const WEAPON_PROFILES: Record<WeaponType, WeaponProfile> = {
-  dagger: { label: 'Dague', scaling: 'agility', min: 2, max: 4, crit: 0.1, spell: false },
+  dagger: { label: 'Dague', scaling: 'agility', min: 2, max: 4, crit: 0.07, spell: false },
   sword: { label: 'Épée', scaling: 'strength', min: 3, max: 6, crit: 0.05, spell: false },
   axe: { label: 'Hache', scaling: 'strength', min: 2, max: 9, crit: 0, spell: false },
   bow: { label: 'Arc', scaling: 'agility', min: 4, max: 8, crit: 0, spell: false },
   greatsword: { label: 'Épée à deux mains', scaling: 'strength', min: 6, max: 11, crit: 0, spell: false },
   greataxe: { label: 'Grande hache', scaling: 'strength', min: 5, max: 13, crit: 0, spell: false },
-  staff: { label: 'Bâton', scaling: 'intelligence', min: 4, max: 7, crit: 0, spell: true },
+  staff: { label: 'Bâton', scaling: 'intelligence', min: 3, max: 6, crit: 0, spell: true },
   tome: { label: 'Tome', scaling: 'intelligence', min: 2, max: 5, crit: 0, spell: true },
 };
 
@@ -45,9 +45,13 @@ export const BARE_SPELL_PROFILE: WeaponProfile = {
   spell: true,
 };
 
-export const TOME_SPELL_BONUS = 0.15;
+export const TOME_SPELL_BONUS = 0.1;
+// Share of the scaling stat added to a hit: spells get a little less than
+// weapons, since casters multiply nearly every action with a skill.
+export const WEAPON_STAT_SCALING = 0.5;
+export const SPELL_STAT_SCALING = 0.4;
 export const SHIELD_BLOCK_CHANCE = 0.1;
-export const OFFHAND_HIT_MULTIPLIER = 0.5;
+export const OFFHAND_HIT_MULTIPLIER = 0.4;
 
 export type HandRule = 'right' | 'left' | 'either' | 'both';
 

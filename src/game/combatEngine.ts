@@ -5,7 +5,9 @@ import {
   BARE_SPELL_PROFILE,
   OFFHAND_HIT_MULTIPLIER,
   SHIELD_BLOCK_CHANCE,
+  SPELL_STAT_SCALING,
   TOME_SPELL_BONUS,
+  WEAPON_STAT_SCALING,
   WEAPON_PROFILES,
   WeaponProfile,
   isMeleeHandItem,
@@ -178,7 +180,7 @@ const PLAYER_STATUS_VERBS: Record<PlayerStatusId, string> = {
 
 export type PlayerStatuses = Partial<Record<PlayerStatusId, ActiveStatus>>;
 
-const PLAYER_BLIND_MISS = 0.3;
+const PLAYER_BLIND_MISS = 0.25;
 const PLAYER_WEAKENED_MULTIPLIER = 0.75;
 const MONSTER_EVASION = 0.15;
 const THORNS_SHARE = 0.15;
@@ -392,13 +394,13 @@ export class CombatEngine {
 
   armor(): number {
     return (
-      this.stats().armor + 2 * this.rank('steel_skin') + this.rank('devotion') + (this.fx.blessing > 0 ? 3 : 0)
+      this.stats().armor + this.rank('devotion') + (this.fx.blessing > 0 ? 3 : 0)
     );
   }
 
   critChance(): number {
     // Elfe, Vue perçante.
-    return BASE_CRIT_CHANCE + 0.04 * this.rank('lynx_eye') + (this.character.race === 'elf' ? 0.05 : 0);
+    return BASE_CRIT_CHANCE + 0.05 * this.rank('lynx_eye') + (this.character.race === 'elf' ? 0.05 : 0);
   }
 
   private critMultiplier(): number {
@@ -484,29 +486,32 @@ export class CombatEngine {
     return element ? SPELL_NAMES[element] : 'Trait arcanique';
   }
 
-  private baseDamage(spell: boolean, weapon?: Item): number {
+  // A hit's two parts: the weapon/spell core, which skills, crits and
+  // bonuses multiply, and the gear's flat elemental damage, added once per
+  // hit and only affected by the monster's weaknesses and resistances.
+  private damageParts(spell: boolean, weapon?: Item): { core: number; elemental: number } {
     const stats = this.stats();
     const profile = spell ? this.spellProfile() : weaponProfile(weapon ?? this.attackWeapon());
-    const core = this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] / 2);
-    const physical = spell ? core : core * (1 - this.traits.physicalResist);
+    const scaling = profile.spell ? SPELL_STAT_SCALING : WEAPON_STAT_SCALING;
+    const core = this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] * scaling);
     const elemental = GEAR_ELEMENTS.reduce(
       (sum, [stat, element]) => sum + stats[stat] * this.elementMultiplier(element),
       0,
     );
-    return physical + elemental;
+    return { core: spell ? core : core * (1 - this.traits.physicalResist), elemental };
   }
 
   private damageMultiplier(spell: boolean, weapon?: Item): number {
     let m = 1;
     if (!spell) {
       const type = (weapon ?? this.attackWeapon())?.weaponType;
-      m *= 1 + 0.05 * this.rank('weapon_mastery');
-      if (type === 'dagger') m *= 1 + 0.06 * this.rank('sharpened_blades');
+      m *= 1 + 0.07 * this.rank('weapon_mastery');
+      if (type === 'dagger') m *= 1 + 0.05 * this.rank('sharpened_blades');
       // Racial weapon affinity.
       const affinity = RACES[this.character.race].weaponAffinity ?? [];
       if (type && affinity.includes(type)) m *= 1.1;
     } else {
-      m *= 1 + 0.08 * this.rank('arcane_power') + 0.05 * this.rank('fervor');
+      m *= 1 + 0.08 * this.rank('arcane_power') + 0.08 * this.rank('fervor');
       if (this.hasTome()) m *= 1 + TOME_SPELL_BONUS;
       if (this.fx.overload > 0) m *= 1.2;
     }
@@ -526,7 +531,7 @@ export class CombatEngine {
 
   // Heals from skills and talents, boosted by Mains guérisseuses.
   private heal(amount: number): number {
-    const boosted = Math.round(amount * (1 + 0.1 * this.rank('healing_hands')));
+    const boosted = Math.round(amount * (1 + 0.07 * this.rank('healing_hands')));
     const before = this.character.hp;
     this.character.hp = Math.min(this.character.maxHp, this.character.hp + Math.max(0, boosted));
     return this.character.hp - before;
@@ -569,17 +574,19 @@ export class CombatEngine {
     const hitOnce = (mult: number, weapon: Item | undefined) => {
       const weaponCrit = options.spell ? 0 : weaponProfile(weapon).crit;
       const crit = forcedCrit || this.rng() < this.critChance() + weaponCrit;
+      const parts = this.damageParts(options.spell, weapon);
       const damage = Math.max(
         1,
         Math.round(
-          this.baseDamage(options.spell, weapon) *
+          (parts.core *
             mult *
             this.damageMultiplier(options.spell, weapon) *
             (crit ? this.critMultiplier() : 1) *
             (vulnerable ? VULNERABLE_DAMAGE_MULTIPLIER : 1) *
             actionElement *
-            shell *
-            (weakened ? PLAYER_WEAKENED_MULTIPLIER : 1),
+            (weakened ? PLAYER_WEAKENED_MULTIPLIER : 1) +
+            parts.elemental) *
+            shell,
         ),
       );
       this.monster.hp -= damage;
@@ -834,7 +841,7 @@ export class CombatEngine {
         break;
       }
       case 'ice_barrier': {
-        const amount = Math.round(this.character.maxHp * v.hpPct + 2 * stats.intelligence);
+        const amount = Math.round(this.character.maxHp * v.hpPct + 1.5 * stats.intelligence);
         this.fx.shield = Math.max(this.fx.shield, amount);
         this.fx.iceShield = true;
         log = `Une barrière de glace vous entoure (${this.fx.shield}).`;
@@ -861,7 +868,7 @@ export class CombatEngine {
         break;
       case 'divine_wrath': {
         const r = this.strike(v.mult, { spell: true, light: true, element: 'light' });
-        const healed = this.heal(r.total * 0.25);
+        const healed = this.heal(r.total * 0.15);
         log = this.describeStrike(r) + (healed > 0 ? ` La lumière vous rend ${healed} PV.` : '');
         hit = true;
         break;
@@ -1139,14 +1146,14 @@ export class CombatEngine {
     switch (ability.id) {
       case 'poison': {
         const r = this.monsterHit(parts, 1, { label });
-        if (r.landed) this.inflictPlayer(parts, 'poisoned', { turns: 3, damage: Math.max(1, Math.round(attack * 0.25)) });
+        if (r.landed) this.inflictPlayer(parts, 'poisoned', { turns: 3, damage: Math.max(1, Math.round(attack * 0.2)) });
         return this.afterMonsterHit(parts, r);
       }
       case 'rend': {
         const r = this.monsterHit(parts, 1, { label });
         if (r.landed) {
           // Bleeding stacks up to 3 times.
-          const tick = Math.max(1, Math.round(attack * 0.2));
+          const tick = Math.max(1, Math.round(attack * 0.12));
           const current = this.playerStatuses.bleeding;
           const damage = Math.min(tick * 3, (current?.damage ?? 0) + tick);
           this.inflictPlayer(parts, 'bleeding', { turns: 3, damage });
@@ -1155,7 +1162,7 @@ export class CombatEngine {
       }
       case 'fire_breath': {
         const r = this.monsterHit(parts, 1.2, { label, magic: true });
-        if (r.landed) this.inflictPlayer(parts, 'burning', { turns: 2, damage: Math.max(1, Math.round(attack * 0.35)) });
+        if (r.landed) this.inflictPlayer(parts, 'burning', { turns: 2, damage: Math.max(1, Math.round(attack * 0.3)) });
         return this.afterMonsterHit(parts, r);
       }
       case 'war_cry':
@@ -1169,7 +1176,7 @@ export class CombatEngine {
       }
       case 'silence': {
         const r = this.monsterHit(parts, 0.6, { label, magic: true });
-        if (r.landed) this.inflictPlayer(parts, 'silenced', { turns: 2 });
+        if (r.landed) this.inflictPlayer(parts, 'silenced', { turns: this.monster.isBoss ? 2 : 1 });
         return this.afterMonsterHit(parts, r);
       }
       case 'stun_blow': {
@@ -1282,7 +1289,7 @@ export class CombatEngine {
       // Armor can cancel at most 60% of the monster's attack, so stacking it
       // never makes a fully-geared player unkillable.
       const effectiveArmor = Math.min(this.armor(), this.monster.attack * mult * 0.6);
-      damage = Math.max(1, Math.round(raw - effectiveArmor));
+      damage = Math.max(1, Math.round((raw - effectiveArmor) * (1 - 0.05 * this.rank('steel_skin'))));
     }
     if (stance) damage = Math.max(1, Math.round(damage / 2));
     if (this.fx.berserk > 0) damage = Math.round(damage * 1.25);
@@ -1388,12 +1395,17 @@ export class CombatEngine {
       this.fx.regenTurns -= 1;
       healed += this.heal(this.character.maxHp * this.fx.regenPct);
     }
-    if (this.rank('sacred_aura') > 0) healed += this.heal(this.character.maxHp * 0.03);
+    if (this.rank('sacred_aura') > 0) healed += this.heal(this.character.maxHp * 0.02);
     if (healed > 0) parts.push(`+${healed} PV.`);
     return true;
   }
 
   // ------------------------------------------------------------- display
+
+  // The boss announced its heavy blow for its next turn.
+  monsterTelegraphing(): boolean {
+    return this.mfx.telegraph;
+  }
 
   monsterStatusLine(): string {
     const parts: string[] = [];

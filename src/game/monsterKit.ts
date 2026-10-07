@@ -33,9 +33,9 @@ export interface TypeTraits {
 export const TYPE_TRAITS: Record<MonsterType, TypeTraits> = {
   beast: { label: 'Bête', weak: ['fire'], resist: ['ice'], physicalResist: 0, speed: 8 },
   humanoid: { label: 'Humanoïde', weak: ['poison'], resist: [], physicalResist: 0, speed: 6 },
-  undead: { label: 'Spectre', weak: ['fire', 'light'], resist: ['poison'], physicalResist: 0.3, speed: 5 },
+  undead: { label: 'Spectre', weak: ['fire', 'light'], resist: ['poison'], physicalResist: 0.15, speed: 5 },
   demon: { label: 'Démon', weak: ['ice'], resist: ['fire'], physicalResist: 0, speed: 7 },
-  guardian: { label: 'Gardien', weak: ['electric'], resist: ['poison'], physicalResist: 0.2, speed: 3 },
+  guardian: { label: 'Gardien', weak: ['electric'], resist: ['poison'], physicalResist: 0.1, speed: 3 },
 };
 
 export const WEAKNESS_MULTIPLIER = 1.3;

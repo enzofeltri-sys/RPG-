@@ -10,7 +10,7 @@ import { ResourceKind, TALENTS, talentPointsTotal } from '../game/talents';
 import { materialLabel } from '../game/material';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
-import { DUNGEON_LOOT_TIER } from '../game/worldMap';
+import { DUNGEON_LOOT_TIER, ZONE_LEVEL } from '../game/worldMap';
 import { addCrispText } from '../ui/text';
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 
@@ -189,7 +189,9 @@ export class CombatScene extends Phaser.Scene {
 
     const save = await SaveManager.load();
     this.character = save!.character!;
-    this.monster = this.monsterId ? createMonster(this.monsterId, this.tier) : createTestMonster();
+    this.monster = this.monsterId
+      ? createMonster(this.monsterId, this.tier, ZONE_LEVEL[this.returnScene])
+      : createTestMonster();
     this.engine = new CombatEngine(this.character, this.monster);
 
     addCrispText(this, width / 2, 30, this.monster.name, {

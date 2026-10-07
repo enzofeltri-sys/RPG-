@@ -32,6 +32,8 @@ export function rollEncounterTier(isBoss: boolean): EncounterTier {
 export interface Monster {
   id: string;
   name: string;
+  // Level of the zone it's fought in (see createMonster).
+  level: number;
   hp: number;
   maxHp: number;
   attack: number;
@@ -52,7 +54,7 @@ interface MonsterTemplate {
 }
 
 const TEMPLATES: Record<string, MonsterTemplate> = {
-  corrupted_wolf: { id: 'corrupted_wolf', name: 'Loup corrompu', maxHp: 18, attack: 4, xpReward: 40, goldReward: 8 },
+  corrupted_wolf: { id: 'corrupted_wolf', name: 'Loup corrompu', maxHp: 18, attack: 3, xpReward: 40, goldReward: 8 },
   cave_rat: { id: 'cave_rat', name: 'Rat des cavernes', maxHp: 14, attack: 3, xpReward: 25, goldReward: 5 },
   goblin_scout: { id: 'goblin_scout', name: 'Gobelin éclaireur', maxHp: 16, attack: 4, xpReward: 30, goldReward: 6 },
   cave_spider: { id: 'cave_spider', name: 'Araignée des cavernes', maxHp: 20, attack: 5, xpReward: 35, goldReward: 7 },
@@ -262,8 +264,8 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
   brotherhood_specter: {
     id: 'brotherhood_specter',
     name: 'Spectre de la confrérie',
-    maxHp: 55,
-    attack: 13,
+    maxHp: 48,
+    attack: 10,
     xpReward: 115,
     goldReward: 30,
   },
@@ -491,12 +493,143 @@ const TEMPLATES: Record<string, MonsterTemplate> = {
   },
 };
 
+// Level-based stats (DESIGN.md, balancing step). Each template above was
+// written by hand for the zone it first appears in (NATIVE_LEVEL); its
+// numbers are read as proportions of a "standard" regular monster of that
+// level (TEMPLATE_SCALE). A monster's real stats follow MONSTER_CURVE at the
+// level of the zone it's fought in, so a wolf met in an Acte 3 dungeon is an
+// Acte 3 wolf, and every monster keeps its identity (a boar stays tougher
+// than a rat).
+export const NATIVE_LEVEL: Record<string, number> = {
+  corrupted_wolf: 1,
+  field_rat: 2,
+  rat_king: 2,
+  cave_rat: 3,
+  alpha_wolf: 3,
+  goblin_scout: 4,
+  bandit_thug: 4,
+  bandit_leader: 4,
+  goblin_brute: 5,
+  goblin_chief: 5,
+  cave_spider: 5,
+  corrupted_boar: 5,
+  corrupted_boar_alpha: 5,
+  well_guardian: 6,
+  smuggler_thug: 6,
+  smuggler_captain: 6,
+  marsh_serpent: 7,
+  marsh_matriarch: 7,
+  corrupted_knight: 7,
+  fallen_guardian: 7,
+  bog_wraith: 8,
+  corrupted_sentinel: 8,
+  ruins_delver: 8,
+  smuggler_lieutenant: 9,
+  shard_warden: 9,
+  seeker_scout: 10,
+  seeker_archivist: 10,
+  corrupted_tome: 10,
+  archive_wisp: 10,
+  demon_envoy: 10,
+  blight_spawn: 11,
+  brotherhood_specter: 11,
+  corruption_heart: 11,
+  primordial_guardian: 11,
+  watchtower_guardian: 12,
+  unnamed_vestige: 13,
+  last_watcher: 13,
+  broken_sleeper: 14,
+  blight_root: 14,
+  watcher_echo: 15,
+  seal_echo: 15,
+  oath_guardian: 15,
+  rite_guardian: 16,
+  veiled_scribe: 17,
+  blood_keeper: 17,
+  grave_warden: 18,
+  record_keeper: 18,
+  blight_sentinel: 19,
+  sunken_warden: 19,
+  ancestor_warden: 20,
+  demon_king_echo: 20,
+};
+
+// The scale the templates were written in.
+const TEMPLATE_SCALE = {
+  hp: (level: number) => 16 + 3 * level,
+  attack: (level: number) => 3.5 + 0.8 * level,
+  xp: (level: number) => 33 + 6.5 * level,
+};
+
+// A standard regular monster at each level, tuned with the simulator
+// (scripts/balance/simulate.ts) against a typical character of that level.
+// Mutable only so the simulator's tuner can search it.
+export const MONSTER_TUNING = {
+  hpBase: 65,
+  hpPerLevel: 25,
+  hpPerLevelSq: 0.25,
+  attackBase: 3.5,
+  attackPerLevel: 5.6,
+  attackPerLevelSq: 0.1,
+  // Every boss, relative to a standard regular monster of its level.
+  bossHp: 1,
+  bossAttack: 0.7,
+};
+
+// Per-boss adjustment from the simulator, so each boss lands near the same
+// win rate despite its abilities (regenerating bosses get fewer HP, frenzy
+// and drain bosses a weaker hit…). 1 when absent.
+export const BOSS_WEIGHTS: Record<string, { hp: number; attack: number }> = {
+  rat_king: { hp: 1.4, attack: 1.3 },
+  alpha_wolf: { hp: 1.5, attack: 0.8 },
+  bandit_leader: { hp: 1.4, attack: 1.2 },
+  goblin_chief: { hp: 0.8, attack: 1.5 },
+  corrupted_boar_alpha: { hp: 1.4, attack: 1.2 },
+  smuggler_captain: { hp: 1.5, attack: 1.2 },
+  marsh_matriarch: { hp: 1.5, attack: 1.2 },
+  fallen_guardian: { hp: 1.3, attack: 1.5 },
+  ruins_delver: { hp: 1.2, attack: 1.5 },
+  smuggler_lieutenant: { hp: 1.4, attack: 1.2 },
+  shard_warden: { hp: 1.2, attack: 1.5 },
+  seeker_archivist: { hp: 1.4, attack: 1.2 },
+  demon_envoy: { hp: 1.4, attack: 1.2 },
+  corruption_heart: { hp: 0.9, attack: 0.9 },
+  primordial_guardian: { hp: 1.5, attack: 1 },
+  watchtower_guardian: { hp: 1.2, attack: 1.5 },
+  unnamed_vestige: { hp: 1.3, attack: 1.2 },
+  last_watcher: { hp: 1.5, attack: 1.1 },
+  broken_sleeper: { hp: 1, attack: 1.1 },
+  blight_root: { hp: 1, attack: 0.9 },
+  seal_echo: { hp: 1.5, attack: 1.2 },
+  oath_guardian: { hp: 1.4, attack: 1.4 },
+  rite_guardian: { hp: 1.6, attack: 1 },
+  veiled_scribe: { hp: 1.6, attack: 1.1 },
+  blood_keeper: { hp: 1.5, attack: 0.8 },
+  grave_warden: { hp: 1.5, attack: 1.2 },
+  record_keeper: { hp: 1.4, attack: 1.1 },
+  blight_sentinel: { hp: 1.4, attack: 1.1 },
+  sunken_warden: { hp: 1.7, attack: 1.1 },
+  ancestor_warden: { hp: 1.6, attack: 1.1 },
+  demon_king_echo: { hp: 1.2, attack: 0.9 },
+};
+
+export function standardMonsterHp(level: number): number {
+  const t = MONSTER_TUNING;
+  return t.hpBase + t.hpPerLevel * level + t.hpPerLevelSq * level * level;
+}
+
+export function standardMonsterAttack(level: number): number {
+  const t = MONSTER_TUNING;
+  return t.attackBase + t.attackPerLevel * level + t.attackPerLevelSq * level * level;
+}
+
 // tier defaults to a fresh roll (skipped for bosses) — callers can pass an
 // explicit tier to force a specific outcome, e.g. for deterministic tests.
 // Bosses stay 'normal' even if a caller passes an explicit tier: they're
 // already the toughest, best-rewarding version of themselves by design, so
 // this invariant is enforced here rather than trusted to every call site.
-export function createMonster(id: string, tier?: EncounterTier): Monster {
+// level defaults to the monster's native level.
+export function createMonster(id: string, tier?: EncounterTier, level?: number): Monster {
   const template = TEMPLATES[id];
   if (!template) {
     throw new Error(`Unknown monster template: ${id}`);
@@ -504,15 +637,28 @@ export function createMonster(id: string, tier?: EncounterTier): Monster {
   const isBoss = Boolean(template.isBoss);
   const resolvedTier = isBoss ? 'normal' : (tier ?? rollEncounterTier(false));
   const mult = TIER_STAT_MULTIPLIER[resolvedTier];
-  const maxHp = Math.round(template.maxHp * mult.hp);
+  const native = NATIVE_LEVEL[id] ?? 1;
+  const at = Math.max(1, Math.round(level ?? native));
+  // Regular monsters keep their hand-made proportions, compressed (square
+  // root) so a weak one isn't trivial and a tough one isn't a wall.
+  const weight = BOSS_WEIGHTS[id] ?? { hp: 1, attack: 1 };
+  const hpShare = isBoss
+    ? MONSTER_TUNING.bossHp * weight.hp
+    : Math.sqrt(template.maxHp / TEMPLATE_SCALE.hp(native));
+  const attackShare = isBoss
+    ? MONSTER_TUNING.bossAttack * weight.attack
+    : Math.sqrt(template.attack / TEMPLATE_SCALE.attack(native));
+  const rewardScale = TEMPLATE_SCALE.xp(at) / TEMPLATE_SCALE.xp(native);
+  const maxHp = Math.max(1, Math.round(hpShare * standardMonsterHp(at) * mult.hp));
   return {
     id: template.id,
     name: template.name + TIER_LABELS[resolvedTier],
+    level: at,
     hp: maxHp,
     maxHp,
-    attack: Math.round(template.attack * mult.attack),
-    xpReward: Math.round(template.xpReward * mult.xp),
-    goldReward: Math.round(template.goldReward * mult.gold),
+    attack: Math.max(1, Math.round(attackShare * standardMonsterAttack(at) * mult.attack)),
+    xpReward: Math.round(template.xpReward * rewardScale * mult.xp),
+    goldReward: Math.round(template.goldReward * rewardScale * mult.gold),
     isBoss,
     tier: resolvedTier,
   };

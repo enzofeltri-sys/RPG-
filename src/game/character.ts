@@ -1,9 +1,9 @@
-import { EquipSlot, Item, ItemStats, WeaponType, getEquippedSetBonusStats, getWeaponType } from './item';
+import { EquipSlot, Item, ItemStats, WeaponType, createItem, getEquippedSetBonusStats, getWeaponType } from './item';
 import type { QuestProgress } from './quest';
 import type { QuestItem } from './questItem';
 import type { MainQuestStage } from './mainQuest';
 import type { MerchantStockEntry } from './merchantStock';
-import { MAX_LEVEL, STARTER_SKILL, addBaseMaxHp, ensureTalentDefaults } from './talents';
+import { MAX_LEVEL, STARTER_SKILL, addBaseMaxHp, ensureTalentDefaults, manaMax } from './talents';
 import { enforceHandRules } from './weapons';
 
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling';
@@ -208,10 +208,21 @@ export function computeStats(race: Race, charClass: CharClass): CharacterStats {
   };
 }
 
+// Every class starts with a plain weapon of its own (balancing step: without
+// one, the classes whose damage depends most on their weapon struggled in
+// the very first fights).
+const STARTER_WEAPON: Record<CharClass, string> = {
+  warrior: 'short_sword',
+  mage: 'novice_staff',
+  cleric: 'novice_staff',
+  archer: 'short_bow',
+  rogue: 'dagger_thief',
+};
+
 export function createCharacter(race: Race, charClass: CharClass): Character {
   const stats = computeStats(race, charClass);
   const maxHp = 20 + stats.vitality * 4;
-  const maxMp = 10 + stats.intelligence * 3;
+  const maxMp = manaMax(stats.intelligence);
   return {
     race,
     class: charClass,
@@ -223,7 +234,7 @@ export function createCharacter(race: Race, charClass: CharClass): Character {
     maxHp,
     mp: maxMp,
     maxMp,
-    equipment: {},
+    equipment: { weapon: createItem(STARTER_WEAPON[charClass], 'common') },
     inventory: [],
     quests: {},
     gold: 0,
@@ -301,6 +312,10 @@ export function ensureCharacterDefaults(character: Character): Character {
 
   ensureTalentDefaults(character);
   migrateRaceStats(character);
+  // Max mana is derived from Intelligence (it used to also grow per level,
+  // which let late-game casters chain their biggest spells every turn).
+  character.maxMp = manaMax(character.stats.intelligence);
+  character.mp = Math.min(character.mp, character.maxMp);
   return character;
 }
 
@@ -339,7 +354,6 @@ export function grantXp(character: Character, xp: number): number {
     character.level += 1;
     character.statPoints += 3;
     addBaseMaxHp(character, 5);
-    character.maxMp += 3;
     character.hp = character.maxHp;
     character.mp = character.maxMp;
     levelsGained += 1;
@@ -355,7 +369,7 @@ export type AllocatableStat = 'strength' | 'intelligence' | 'agility' | 'vitalit
 // grantXp above) into a base stat. One-way by design — no respec — matching
 // how every other permanent choice in this game (race/class at creation)
 // already works. Vitality/Intelligence also bump max HP/MP immediately
-// (same +4/+3 per point used elsewhere: createCharacter's maxHp/maxMp
+// (same +4 HP per point used elsewhere: createCharacter's maxHp; mana follows manaMax
 // formulas, grantXp's per-level gain) so the point feels effective right
 // away rather than only mattering next level-up.
 export function allocateStatPoint(character: Character, stat: AllocatableStat): boolean {
@@ -366,8 +380,8 @@ export function allocateStatPoint(character: Character, stat: AllocatableStat): 
     addBaseMaxHp(character, 4);
   }
   if (stat === 'intelligence') {
-    character.maxMp += 3;
-    character.mp += 3;
+    character.maxMp = manaMax(character.stats.intelligence);
+    character.mp += 1;
   }
   return true;
 }
@@ -389,7 +403,7 @@ export function resetStatPoints(character: Character): number {
       character.hp = Math.max(1, Math.min(character.hp, character.maxHp));
     }
     if (stat === 'intelligence') {
-      character.maxMp -= 3 * placed;
+      character.maxMp = manaMax(character.stats.intelligence);
       character.mp = Math.min(character.mp, character.maxMp);
     }
   });

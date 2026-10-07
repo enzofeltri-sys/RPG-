@@ -2400,6 +2400,12 @@ const LOOTABLE_TEMPLATES_BY_TIER: Record<1 | 2 | 3, ItemTemplate[]> = {
   3: TEMPLATES.filter((t) => !t.signature && t.tier === 3),
 };
 
+// The lootable pool of one palier, for the balancing simulator
+// (scripts/balance/simulate.ts), which equips a typical character per zone.
+export function lootableTemplates(tier: 1 | 2 | 3): { baseId: string; category: ItemCategory; weaponType?: WeaponType }[] {
+  return LOOTABLE_TEMPLATES_BY_TIER[tier].map((t) => ({ baseId: t.baseId, category: t.category, weaponType: t.weaponType }));
+}
+
 export interface CraftableItemInfo {
   baseId: string;
   name: string;

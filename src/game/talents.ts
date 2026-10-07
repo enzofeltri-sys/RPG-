@@ -23,13 +23,19 @@ export const RESOURCE_LABELS: Record<ResourceKind, string> = {
 };
 
 export const RAGE_MAX = 100;
-export const RAGE_PER_ATTACK = 25;
-export const RAGE_PER_HIT_TAKEN = 15;
-export const MANA_REGEN_PER_TURN = 1;
-export const ENDURANCE_REGEN_PER_TURN = 8;
+export const RAGE_PER_ATTACK = 30;
+export const RAGE_PER_HIT_TAKEN = 20;
+export const MANA_REGEN_PER_TURN = 2;
+export const ENDURANCE_REGEN_PER_TURN = 10;
 
+// Both pools grow slowly with their stat: skill costs are fixed, so a pool
+// that kept growing let late-game casters chain their biggest skills.
 export function enduranceMax(vitality: number): number {
-  return 40 + 3 * Math.max(0, vitality);
+  return 50 + Math.max(0, vitality);
+}
+
+export function manaMax(intelligence: number): number {
+  return 30 + Math.max(0, intelligence);
 }
 
 export const MAX_LEVEL = 30;
@@ -118,18 +124,18 @@ export const BRANCH_NAMES: Record<CharClass, [string, string, string]> = {
 
 const TALENT_LIST: TalentDef[] = [
   // ---------------------------------------------------------------- Guerrier
-  active('heavy_strike', 'warrior', -1, 0, 'Frappe lourde', [30, 30], [{ mult: 1.8 }, { mult: 2.1 }],
-    (v) => `Dégâts ×${fmt(v.mult)}.`, 'Dégâts ×2,1.'),
+  active('heavy_strike', 'warrior', -1, 0, 'Frappe lourde', [30, 30], [{ mult: 2 }, { mult: 2.3 }],
+    (v) => `Dégâts ×${fmt(v.mult)}.`, 'Dégâts ×2,3.'),
   passive('weapon_mastery', 'warrior', 0, 0, 'Maîtrise des armes', 3,
-    (r) => `+${5 * r} % de dégâts physiques.`),
+    (r) => `+${7 * r} % de dégâts physiques.`),
   active('armor_break', 'warrior', 0, 1, 'Brise-armure', [40, 30], [{ mult: 1.2 }, { mult: 1.2 }],
     (v) => `Dégâts ×${fmt(v.mult)}, le monstre devient Vulnérable 2 tours.`, 'Coûte 30 de rage.'),
   passive('chain_strikes', 'warrior', 0, 2, 'Enchaînement', 1,
     () => 'Après une Frappe lourde, ta prochaine compétence coûte 10 de rage de moins.'),
-  active('execution', 'warrior', 0, 3, 'Exécution', [60, 60], [{ low: 3, high: 1.5 }, { low: 3.5, high: 1.8 }],
+  active('execution', 'warrior', 0, 3, 'Exécution', [60, 60], [{ low: 3.5, high: 1.8 }, { low: 4, high: 2.1 }],
     (v) => `Dégâts ×${fmt(v.low)} si le monstre a moins de 30 % de PV, sinon ×${fmt(v.high)}.`,
-    'Dégâts ×3,5 / ×1,8.'),
-  passive('steel_skin', 'warrior', 1, 0, "Peau d'acier", 3, (r) => `+${2 * r} d'armure.`),
+    'Dégâts ×4 / ×2,1.'),
+  passive('steel_skin', 'warrior', 1, 0, "Peau d'acier", 3, (r) => `−${5 * r} % de dégâts physiques reçus.`),
   active('shield_bash', 'warrior', 1, 1, 'Coup de bouclier', [40, 30], [{ mult: 1 }, { mult: 1 }],
     () => 'Dégâts normaux, le monstre est Étourdi.', 'Coûte 30 de rage.', 'shield'),
   active('defensive_stance', 'warrior', 1, 2, 'Posture défensive', [25, 25], [{ turns: 2 }, { turns: 3 }],
@@ -153,13 +159,13 @@ const TALENT_LIST: TalentDef[] = [
   active('flame_wall', 'mage', 0, 1, 'Mur de flammes', [12, 9], [{ mult: 1.2 }, { mult: 1.2 }],
     (v) => `Sort : dégâts ×${fmt(v.mult)}, Brûlure garantie pendant 3 tours.`, 'Coûte 9 de mana.'),
   passive('combustion', 'mage', 0, 2, 'Combustion', 1, () => '+15 % de dégâts contre un monstre en Brûlure.'),
-  active('meteor', 'mage', 0, 3, 'Météore', [25, 25], [{ mult: 3.2 }, { mult: 3.7 }],
-    (v) => `Sort : dégâts ×${fmt(v.mult)}.`, 'Dégâts ×3,7.'),
+  active('meteor', 'mage', 0, 3, 'Météore', [30, 30], [{ mult: 2.8 }, { mult: 3.2 }],
+    (v) => `Sort : dégâts ×${fmt(v.mult)}.`, 'Dégâts ×3,2.'),
   active('frost_bolt', 'mage', 1, 0, 'Éclair de givre', [8, 6], [{ mult: 1.3 }, { mult: 1.3 }],
     (v) => `Sort : dégâts ×${fmt(v.mult)}, Gel garanti.`, 'Coûte 6 de mana.'),
-  passive('biting_cold', 'mage', 1, 1, 'Froid mordant', 2, (r) => `Le Gel dure ${r} tour${r > 1 ? 's' : ''} de plus.`),
-  active('ice_barrier', 'mage', 1, 2, 'Barrière de glace', [10, 10], [{ hpPct: 0.15 }, { hpPct: 0.2 }],
-    (v) => `Bouclier qui absorbe ${pct(v.hpPct)} de tes PV max + 2 × ton Intelligence.`, '20 % des PV max.'),
+  passive('biting_cold', 'mage', 1, 2, 'Froid mordant', 2, (r) => `Le Gel dure ${r} tour${r > 1 ? 's' : ''} de plus.`),
+  active('ice_barrier', 'mage', 1, 1, 'Barrière de glace', [10, 10], [{ hpPct: 0.15 }, { hpPct: 0.2 }],
+    (v) => `Bouclier qui absorbe ${pct(v.hpPct)} de tes PV max + 1,5 × ton Intelligence.`, '20 % des PV max.'),
   passive('ice_heart', 'mage', 1, 3, 'Cœur de glace', 1, () => 'Un monstre qui frappe ta Barrière de glace est Gelé.'),
   passive('quick_mind', 'mage', 2, 0, 'Esprit vif', 3, (r) => `+${r} de mana par tour en combat.`),
   active('concentration', 'mage', 2, 1, 'Concentration', [0, 0], [{ manaPct: 0.25 }, { manaPct: 0.35 }],
@@ -172,13 +178,13 @@ const TALENT_LIST: TalentDef[] = [
   // ------------------------------------------------------------------- Clerc
   active('heal', 'cleric', -1, 0, 'Soin', [8, 8], [{ hpPct: 0.3 }, { hpPct: 0.4 }],
     (v) => `Rend ${pct(v.hpPct)} de tes PV max.`, 'Rend 40 % des PV max.'),
-  active('smite', 'cleric', 0, 0, 'Châtiment', [8, 8], [{ mult: 1.5 }, { mult: 1.8 }],
-    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}, doublés contre les spectres.`, 'Dégâts ×1,8.'),
-  passive('fervor', 'cleric', 0, 1, 'Ferveur', 3, (r) => `+${5 * r} % de dégâts à tes sorts.`),
+  active('smite', 'cleric', 0, 0, 'Châtiment', [6, 6], [{ mult: 2.2 }, { mult: 2.5 }],
+    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}, doublés contre les spectres.`, 'Dégâts ×2,5.'),
+  passive('fervor', 'cleric', 0, 1, 'Ferveur', 3, (r) => `+${8 * r} % de dégâts à tes sorts.`),
   passive('judgment', 'cleric', 0, 2, 'Jugement', 1, () => 'Tes sorts de Lumière ont 15 % de chances d\'Étourdir.'),
   active('divine_wrath', 'cleric', 0, 3, 'Colère divine', [22, 22], [{ mult: 2.8 }, { mult: 3.2 }],
-    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}, tu te soignes de 25 % des dégâts infligés.`, 'Dégâts ×3,2.'),
-  passive('healing_hands', 'cleric', 1, 0, 'Mains guérisseuses', 3, (r) => `+${10 * r} % à tous tes soins.`),
+    (v) => `Sort de Lumière : dégâts ×${fmt(v.mult)}, tu te soignes de 15 % des dégâts infligés.`, 'Dégâts ×3,2.'),
+  passive('healing_hands', 'cleric', 1, 0, 'Mains guérisseuses', 3, (r) => `+${7 * r} % à tous tes soins.`),
   active('regeneration', 'cleric', 1, 1, 'Régénération', [10, 10], [{ hpPct: 0.08 }, { hpPct: 0.1 }],
     (v) => `Rend ${pct(v.hpPct)} de tes PV max au début de tes 4 prochains tours.`, '10 % par tour.'),
   active('purification', 'cleric', 1, 2, 'Purification', [6, 6], [{ hpPct: 0.1 }, { hpPct: 0.2 }],
@@ -189,14 +195,14 @@ const TALENT_LIST: TalentDef[] = [
   passive('devotion', 'cleric', 2, 1, 'Dévotion', 3, (r) => `+${r} d'armure et +${5 * r} % de PV max.`),
   active('blessing', 'cleric', 2, 2, 'Bénédiction', [12, 12], [{ turns: 3 }, { turns: 4 }],
     (v) => `Pendant tes ${v.turns} prochaines actions : +25 % de dégâts et +3 d'armure.`, 'Dure 4 actions.'),
-  passive('sacred_aura', 'cleric', 2, 3, 'Aura sacrée', 1, () => 'Chaque tour, tu récupères 3 % de tes PV max et 1 de mana.'),
+  passive('sacred_aura', 'cleric', 2, 3, 'Aura sacrée', 1, () => 'Chaque tour, tu récupères 2 % de tes PV max et 1 de mana.'),
 
   // ------------------------------------------------------------------ Archer
   active('perfect_aim', 'archer', -1, 0, 'Visée parfaite', [15, 10], [{}, {}],
     () => 'Action libre : ta prochaine attaque est un coup critique garanti. Toutes armes.', 'Coûte 10 d\'endurance.'),
-  passive('lynx_eye', 'archer', 0, 0, 'Œil de lynx', 3, (r) => `+${4 * r} % de chances de coup critique.`),
-  active('double_shot', 'archer', 0, 1, 'Double tir', [25, 25], [{ mult: 0.8 }, { mult: 0.95 }],
-    (v) => `Deux tirs à ×${fmt(v.mult)}.`, 'Deux tirs à ×0,95.', 'bow'),
+  passive('lynx_eye', 'archer', 0, 0, 'Œil de lynx', 3, (r) => `+${5 * r} % de chances de coup critique.`),
+  active('double_shot', 'archer', 0, 1, 'Double tir', [25, 25], [{ mult: 0.9 }, { mult: 1.05 }],
+    (v) => `Deux tirs à ×${fmt(v.mult)}.`, 'Deux tirs à ×1,05.', 'bow'),
   passive('killer', 'archer', 0, 2, 'Tueur', 1, () => 'Tes coups critiques font ×1,8 au lieu de ×1,5.'),
   active('deadly_shot', 'archer', 0, 3, 'Tir mortel', [45, 35], [{ mult: 2.5 }, { mult: 2.5 }],
     (v) => `Dégâts ×${fmt(v.mult)}, coup critique garanti.`, 'Coûte 35 d\'endurance.', 'bow'),
@@ -216,9 +222,9 @@ const TALENT_LIST: TalentDef[] = [
     'Dure 4 attaques.'),
 
   // ------------------------------------------------------------------ Voleur
-  active('low_blow', 'rogue', -1, 0, 'Coup bas', [15, 15], [{ mult: 1.4 }, { mult: 1.7 }],
+  active('low_blow', 'rogue', -1, 0, 'Coup bas', [20, 20], [{ mult: 1.4 }, { mult: 1.7 }],
     (v) => `Dégâts ×${fmt(v.mult)}, le monstre est Affaibli 2 tours.`, 'Dégâts ×1,7.'),
-  passive('sharpened_blades', 'rogue', 0, 0, 'Lames affûtées', 3, (r) => `+${6 * r} % de dégâts avec une dague.`),
+  passive('sharpened_blades', 'rogue', 0, 0, 'Lames affûtées', 3, (r) => `+${5 * r} % de dégâts avec une dague.`),
   active('sneak_attack', 'rogue', 0, 1, 'Frappe sournoise', [25, 25], [{ first: 2, other: 1.3 }, { first: 2.4, other: 1.5 }],
     (v) => `Dégâts ×${fmt(v.first)} si c'est ton premier coup du combat, sinon ×${fmt(v.other)}.`, 'Dégâts ×2,4 / ×1,5.'),
   passive('opportunist', 'rogue', 0, 2, 'Opportuniste', 1, () => '+25 % de dégâts contre un monstre Étourdi, Gelé ou Affaibli.'),
@@ -265,13 +271,13 @@ export function talentRank(character: Character, id: string): number {
   return character.talents?.[id] ?? 0;
 }
 
-// 1 point per level from 2 to 10, then 1 every 2 levels: 19 points at
-// level 30, against 23-26 ranks per tree, so a full tree is out of reach and
-// the build stays a choice.
+// 1 point per level up to 10 (the first one at creation), then 1 every 2
+// levels: 20 points at level 30, against 23-26 ranks per tree, so a full
+// tree is out of reach and the build stays a choice.
 export function talentPointsTotal(level: number): number {
-  const capped = Math.min(level, MAX_LEVEL);
-  if (capped <= 10) return Math.max(0, capped - 1);
-  return 9 + Math.floor((capped - 10) / 2);
+  const capped = Math.max(1, Math.min(level, MAX_LEVEL));
+  if (capped <= 10) return capped;
+  return 10 + Math.floor((capped - 10) / 2);
 }
 
 export function talentPointsSpent(character: Character): number {

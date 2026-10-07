@@ -376,3 +376,48 @@ export const DUNGEON_LOOT_TIER: Record<ReturnSceneKey, 1 | 2 | 3> = {
   // exists because DUNGEON_LOOT_TIER is a Record over every ReturnSceneKey.
   Interior: 1,
 };
+
+// Monster level of each zone with fights (see monster.ts's createMonster):
+// the level a player typically has when getting there, from the balancing
+// simulator's story path (scripts/balance/simulate.ts).
+export const ZONE_LEVEL: Partial<Record<ReturnSceneKey, number>> = {
+  Field: 1,
+  Farm: 2,
+  Dungeon: 3,
+  Forest: 4,
+  BanditCamp: 4,
+  GoblinCamp: 5,
+  Cave: 5,
+  Road: 5,
+  OldWell: 6,
+  Faubourg: 6,
+  Warehouse: 6,
+  RiverRoad: 7,
+  MarshLair: 7,
+  Catacombs: 7,
+  SunkenRoad: 8,
+  SunkenRuins: 8,
+  ClandestineDock: 9,
+  SealedSanctuary: 9,
+  ShardSeekersCamp: 10,
+  Archives: 10,
+  BrotherhoodTomb: 10,
+  BlightedGrove: 11,
+  SealChamber: 11,
+  SilentWatch: 12,
+  WardCore: 13,
+  WatchersVault: 13,
+  BrokenSleep: 14,
+  CorruptedRoot: 14,
+  SealDepths: 15,
+  WatchersLodge: 15,
+  RiteArchive: 16,
+  RiteAnnex: 17,
+  AncestralCrypt: 17,
+  ForgottenGrave: 18,
+  GuildArchive: 18,
+  CorruptedWaystation: 19,
+  SunkenChapel: 19,
+  ThirdAltar: 20,
+  SanctuaryDepths: 20,
+};

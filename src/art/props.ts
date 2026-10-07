@@ -1014,33 +1014,84 @@ function lamppost(): PropArt {
   return { pm, anchorX: 7, anchorY: base };
 }
 
+// A cottage-garden flower bed: an irregular mound of leafy clumps with
+// flowers in drifts of a few colors, tall spikes at the back, a handful of
+// fieldstones along the front. Anchor: bottom center of its footprint.
 function flowerBed(w: number, h: number, seed: number): PropArt {
-  const pm = new Pixmap(w, h);
-  const rnd = seeded(seed + 21);
-  const SOIL = ramp([110, 78, 54]);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const edge = x === 0 || y === 0 || x === w - 1 || y === h - 1;
-      if (edge) {
-        const f = cell(x, y, 3, seed, 1.3);
-        pm.set(x, y, lit(STONE, f.d2 - f.d1 < 0.15 ? -0.9 : y === 0 || x === 0 ? 0.4 : -0.3));
-      } else pm.set(x, y, lit(SOIL, (hash2(x, y, seed) - 0.5) * 0.6 - 0.2));
+  const W = w + 6;
+  const H = h + 12;
+  const pm = new Pixmap(W, H);
+  const rnd = seeded(seed * 7 + 21);
+  const cx = W / 2;
+  const base = H - 3;
+  const cy = base - h / 2;
+  const SOIL = ramp([104, 74, 52]);
+  const inBed = (x: number, y: number) => {
+    const nx = (x - cx) / (w / 2);
+    const ny = (y - cy) / (h / 2);
+    return nx * nx + ny * ny < 1 + (noise(x, y, 4, seed) - 0.5) * 0.5;
+  };
+  groundShadow(pm, cx + 2, base, w * 0.55, h * 0.45 + 1, 60);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (inBed(x, y)) pm.set(x, y, lit(SOIL, (hash2(x, y, seed) - 0.5) * 0.6 - 0.3));
+  // Three flower colors for this bed, laid in drifts.
+  const palette = [0, 1, 2].map(() => FLOWERS[Math.floor(rnd() * FLOWERS.length)]);
+  const drift = (x: number) => palette[Math.min(2, Math.floor(noise(x, seed, 7, seed + 3) * 3))];
+  // Leafy clumps, back to front.
+  const clumps: Clump[] = [];
+  for (let i = 0; i < (w * h) / 10; i++) {
+    const x = cx + (rnd() - 0.5) * w * 0.95;
+    const y = cy + (rnd() - 0.5) * h * 0.9;
+    if (inBed(Math.round(x), Math.round(y))) clumps.push({ x, y: y - 1, r: 1.8 + rnd() * 1.4 });
+  }
+  clumps.sort((p, q) => p.y - q.y);
+  const LEAF = LEAVES_DARK;
+  for (const c of clumps) {
+    const back = c.y < cy - h * 0.15;
+    // Tall flower spikes (foxgloves, hollyhocks) at the back.
+    if (back && rnd() < 0.5) {
+      const col = drift(Math.round(c.x) + 40);
+      const len = 4 + Math.floor(rnd() * 4);
+      const sx = Math.round(c.x);
+      for (let j = 1; j <= len; j++) {
+        const y = Math.round(c.y) - j;
+        pm.set(sx, y, j % 2 ? mix(col, [255, 255, 255], j > len - 2 ? 0.3 : 0) : mix(col, [0, 0, 0], 0.18));
+        if (j % 2 && j < len - 1) pm.set(sx + 1, y, mix(col, [0, 0, 0], 0.3));
+      }
+      pm.set(sx, Math.round(c.y) - len - 1, LEAF[1]);
+    }
+    for (let y = Math.floor(c.y - c.r); y <= Math.ceil(c.y + c.r); y++) {
+      for (let x = Math.floor(c.x - c.r); x <= Math.ceil(c.x + c.r); x++) {
+        const nx = (x - c.x) / c.r;
+        const ny = (y - c.y) / c.r;
+        if (nx * nx + ny * ny > 1) continue;
+        pm.set(x, y, lit(LEAF, sphere(nx * 0.9, ny * 0.9) * 0.9 + (hash2(x, y, seed + 4) - 0.5) * 0.3));
+      }
+    }
+    // Flowers on the upper half of the clump.
+    const n = 1 + Math.floor(rnd() * 3);
+    for (let k = 0; k < n; k++) {
+      const fx = Math.round(c.x + (rnd() - 0.5) * c.r * 1.4);
+      const fy = Math.round(c.y - rnd() * c.r);
+      const col = drift(fx);
+      pm.set(fx, fy, col);
+      pm.set(fx, fy - 1, mix(col, [255, 255, 255], 0.35));
+      if (rnd() < 0.5) pm.set(fx + 1, fy, mix(col, [0, 0, 0], 0.25));
     }
   }
-  for (let i = 0; i < (w * h) / 9; i++) {
-    const x = 2 + Math.floor(rnd() * (w - 4));
-    const y = 2 + Math.floor(rnd() * (h - 4));
-    pm.set(x, y, LEAVES[2]);
-    pm.set(x + 1, y, LEAVES[3]);
-    pm.set(x, y + 1, LEAVES[3]);
-    const c = FLOWERS[Math.floor(rnd() * FLOWERS.length)];
-    if (rnd() < 0.7) {
-      pm.set(x, y - 1, c);
-      pm.set(x - 1, y - 1, mix(c, [0, 0, 0], 0.2));
-      pm.set(x, y - 2, mix(c, [255, 255, 255], 0.25));
-    }
+  // A few fieldstones along the front edge, with gaps.
+  for (let x = Math.round(cx - w / 2) + 1; x < cx + w / 2 - 2; x += 3 + Math.floor(rnd() * 3)) {
+    if (rnd() < 0.35) continue;
+    let y = base;
+    while (y > 0 && !inBed(x, y) && !inBed(x + 1, y)) y--;
+    y += 1;
+    pm.set(x, y - 1, lit(STONE, 0.6));
+    pm.set(x + 1, y - 1, lit(STONE, 0.2));
+    pm.set(x, y, lit(STONE, -0.1));
+    pm.set(x + 1, y, lit(STONE, -0.6));
+    if (rnd() < 0.5) pm.set(x + 2, y, lit(STONE, -0.3));
   }
-  return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
+  outlineOpaque(pm, 0.55);
+  return { pm, anchorX: Math.round(cx), anchorY: base };
 }
 
 // Split-rail fence: rounded posts and two weathered rails, with a little
@@ -1245,7 +1296,7 @@ export function renderPatch(material: 'crop' | 'water' | 'planks' | 'lava' | 'ma
 
 // ---------------------------------------------------------------- dungeons
 
-export type DungeonPropKind = 'torch' | 'bones' | 'sarcophagus' | 'cobweb' | 'pillar' | 'brazier' | 'urn' | 'rubble';
+export type DungeonPropKind = 'torch' | 'bones' | 'sarcophagus' | 'cobweb' | 'pillar' | 'brazier' | 'urn' | 'rubble' | 'candles' | 'skulls' | 'runes';
 
 const CRYPT = ramp([124, 118, 128], 0.4);
 const BONE = ramp([226, 218, 194], 0.6);
@@ -1273,6 +1324,72 @@ function halo(pm: Pixmap, cx: number, cy: number, r: number, c: RGB, alpha: numb
 }
 
 export function renderDungeonProp(kind: DungeonPropKind): PropArt {
+  if (kind === 'candles') {
+    // A cluster of melted candles on the floor, wax pooled at their feet.
+    const pm = new Pixmap(20, 20);
+    const t = new Pixmap(20, 20);
+    const WAX = ramp([226, 214, 186], 0.6);
+    for (let x = 4; x <= 15; x++) t.set(x, 17, lit(WAX, x < 8 ? 0.2 : -0.4));
+    for (let x = 6; x <= 13; x++) t.set(x, 18, WAX[3]);
+    for (const [cx, hgt] of [[6, 5], [9, 8], [12, 4], [14, 6]] as [number, number][]) {
+      for (let j = 0; j < hgt; j++) {
+        t.set(cx, 16 - j, WAX[1]);
+        t.set(cx + 1, 16 - j, WAX[3]);
+      }
+      t.set(cx + 1, 17 - hgt + 2, WAX[0]); // drip
+      t.set(cx, 16 - hgt, [60, 50, 50]); // wick
+      t.set(cx, 15 - hgt, [255, 230, 150]);
+      t.set(cx, 14 - hgt, [252, 180, 80]);
+    }
+    outlineOpaque(t, 0.7);
+    halo(pm, 10, 9, 10, [255, 190, 110], 90);
+    pm.blit(t, 0, 0);
+    return { pm, anchorX: 10, anchorY: 18 };
+  }
+  if (kind === 'skulls') {
+    // A heap of skulls and long bones against a wall.
+    const pm = new Pixmap(22, 14);
+    const skull = (x: number, y: number) => {
+      for (let j = 0; j < 4; j++) {
+        for (let i = 0; i < 4; i++) {
+          if ((j === 0 || j === 3) && (i === 0 || i === 3)) continue;
+          pm.set(x + i, y + j, lit(BONE, (i === 0 ? 0.5 : i === 3 ? -0.5 : 0.1) + (j === 0 ? 0.3 : j === 3 ? -0.4 : 0)));
+        }
+      }
+      pm.set(x + 1, y + 2, [40, 30, 34]);
+      pm.set(x + 2, y + 2, [40, 30, 34]);
+    };
+    for (let i = 0; i < 6; i++) pm.hline(2 + i, 18 - i, 12 - Math.floor(i / 2), BONE[i % 2 ? 2 : 3]);
+    skull(3, 8);
+    skull(8, 9);
+    skull(13, 8);
+    skull(6, 5);
+    skull(11, 4);
+    pm.hline(15, 20, 11, BONE[1]);
+    pm.set(20, 10, BONE[0]);
+    outlineOpaque(pm);
+    return { pm, anchorX: 11, anchorY: 12 };
+  }
+  if (kind === 'runes') {
+    // A faintly glowing circle of runes carved in the floor (flat).
+    const pm = new Pixmap(56, 34);
+    const cx = 27.5;
+    const cy = 16.5;
+    for (let y = 0; y < pm.h; y++) {
+      for (let x = 0; x < pm.w; x++) {
+        const nx = (x - cx) / 26;
+        const ny = (y - cy) / 15.5;
+        const d = Math.sqrt(nx * nx + ny * ny);
+        const ang = Math.atan2(ny, nx);
+        const ring = Math.abs(d - 0.95) < 0.045 || Math.abs(d - 0.72) < 0.05;
+        const rune = d > 0.76 && d < 0.91 && Math.floor(((ang + Math.PI) / (Math.PI * 2)) * 18) % 2 === 0 && hash2(Math.floor(((ang + Math.PI) / (Math.PI * 2)) * 54), Math.round(d * 12), 7) < 0.55;
+        const star = d < 0.72 && (Math.abs(Math.sin(ang * 2.5 + 0.3)) * d < 0.035 * 2.2 / Math.max(0.2, d) * 0.4);
+        if (ring || rune || star) pm.set(x, y, [178, 120, 236], ring ? 170 : 130);
+        else if (d < 1.1) pm.set(x, y, [120, 70, 190], Math.round(Math.max(0, 1.1 - d) * 40));
+      }
+    }
+    return { pm, anchorX: 28, anchorY: 17 };
+  }
   if (kind === 'torch') {
     // Wall sconce: iron bracket, pitch-wrapped head, a live flame, halo.
     const pm = new Pixmap(28, 32);

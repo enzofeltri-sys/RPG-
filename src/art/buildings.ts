@@ -887,34 +887,77 @@ export function renderBuilding(kind: BuildingKind, w: number, h: number): Buildi
 
 // ---------------------------------------------------------------- dungeons
 
-const CAP = ramp([50, 46, 60], 0.4);
+const CAP = ramp([40, 36, 50], 0.4);
 const BRICK = ramp([128, 116, 112], 0.4);
 
-// A dungeon wall block on its footprint: a dark stone cap on top and a
-// lit face of rough stones along the bottom, rising above the footprint.
-export function renderWallBlock(w: number, h: number): BuildingArt {
-  const rise = 8;
-  const face = Math.min(16, Math.max(10, Math.round(h * 0.35)));
+// A dungeon wall block on its footprint: a dark stone cap on top and a lit
+// face of rough stones along the bottom, rising above the footprint.
+// Catacomb walls get burial niches in their face (skulls and bones in
+// arched recesses); face 0 draws only the cap (walls seen side-on).
+export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; face?: number; seed?: number } = {}): BuildingArt {
+  const seed = opts.seed ?? 61;
+  const face = opts.face ?? Math.min(18, Math.max(12, Math.round(h * 0.35)));
+  const rise = face ? 8 : 0;
   const H = h + rise;
   const pm = new Pixmap(w, H);
   const capBottom = H - face - 1;
   for (let y = 0; y <= capBottom; y++) {
     for (let x = 0; x < w; x++) {
-      const s = cell(x, y, 7, 61, 1.3);
-      let c = s.d2 - s.d1 < 0.08 ? CAP[4] : lit(CAP, -s.dx * 0.3 - s.dy * 0.4 + (hash2(s.id, 1, 62) - 0.5) * 0.5);
-      if (y === 0 || x === 0) c = CAP[1];
+      const s = cell(x, y, 7, seed, 1.3);
+      let c = s.d2 - s.d1 < 0.08 ? CAP[4] : lit(CAP, -s.dx * 0.3 - s.dy * 0.4 + (hash2(s.id, 1, seed + 1) - 0.5) * 0.5);
+      // Worn, lit rims along the top edges.
+      if (y === 0 || x === 0) c = [128, 120, 132];
+      else if (y === 1 || x === 1) c = CAP[0];
       if (x === w - 1) c = CAP[4];
       pm.set(x, y, c);
     }
   }
   for (let y = capBottom + 1; y < H; y++) {
     for (let x = 0; x < w; x++) {
-      const s = cell(x, y, 5, 63, 1.5);
-      let c = s.d2 - s.d1 < 0.1 ? BRICK[4] : lit(BRICK, -s.dx * 0.5 - s.dy * 0.7 + (hash2(s.id, 1, 64) - 0.5) * 0.5);
+      const s = cell(x, y, 5, seed + 2, 1.5);
+      let c = s.d2 - s.d1 < 0.1 ? BRICK[4] : lit(BRICK, -s.dx * 0.5 - s.dy * 0.7 + (hash2(s.id, 1, seed + 3) - 0.5) * 0.5);
       if (y === capBottom + 1) c = BRICK[0];
       if (y - capBottom <= 3) c = mix(c, [255, 250, 230], 0.08);
-      if (y >= H - 3 && hash2(x, y, 65) < 0.3) c = [86, 116, 70]; // moss at the foot
+      if (y >= H - 3) c = mix(c, [24, 20, 28], (y - (H - 4)) * 0.15); // grime at the foot
+      if (x === w - 1) c = mix(c, [24, 20, 28], 0.3);
       pm.set(x, y, c);
+    }
+  }
+  if (opts.niches && face >= 10) {
+    // Rows of arched loculi, each holding a skull or a bundle of bones.
+    const rows = face >= 16 ? 2 : 1;
+    const nh = 5;
+    for (let r = 0; r < rows; r++) {
+      const ny = capBottom + 3 + r * (nh + 2);
+      const count = Math.max(1, Math.floor((w - 3) / 8));
+      const start = Math.floor((w - count * 8 + 2) / 2);
+      for (let i = 0; i < count; i++) {
+        const nx = start + i * 8 + (r % 2 ? 2 : 0);
+        if (nx + 6 > w - 1) continue;
+        for (let j = 0; j < nh; j++) {
+          for (let k = 0; k < 6; k++) {
+            if (j === 0 && (k === 0 || k === 5)) continue; // arched top
+            pm.set(nx + k, ny + j, j === 0 ? [20, 16, 24] : [30, 24, 32]);
+          }
+        }
+        pm.hline(nx, nx + 5, ny + nh, BRICK[0]); // sill
+        const kind = hash2(i, r, seed + 5);
+        const B: RGB = [214, 204, 178];
+        const D: RGB = [150, 140, 120];
+        if (kind < 0.55) {
+          pm.hline(nx + 2, nx + 3, ny + 1, B);
+          pm.hline(nx + 1, nx + 4, ny + 2, B);
+          pm.set(nx + 2, ny + 2, [30, 24, 32]);
+          pm.set(nx + 4, ny + 2, [30, 24, 32]);
+          pm.hline(nx + 2, nx + 3, ny + 3, D);
+          pm.hline(nx + 1, nx + 4, ny + 4, D);
+        } else if (kind < 0.85) {
+          pm.hline(nx + 1, nx + 4, ny + 3, B);
+          pm.hline(nx + 1, nx + 4, ny + 4, D);
+          pm.set(nx + 1, ny + 2, B);
+          pm.set(nx + 4, ny + 2, D);
+        }
+      }
     }
   }
   pm.outline(OUTLINE);

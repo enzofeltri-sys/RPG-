@@ -7,7 +7,7 @@
 
 import { Pixmap, RGB, Ramp, cell, hash2, lit, mix, noise, ramp } from './pixmap';
 
-export type GroundMaterial = 'grass' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'planks' | 'crop';
+export type GroundMaterial = 'grass' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop';
 
 export type GroundShape =
   | { kind: 'path'; material: GroundMaterial; points: [number, number][]; width: number }
@@ -62,7 +62,8 @@ export const GRASS = ramp([96, 156, 70]);
 const DIRT = ramp([166, 126, 84]);
 const COBBLE = ramp([150, 146, 140], 0.6);
 const SLAB = ramp([158, 154, 146], 0.6);
-const FLOOR = ramp([98, 94, 108], 0.5);
+const FLOOR = ramp([92, 88, 100], 0.5);
+const AISLE = ramp([112, 106, 112], 0.5);
 const SAND = ramp([214, 190, 138]);
 const WATER = ramp([70, 136, 192], 0.4);
 const MARSH = ramp([92, 110, 66]);
@@ -142,8 +143,8 @@ function stones(x: number, y: number, seed: number, r: Ramp, size: number, stret
   return lit(r, level);
 }
 
-function slabs(x: number, y: number, seed: number, r: Ramp): RGB {
-  const s = cell(x, y, 13, seed, 1.35);
+function slabs(x: number, y: number, seed: number, r: Ramp, size = 13, stretch = 1.35): RGB {
+  const s = cell(x, y, size, seed, stretch);
   if (s.d2 - s.d1 < 0.06) return hash2(x, y, seed + 3) < 0.25 ? MOSS : r[4];
   const tone = (hash2(s.id, 2, seed) - 0.5) * 0.6;
   let level = (-s.dx * 0.25 - s.dy * 0.35) * 0.8 + tone + (hash2(x, y, seed + 4) - 0.5) * 0.25;
@@ -210,9 +211,11 @@ function material(m: GroundMaterial, x: number, y: number, seed: number): RGB {
     case 'cobble':
       return stones(x, y, seed + 13, COBBLE, 6, 1.25, 1, COBBLE[4]);
     case 'flagstone':
-      return slabs(x, y, seed + 17, SLAB);
+      return slabs(x, y, seed + 17, SLAB, 9, 1.3);
     case 'stonefloor':
-      return slabs(x, y, seed + 19, FLOOR);
+      return slabs(x, y, seed + 19, FLOOR, 9, 1.3);
+    case 'aisle':
+      return slabs(x, y, seed + 21, AISLE, 12, 1.7);
     case 'sand':
       return dirt(x, y, seed + 23, SAND);
     case 'water':
@@ -231,6 +234,7 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
   dirt: DIRT[3],
   cobble: COBBLE[4],
   flagstone: SLAB[4],
+  aisle: AISLE[4],
   water: [38, 72, 112],
   sand: SAND[3],
   marsh: MARSH[4],
@@ -238,27 +242,64 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
   crop: DIRT[4],
 };
 
+// Paved materials: their stones are laid one by one, so the edge of a
+// paved area follows the stones and frays out (stones missing near the
+// edge, a few strays beyond it) instead of being cut along a curve.
+const PAVED: Partial<Record<GroundMaterial, { size: number; stretch: number; seed: number; fray: number }>> = {
+  cobble: { size: 6, stretch: 1.25, seed: 13, fray: 7 },
+  flagstone: { size: 9, stretch: 1.3, seed: 17, fray: 8 },
+};
+
 export function renderGround(spec: GroundSpec): Pixmap {
   const { w, h, base } = spec;
   const seed = spec.seed ?? 1;
   const shapes = spec.shapes ?? [];
   const pm = new Pixmap(w, h);
+  const wobbleAt = (x: number, y: number) => (noise(x, y, 9, seed + 51) - 0.5) * 3.2 + (noise(x, y, 3, seed + 52) - 0.5) * 1.2;
+  // Paved shapes get a broader, lumpier outline.
+  const pavedWobble = (x: number, y: number) => (noise(x, y, 18, seed + 53) - 0.5) * 6 + wobbleAt(x, y);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       let m = base;
       let edge = Infinity; // depth inside the shape giving m
       let outside = Infinity; // distance to the nearest shape seen from outside
-      // Organic edges: shapes are nudged by low-frequency noise.
-      const wobble = (noise(x, y, 9, seed + 51) - 0.5) * 3.2 + (noise(x, y, 3, seed + 52) - 0.5) * 1.2;
+      let pavedEdge = Infinity; // how deep the stone under this pixel sits in its paving
+      const wobble = wobbleAt(x, y);
       shapes.forEach((s) => {
+        const paved = PAVED[s.material];
+        if (paved) {
+          // Decide per stone, from where the stone's center sits.
+          const c = cell(x, y, paved.size, seed + paved.seed, paved.stretch);
+          const sx = x - (c.dx / 2) * paved.size * paved.stretch;
+          const sy = y - (c.dy / 2) * paved.size;
+          const depth = -(shapeDist(s, sx, sy) + pavedWobble(sx, sy));
+          const keep = hash2(c.id, 7, seed);
+          const inside = depth > 0 ? keep < 0.12 + Math.min(1, depth / paved.fray) : depth > -paved.fray * 0.7 && keep < 0.08;
+          if (inside) {
+            m = s.material;
+            edge = Infinity;
+            pavedEdge = depth;
+          }
+          return;
+        }
         const d = shapeDist(s, x, y) + (s.kind === 'path' || s.kind === 'ellipse' ? wobble : 0);
         if (d < 0) {
           m = s.material;
           edge = -d;
+          pavedEdge = Infinity;
         } else outside = Math.min(outside, d);
       });
       let c = material(m, x, y, seed);
-      if (m !== base) {
+      const paved = PAVED[m];
+      if (paved && pavedEdge !== Infinity) {
+        // Grass or earth creeping between the stones, more so near the edge.
+        const pc = cell(x, y, paved.size, seed + paved.seed, paved.stretch);
+        const gap = pc.d2 - pc.d1 < 0.1;
+        const creep = Math.max(0, 1 - pavedEdge / (paved.fray * 1.6));
+        if (gap && base === 'grass' && hash2(x, y, seed + 61) < 0.08 + creep * 0.6) c = hash2(x, y, seed + 62) < 0.5 ? GRASS[2] : GRASS[3];
+        // Loose stones near the edge sit a little lower and darker.
+        else if (pavedEdge < paved.fray * 0.5) c = mix(c, [40, 36, 30], 0.12);
+      } else if (m !== base) {
         // Grass spilling over the edge of a path, then a shaded rim.
         if (base === 'grass' && m !== 'water' && edge < 1.6 && hash2(x, y, seed + 60) < 0.45) c = grass(x, y, seed) === GRASS[1] ? GRASS[2] : GRASS[3];
         else if (edge < 1.1 && RIM[m]) c = RIM[m]!;

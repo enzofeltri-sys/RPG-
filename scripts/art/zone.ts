@@ -13,7 +13,7 @@ import { NPC_LOOKS } from '../../src/art/npcLooks';
 import { GroundSpec, renderGround } from '../../src/art/ground';
 import { BuildingKind, renderBuilding, renderGate, renderWallBlock } from '../../src/art/buildings';
 import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderFlowerBed, renderPatch, renderProp, renderStoneWall } from '../../src/art/props';
-import { Pixmap } from '../../src/art/pixmap';
+import { Pixmap, mix } from '../../src/art/pixmap';
 import { PROP_SETTLE, TuftSpot, fringe, occlude, renderTuft, scatter, softenBase, strew, tuftsAround, vary, wear } from '../../src/art/settle';
 import { encodePng } from './png';
 
@@ -24,7 +24,7 @@ type Item =
   | { kind: 'swall'; x: number; y: number; len: number }
   | { kind: 'bed'; x: number; y: number; w: number; h: number }
   | { kind: 'patch'; material: 'crop' | 'water' | 'planks' | 'marsh'; x: number; y: number; w: number; h: number }
-  | { kind: 'wall'; x: number; y: number; w: number; h: number }
+  | { kind: 'wall'; x: number; y: number; w: number; h: number; niches?: boolean; face?: number }
   | { kind: 'gate'; x: number; y: number; w: number }
   | { kind: 'dprop'; type: DungeonPropKind; x: number; y: number }
   | { kind: 'person'; look: Look; x: number; y: number; view?: 'down' | 'left' | 'right' | 'up' };
@@ -39,29 +39,50 @@ interface Zone {
   meadow?: { n: number; seed: number };
 }
 
-// Darkness with warm light pools (torches) and a softer one around the hero.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
+// Darkness with pools of light: warm around flames, violet around the
+// runes, a softer neutral one around the hero. The falloff is smooth but
+// quantized to a few steps with an ordered dither between them, like old
+// games; unlit areas lean cold.
 function light(map: Pixmap, zone: Zone): void {
   if (zone.ambient === undefined) return;
-  const lights: [number, number, number, boolean][] = zone.items
-    .filter((it): it is Extract<Item, { kind: 'dprop' }> => it.kind === 'dprop' && (it.type === 'torch' || it.type === 'brazier'))
-    .map((it) => [it.x, it.y - 12, it.type === 'brazier' ? 80 : 70, true]);
-  lights.push([zone.hero.x, zone.hero.y, 56, false]);
+  const amb = zone.ambient;
+  const lights: { x: number; y: number; r: number; tint: [number, number, number] }[] = [];
+  zone.items.forEach((it) => {
+    if (it.kind !== 'dprop') return;
+    if (it.type === 'torch') lights.push({ x: it.x, y: it.y - 12, r: 82, tint: [1.22, 1.02, 0.8] });
+    if (it.type === 'brazier') lights.push({ x: it.x, y: it.y - 14, r: 84, tint: [1.25, 1.0, 0.76] });
+    if (it.type === 'candles') lights.push({ x: it.x, y: it.y - 8, r: 36, tint: [1.18, 1.02, 0.84] });
+    if (it.type === 'runes') lights.push({ x: it.x, y: it.y, r: 46, tint: [1.05, 0.88, 1.3] });
+  });
+  lights.push({ x: zone.hero.x, y: zone.hero.y, r: 58, tint: [1, 1, 1.04] });
   for (let y = 0; y < map.h; y++) {
     for (let x = 0; x < map.w; x++) {
-      let level = zone.ambient;
-      let warm = 0;
-      lights.forEach(([lx, ly, r, isWarm]) => {
-        const d = Math.hypot(x - lx, y - ly) / r;
-        if (d >= 1) return;
-        // Banded falloff, like light in old games: a few distinct steps.
-        const k = Math.ceil((1 - d) * 4) / 4;
-        level = Math.max(level, zone.ambient! + (1 - zone.ambient!) * k);
-        if (isWarm) warm = Math.max(warm, k);
-      });
+      let level = amb;
+      let tr = 0.88;
+      let tg = 0.94;
+      let tb = 1.12; // cold shadows
+      let best = 0;
+      const dith = BAYER[(y % 4) * 4 + (x % 4)] / 16;
+      for (const l of lights) {
+        const d = Math.hypot(x - l.x, (y - l.y) * 1.1) / l.r;
+        if (d >= 1) continue;
+        const k = Math.pow(1 - d, 1.4);
+        const q = Math.min(1, Math.floor(k * 6 + dith) / 6);
+        const lv = amb + (1 - amb) * q;
+        if (lv > level) level = lv;
+        if (q > best) {
+          best = q;
+          tr = 0.88 + (l.tint[0] - 0.88) * Math.min(1, q * 1.6);
+          tg = 0.94 + (l.tint[1] - 0.94) * Math.min(1, q * 1.6);
+          tb = 1.12 + (l.tint[2] - 1.12) * Math.min(1, q * 1.6);
+        }
+      }
       const o = (y * map.w + x) * 4;
-      map.data[o] = Math.min(255, map.data[o] * level * (1 + warm * 0.18));
-      map.data[o + 1] = map.data[o + 1] * level * (1 + warm * 0.04);
-      map.data[o + 2] = map.data[o + 2] * level * (1 - warm * 0.12);
+      map.data[o] = Math.min(255, map.data[o] * level * tr);
+      map.data[o + 1] = Math.min(255, map.data[o + 1] * level * tg);
+      map.data[o + 2] = Math.min(255, map.data[o + 2] * level * tb);
     }
   }
 }
@@ -87,7 +108,7 @@ const VALOMBRE: Zone = {
       { kind: 'rect', material: 'crop', x: 68, y: 250, w: 58, h: 34 },
       { kind: 'ellipse', material: 'dirt', x: 206, y: 226, w: 168, h: 98 },
       { kind: 'ellipse', material: 'cobble', x: 236, y: 250, w: 104, h: 54 },
-      { kind: 'ellipse', material: 'flagstone', x: 214, y: 530, w: 52, h: 38 },
+      { kind: 'ellipse', material: 'flagstone', x: 206, y: 524, w: 68, h: 50 },
     ],
   },
   items: [
@@ -129,7 +150,9 @@ const VALOMBRE: Zone = {
     { kind: 'prop', type: 'haystack', x: 54, y: 300, seed: 2 },
     { kind: 'prop', type: 'apple_tree', x: 160, y: 300, seed: 8 },
     { kind: 'prop', type: 'woodpile', x: 160, y: 186 },
-    { kind: 'bed', x: 104, y: 190, w: 20, h: 8 },
+    { kind: 'bed', x: 102, y: 196, w: 24, h: 9 },
+    { kind: 'bed', x: 318, y: 252, w: 18, h: 7 },
+    { kind: 'bed', x: 360, y: 503, w: 16, h: 7 },
     { kind: 'prop', type: 'lamppost', x: 214, y: 186 },
     // The stone house: a barrel and a crate by the wall, flowers at the corner.
     { kind: 'prop', type: 'barrel', x: 278, y: 242 },
@@ -174,43 +197,70 @@ const CATACOMBS: Zone = {
     base: 'stonefloor',
     seed: 11,
     shapes: [
-      { kind: 'path', material: 'flagstone', width: 44, points: [[110, 0], [110, 620]] },
-      { kind: 'ellipse', material: 'water', x: 150, y: 330, w: 26, h: 12 },
+      // The processional aisle, widening into the Guardian's hall.
+      { kind: 'rect', material: 'aisle', x: 90, y: 0, w: 40, h: 620 },
+      { kind: 'rect', material: 'aisle', x: 46, y: 26, w: 128, h: 92 },
+      { kind: 'ellipse', material: 'water', x: 150, y: 342, w: 18, h: 8 },
     ],
   },
   items: [
-    { kind: 'wall', x: 20, y: 560, w: 30, h: 60 },
-    { kind: 'wall', x: 200, y: 460, w: 30, h: 80 },
-    { kind: 'wall', x: 20, y: 360, w: 30, h: 60 },
-    { kind: 'wall', x: 200, y: 260, w: 30, h: 60 },
-    { kind: 'wall', x: 20, y: 140, w: 30, h: 60 },
+    // Side walls seen from above, the back wall of the hall with niches.
+    { kind: 'wall', x: 5, y: 310, w: 10, h: 620, face: 0 },
+    { kind: 'wall', x: 215, y: 310, w: 10, h: 620, face: 0 },
+    { kind: 'wall', x: 110, y: 10, w: 220, h: 20, niches: true, face: 16 },
+    // The scene's wall blocks become piers full of burial niches.
+    { kind: 'wall', x: 20, y: 560, w: 30, h: 60, niches: true },
+    { kind: 'wall', x: 200, y: 460, w: 30, h: 80, niches: true },
+    { kind: 'wall', x: 20, y: 360, w: 30, h: 60, niches: true },
+    { kind: 'wall', x: 200, y: 260, w: 30, h: 60, niches: true },
+    { kind: 'wall', x: 20, y: 140, w: 30, h: 60, niches: true },
     { kind: 'gate', x: 110, y: 220, w: 220 },
-    { kind: 'prop', type: 'treasure_chest_closed', x: 170, y: 586 },
-    { kind: 'dprop', type: 'torch', x: 20, y: 548 },
-    { kind: 'dprop', type: 'torch', x: 200, y: 446 },
-    { kind: 'dprop', type: 'torch', x: 20, y: 348 },
-    { kind: 'dprop', type: 'torch', x: 200, y: 248 },
-    { kind: 'dprop', type: 'sarcophagus', x: 186, y: 560 },
-    { kind: 'dprop', type: 'sarcophagus', x: 46, y: 470 },
-    { kind: 'dprop', type: 'sarcophagus', x: 180, y: 330 },
-    { kind: 'dprop', type: 'bones', x: 60, y: 520 },
-    { kind: 'dprop', type: 'bones', x: 160, y: 400 },
-    { kind: 'dprop', type: 'bones', x: 70, y: 290 },
-    { kind: 'dprop', type: 'cobweb', x: 0, y: 0 },
-    { kind: 'dprop', type: 'cobweb', x: 0, y: 228 },
-    { kind: 'dprop', type: 'pillar', x: 70, y: 420 },
-    { kind: 'dprop', type: 'pillar', x: 150, y: 420 },
-    { kind: 'dprop', type: 'pillar', x: 70, y: 610 },
-    { kind: 'dprop', type: 'brazier', x: 110, y: 300 },
-    { kind: 'dprop', type: 'urn', x: 180, y: 500 },
-    { kind: 'dprop', type: 'urn', x: 40, y: 400 },
-    { kind: 'dprop', type: 'rubble', x: 150, y: 270 },
-    { kind: 'dprop', type: 'rubble', x: 60, y: 580 },
-    { kind: 'prop', type: 'rock_small', x: 150, y: 600, seed: 2 },
-    { kind: 'prop', type: 'mushroom', x: 40, y: 600 },
+    // Torches on the piers and on the back wall.
+    { kind: 'dprop', type: 'torch', x: 20, y: 586 },
+    { kind: 'dprop', type: 'torch', x: 200, y: 496 },
+    { kind: 'dprop', type: 'torch', x: 20, y: 386 },
+    { kind: 'dprop', type: 'torch', x: 200, y: 286 },
+    { kind: 'dprop', type: 'torch', x: 20, y: 166 },
+    // The Guardian's hall: a rune circle between two braziers.
+    { kind: 'dprop', type: 'runes', x: 110, y: 72 },
+    { kind: 'dprop', type: 'brazier', x: 62, y: 76 },
+    { kind: 'dprop', type: 'brazier', x: 158, y: 76 },
+    { kind: 'dprop', type: 'pillar', x: 52, y: 120 },
+    { kind: 'dprop', type: 'pillar', x: 168, y: 120 },
+    { kind: 'dprop', type: 'skulls', x: 30, y: 30 },
+    { kind: 'dprop', type: 'skulls', x: 192, y: 32 },
+    // Pillars along the aisle.
+    { kind: 'dprop', type: 'pillar', x: 76, y: 470 },
+    { kind: 'dprop', type: 'pillar', x: 144, y: 470 },
+    { kind: 'dprop', type: 'pillar', x: 76, y: 330 },
+    { kind: 'dprop', type: 'pillar', x: 144, y: 330 },
+    // Tombs with candles and scattered bones.
+    { kind: 'dprop', type: 'sarcophagus', x: 40, y: 470 },
+    { kind: 'dprop', type: 'candles', x: 52, y: 480 },
+    { kind: 'dprop', type: 'bones', x: 30, y: 492 },
+    { kind: 'dprop', type: 'sarcophagus', x: 182, y: 380 },
+    { kind: 'dprop', type: 'candles', x: 168, y: 388 },
+    { kind: 'dprop', type: 'sarcophagus', x: 184, y: 590 },
+    { kind: 'dprop', type: 'candles', x: 194, y: 602 },
+    // Bone heaps at the foot of the piers, urns, rubble, cobwebs.
+    { kind: 'dprop', type: 'skulls', x: 28, y: 600 },
+    { kind: 'dprop', type: 'skulls', x: 194, y: 510 },
+    { kind: 'dprop', type: 'bones', x: 46, y: 400 },
+    { kind: 'dprop', type: 'bones', x: 168, y: 300 },
+    { kind: 'dprop', type: 'urn', x: 186, y: 420 },
+    { kind: 'dprop', type: 'urn', x: 194, y: 426 },
+    { kind: 'dprop', type: 'urn', x: 36, y: 186 },
+    { kind: 'dprop', type: 'rubble', x: 44, y: 256 },
+    { kind: 'dprop', type: 'rubble', x: 176, y: 540 },
+    { kind: 'dprop', type: 'rubble', x: 180, y: 160 },
+    { kind: 'dprop', type: 'cobweb', x: 10, y: 22 },
+    { kind: 'dprop', type: 'cobweb', x: 10, y: 392 },
+    { kind: 'dprop', type: 'cobweb', x: 10, y: 592 },
+    { kind: 'prop', type: 'treasure_chest_closed', x: 160, y: 590 },
+    { kind: 'prop', type: 'mushroom', x: 20, y: 610 },
   ],
   hero: { x: 110, y: 480 },
-  ambient: 0.38,
+  ambient: 0.42,
 };
 
 const isGrass = (map: Pixmap, x: number, y: number): boolean => {
@@ -262,10 +312,23 @@ function drawZone(zone: Zone, heroLookValue: Look): Pixmap {
       const pm = softenBase(st.vary ? vary(art.pm, seed * 31 + idx) : art.pm, art.anchorY);
       draws.push({ y: it.y, draw: () => blit(pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else if (it.kind === 'wall') {
-      const art = renderWallBlock(it.w, it.h);
+      const art = renderWallBlock(it.w, it.h, { niches: it.niches, face: it.face, seed: 61 + idx });
       const bottom = it.y + it.h / 2;
-      occlude(map, Math.round(it.x - art.anchorX), Math.round(it.x - art.anchorX + it.w - 1), Math.round(bottom + 1), 4, 0.5);
-      draws.push({ y: bottom, draw: () => blit(art.pm, it.x - art.anchorX, bottom - art.anchorY) });
+      const x0 = Math.round(it.x - art.anchorX);
+      if (it.face === 0) {
+        // A wall seen side-on: shade the floor along its inner edge.
+        const inner = it.x < zone.ground.w / 2 ? x0 + it.w : x0 - 1;
+        const dir = it.x < zone.ground.w / 2 ? 1 : -1;
+        for (let j = 0; j < 8; j++) for (let y = Math.max(0, Math.round(it.y - it.h / 2)); y < Math.min(map.h, bottom); y++) {
+          const c = map.get(inner + j * dir, y);
+          if (c) map.set(inner + j * dir, y, mix(c, [16, 12, 20], 0.5 * (1 - j / 8)));
+        }
+        draws.push({ y: -500, draw: () => blit(art.pm, x0, bottom - art.anchorY) });
+      } else {
+        occlude(map, x0, x0 + it.w - 1, Math.round(bottom + 1), 5, 0.55);
+        strew(map, it.x, bottom + 3, it.w / 2 + 2, 3, [[70, 64, 70], [104, 96, 100], [52, 46, 54]], Math.round(it.w / 2), idx);
+        draws.push({ y: bottom, draw: () => blit(art.pm, x0, bottom - art.anchorY) });
+      }
     } else if (it.kind === 'gate') {
       const art = renderGate(it.w);
       const bottom = it.y + 8;
@@ -273,7 +336,8 @@ function drawZone(zone: Zone, heroLookValue: Look): Pixmap {
     } else if (it.kind === 'dprop') {
       const art = renderDungeonProp(it.type);
       // Cobwebs and torches hang on walls: drawn above the floor props.
-      const order = it.type === 'cobweb' || it.type === 'torch' ? it.y + 1000 : it.y;
+      const order = it.type === 'cobweb' || it.type === 'torch' ? it.y + 1000 : it.type === 'runes' ? -900 : it.y;
+      if (it.type === 'sarcophagus' || it.type === 'pillar' || it.type === 'urn') occlude(map, Math.round(it.x - art.anchorX + 1), Math.round(it.x - art.anchorX + art.pm.w - 3), Math.round(it.y + 1), 3, 0.4);
       draws.push({ y: order, draw: () => blit(art.pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else if (it.kind === 'fence' || it.kind === 'swall') {
       const art = it.kind === 'fence' ? renderFence(it.len) : renderStoneWall(it.len, idx);
@@ -282,8 +346,14 @@ function drawZone(zone: Zone, heroLookValue: Look): Pixmap {
       if (it.kind === 'fence') for (let px = 1; px < it.len - 1; px += 8) tufts.push(...tuftsAround(x0 + px + 1, it.y, 2, idx * 3 + px, 1));
       else tufts.push(...fringe(Math.round(x0), Math.round(x0 + it.len - 1), it.y, idx, undefined, 0.6));
       draws.push({ y: it.y, draw: () => blit(art.pm, x0, it.y - art.anchorY) });
-    } else if (it.kind === 'bed' || it.kind === 'patch') {
-      const art = it.kind === 'bed' ? renderFlowerBed(it.w, it.h) : renderPatch(it.material, it.w, it.h);
+    } else if (it.kind === 'bed') {
+      // Flower beds stand on their base line like props, tufts around them.
+      const art = renderFlowerBed(it.w, it.h, idx);
+      tufts.push(...tuftsAround(it.x, it.y, it.w / 2, idx * 9, Math.round(it.w / 8)));
+      const pm = softenBase(art.pm, art.anchorY);
+      draws.push({ y: it.y, draw: () => blit(pm, it.x - art.anchorX, it.y - art.anchorY) });
+    } else if (it.kind === 'patch') {
+      const art = renderPatch(it.material, it.w, it.h);
       draws.push({ y: -1000 + it.y, draw: () => blit(art.pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else {
       draws.push({ y: it.y + 8, draw: () => drawPerson(map, it.look, it.x, it.y, it.view ?? 'down') });

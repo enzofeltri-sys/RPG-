@@ -188,7 +188,9 @@ export class CityScene extends Phaser.Scene {
         radius: 24,
         onTap: () => this.scene.start('Merchant', { x: this.player.x, y: this.player.y, returnScene: 'City' }),
       },
-      ...this.buildings.map((b) => ({
+      // The three landmarks (garrison, tower, market) answer a tap; the
+      // town houses only block the way.
+      ...this.buildings.slice(0, 3).map((b) => ({
         x: b.x,
         y: b.y,
         radius: 40,

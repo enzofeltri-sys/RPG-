@@ -13,6 +13,7 @@ import {
 } from '../game/talents';
 import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
 import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
+import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
 
 // Création de personnage in UI style A: race and class pickers, the
 // resulting stats, then everything the choice implies (class, starting
@@ -75,13 +76,30 @@ export class CharacterCreationScene extends Phaser.Scene {
         : resource === 'rage'
           ? `Rage 0 à ${RAGE_MAX}`
           : `Endurance ${enduranceMax(stats.vitality)}`;
-    panelText(this, this.scale.width / 2, y + 4, `Force ${stats.strength} · Intelligence ${stats.intelligence} · Agilité ${stats.agility}`, 8).setOrigin(0.5, 0);
-    panelText(this, this.scale.width / 2, y + 16, `Vitalité ${stats.vitality} · PV ${maxHp} · ${resourceLine}`, 8).setOrigin(0.5, 0);
+
+    // Live preview: the chosen hero walking towards the player, at 2x.
+    const sheet = heroSheetKey(this.race, this.charClass);
+    if (this.textures.exists(sheet)) {
+      ensureHeroAnimations(this, this.race, this.charClass);
+      this.add
+        .sprite(SCREEN_LEFT + 28, y + 66, sheet, idleFrame('down'))
+        .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
+        .setScale(2)
+        .play(`${sheet}-walk-down`);
+    } else {
+      void loadHero(this, this.race, this.charClass).then(() => this.scene.isActive() && this.render());
+    }
+    const sx = SCREEN_LEFT + 62;
+    panelText(this, sx, y + 6, `Force ${stats.strength} · Intelligence ${stats.intelligence}`, 8);
+    panelText(this, sx, y + 20, `Agilité ${stats.agility} · Vitalité ${stats.vitality}`, 8);
+    panelText(this, sx, y + 34, `PV ${maxHp}`, 8);
+    panelText(this, sx, y + 48, resourceLine, 8);
+    y += 34;
 
     // Class and race details on two tabs, so each stays at a readable size.
     buttonRow(2, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
       const tab = i === 0 ? 'class' : 'race';
-      new KitButton(this, x, y + 32, w, 18, i === 0 ? `Classe : ${CLASSES[this.charClass].label}` : `Race : ${RACES[this.race].label}`, {
+      new KitButton(this, x, y + 30, w, 18, i === 0 ? `Classe : ${CLASSES[this.charClass].label}` : `Race : ${RACES[this.race].label}`, {
         size: 8,
         align: 'center',
         state: tab === this.infoTab ? 'pressed' : 'normal',
@@ -92,7 +110,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       });
     });
     const starter = TALENTS[STARTER_SKILL[this.charClass]] as ActiveTalent;
-    const top = y + 54;
+    const top = y + 50;
     if (this.infoTab === 'class') {
       detailPanel(
         this,

@@ -62,9 +62,6 @@ export function preloadUiKit(scene: Phaser.Scene): void {
     if (!scene.textures.exists(`ui-state-${name}`)) scene.load.image(`ui-state-${name}`, `${base}/states/${name}.png`);
   });
   if (!scene.textures.exists('ui-battle-grass')) scene.load.image('ui-battle-grass', `${base}/battle_grass.png`);
-  if (!scene.textures.exists('ui-hero-back')) scene.load.image('ui-hero-back', `${base}/hero_back.png`);
-  if (!scene.textures.exists('ui-hero-front')) scene.load.image('ui-hero-front', `${base}/hero_front.png`);
-  if (!scene.textures.exists('ui-hero-face')) scene.load.image('ui-hero-face', `${base}/hero_face.png`);
 }
 
 // ------------------------------------------------------------------ shapes

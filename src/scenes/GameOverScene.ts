@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CLASSES, CharClass, RACES, Race } from '../game/character';
 import { MAP_LOCATIONS } from '../game/worldMap';
 import { INK, KitButton, PAL, addPanel, panelText, preloadUiKit } from '../ui/kit';
+import { HERO_FEET_Y, HERO_FRAME_H, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
 
 interface Epitaph {
   race: Race;
@@ -30,13 +31,24 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   // UI style A: a parchment epitaph on a dark backdrop, then back to the title.
-  create(): void {
+  async create(): Promise<void> {
     const { width } = this.scale;
+    if (this.epitaph) await loadHero(this, this.epitaph.race, this.epitaph.charClass);
     this.cameras.main.setBackgroundColor(PAL.k);
     this.cameras.main.fadeIn(600);
     const e = this.epitaph;
 
-    panelText(this, width / 2, 70, 'Votre aventure s’achève', 13, INK.light).setOrigin(0.5, 0);
+    panelText(this, width / 2, 22, 'Votre aventure s’achève', 13, INK.light).setOrigin(0.5, 0);
+    if (e) {
+      // The fallen hero, in stone grey.
+      const hero = this.add
+        .image(width / 2, 100, heroSheetKey(e.race, e.charClass), idleFrame('down'))
+        .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
+        .setScale(2);
+      const stone = hero.preFX?.addColorMatrix();
+      if (stone) stone.grayscale(1);
+      else hero.setTint(PAL.r);
+    }
     addPanel(this, 20, 104, width - 40, 150);
     panelText(this, width / 2, 116, 'Ci-gît', 11).setOrigin(0.5, 0);
     if (e) {

@@ -1,7 +1,7 @@
 """Exports the style A UI images the game loads (graphics pass, UI step):
-action icons, state chips, the combat backdrop and the placeholder hero
-seen from behind. Panels, buttons and bars are drawn by the game itself
-(src/ui/kit.ts) from the same palette, so they stay crisp at any size.
+action icons, state chips and the combat backdrop. Panels, buttons and
+bars are drawn by the game itself (src/ui/kit.ts) from the same palette, so
+they stay crisp at any size.
 
 Usage: python3 tools/art/ui_assets.py   (writes into public/sprites/ui/)
 
@@ -12,9 +12,8 @@ from pathlib import Path
 
 from PIL import Image
 
-import sprites
 from blob import ascii_to_grid, grid_to_image
-from ui import ICONS, battle_backdrop_v2, hero_face
+from ui import ICONS, battle_backdrop_v2
 from ui_v3 import CHIPS, MORE_ICONS
 
 OUT = Path(__file__).resolve().parents[2] / 'public/sprites/ui'
@@ -46,10 +45,7 @@ def main() -> None:
     for name, rows in {**CHIPS, **EXTRA_CHIPS}.items():
         export_grid(rows, OUT / 'states' / f'{name}.png')
     x2(battle_backdrop_v2()).save(OUT / 'battle_grass.png')
-    # Placeholder until the playable characters step draws each race/class.
-    x2(grid_to_image(sprites.hero_frames()['up'][1]), 4).save(OUT / 'hero_back.png')
-    x2(grid_to_image(sprites.hero_frames()['down'][1]), 4).save(OUT / 'hero_front.png')
-    x2(hero_face()).save(OUT / 'hero_face.png')
+    # The heroes themselves come from heroes.py (build_heroes.py).
     print('ok', OUT)
 
 

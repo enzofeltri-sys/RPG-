@@ -7,6 +7,7 @@ import { MAP_LOCATIONS } from '../game/worldMap';
 import { ReturnSceneKey, returnSceneStartData } from './returnContext';
 import { INK, KitBar, KitButton, PAL, addPanel, drawButton, drawPanel, panelText } from './kit';
 import { addCrispText } from './text';
+import { heroFaceKey } from '../entities/heroSprite';
 
 // Unregisters the service worker and clears every Cache Storage entry, then
 // reloads — the "vider le cache et forcer le rafraîchissement" escape hatch
@@ -69,7 +70,9 @@ export class CharacterSheetPanel {
     const frame = scene.add.graphics();
     drawPanel(frame, 20, 52, 40, 36);
     this.main(frame);
-    this.main(scene.add.image(24, 57, 'ui-hero-face').setOrigin(0, 0));
+    // The portrait arrives with the hero's sheet (loaded with the player).
+    const face = heroFaceKey(character.race, character.class);
+    if (scene.textures.exists(face)) this.main(scene.add.image(24, 57, face).setOrigin(0, 0));
     this.main(panelText(scene, 68, 54, `${RACES[character.race].label} ${CLASSES[character.class].label}`, 10));
     this.main(panelText(scene, 68, 70, `Niveau ${character.level} · ${modeLabel(character)}`, 8, INK.soft));
     const xpBar = new KitBar(scene, 68, 82, 128, PAL.p, PAL.P);

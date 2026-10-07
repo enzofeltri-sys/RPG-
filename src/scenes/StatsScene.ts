@@ -14,6 +14,7 @@ import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/retur
 import { SaveManager } from '../save/SaveManager';
 import { playCraftSuccess } from '../ui/sound';
 import { INK, KitBar, KitButton, PAL, addPanel, addScreenPanel, drawPanel, panelText, preloadUiKit, toast } from '../ui/kit';
+import { heroFaceKey, loadHero } from '../entities/heroSprite';
 
 const LEFT = 14;
 const INNER_W = 188;
@@ -68,6 +69,7 @@ export class StatsScene extends Phaser.Scene {
   async create(): Promise<void> {
     const save = await SaveManager.load();
     this.character = save!.character!;
+    await loadHero(this, this.character.race, this.character.class);
     this.render();
   }
 
@@ -81,7 +83,7 @@ export class StatsScene extends Phaser.Scene {
     // Identity, level, XP.
     const frame = this.add.graphics();
     drawPanel(frame, LEFT, 34, 40, 36);
-    this.add.image(LEFT + 4, 39, 'ui-hero-face').setOrigin(0, 0);
+    this.add.image(LEFT + 4, 39, heroFaceKey(c.race, c.class)).setOrigin(0, 0);
     panelText(this, 62, 35, `${RACES[c.race].label} ${CLASSES[c.class].label}`, 10);
     const mode = `${modeLabel(c)}${c.randomizerSeed !== undefined ? ' · Randomizer' : ''}`;
     panelText(this, 62, 50, `Niveau ${c.level} · ${mode}`, 8, INK.soft);

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Facing, facingFrom, idleFrame } from './heroSprite';
 
 // Shared by player.ts, wanderer.ts, and any scene overlaying a real sprite
 // on top of an existing collision rectangle: loads the texture on demand
@@ -64,6 +65,20 @@ export async function attachSpriteOverlay(
 export function syncSpriteOverlay(target: Phaser.GameObjects.Shape, moving = false): void {
   const image = target.getData('appearanceImage') as Phaser.GameObjects.Image | undefined;
   if (!image) return;
+  const heroSheet = target.getData('heroSheet') as string | undefined;
+  if (heroSheet && image instanceof Phaser.GameObjects.Sprite) {
+    // Animated hero (heroSprite.ts): walk cycle facing the way it moves.
+    const body = target.body as Phaser.Physics.Arcade.Body | null;
+    const facing = facingFrom(body?.velocity.x ?? 0, body?.velocity.y ?? 0, target.getData('facing') as Facing);
+    target.setData('facing', facing);
+    if (moving) image.anims.play(`${heroSheet}-walk-${facing}`, true);
+    else {
+      image.anims.stop();
+      image.setFrame(idleFrame(facing));
+    }
+    image.setPosition(target.x, target.y).setDepth(target.y);
+    return;
+  }
   if (!moving) {
     target.setData('walkPhase', 0);
     image.setPosition(target.x, target.y).setDepth(target.y);

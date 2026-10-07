@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Race, CharClass } from '../game/character';
-import { attachSpriteOverlay, syncSpriteOverlay } from './spriteOverlay';
+import { syncSpriteOverlay } from './spriteOverlay';
+import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroSheetKey, idleFrame, loadHero } from './heroSprite';
 
 export const SPEED = 70;
 const ARRIVE_THRESHOLD = 4;
@@ -10,7 +11,6 @@ const ARRIVE_THRESHOLD = 4;
 // Sized up from an initial 20px: most source portraits are 56px+ natively,
 // so displaying much smaller than that throws away detail the generation
 // actually has instead of it being a resolution ceiling.
-const APPEARANCE_SIZE = 28;
 
 export type PlayerSprite = Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
 
@@ -38,9 +38,21 @@ export function createPlayer(scene: Phaser.Scene, x: number, y: number): PlayerS
 // preload() has already run, so the texture is loaded here on demand
 // rather than up front.
 export async function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSprite, race: Race, charClass: CharClass): Promise<void> {
-  const key = `player-${race}_${charClass}`;
-  const url = `${import.meta.env.BASE_URL}sprites/player/${race}_${charClass}.png`;
-  await attachSpriteOverlay(scene, player, key, url, APPEARANCE_SIZE);
+  await loadHero(scene, race, charClass);
+  if (!scene.scene.isActive() || !scene.textures.exists(heroSheetKey(race, charClass))) return;
+  ensureHeroAnimations(scene, race, charClass);
+  const existing = player.getData('appearanceImage') as Phaser.GameObjects.GameObject | undefined;
+  existing?.destroy();
+  // Drawn at the world's pixel size (no scaling), feet on the bottom of the
+  // 12x16 collision box every zone is tuned against.
+  const sprite = scene.add
+    .sprite(player.x, player.y, heroSheetKey(race, charClass), idleFrame('down'))
+    .setOrigin(0.5, (HERO_FEET_Y - player.height / 2) / HERO_FRAME_H)
+    .setDepth(player.y);
+  player.setData('appearanceImage', sprite);
+  player.setData('heroSheet', heroSheetKey(race, charClass));
+  player.setData('facing', 'down');
+  player.setVisible(false);
 }
 
 // Keyboard (still supported as a desktop fallback) always overrides an

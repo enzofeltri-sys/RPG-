@@ -168,6 +168,9 @@ export interface KitButtonOptions {
   icon?: string;
   size?: number;
   cost?: string;
+  costSize?: number;
+  // Small text at the left edge (e.g. "Niv 5"), the label moves past it.
+  tag?: string;
   state?: ButtonState;
   align?: 'left' | 'center';
   onClick: () => void;
@@ -179,6 +182,7 @@ export class KitButton {
   private readonly g: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private readonly costText?: Phaser.GameObjects.Text;
+  private readonly tagText?: Phaser.GameObjects.Text;
   private readonly iconImage?: Phaser.GameObjects.Image;
   private readonly zone: Phaser.GameObjects.Zone;
   private state: ButtonState;
@@ -200,6 +204,13 @@ export class KitButton {
       this.iconImage = scene.add.image(x + 6, y + height / 2, `ui-icon-${options.icon}`).setOrigin(0, 0.5);
       tx = x + 26;
     }
+    if (options.tag !== undefined) {
+      this.tagText = addCrispText(scene, tx - 2, y + height / 2, options.tag, {
+        fontSize: '7px',
+        ...shadowed(INK.gold, INK.buttonShadow),
+      }).setOrigin(0, 0.5);
+      tx += 34;
+    }
     const centered = options.align === 'center' && !options.icon;
     this.label = addCrispText(scene, centered ? x + width / 2 : tx, y + height / 2, text, {
       fontSize: `${size}px`,
@@ -207,7 +218,7 @@ export class KitButton {
     }).setOrigin(centered ? 0.5 : 0, 0.5);
     if (options.cost !== undefined) {
       this.costText = addCrispText(scene, x + width - 6, y + height / 2, options.cost, {
-        fontSize: '8px',
+        fontSize: `${options.costSize ?? 8}px`,
         ...shadowed(INK.gold, INK.buttonShadow),
       }).setOrigin(1, 0.5);
     }
@@ -228,18 +239,18 @@ export class KitButton {
   }
 
   setDepth(depth: number): this {
-    [this.g, this.label, this.costText, this.iconImage, this.zone].forEach((o) => o?.setDepth(depth));
+    [this.g, this.label, this.costText, this.tagText, this.iconImage, this.zone].forEach((o) => o?.setDepth(depth));
     return this;
   }
 
   // Overworld HUD: stays put while the camera follows the player.
   setScrollFactor(factor: number): this {
-    [this.g, this.label, this.costText, this.iconImage, this.zone].forEach((o) => o?.setScrollFactor(factor));
+    [this.g, this.label, this.costText, this.tagText, this.iconImage, this.zone].forEach((o) => o?.setScrollFactor(factor));
     return this;
   }
 
   setVisible(visible: boolean): this {
-    [this.g, this.label, this.costText, this.iconImage].forEach((o) => o?.setVisible(visible));
+    [this.g, this.label, this.costText, this.tagText, this.iconImage].forEach((o) => o?.setVisible(visible));
     this.zone.setVisible(visible);
     if (this.zone.input) this.zone.input.enabled = visible;
     return this;
@@ -256,11 +267,12 @@ export class KitButton {
     const disabled = this.state === 'disabled';
     this.label.setColor(disabled ? INK.disabled : INK.button);
     this.costText?.setColor(disabled ? INK.disabled : INK.gold);
+    this.tagText?.setColor(disabled ? INK.disabled : INK.gold);
     this.iconImage?.setAlpha(disabled ? 0.5 : 1);
   }
 
   destroy(): void {
-    [this.g, this.label, this.costText, this.iconImage, this.zone].forEach((o) => o?.destroy());
+    [this.g, this.label, this.costText, this.tagText, this.iconImage, this.zone].forEach((o) => o?.destroy());
   }
 }
 
@@ -406,4 +418,16 @@ export function toast(scene: Phaser.Scene, cx: number, cy: number, message: stri
     g.destroy();
     text.destroy();
   });
+}
+
+// Menu screens: slate backdrop behind a full-height parchment panel.
+export function addScreenPanel(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
+  scene.cameras.main.setBackgroundColor(PAL.T);
+  return addPanel(scene, 6, 6, scene.scale.width - 12, scene.scale.height - 12);
+}
+
+// Splits a row of buttons evenly between x and x + width.
+export function buttonRow(count: number, x: number, width: number, gap = 6): { x: number; w: number }[] {
+  const w = Math.floor((width - gap * (count - 1)) / count / 2) * 2;
+  return Array.from({ length: count }, (_, i) => ({ x: x + i * (w + gap), w }));
 }

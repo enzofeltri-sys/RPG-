@@ -124,7 +124,7 @@ async function boot(): Promise<void> {
     height: GAME_HEIGHT,
     pixelArt: true,
     roundPixels: true,
-    backgroundColor: '#0b0c10',
+    backgroundColor: '#282836',
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -236,10 +236,13 @@ function setupFullscreenToggle(): void {
     height: '36px',
     fontSize: '18px',
     lineHeight: '1',
-    background: 'rgba(232, 217, 181, 0.85)',
-    color: '#0b0c10',
-    border: 'none',
-    borderRadius: '6px',
+    // UI style A: a small wooden button (palette of src/ui/kit.ts).
+    background: '#a87244',
+    color: '#f0deb2',
+    border: '2px solid #221c29',
+    borderRadius: '0',
+    boxShadow: 'inset 0 2px 0 #d6a86e, inset 0 -2px 0 #482c22',
+    textShadow: '1px 1px 0 #482c22',
   } satisfies Partial<CSSStyleDeclaration>);
 
   button.addEventListener('click', () => {

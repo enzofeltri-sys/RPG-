@@ -18,6 +18,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 480;
@@ -149,24 +150,24 @@ export class FieldScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Repaire du Loup ↑', {
       fontSize: '11px',
-      color: '#e8d9b5',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Retour au hameau ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     addCrispText(this, WORLD_WIDTH - 20, 340, 'Forêt →', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
     addCrispText(this, 20, 300, '← Camp de bandits', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -181,7 +182,7 @@ export class FieldScene extends Phaser.Scene {
 
     GATHER_NODES.forEach((node) => {
       this.add.rectangle(node.x, node.y, 16, 16, 0x6b5a3a).setStrokeStyle(1, 0x0b0c10);
-      addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+      addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
     });
 
     const interactables: Interactable[] = [

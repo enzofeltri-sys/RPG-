@@ -11,6 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
@@ -55,13 +56,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#3a4a32');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Relais des chasseurs', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Relais des chasseurs');
 
     // Hunting lodge + campfire, purely decorative.
     this.add.rectangle(150, 100, 44, 34, 0x4a3a28).setStrokeStyle(1, 0x241d14);
@@ -73,7 +68,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.hunter = this.add.rectangle(160, 190, 14, 20, 0x5a6a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.hunter, 'npc-hunter_outpost', `${import.meta.env.BASE_URL}sprites/npc/hunter_outpost.png`, 24);
     this.physics.add.existing(this.hunter, true);
-    addCrispText(this, 160, 170, 'Chasseuse', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 160, 170, 'Chasseuse', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.hunter);
@@ -92,7 +87,7 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Route fluviale', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -104,7 +99,7 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Tanière des marais ↑', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -116,7 +111,7 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Terres Noyées →', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -128,7 +123,7 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30, 'Bosquet corrompu ↓', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

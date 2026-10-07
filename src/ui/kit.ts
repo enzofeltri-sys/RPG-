@@ -451,3 +451,26 @@ export function buttonRow(count: number, x: number, width: number, gap = 6): { x
   const w = Math.floor((width - gap * (count - 1)) / count / 2) * 2;
   return Array.from({ length: count }, (_, i) => ({ x: x + i * (w + gap), w }));
 }
+
+// ------------------------------------------------------------------ world
+
+// Text drawn in the world itself (names, exits, monsters): palette colors
+// with a dark outline, readable on grass, stone, sand or water alike.
+const OUTLINE = { stroke: '#221c29', strokeThickness: 3 };
+export const WORLD_TEXT: Phaser.Types.GameObjects.Text.TextStyle = { color: '#f0deb2', ...OUTLINE };
+export const EXIT_TEXT: Phaser.Types.GameObjects.Text.TextStyle = { color: '#fcec8c', ...OUTLINE };
+export const DANGER_TEXT: Phaser.Types.GameObjects.Text.TextStyle = { color: '#f27264', ...OUTLINE };
+
+// The zone's name on a small parchment plaque, fixed at the top of the
+// screen between the menu button and the fullscreen corner.
+export function addZoneTitle(scene: Phaser.Scene, name: string): void {
+  const text = addCrispText(scene, scene.scale.width / 2, 0, name, { fontSize: '9px', color: INK.text })
+    .setOrigin(0.5, 0)
+    .setScrollFactor(0)
+    .setDepth(501);
+  const w = Math.min(scene.scale.width - 84, Math.ceil((text.width + 20) / 2) * 2);
+  const h = 22;
+  const g = scene.add.graphics().setScrollFactor(0).setDepth(500);
+  drawPanel(g, Math.round((scene.scale.width - w) / 4) * 2, 6, w, h);
+  text.setY(6 + Math.round((h - text.height) / 2));
+}

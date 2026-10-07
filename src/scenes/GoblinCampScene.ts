@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 260;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -71,13 +72,7 @@ export class GoblinCampScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2a3a24');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Camp de gobelins', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Camp de gobelins');
 
     // Crude huts + bonfire, purely decorative.
     this.add.rectangle(70, 140, 36, 28, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
@@ -92,7 +87,7 @@ export class GoblinCampScene extends Phaser.Scene {
     // Off the x=130 centerline (spawn sits on it) — see BanditCampScene.
     this.scout = this.add.rectangle(190, 185, 14, 20, 0x3a5a3a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.scout, true);
-    addCrispText(this, 190, 165, 'Éclaireuse', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 190, 165, 'Éclaireuse', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.scout);
@@ -115,7 +110,7 @@ export class GoblinCampScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
@@ -262,7 +257,7 @@ export class GoblinCampScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-goblin_brute', `${import.meta.env.BASE_URL}sprites/monsters/goblin_brute.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);
@@ -290,7 +285,7 @@ export class GoblinCampScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-goblin_chief', `${import.meta.env.BASE_URL}sprites/monsters/goblin_chief.png`, 34);
     const label = addCrispText(this, x, y - 26, 'Chef des gobelins', {
       fontSize: '9px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

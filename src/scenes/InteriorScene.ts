@@ -7,6 +7,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 160;
 const WORLD_HEIGHT = 160;
@@ -54,13 +55,7 @@ export class InteriorScene extends Phaser.Scene {
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor(this.roomData.floorColor);
 
-    addCrispText(this, this.scale.width / 2, 12, this.roomData.label, {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, this.roomData.label);
 
     // A couple of undecorated furniture blocks so the room doesn't read as
     // an empty box — purely decorative, no collision (small room, nothing
@@ -70,7 +65,7 @@ export class InteriorScene extends Phaser.Scene {
 
     const npc = this.add.rectangle(WORLD_WIDTH / 2, 60, 14, 20, this.roomData.npcColor).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(npc, true);
-    addCrispText(this, WORLD_WIDTH / 2, 40, this.roomData.npcName, { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH / 2, 40, this.roomData.npcName, { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
     if (this.roomData.npcSpriteKey) {
       const key = this.roomData.npcSpriteKey;
       void attachSpriteOverlay(this, npc, `npc-${key}`, `${import.meta.env.BASE_URL}sprites/npc/${key}.png`, 24);
@@ -93,7 +88,7 @@ export class InteriorScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 20, 'Sortie ↓', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     const interactables: Interactable[] = [{ x: npc.x, y: npc.y, radius: 22, onTap: () => this.talkToNpc() }];

@@ -13,6 +13,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -117,10 +118,10 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('Vasenoire', { x: 40, y: 150 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Relais', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Relais', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Vasenoire →', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(350, 100, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
@@ -132,7 +133,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     const ruinsEntrance = this.add.zone(280, 355, 40, 40);
     this.physics.add.existing(ruinsEntrance, true);
     this.physics.add.overlap(this.player, ruinsEntrance, () => this.enterSunkenRuins());
-    addCrispText(this, 280, 335, 'Ruines ↓', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 280, 335, 'Ruines ↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     // Local const (not `this.refugee.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would

@@ -11,6 +11,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT } from '../ui/kit';
 
 const CHEST_ID = 'cave_chest_1';
 
@@ -141,11 +142,11 @@ export class CaveScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH / 2, 22, 'Valombre ↑', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 240, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
@@ -192,7 +193,7 @@ export class CaveScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-cave_spider', `${import.meta.env.BASE_URL}sprites/monsters/cave_spider.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);

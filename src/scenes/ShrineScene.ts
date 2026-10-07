@@ -11,6 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 // Large enough to fill the portrait canvas (216x384) at every camera
 // position — see HamletScene's WORLD_HEIGHT comment for why a smaller world
@@ -88,13 +89,7 @@ export class ShrineScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#3a3a4a');
     void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Le petit sanctuaire', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Le petit sanctuaire');
 
     // Shrine altar + standing stones, purely decorative.
     this.add.rectangle(100, 50, 30, 20, 0x8a8a9a).setStrokeStyle(1, 0x4a4a5a);
@@ -106,13 +101,13 @@ export class ShrineScene extends Phaser.Scene {
     this.add.rectangle(150, 280, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
     this.add.rectangle(90, 340, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
 
-    addCrispText(this, 100, 30, 'Autel', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 100, 30, 'Autel', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.hermit, 'npc-shrine_hermit', `${import.meta.env.BASE_URL}sprites/npc/shrine_hermit.png`, 24);
     this.physics.add.existing(this.hermit, true);
-    addCrispText(this, 140, 80, 'Ermite', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 140, 80, 'Ermite', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.hermit);
@@ -131,7 +126,7 @@ export class ShrineScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // A passage beneath the altar, sealed for three centuries — the hermit
@@ -176,7 +171,7 @@ export class ShrineScene extends Phaser.Scene {
       if (getMainQuestStage(this.character) === 'awaiting_meeting') {
         this.silhouette = this.add.rectangle(100, 25, 12, 20, 0x2a2a3a).setStrokeStyle(1, 0xe8d9b5);
     void attachSpriteOverlay(this, this.silhouette, 'npc-mysterious_silhouette', `${import.meta.env.BASE_URL}sprites/npc/mysterious_silhouette.png`, 24);
-        addCrispText(this, 100, 10, 'Silhouette', { fontSize: '8px', color: '#e8d9b5' }).setOrigin(0.5);
+        addCrispText(this, 100, 10, 'Silhouette', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
         this.tapControl.setInteractables([
           ...this.baseInteractables,
           { x: 100, y: 25, radius: 20, onTap: () => this.meetSilhouette() },
@@ -189,7 +184,7 @@ export class ShrineScene extends Phaser.Scene {
       // this was placed with that check in mind, not just eyeballed.
       if (FINAL_RITE_STAGES.includes(getMainQuestStage(this.character))) {
         this.add.rectangle(180, 340, 14, 22, 0x2a1a3a).setStrokeStyle(1, 0xe8d9b5);
-        addCrispText(this, 180, 322, 'Faille du rite', { fontSize: '8px', color: '#e8d9b5' }).setOrigin(0.5);
+        addCrispText(this, 180, 322, 'Faille du rite', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
         this.tapControl.setInteractables([
           ...this.baseInteractables,
           { x: 180, y: 340, radius: 20, onTap: () => this.handleRiteFissure() },

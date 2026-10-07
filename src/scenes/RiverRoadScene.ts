@@ -12,6 +12,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -106,12 +107,12 @@ export class RiverRoadScene extends Phaser.Scene {
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('HunterOutpost', { x: 40, y: 150 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Faubourg', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Faubourg', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(
       0.5,
     );
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Relais →', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // Local const (not `this.fisherman.sprite` inline) so the getters below

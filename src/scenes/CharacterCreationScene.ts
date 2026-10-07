@@ -20,6 +20,7 @@ import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/scree
 export class CharacterCreationScene extends Phaser.Scene {
   private race: Race = 'human';
   private charClass: CharClass = 'warrior';
+  private infoTab: 'class' | 'race' = 'class';
 
   constructor() {
     super('CharacterCreation');
@@ -56,8 +57,14 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.children.removeAll(true);
     addScreenPanel(this);
     panelText(this, this.scale.width / 2, 14, 'Création du personnage', 12).setOrigin(0.5, 0);
-    let y = this.picker(32, 'Race', RACES, this.race, (r) => (this.race = r));
-    y = this.picker(y + 4, 'Classe', CLASSES, this.charClass, (c) => (this.charClass = c));
+    let y = this.picker(32, 'Race', RACES, this.race, (r) => {
+      this.race = r;
+      this.infoTab = 'race';
+    });
+    y = this.picker(y + 4, 'Classe', CLASSES, this.charClass, (c) => {
+      this.charClass = c;
+      this.infoTab = 'class';
+    });
 
     const stats = computeStats(this.race, this.charClass);
     const maxHp = 20 + stats.vitality * 4;
@@ -71,24 +78,48 @@ export class CharacterCreationScene extends Phaser.Scene {
     panelText(this, this.scale.width / 2, y + 4, `Force ${stats.strength} · Intelligence ${stats.intelligence} · Agilité ${stats.agility}`, 8).setOrigin(0.5, 0);
     panelText(this, this.scale.width / 2, y + 16, `Vitalité ${stats.vitality} · PV ${maxHp} · ${resourceLine}`, 8).setOrigin(0.5, 0);
 
-    const starter = TALENTS[STARTER_SKILL[this.charClass]] as ActiveTalent;
-    const top = y + 32;
-    detailPanel(
-      this,
-      { text: `${RACES[this.race].label} ${CLASSES[this.charClass].label}`, color: INK.text },
-      [
-        { text: CLASSES[this.charClass].description, color: INK.text },
-        {
-          text: `Départ : ${starter.name} (${starter.cost[0]} ${RESOURCE_LABELS[resource].toLowerCase()}) : ${starter.describe(starter.values[0])}`,
-          color: INK.soft,
+    // Class and race details on two tabs, so each stays at a readable size.
+    buttonRow(2, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
+      const tab = i === 0 ? 'class' : 'race';
+      new KitButton(this, x, y + 32, w, 18, i === 0 ? `Classe : ${CLASSES[this.charClass].label}` : `Race : ${RACES[this.race].label}`, {
+        size: 8,
+        align: 'center',
+        state: tab === this.infoTab ? 'pressed' : 'normal',
+        onClick: () => {
+          this.infoTab = tab;
+          this.render();
         },
-        { text: `Talents : ${BRANCH_NAMES[this.charClass].join(', ')}.`, color: INK.soft },
-        { text: RACES[this.race].description, color: INK.text },
-        ...RACES[this.race].skills.map((skill) => ({ text: skill, color: INK.soft })),
-      ],
-      top,
-      340 - top,
-    );
+      });
+    });
+    const starter = TALENTS[STARTER_SKILL[this.charClass]] as ActiveTalent;
+    const top = y + 54;
+    if (this.infoTab === 'class') {
+      detailPanel(
+        this,
+        { text: CLASSES[this.charClass].label, color: INK.text },
+        [
+          { text: CLASSES[this.charClass].description, color: INK.text },
+          {
+            text: `Départ : ${starter.name} (${starter.cost[0]} ${RESOURCE_LABELS[resource].toLowerCase()}) : ${starter.describe(starter.values[0])}`,
+            color: INK.soft,
+          },
+          { text: `Talents : ${BRANCH_NAMES[this.charClass].join(', ')}.`, color: INK.soft },
+        ],
+        top,
+        340 - top,
+      );
+    } else {
+      detailPanel(
+        this,
+        { text: RACES[this.race].label, color: INK.text },
+        [
+          { text: RACES[this.race].description, color: INK.text },
+          ...RACES[this.race].skills.map((skill) => ({ text: skill, color: INK.soft })),
+        ],
+        top,
+        340 - top,
+      );
+    }
     actionRow(this, [
       { label: 'Retour', onClick: () => this.scene.start('Title') },
       // The character itself is created after the mode is chosen (DifficultyScene).

@@ -11,6 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const RUINS_QUEST_ID = 'vasenoire_ruins';
 const RUINS_LEADER_QUEST_ID = 'vasenoire_ruins_leader';
@@ -63,13 +64,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2e3a34');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Vasenoire', {
-      fontSize: '11px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Vasenoire');
 
     // Stilt huts and a boardwalk, purely decorative. No dedicated
     // stilt-hut-on-water sprite found in the supplied packs (the aquatic
@@ -97,24 +92,24 @@ export class VasenoireScene extends Phaser.Scene {
     this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 24);
     this.physics.add.existing(this.yenn, true);
-    addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.merchantStall = this.add.rectangle(50, 170, 28, 22, 0x5a4a30).setStrokeStyle(1, 0x241d16);
     this.physics.add.existing(this.merchantStall, true);
     void attachSpriteOverlay(this, this.merchantStall, 'decor-merchant_stall', `${import.meta.env.BASE_URL}sprites/decor/merchant_stall.png`, 30);
-    addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.forge = this.add.rectangle(190, 230, 32, 26, 0x3a3a3a).setStrokeStyle(1, 0x161616);
     this.physics.add.existing(this.forge, true);
     void attachSpriteOverlay(this, this.forge, 'decor-blacksmith_forge', `${import.meta.env.BASE_URL}sprites/decor/blacksmith_forge.png`, 32);
-    addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
     // comment for why every placement in this project double-checks this.
     this.toma = this.add.rectangle(70, 260, 14, 20, 0x5a6a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.toma, 'npc-vasenoire_local_toma', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_toma.png`, 24);
     this.physics.add.existing(this.toma, true);
-    addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.yenn);
@@ -136,7 +131,7 @@ export class VasenoireScene extends Phaser.Scene {
 
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Terres Noyées', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -149,7 +144,7 @@ export class VasenoireScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 24, 'Quai clandestin ↑', {
       fontSize: '8px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // East edge — the same discreet upstream passage Yenn described, always
@@ -161,7 +156,7 @@ export class VasenoireScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Passage discret →', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

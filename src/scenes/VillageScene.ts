@@ -14,6 +14,7 @@ import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { playQuestComplete } from '../ui/sound';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
@@ -78,20 +79,14 @@ export class VillageScene extends Phaser.Scene {
     this.buildings = [];
     this.drawGround();
 
-    addCrispText(this, this.scale.width / 2, 12, 'Valombre', {
-      fontSize: '11px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Valombre');
 
     this.bertrandHouse = this.addBuilding(120, 160, 70, 50, 'cottage');
     this.ombelineHouse = this.addBuilding(300, 210, 60, 60, 'stone_house');
     this.forgeBuilding = this.addBuilding(190, 360, 90, 50, 'blacksmith_shop');
-    addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
     this.innBuilding = this.addBuilding(340, 460, 60, 70, 'inn_building');
-    addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Decoration only, no collision — makes the wide-open grass between
     // buildings read as a village edge rather than an empty field.
@@ -105,7 +100,7 @@ export class VillageScene extends Phaser.Scene {
     this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 24);
     this.physics.add.existing(this.merchantNpc, true);
-    addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Market stalls near the merchant + a well further south — purely
     // decorative, no collision.
@@ -124,13 +119,13 @@ export class VillageScene extends Phaser.Scene {
     // quest is done.
     this.brasque = this.add.rectangle(60, 470, 14, 20, 0x8a5a2a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.brasque, 'npc-brasque_merchant', `${import.meta.env.BASE_URL}sprites/npc/brasque_merchant.png`, 24);
-    addCrispText(this, 60, 450, 'Brasque', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 60, 450, 'Brasque', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Resets talents for gold (DESIGN.md, talent system) — next to the
     // forge, clear of the wandering villager's path.
     this.weaponMaster = this.add.rectangle(100, 340, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.weaponMaster, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
-    addCrispText(this, 100, 320, "Maître d'armes", { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 100, 320, "Maître d'armes", { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
     this.physics.add.collider(this.player, this.buildings);
@@ -155,7 +150,7 @@ export class VillageScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 40, 'Vers la Grotte ↑', {
       fontSize: '11px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // Second exit south — the "route commerciale" toward Aiglemont (région
@@ -167,7 +162,7 @@ export class VillageScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Route commerciale ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     addSignpost(this, 240, 300, ['↑ Grotte (vers Basse-Combe)', '↓ Route commerciale (vers Aiglemont)']);
@@ -179,7 +174,7 @@ export class VillageScene extends Phaser.Scene {
     const graveZone = this.add.zone(420, 580, 30, 20);
     this.physics.add.existing(graveZone, true);
     this.physics.add.overlap(this.player, graveZone, () => this.enterForgottenGrave());
-    addCrispText(this, 420, 593, 'Vieux cimetière ↓', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 420, 593, 'Vieux cimetière ↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
       {

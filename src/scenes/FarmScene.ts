@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 220;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -70,13 +71,7 @@ export class FarmScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#4a5a2a');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'La ferme isolée', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'La ferme isolée');
 
     // Farmhouse + crop rows, purely decorative.
     const farmhouse = this.add.rectangle(50, 70, 40, 32, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
@@ -96,7 +91,7 @@ export class FarmScene extends Phaser.Scene {
     this.farmer = this.add.rectangle(170, 100, 14, 20, 0x8a6a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.farmer, 'npc-farmer_generic', `${import.meta.env.BASE_URL}sprites/npc/farmer_generic.png`, 24);
     this.physics.add.existing(this.farmer, true);
-    addCrispText(this, 170, 80, 'Fermière', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 170, 80, 'Fermière', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.farmer);
@@ -116,7 +111,7 @@ export class FarmScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
@@ -179,7 +174,7 @@ export class FarmScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-rat_king', `${import.meta.env.BASE_URL}sprites/monsters/rat_king.png`, 30);
     const label = addCrispText(this, x, y - 24, 'Roi des rats', {
       fontSize: '9px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

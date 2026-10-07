@@ -12,10 +12,10 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 520;
 const WORLD_HEIGHT = 480;
-const MUTED = '#9aa0a6';
 const QUEST_ID = 'city_road_patrol';
 const ALPHA_QUEST_ID = 'city_road_patrol_alpha';
 
@@ -74,39 +74,33 @@ export class CityScene extends Phaser.Scene {
     this.mageLineIndex = 0;
     this.drawGround();
 
-    addCrispText(this, this.scale.width / 2, 12, 'Aiglemont', {
-      fontSize: '11px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Aiglemont');
 
     const garrison = this.addBuilding(150, 100, 80, 60, 'guard_barracks');
-    addCrispText(this, 150, 68, 'Caserne', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 150, 68, 'Caserne', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     const tower = this.addBuilding(400, 130, 50, 100, 'stone_tower');
-    addCrispText(this, 400, 78, 'Tour des Mages', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 400, 78, 'Tour des Mages', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     const market = this.addBuilding(280, 340, 100, 60, 'market_hall');
-    addCrispText(this, 280, 308, 'Marché', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 280, 308, 'Marché', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Each NPC kept off the straight west-entrance-to-building lines, same
     // lesson as every other location this session.
     this.captain = this.add.rectangle(150, 190, 14, 20, 0x6a5a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.captain, 'npc-city_captain', `${import.meta.env.BASE_URL}sprites/npc/city_captain.png`, 24);
     this.physics.add.existing(this.captain, true);
-    addCrispText(this, 150, 170, 'Capitaine Bregan', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 150, 170, 'Capitaine Bregan', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.mage = this.add.rectangle(400, 220, 14, 20, 0x4a3a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.mage, 'npc-city_mage', `${import.meta.env.BASE_URL}sprites/npc/city_mage.png`, 24);
     this.physics.add.existing(this.mage, true);
-    addCrispText(this, 400, 200, 'Mage Sélène', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 400, 200, 'Mage Sélène', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.merchantNpc = this.add.rectangle(280, 260, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 24);
     this.physics.add.existing(this.merchantNpc, true);
-    addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Stall near the market + a couple of ambient citizens — no collision.
     const stall = this.add.rectangle(230, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
@@ -134,7 +128,7 @@ export class CityScene extends Phaser.Scene {
 
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Route commerciale', {
       fontSize: '9px',
-      color: MUTED,
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -146,7 +140,7 @@ export class CityScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Catacombes ↓', {
       fontSize: '10px',
-      color: MUTED,
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // East exit — optional detour, first Acte 2 side content outside the
@@ -157,7 +151,7 @@ export class CityScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Faubourg des quais →', {
       fontSize: '9px',
-      color: MUTED,
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -169,7 +163,7 @@ export class CityScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Archives scellées ↑', {
       fontSize: '9px',
-      color: MUTED,
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -180,7 +174,7 @@ export class CityScene extends Phaser.Scene {
     const cryptZone = this.add.zone(470, 400, 30, 20);
     this.physics.add.existing(cryptZone, true);
     this.physics.add.overlap(this.player, cryptZone, () => this.enterAncestralCrypt());
-    addCrispText(this, 470, 413, 'Ruelle oubliée ↓', { fontSize: '8px', color: MUTED }).setOrigin(0.5);
+    addCrispText(this, 470, 413, 'Ruelle oubliée ↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
       { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },

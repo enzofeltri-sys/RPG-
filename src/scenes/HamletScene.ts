@@ -13,6 +13,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
+import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const CHEST_ID = 'hamlet_chest_1';
 const WORLD_WIDTH = 240;
@@ -82,13 +83,7 @@ export class HamletScene extends Phaser.Scene {
     this.dialog = undefined;
     this.drawGround();
 
-    addCrispText(this, this.scale.width / 2, 12, 'Basse-Combe', {
-      fontSize: '11px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Basse-Combe');
 
     // Kept well clear of the x=120 centerline running from spawn straight up
     // to the exit zone — nothing should block that path (see DESIGN.md's
@@ -115,7 +110,7 @@ export class HamletScene extends Phaser.Scene {
     this.mentor = this.add.rectangle(150, 130, 14, 20, 0x5a4a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.mentor, 'npc-hamlet_mentor', `${import.meta.env.BASE_URL}sprites/npc/hamlet_mentor.png`, 24);
     this.physics.add.existing(this.mentor, true);
-    addCrispText(this, 150, 110, 'Aldric', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 150, 110, 'Aldric', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Purely ambient — makes the hamlet read as lived-in rather than a
     // backdrop. Small patrol range, kept clear of the x=120 centerline and
@@ -128,7 +123,7 @@ export class HamletScene extends Phaser.Scene {
     // the main quest is done.
     this.gontrand = this.add.rectangle(50, 250, 14, 20, 0x7a6a5a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.gontrand, 'npc-gontrand_scholar', `${import.meta.env.BASE_URL}sprites/npc/gontrand_scholar.png`, 24);
-    addCrispText(this, 50, 230, 'Gontrand', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 50, 230, 'Gontrand', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.buildings);
@@ -151,7 +146,7 @@ export class HamletScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 40, 'Vers les champs ↑', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // Two more region-1 landmarks from VISION.md ("ferme isolée", "petit
@@ -168,8 +163,8 @@ export class HamletScene extends Phaser.Scene {
     this.physics.add.existing(shrineZone, true);
     this.physics.add.overlap(this.player, shrineZone, () => this.leaveToShrine());
 
-    addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
-    addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 20, 140, '← Ferme', { fontSize: '9px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH - 20, 140, 'Sanctuaire →', { fontSize: '9px', ...EXIT_TEXT }).setOrigin(0.5);
 
 
     // A local const (not `this.villager.sprite` inline) so the getters below

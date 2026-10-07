@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const CHEST_ID = 'wardcore_chest_1';
 
@@ -77,13 +78,7 @@ export class WardCoreScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#22262b');
     void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Cœur du réseau de vigies', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Cœur du réseau de vigies');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
 
@@ -111,7 +106,7 @@ export class WardCoreScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
@@ -175,7 +170,7 @@ export class WardCoreScene extends Phaser.Scene {
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
     this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Cercle de wards éteintes', {
       fontSize: '8px',
-      color: '#9aa0a6',
+      ...WORLD_TEXT,
     }).setOrigin(0.5);
   }
 
@@ -193,7 +188,7 @@ export class WardCoreScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
@@ -217,7 +212,7 @@ export class WardCoreScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, `monster-${BOSS_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${BOSS_MONSTER_ID}.png`, 40);
     addCrispText(this, x, y - 36, 'Cœur sans nom', {
       fontSize: '9px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

@@ -9,6 +9,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -253,19 +254,19 @@ export class ForestScene extends Phaser.Scene {
     this.physics.add.existing(oldWellZone, true);
     this.physics.add.overlap(this.player, oldWellZone, () => this.leaveTo('OldWell', { x: 110, y: 260 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Champ', { fontSize: '10px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Champ', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Grotte →', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
     addCrispText(this, 200, 30, 'Camp de gobelins ↑', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
     addCrispText(this, 200, WORLD_HEIGHT - 22, 'Vieux puits ↓', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -366,7 +367,7 @@ export class ForestScene extends Phaser.Scene {
     );
     const label = addCrispText(this, marker.x, marker.y - 22, marker.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(marker.x, marker.y, 26, 26);

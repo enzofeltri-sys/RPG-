@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 const WORLD_WIDTH = 260;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -71,13 +72,7 @@ export class BanditCampScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#4a4636');
     void addDirtGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Camp de bandits', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Camp de bandits');
 
     // Tents + campfire, purely decorative.
     this.add.rectangle(60, 150, 40, 30, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
@@ -95,7 +90,7 @@ export class BanditCampScene extends Phaser.Scene {
     this.guard = this.add.rectangle(190, 185, 14, 20, 0x7a6a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
     this.physics.add.existing(this.guard, true);
-    addCrispText(this, 190, 165, 'Garde blessé', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 190, 165, 'Garde blessé', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.guard);
@@ -118,7 +113,7 @@ export class BanditCampScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
@@ -266,7 +261,7 @@ export class BanditCampScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-bandit_thug', `${import.meta.env.BASE_URL}sprites/monsters/bandit_thug.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);
@@ -294,7 +289,7 @@ export class BanditCampScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-bandit_leader', `${import.meta.env.BASE_URL}sprites/monsters/bandit_leader.png`, 34);
     const label = addCrispText(this, x, y - 26, 'Chef des bandits', {
       fontSize: '9px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 

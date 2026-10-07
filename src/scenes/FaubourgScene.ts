@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
+import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
@@ -71,13 +72,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2e3440');
     void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
-    addCrispText(this, this.scale.width / 2, 12, 'Le Faubourg des quais', {
-      fontSize: '10px',
-      color: '#9aa0a6',
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(500);
+    addZoneTitle(this, 'Le Faubourg des quais');
 
     // Crates and a moored boat hull, purely decorative.
     this.add.rectangle(60, 150, 40, 30, 0x4a4638).setStrokeStyle(1, 0x22201a);
@@ -91,7 +86,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.informant = this.add.rectangle(190, 185, 14, 20, 0x5a6a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.informant, 'npc-informant_faubourg', `${import.meta.env.BASE_URL}sprites/npc/informant_faubourg.png`, 24);
     this.physics.add.existing(this.informant, true);
-    addCrispText(this, 190, 165, 'Renn', { fontSize: '8px', color: '#9aa0a6' }).setOrigin(0.5);
+    addCrispText(this, 190, 165, 'Renn', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.informant);
@@ -113,7 +108,7 @@ export class FaubourgScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // North zone — a medium-difficulty dungeon behind the smugglers'
@@ -124,7 +119,7 @@ export class FaubourgScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH / 2, 30, 'Entrepôt ↑', {
       fontSize: '10px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
     }).setOrigin(0.5);
 
     // East zone — the water's edge continues into the route fluviale
@@ -135,7 +130,7 @@ export class FaubourgScene extends Phaser.Scene {
 
     addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Route fluviale →', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -148,7 +143,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, chapelZone, () => this.enterSunkenChapel());
     addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Chapelle engloutie', {
       fontSize: '9px',
-      color: '#9aa0a6',
+      ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -297,7 +292,7 @@ export class FaubourgScene extends Phaser.Scene {
     void attachSpriteOverlay(this, marker, 'monster-smuggler_thug', `${import.meta.env.BASE_URL}sprites/monsters/smuggler_thug.png`, 26);
     const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
       fontSize: '8px',
-      color: '#e8d9b5',
+      ...DANGER_TEXT,
     }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);

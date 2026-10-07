@@ -141,10 +141,13 @@ export class MapScene extends Phaser.Scene {
       if (loc.key === this.selected) {
         markers.fillStyle(PAL.o, 1).fillRect(x - size / 2 - 4, y + size / 2 + 4, size + 8, 2);
       }
-      panelText(this, x, y + size / 2 + 6, loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
+      // A parchment patch under each label so roads pass beneath the text.
+      const backdrop = this.add.graphics();
+      const label = panelText(this, x, y + size / 2 + 6, loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
         align: 'center',
         wordWrap: { width: 40 },
       }).setOrigin(0.5, 0);
+      backdrop.fillStyle(PAL.Q, 1).fillRect(Math.round(label.x - label.width / 2) - 1, label.y, Math.ceil(label.width) + 2, Math.ceil(label.height));
       this.add
         .zone(x - 20, y - 10, 40, 30)
         .setOrigin(0, 0)

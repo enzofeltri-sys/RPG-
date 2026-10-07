@@ -63,6 +63,7 @@ export function preloadUiKit(scene: Phaser.Scene): void {
   });
   if (!scene.textures.exists('ui-battle-grass')) scene.load.image('ui-battle-grass', `${base}/battle_grass.png`);
   if (!scene.textures.exists('ui-hero-back')) scene.load.image('ui-hero-back', `${base}/hero_back.png`);
+  if (!scene.textures.exists('ui-hero-face')) scene.load.image('ui-hero-face', `${base}/hero_face.png`);
 }
 
 // ------------------------------------------------------------------ shapes
@@ -231,6 +232,24 @@ export class KitButton {
     return this;
   }
 
+  // Overworld HUD: stays put while the camera follows the player.
+  setScrollFactor(factor: number): this {
+    [this.g, this.label, this.costText, this.iconImage, this.zone].forEach((o) => o?.setScrollFactor(factor));
+    return this;
+  }
+
+  setVisible(visible: boolean): this {
+    [this.g, this.label, this.costText, this.iconImage].forEach((o) => o?.setVisible(visible));
+    this.zone.setVisible(visible);
+    if (this.zone.input) this.zone.input.enabled = visible;
+    return this;
+  }
+
+  setLabel(text: string): this {
+    this.label.setText(text);
+    return this;
+  }
+
   private redraw(): void {
     this.g.clear();
     drawButton(this.g, this.x, this.y, this.width, this.height, this.state);
@@ -261,6 +280,10 @@ export class KitBar {
   ) {
     this.g = scene.add.graphics();
     this.set(1);
+  }
+
+  get graphics(): Phaser.GameObjects.Graphics {
+    return this.g;
   }
 
   set(ratio: number): void {

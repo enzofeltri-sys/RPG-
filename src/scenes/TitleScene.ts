@@ -1,10 +1,16 @@
 import Phaser from 'phaser';
 import { SaveManager } from '../save/SaveManager';
 import { addCrispText } from '../ui/text';
+import { preloadUiKit } from '../ui/kit';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
     super('Title');
+  }
+
+  // UI kit images are shared by every scene: loaded once, here.
+  preload(): void {
+    preloadUiKit(this);
   }
 
   async create(): Promise<void> {

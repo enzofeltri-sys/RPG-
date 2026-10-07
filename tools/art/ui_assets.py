@@ -14,7 +14,7 @@ from PIL import Image
 
 import sprites
 from blob import ascii_to_grid, grid_to_image
-from ui import ICONS, battle_backdrop_v2
+from ui import ICONS, battle_backdrop_v2, hero_face
 from ui_v3 import CHIPS, MORE_ICONS
 
 OUT = Path(__file__).resolve().parents[2] / 'public/sprites/ui'
@@ -48,6 +48,7 @@ def main() -> None:
     x2(battle_backdrop_v2()).save(OUT / 'battle_grass.png')
     # Placeholder until the playable characters step draws each race/class.
     x2(grid_to_image(sprites.hero_frames()['up'][1]), 4).save(OUT / 'hero_back.png')
+    x2(hero_face()).save(OUT / 'hero_face.png')
     print('ok', OUT)
 
 

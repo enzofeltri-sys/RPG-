@@ -63,6 +63,7 @@ export function preloadUiKit(scene: Phaser.Scene): void {
   });
   if (!scene.textures.exists('ui-battle-grass')) scene.load.image('ui-battle-grass', `${base}/battle_grass.png`);
   if (!scene.textures.exists('ui-hero-back')) scene.load.image('ui-hero-back', `${base}/hero_back.png`);
+  if (!scene.textures.exists('ui-hero-front')) scene.load.image('ui-hero-front', `${base}/hero_front.png`);
   if (!scene.textures.exists('ui-hero-face')) scene.load.image('ui-hero-face', `${base}/hero_face.png`);
 }
 
@@ -166,6 +167,8 @@ function shadowed(color: string, shadow: string): Phaser.Types.GameObjects.Text.
 
 export interface KitButtonOptions {
   icon?: string;
+  // Any loaded texture (e.g. an item icon), fitted to 16×16, instead of a kit icon.
+  iconTexture?: string;
   size?: number;
   cost?: string;
   costSize?: number;
@@ -203,6 +206,11 @@ export class KitButton {
     if (options.icon) {
       this.iconImage = scene.add.image(x + 6, y + height / 2, `ui-icon-${options.icon}`).setOrigin(0, 0.5);
       tx = x + 26;
+    } else if (options.iconTexture) {
+      if (scene.textures.exists(options.iconTexture)) {
+        this.iconImage = scene.add.image(x + 6, y + height / 2, options.iconTexture).setOrigin(0, 0.5).setDisplaySize(16, 16);
+      }
+      tx = x + 26;
     }
     if (options.tag !== undefined) {
       this.tagText = addCrispText(scene, tx - 2, y + height / 2, options.tag, {
@@ -211,7 +219,7 @@ export class KitButton {
       }).setOrigin(0, 0.5);
       tx += 34;
     }
-    const centered = options.align === 'center' && !options.icon;
+    const centered = options.align === 'center' && !options.icon && !options.iconTexture;
     this.label = addCrispText(scene, centered ? x + width / 2 : tx, y + height / 2, text, {
       fontSize: `${size}px`,
       ...shadowed(INK.button, INK.buttonShadow),

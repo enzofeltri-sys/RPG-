@@ -53,3 +53,22 @@ export async function attachConsumableIcon(
   if (!key) return undefined;
   return scene.add.image(x, y, key).setDisplaySize(size, size);
 }
+
+// Loads every listed item icon in one pass, so a screen that redraws itself
+// can then place them synchronously (missing files are simply skipped).
+export async function preloadItemIcons(scene: Phaser.Scene, baseIds: string[]): Promise<void> {
+  const missing = [...new Set(baseIds)].filter((id) => !scene.textures.exists(`item-icon-${id}`));
+  if (missing.length === 0) return;
+  await new Promise<void>((resolve) => {
+    missing.forEach((id) => scene.load.image(`item-icon-${id}`, `${import.meta.env.BASE_URL}sprites/items/${id}.png`));
+    scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+    scene.load.start();
+  });
+}
+
+// The icon at (cx, cy) fitted in a size×size square, if it loaded.
+export function placeItemIcon(scene: Phaser.Scene, baseId: string, cx: number, cy: number, size: number): Phaser.GameObjects.Image | undefined {
+  const key = `item-icon-${baseId}`;
+  if (!scene.textures.exists(key)) return undefined;
+  return scene.add.image(cx, cy, key).setDisplaySize(size, size);
+}

@@ -48,6 +48,7 @@ def main() -> None:
     x2(battle_backdrop_v2()).save(OUT / 'battle_grass.png')
     # Placeholder until the playable characters step draws each race/class.
     x2(grid_to_image(sprites.hero_frames()['up'][1]), 4).save(OUT / 'hero_back.png')
+    x2(grid_to_image(sprites.hero_frames()['down'][1]), 4).save(OUT / 'hero_front.png')
     x2(hero_face()).save(OUT / 'hero_face.png')
     print('ok', OUT)
 

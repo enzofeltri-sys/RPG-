@@ -2,15 +2,16 @@ import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress } from '../game/quest';
 import { MAIN_QUEST_TITLE, MainQuestStage, getMainQuestStage } from '../game/mainQuest';
+import { createItem } from '../game/item';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
-import { addCrispText } from '../ui/text';
+import { INK, KitButton, addPanel, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
+import { GOOD_INK } from '../ui/itemText';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager } from '../ui/screen';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-const ACTIVE_COLOR = '#4fa3e3';
-const DONE_COLOR = '#5fbf6a';
+const MUTED = INK.soft;
+const ACTIVE_COLOR = '#3260b0';
+const DONE_COLOR = GOOD_INK;
 
 const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; description: string }> = {
   not_started: { label: 'Non commencée', color: MUTED, description: 'Parlez à Aldric, à Basse-Combe.' },
@@ -582,22 +583,23 @@ const MAIN_QUEST_STATUS: Record<MainQuestStage, { label: string; color: string; 
   },
 };
 
-// Just below the title and just above the "Retour" button — the list scrolls
-// inside this band instead of overflowing under the button once there are
-// enough quests to exceed it (6 already do, more are coming).
-const VIEWPORT_TOP = 32;
-const VIEWPORT_BOTTOM = 345;
+type QuestTab = 'active' | 'done';
 
+const ROWS_TOP = 132;
+const ROW_STEP = 26;
+const ROWS_PER_PAGE = 3;
+
+// Quêtes in UI style A: the main quest's current objective on top, then the
+// side quests met so far (never-offered ones stay hidden so nothing is
+// spoiled), split between "En cours" and "Terminées", with a detail panel.
 export class QuestLogScene extends Phaser.Scene {
   private character!: Character;
   private returnScene: ReturnSceneKey = 'Village';
   private returnX?: number;
   private returnY?: number;
-  private listContainer!: Phaser.GameObjects.Container;
-  private minScrollY = 0;
-  private dragging = false;
-  private dragStartY = 0;
-  private containerStartY = 0;
+  private tab: QuestTab = 'active';
+  private page = 0;
+  private selected?: string;
 
   constructor() {
     super('Quests');
@@ -607,121 +609,111 @@ export class QuestLogScene extends Phaser.Scene {
     this.returnScene = data?.returnScene ?? 'Village';
     this.returnX = data?.x;
     this.returnY = data?.y;
+    this.tab = 'active';
+    this.page = 0;
+    this.selected = undefined;
+  }
+
+  preload(): void {
+    preloadUiKit(this);
   }
 
   async create(): Promise<void> {
-    const { width } = this.scale;
     const save = await SaveManager.load();
     this.character = save!.character!;
-
-    addCrispText(this, width / 2, 14, 'Quêtes', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
-
-    this.listContainer = this.add.container(0, 0);
-    let y = VIEWPORT_TOP + 8;
-
-    const addToList = (obj: Phaser.GameObjects.GameObject) => this.listContainer.add(obj);
-
-    const mainStage = getMainQuestStage(this.character);
-    const mainStatus = MAIN_QUEST_STATUS[mainStage];
-    addToList(addCrispText(this, 12, y, MAIN_QUEST_TITLE, { fontSize: '12px', color: GOLD }).setOrigin(0, 0));
-    y += 18;
-    addToList(addCrispText(this, 12, y, mainStatus.label, { fontSize: '9px', color: mainStatus.color }).setOrigin(0, 0));
-    y += 16;
-    addToList(
-      addCrispText(this, 12, y, mainStatus.description, {
-        fontSize: '9px',
-        color: MUTED,
-        wordWrap: { width: width - 24 },
-        lineSpacing: 3,
-      }).setOrigin(0, 0),
-    );
-    y += 50;
-
-    let visibleSideQuests = 0;
-    Object.values(QUESTS).forEach((quest) => {
-      const progress = getQuestProgress(this.character, quest.id);
-      // Quests never offered by their NPC yet have no progress entry at all —
-      // showing them here would spoil every quest in the game up front
-      // instead of only what the player has actually encountered.
-      if (!progress) return;
-      visibleSideQuests += 1;
-
-      let statusLabel: string;
-      let color: string;
-      if (progress.state === 'active') {
-        statusLabel = `En cours (${progress.progress}/${quest.objective.count})`;
-        color = ACTIVE_COLOR;
-      } else {
-        statusLabel = progress.state === 'completed' ? 'Terminée — récompense à récupérer' : 'Terminée';
-        color = DONE_COLOR;
-      }
-
-      addToList(addCrispText(this, 12, y, quest.title, { fontSize: '12px', color: GOLD }).setOrigin(0, 0));
-      y += 18;
-      addToList(addCrispText(this, 12, y, statusLabel, { fontSize: '9px', color }).setOrigin(0, 0));
-      y += 16;
-      addToList(
-        addCrispText(this, 12, y, quest.description, {
-          fontSize: '9px',
-          color: MUTED,
-          wordWrap: { width: width - 24 },
-          lineSpacing: 3,
-        }).setOrigin(0, 0),
-      );
-      y += 50;
-    });
-
-    if (visibleSideQuests === 0) {
-      addToList(addCrispText(this, 12, y, 'Aucune quête secondaire pour le moment.', { fontSize: '10px', color: MUTED }));
-    }
-
-    this.setupScrolling(y);
-
-    const backButton = addCrispText(this, width / 2, 362, 'Retour', {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.goBack());
+    this.render();
   }
 
-  // contentBottom is the y just past the last entry drawn into listContainer.
-  // Only the list scrolls (drag up/down) — the title and "Retour" button stay
-  // fixed, since they're plain scene-level objects, not container children.
-  private setupScrolling(contentBottom: number): void {
-    const { width } = this.scale;
-    const viewportHeight = VIEWPORT_BOTTOM - VIEWPORT_TOP;
-    const contentHeight = contentBottom - VIEWPORT_TOP;
-    this.minScrollY = Math.min(0, viewportHeight - contentHeight);
+  private render(): void {
+    this.children.removeAll(true);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Quêtes', 12).setOrigin(0.5, 0);
 
-    const maskShape = this.make.graphics({}, false);
-    maskShape.fillRect(0, VIEWPORT_TOP, width, viewportHeight);
-    this.listContainer.setMask(maskShape.createGeometryMask());
+    // Main quest card.
+    const main = MAIN_QUEST_STATUS[getMainQuestStage(this.character)];
+    addPanel(this, SCREEN_LEFT, 34, SCREEN_INNER_W, 66);
+    this.add.image(SCREEN_LEFT + 8, 42, 'ui-icon-star').setOrigin(0, 0);
+    panelText(this, SCREEN_LEFT + 28, 43, MAIN_QUEST_TITLE, 9);
+    panelText(this, SCREEN_LEFT + SCREEN_INNER_W - 10, 44, main.label, 7, main.color).setOrigin(1, 0);
+    const objective = panelText(this, SCREEN_LEFT + 10, 62, main.description, 8, INK.text, {
+      wordWrap: { width: SCREEN_INNER_W - 20 },
+      lineSpacing: 1,
+    });
+    if (objective.y + objective.height > 94) objective.setFontSize(Math.round(7 * 1.2));
 
-    if (this.minScrollY === 0) return; // Everything fits — no need to drag.
+    // Side quests.
+    const quests = Object.values(QUESTS).filter((quest) => {
+      const progress = getQuestProgress(this.character, quest.id);
+      if (!progress) return false;
+      return this.tab === 'active' ? progress.state !== 'turned_in' : progress.state === 'turned_in';
+    });
+    const counts = { active: 0, done: 0 };
+    Object.values(QUESTS).forEach((quest) => {
+      const progress = getQuestProgress(this.character, quest.id);
+      if (progress) counts[progress.state === 'turned_in' ? 'done' : 'active'] += 1;
+    });
+    buttonRow(2, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
+      const tab: QuestTab = i === 0 ? 'active' : 'done';
+      new KitButton(this, x, 106, w, 20, `${i === 0 ? 'En cours' : 'Terminées'} (${counts[tab]})`, {
+        size: 8,
+        align: 'center',
+        state: tab === this.tab ? 'pressed' : 'normal',
+        onClick: () => {
+          if (tab === this.tab) return;
+          this.tab = tab;
+          this.page = 0;
+          this.selected = undefined;
+          this.render();
+        },
+      });
+    });
+    this.page = pager(this, this.page, quests.length, ROWS_PER_PAGE, (page) => {
+      this.page = page;
+      this.selected = undefined;
+      this.render();
+    });
+    if (quests.length === 0) {
+      panelText(this, this.scale.width / 2, ROWS_TOP + 24, this.tab === 'active' ? 'Aucune quête en cours.' : 'Aucune quête terminée.', 9, INK.soft).setOrigin(0.5, 0);
+    }
+    quests.slice(this.page * ROWS_PER_PAGE, (this.page + 1) * ROWS_PER_PAGE).forEach((quest, i) => {
+      const progress = getQuestProgress(this.character, quest.id)!;
+      const tag = progress.state === 'active' ? `${progress.progress}/${quest.objective.count}` : progress.state === 'completed' ? 'À rendre' : undefined;
+      new KitButton(this, SCREEN_LEFT, ROWS_TOP + i * ROW_STEP, SCREEN_INNER_W, 22, quest.title, {
+        icon: 'scroll',
+        size: 9,
+        cost: tag,
+        costSize: 9,
+        state: quest.id === this.selected ? 'pressed' : 'normal',
+        onClick: () => {
+          this.selected = quest.id;
+          this.render();
+        },
+      });
+    });
 
-    const dragZone = this.add
-      .zone(width / 2, VIEWPORT_TOP + viewportHeight / 2, width, viewportHeight)
-      .setInteractive();
-    dragZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      this.dragging = true;
-      this.dragStartY = pointer.y;
-      this.containerStartY = this.listContainer.y;
-    });
-    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (!this.dragging) return;
-      const newY = this.containerStartY + (pointer.y - this.dragStartY);
-      this.listContainer.y = Phaser.Math.Clamp(newY, this.minScrollY, 0);
-    });
-    this.input.on('pointerup', () => {
-      this.dragging = false;
-    });
-    this.input.on('pointerupoutside', () => {
-      this.dragging = false;
-    });
+    const quest = quests.find((q) => q.id === this.selected);
+    if (quest) {
+      const progress = getQuestProgress(this.character, quest.id)!;
+      const status =
+        progress.state === 'active'
+          ? { text: `En cours : ${progress.progress}/${quest.objective.count}`, color: ACTIVE_COLOR }
+          : progress.state === 'completed'
+            ? { text: 'Terminée : récompense à récupérer auprès de qui te l’a confiée.', color: GOOD_INK }
+            : { text: 'Terminée.', color: GOOD_INK };
+      const reward = quest.reward.itemBaseId
+        ? `Récompense : ${quest.reward.xp} XP, ${createItem(quest.reward.itemBaseId, quest.reward.itemRarity ?? 'common').name}`
+        : `Récompense : ${quest.reward.xp} XP`;
+      detailPanel(this, { text: quest.title, color: INK.text }, [
+        status,
+        { text: quest.description, color: INK.text },
+        { text: reward, color: INK.soft },
+      ]);
+    } else {
+      detailPanel(this, { text: 'Quêtes secondaires', color: INK.text }, [
+        { text: 'Les habitants confient des tâches : touche une quête pour en voir le détail.', color: INK.soft },
+      ]);
+    }
+    actionRow(this, [{ label: 'Retour', onClick: () => this.goBack() }]);
   }
 
   private goBack(): void {

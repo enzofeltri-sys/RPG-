@@ -2,30 +2,53 @@ import Phaser from 'phaser';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress } from '../game/quest';
 import { getMainQuestStage } from '../game/mainQuest';
-import { MAP_LOCATIONS, MAP_CONNECTIONS, MAIN_QUEST_LOCATION, QUEST_LOCATIONS, MapRegion } from '../game/worldMap';
+import { MAP_LOCATIONS, MAP_CONNECTIONS, MAIN_QUEST_LOCATION, QUEST_LOCATIONS, MapLocation, MapRegion, ZONE_LEVEL } from '../game/worldMap';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
-import { addCrispText } from '../ui/text';
+import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-const CURRENT_COLOR = '#e8d9b5';
-const QUEST_COLOR = '#4fa3e3';
-const LINE_COLOR = 0x3a3a2a;
-const TAB_ACTIVE_BG = '#e8d9b5';
-const TAB_INACTIVE_BG = '#3a3428';
-const CURRENT_LABEL = 'Vous êtes ici';
-const QUEST_LABEL = 'Quête en cours';
+const REGIONS: { id: MapRegion; label: string }[] = [
+  { id: 'start', label: 'Région 1' },
+  { id: 'aiglemont', label: 'Aiglemont' },
+  { id: 'terresnoyees', label: 'Terres Noyées' },
+];
 
+const MAP_TOP = 60;
+const MAP_H = 222;
+const QUEST_INK = '#3260b0';
+
+// worldMap.ts places locations on a loose grid (x 40..200, y 55..275) that
+// later additions squeezed: each region is spread evenly over the parchment
+// from its own distinct columns and rows, so labels keep their room.
+interface Layout {
+  x: (loc: MapLocation) => number;
+  y: (loc: MapLocation) => number;
+}
+
+function regionLayout(locations: MapLocation[]): Layout {
+  const xs = [...new Set(locations.map((l) => l.x))].sort((a, b) => a - b);
+  const ys = [...new Set(locations.map((l) => l.y))].sort((a, b) => a - b);
+  const spread = (values: number[], from: number, to: number) => (v: number) => {
+    const i = values.indexOf(v);
+    const t = values.length > 1 ? i / (values.length - 1) : 0.5;
+    return Math.round((from + (to - from) * t) / 2) * 2;
+  };
+  const sx = spread(xs, SCREEN_LEFT + 28, SCREEN_LEFT + SCREEN_INNER_W - 28);
+  const sy = spread(ys, MAP_TOP + 18, MAP_TOP + MAP_H - 40);
+  return { x: (l) => sx(l.x), y: (l) => sy(l.y) };
+}
+
+// Carte in UI style A: a parchment map per region with dotted roads, a red
+// marker where the hero stands and blue ones where a quest leads; tapping a
+// place shows its monsters' level.
 export class MapScene extends Phaser.Scene {
   private character!: Character;
   private returnScene: ReturnSceneKey = 'Village';
   private returnX?: number;
   private returnY?: number;
-  private activeRegion: MapRegion = 'start';
-  private tabButtons: Record<MapRegion, Phaser.GameObjects.Text> = {} as Record<MapRegion, Phaser.GameObjects.Text>;
-  private contentObjects: Phaser.GameObjects.GameObject[] = [];
+  private region: MapRegion = 'start';
+  private selected?: ReturnSceneKey;
 
   constructor() {
     super('Map');
@@ -35,116 +58,126 @@ export class MapScene extends Phaser.Scene {
     this.returnScene = data?.returnScene ?? 'Village';
     this.returnX = data?.x;
     this.returnY = data?.y;
+    this.selected = undefined;
+  }
+
+  preload(): void {
+    preloadUiKit(this);
   }
 
   async create(): Promise<void> {
-    const { width } = this.scale;
     const save = await SaveManager.load();
     this.character = save!.character!;
-
-    addCrispText(this, width / 2, 14, 'Carte', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
-
-    const currentLocation = MAP_LOCATIONS.find((loc) => loc.key === this.returnScene);
-    this.activeRegion = currentLocation?.region ?? 'start';
-
-    this.tabButtons.start = this.makeTabButton(32, 32, 'Région 1', () => this.switchRegion('start'));
-    this.tabButtons.aiglemont = this.makeTabButton(104, 32, 'Aiglemont', () => this.switchRegion('aiglemont'));
-    this.tabButtons.terresnoyees = this.makeTabButton(180, 32, 'T. Noyées', () => this.switchRegion('terresnoyees'));
-
-    this.renderRegion();
-
-    addCrispText(this, 12, 300, `● ${CURRENT_LABEL}`, { fontSize: '9px', color: CURRENT_COLOR }).setOrigin(0, 0);
-    addCrispText(this, 12, 316, `● ${QUEST_LABEL}`, { fontSize: '9px', color: QUEST_COLOR }).setOrigin(0, 0);
-
-    const backButton = addCrispText(this, width / 2, 362, 'Retour', {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.goBack());
+    this.region = MAP_LOCATIONS.find((loc) => loc.key === this.returnScene)?.region ?? 'start';
+    this.render();
   }
 
-  private makeTabButton(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Text {
-    const button = addCrispText(this, x, y, label, {
-      fontSize: '9px',
-      color: DARK,
-      backgroundColor: TAB_INACTIVE_BG,
-      padding: { x: 6, y: 4 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    button.on('pointerdown', onClick);
-    return button;
-  }
-
-  private switchRegion(region: MapRegion): void {
-    if (region === this.activeRegion) return;
-    this.activeRegion = region;
-    this.renderRegion();
-  }
-
-  private renderRegion(): void {
-    this.contentObjects.forEach((obj) => obj.destroy());
-    this.contentObjects = [];
-
-    (Object.keys(this.tabButtons) as MapRegion[]).forEach((region) => {
-      this.tabButtons[region].setBackgroundColor(region === this.activeRegion ? TAB_ACTIVE_BG : TAB_INACTIVE_BG);
-      this.tabButtons[region].setColor(region === this.activeRegion ? DARK : GOLD);
-    });
-
-    const mainQuestLocation = MAIN_QUEST_LOCATION[getMainQuestStage(this.character)];
-    const questLocations = new Set<ReturnSceneKey>();
-    if (mainQuestLocation) questLocations.add(mainQuestLocation);
+  private questLocations(): Set<ReturnSceneKey> {
+    const keys = new Set<ReturnSceneKey>();
+    const main = MAIN_QUEST_LOCATION[getMainQuestStage(this.character)];
+    if (main) keys.add(main);
     Object.values(QUESTS).forEach((quest) => {
       const progress = getQuestProgress(this.character, quest.id);
       if (!progress || progress.state === 'turned_in') return;
       const location = QUEST_LOCATIONS[quest.id];
-      if (location) questLocations.add(location);
+      if (location) keys.add(location);
     });
+    return keys;
+  }
 
-    const locations = MAP_LOCATIONS.filter((loc) => loc.region === this.activeRegion);
-    const locationByKey = new Map(locations.map((loc) => [loc.key, loc]));
-    // Pushes content below the title/tabs while keeping the last row clear
-    // of the legend and the fixed Retour button lower on screen.
-    const offsetY = 20;
-
-    // A single Graphics object for every connection segment — Line game
-    // objects have origin/positioning quirks that make per-segment Line
-    // instances fiddly to place correctly; moveTo/lineTo on one Graphics
-    // avoids that entirely.
-    const graphics = this.add.graphics();
-    graphics.lineStyle(1, LINE_COLOR, 1);
-    MAP_CONNECTIONS.forEach(([fromKey, toKey]) => {
-      const from = locationByKey.get(fromKey);
-      const to = locationByKey.get(toKey);
-      if (!from || !to) return;
-      graphics.moveTo(from.x, from.y + offsetY);
-      graphics.lineTo(to.x, to.y + offsetY);
-    });
-    graphics.strokePath();
-    this.contentObjects.push(graphics);
-
-    locations.forEach((loc) => {
-      const isCurrent = loc.key === this.returnScene;
-      const isQuestTarget = questLocations.has(loc.key);
-      const color = isCurrent ? CURRENT_COLOR : isQuestTarget ? QUEST_COLOR : MUTED;
-      const radius = isCurrent ? 6 : 4;
-
-      const dot = this.add.circle(loc.x, loc.y + offsetY, radius, Phaser.Display.Color.HexStringToColor(color).color);
-      if (isCurrent) dot.setStrokeStyle(1, 0xffffff);
-      this.contentObjects.push(dot);
-
-      const label = addCrispText(this, loc.x, loc.y + offsetY + radius + 3, loc.label, {
-        fontSize: '8px',
-        color,
+  private render(): void {
+    this.children.removeAll(true);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Carte', 12).setOrigin(0.5, 0);
+    buttonRow(REGIONS.length, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
+      const region = REGIONS[i];
+      new KitButton(this, x, 34, w, 20, region.label, {
+        size: 8,
         align: 'center',
-        wordWrap: { width: 56 },
-      }).setOrigin(0.5, 0);
-      this.contentObjects.push(label);
+        state: region.id === this.region ? 'pressed' : 'normal',
+        onClick: () => {
+          if (region.id === this.region) return;
+          this.region = region.id;
+          this.selected = undefined;
+          this.render();
+        },
+      });
     });
+
+    addPanel(this, SCREEN_LEFT, MAP_TOP, SCREEN_INNER_W, MAP_H);
+    const locations = MAP_LOCATIONS.filter((loc) => loc.region === this.region);
+    const byKey = new Map(locations.map((loc) => [loc.key, loc]));
+    const quests = this.questLocations();
+    const layout = regionLayout(locations);
+    const mapX = layout.x;
+    const mapY = layout.y;
+
+    // Dotted roads.
+    const roads = this.add.graphics().fillStyle(PAL.n, 1);
+    MAP_CONNECTIONS.forEach(([fromKey, toKey]) => {
+      const from = byKey.get(fromKey);
+      const to = byKey.get(toKey);
+      if (!from || !to) return;
+      const [x1, y1, x2, y2] = [mapX(from), mapY(from), mapX(to), mapY(to)];
+      const steps = Math.max(1, Math.floor(Math.hypot(x2 - x1, y2 - y1) / 6));
+      for (let s = 1; s < steps; s++) {
+        const px = Math.round((x1 + ((x2 - x1) * s) / steps) / 2) * 2;
+        const py = Math.round((y1 + ((y2 - y1) * s) / steps) / 2) * 2;
+        roads.fillRect(px - 1, py - 1, 2, 2);
+      }
+    });
+
+    const markers = this.add.graphics();
+    locations.forEach((loc) => {
+      const x = mapX(loc);
+      const y = mapY(loc);
+      const current = loc.key === this.returnScene;
+      const quest = quests.has(loc.key);
+      const size = current ? 10 : 8;
+      const [fill, light] = current ? [PAL.x, PAL.y] : quest ? [PAL.u, PAL.i] : [PAL.b, PAL.N];
+      markers.fillStyle(PAL.k, 1).fillRect(x - size / 2 - 2, y - size / 2 - 2, size + 4, size + 4);
+      markers.fillStyle(fill, 1).fillRect(x - size / 2, y - size / 2, size, size);
+      markers.fillStyle(light, 1).fillRect(x - size / 2, y - size / 2, size, 2);
+      if (loc.key === this.selected) {
+        markers.fillStyle(PAL.o, 1).fillRect(x - size / 2 - 4, y + size / 2 + 4, size + 8, 2);
+      }
+      panelText(this, x, y + size / 2 + 6, loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
+        align: 'center',
+        wordWrap: { width: 40 },
+      }).setOrigin(0.5, 0);
+      this.add
+        .zone(x - 20, y - 10, 40, 30)
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+          this.selected = loc.key;
+          this.render();
+        });
+    });
+
+    const loc = locations.find((l) => l.key === this.selected);
+    const top = MAP_TOP + MAP_H + 4;
+    if (loc) {
+      const level = ZONE_LEVEL[loc.key];
+      const lines = [
+        { text: level ? `Monstres de niveau ${level}.` : 'Pas de monstres : un lieu sûr.', color: INK.text },
+      ];
+      if (loc.key === this.returnScene) lines.push({ text: 'Tu es ici.', color: INK.danger });
+      if (quests.has(loc.key)) lines.push({ text: 'Une quête en cours mène ici.', color: QUEST_INK });
+      detailPanel(this, { text: loc.label, color: INK.text }, lines, top, 340 - top);
+    } else {
+      detailPanel(
+        this,
+        { text: 'Légende', color: INK.text },
+        [
+          { text: 'Rouge : tu es ici · Bleu : une quête mène ici.', color: INK.soft },
+          { text: 'Touche un lieu pour voir le niveau de ses monstres.', color: INK.soft },
+        ],
+        top,
+        340 - top,
+      );
+    }
+    actionRow(this, [{ label: 'Retour', onClick: () => this.goBack() }]);
   }
 
   private goBack(): void {

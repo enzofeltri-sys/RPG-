@@ -1,6 +1,17 @@
-import { Item, Rarity, RARITY_LABELS, describeItemSetDetail, describeItemStats, equipSlotLabel, isUpgrade } from '../game/item';
+import {
+  Item,
+  Rarity,
+  RARITY_LABELS,
+  compareItemStats,
+  describeItemSetDetail,
+  describeItemStats,
+  equipSlotLabel,
+  isCraftOnly,
+  isUpgrade,
+} from '../game/item';
 import { SHIELD_BLOCK_CHANCE, WEAPON_PROFILES, handRule } from '../game/weapons';
 import { Character } from '../game/character';
+import { targetSlot } from './screen';
 
 // Rarity colors readable on parchment (UI style A); the old RARITY_COLORS
 // were tuned for the dark provisional screens.
@@ -59,4 +70,20 @@ export function comparisonLine(next: Item, current: Item | undefined): { text: s
   if (isUpgrade(next, current)) return { text: "+ Meilleure que l'actuelle", color: GOOD_INK };
   if (isUpgrade(current, next)) return { text: "− Moins bonne que l'actuelle", color: '#7a1c2c' };
   return { text: "= Équivalente à l'actuelle", color: '#764c2e' };
+}
+
+// Full detail for an item not worn yet: type, a per-stat comparison with
+// what's in its slot, the overall verdict, set and craft notes.
+export function itemCompareLines(character: Character, item: Item): { text: string; color: string }[] {
+  const slot = targetSlot(character, item);
+  const equipped = character.equipment[slot];
+  const lines = [{ text: itemTypeLine(item), color: '#764c2e' }];
+  const diffs = compareItemStats(item, equipped);
+  if (diffs.length === 0) lines.push({ text: 'Aucun bonus.', color: '#482c22' });
+  diffs.forEach((d) => lines.push({ text: d, color: d.includes('(+') ? GOOD_INK : d.includes('(-') ? '#7a1c2c' : '#482c22' }));
+  lines.push(equipped ? comparisonLine(item, equipped) : { text: `+ ${equipSlotLabel(slot)} : vide pour l'instant`, color: GOOD_INK });
+  const set = itemSetLine(item, character);
+  if (set) lines.push({ text: set, color: '#764c2e' });
+  if (isCraftOnly(item.baseId)) lines.push({ text: "Objet d'artisanat : uniquement à la Forge.", color: '#764c2e' });
+  return lines;
 }

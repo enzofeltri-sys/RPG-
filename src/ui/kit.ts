@@ -230,6 +230,18 @@ export class KitButton {
         ...shadowed(INK.gold, INK.buttonShadow),
       }).setOrigin(1, 0.5);
     }
+    // A label too long for the button shrinks a notch, then ends in "…".
+    if (!centered) {
+      const room = x + width - tx - (this.costText ? this.costText.width + 10 : 6);
+      if (this.label.width > room && size > 8) this.label.setFontSize(Math.round(8 * 1.2));
+      if (this.label.width > room) {
+        let t = text;
+        while (t.length > 1 && this.label.width > room) {
+          t = t.slice(0, -1);
+          this.label.setText(`${t.trimEnd()}…`);
+        }
+      }
+    }
     this.zone = scene.add.zone(x, y, width, height).setOrigin(0, 0).setInteractive({ useHandCursor: true });
     this.zone.on('pointerdown', () => options.onClick());
     this.redraw();

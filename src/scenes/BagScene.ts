@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
-import { Item, EquipSlot, compareItemStats, equipSlotLabel, isUpgrade, isCraftOnly } from '../game/item';
+import { Item, EquipSlot, isUpgrade } from '../game/item';
 import { ConsumableId, CONSUMABLES, useConsumable } from '../game/consumable';
 import { handRule, planHandEquip } from '../game/weapons';
 import { materialLabel, isRareMaterial } from '../game/material';
@@ -8,7 +8,8 @@ import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/retur
 import { SaveManager } from '../save/SaveManager';
 import { preloadItemIcons, placeItemIcon } from '../entities/itemIcon';
 import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
-import { GOOD_INK, RARITY_INK, RARITY_STRIPE, comparisonLine, itemSetLine, itemTitle, itemTypeLine } from '../ui/itemText';
+import { RARITY_INK, RARITY_STRIPE, itemCompareLines, itemTitle } from '../ui/itemText';
+import { Action, DETAIL_TOP, LIST_TOP, Line, actionRow, detailPanel, pager, targetSlot } from '../ui/screen';
 
 type BagTab = 'items' | 'materials' | 'consumables' | 'quest';
 
@@ -21,7 +22,7 @@ const TABS: { id: BagTab; label: string }[] = [
 
 const LEFT = 14;
 const INNER_W = 188;
-const LIST_Y = 62;
+const LIST_Y = LIST_TOP;
 const CELL = 32;
 const GRID_COLS = 5;
 const GRID_ROWS = 4;
@@ -29,20 +30,7 @@ const CELL_STEP_X = 39;
 const CELL_STEP_Y = 38;
 const ROW_STEP = 28;
 const ROWS_PER_PAGE = 5;
-const DETAIL_Y = 214;
-const DETAIL_H = 124;
-const BUTTONS_Y = 344;
-
-interface Line {
-  text: string;
-  color: string;
-}
-
-interface Action {
-  label: string;
-  disabled?: boolean;
-  onClick: () => void;
-}
+const DETAIL_Y = DETAIL_TOP;
 
 // Sac in UI style A: four tabs; items as an icon grid (rarity stripe, a
 // green arrow on anything stronger than what's worn) with a full stat
@@ -120,24 +108,11 @@ export class BagScene extends Phaser.Scene {
     this.render();
   }
 
-  // "1/3 < >" in the list's top-right corner when a tab needs pages.
   private pager(total: number, perPage: number): void {
-    const pages = Math.max(1, Math.ceil(total / perPage));
-    this.page = Math.min(this.page, pages - 1);
-    if (pages <= 1) return;
-    const right = LEFT + INNER_W;
-    panelText(this, right - 52, 17, `${this.page + 1}/${pages}`, 8, INK.soft).setOrigin(1, 0);
-    const turn = (delta: number) => {
-      this.page = Math.max(0, Math.min(pages - 1, this.page + delta));
+    this.page = pager(this, this.page, total, perPage, (page) => {
+      this.page = page;
       this.selected = undefined;
       this.render();
-    };
-    new KitButton(this, right - 48, 12, 20, 18, '<', { size: 9, align: 'center', state: this.page === 0 ? 'disabled' : 'normal', onClick: () => turn(-1) });
-    new KitButton(this, right - 24, 12, 20, 18, '>', {
-      size: 9,
-      align: 'center',
-      state: this.page === pages - 1 ? 'disabled' : 'normal',
-      onClick: () => turn(1),
     });
   }
 
@@ -146,32 +121,11 @@ export class BagScene extends Phaser.Scene {
   }
 
   private detail(title: Line, lines: Line[]): void {
-    addPanel(this, LEFT, DETAIL_Y, INNER_W, DETAIL_H);
-    const x = LEFT + 10;
-    const head = panelText(this, x, DETAIL_Y + 8, title.text, 9, title.color, { wordWrap: { width: INNER_W - 20 } });
-    for (const size of [8, 7]) {
-      let y = head.y + head.height + 4;
-      const texts = lines.map((line) => {
-        const t = panelText(this, x, y, line.text, size, line.color, { wordWrap: { width: INNER_W - 20 } });
-        y += t.height + (line.text === '' ? 0 : size === 8 ? 2 : 1);
-        return t;
-      });
-      if (y <= DETAIL_Y + DETAIL_H - 8 || size === 7) break;
-      texts.forEach((t) => t.destroy());
-    }
+    detailPanel(this, title, lines);
   }
 
   private actions(list: Action[]): void {
-    const all = [...list, { label: 'Retour', onClick: () => this.goBack() }];
-    buttonRow(all.length, LEFT, INNER_W).forEach(({ x, w }, i) => {
-      const a = all[i];
-      new KitButton(this, x, BUTTONS_Y, w, 28, a.label, {
-        size: 9,
-        align: 'center',
-        state: a.disabled ? 'disabled' : 'normal',
-        onClick: a.onClick,
-      });
-    });
+    actionRow(this, [...list, { label: 'Retour', onClick: () => this.goBack() }]);
   }
 
   // ---------------------------------------------------------------- items
@@ -208,16 +162,7 @@ export class BagScene extends Phaser.Scene {
       this.actions([]);
       return;
     }
-    const slot = this.resolveEquipSlot(item);
-    const equipped = this.character.equipment[slot];
-    const lines: Line[] = [{ text: itemTypeLine(item), color: INK.soft }];
-    const diffs = compareItemStats(item, equipped);
-    if (diffs.length === 0) lines.push({ text: 'Aucun bonus.', color: INK.text });
-    diffs.forEach((d) => lines.push({ text: d, color: d.includes('(+') ? GOOD_INK : d.includes('(-') ? INK.danger : INK.text }));
-    lines.push(equipped ? comparisonLine(item, equipped) : { text: `+ ${equipSlotLabel(slot)} : vide pour l'instant`, color: GOOD_INK });
-    const set = itemSetLine(item, this.character);
-    if (set) lines.push({ text: set, color: INK.soft });
-    if (isCraftOnly(item.baseId)) lines.push({ text: "Objet d'artisanat : uniquement à la Forge.", color: INK.soft });
+    const lines = itemCompareLines(this.character, item);
     this.detail({ text: itemTitle(item), color: RARITY_INK[item.rarity] }, lines);
     this.actions([
       { label: 'Équiper', onClick: () => void this.equip(item) },
@@ -231,15 +176,8 @@ export class BagScene extends Phaser.Scene {
     g.fillStyle(PAL.H, 1).fillRect(x + 2, y + 2, 4, 2).fillRect(x + 2, y + 4, 2, 2);
   }
 
-  // Held items follow the hands rule (see weapons.ts's planHandEquip): a
-  // one-handed weapon fills the right hand, then the left; a two-handed one
-  // empties both; whatever gets pushed out goes back to the bag.
   private resolveEquipSlot(item: Item): EquipSlot {
-    if (handRule(item)) return planHandEquip(this.character.equipment, item).slot;
-    if (item.category !== 'ring') return item.category as EquipSlot;
-    if (!this.character.equipment.ring1) return 'ring1';
-    if (!this.character.equipment.ring2) return 'ring2';
-    return 'ring1';
+    return targetSlot(this.character, item);
   }
 
   private async equip(item: Item): Promise<void> {

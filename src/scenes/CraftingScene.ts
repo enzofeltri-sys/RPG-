@@ -1,41 +1,54 @@
 import Phaser from 'phaser';
 import { Character } from '../game/character';
+import { CraftableItemInfo, RARITY_LABELS, Rarity, createItem, getCraftableItems } from '../game/item';
 import { materialLabel } from '../game/material';
-import { RECIPES, RecipeDefinition, canCraft, craft } from '../game/recipe';
+import { CONSUMABLES } from '../game/consumable';
+import { RECIPES, RecipeDefinition, canCraft, canCraftGeneric, craft, craftGeneric, genericCraftCost } from '../game/recipe';
 import { SaveManager } from '../save/SaveManager';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
-import { addCrispText } from '../ui/text';
 import { playCraftSuccess } from '../ui/sound';
+import { placeItemIcon, preloadItemIcons } from '../entities/itemIcon';
+import { INK, KitButton, addPanel, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
+import { GOOD_INK, RARITY_INK, itemTypeLine } from '../ui/itemText';
+import { Action, DETAIL_HEIGHT, DETAIL_TOP, LIST_TOP, SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager } from '../ui/screen';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
-const OK_COLOR = '#5fbf6a';
+type CraftTab = 'forge' | 'alchemy' | 'free';
 
-// One recipe per page: the "artisan" recipes (3 materials with longer
-// French labels — see recipe.ts) wrap to more lines than the original
-// 1-2-material recipes did, so a fixed 2-per-page budget risked the second
-// block's text overlapping the fixed status/pagination/Retour row below.
-// Dynamic per-recipe height (see renderRecipe) already prevents overlap
-// within a page; keeping to 1 per page keeps that margin comfortable
-// without needing to shrink fonts or descriptions.
-const PAGE_SIZE = 1;
+const TABS: { id: CraftTab; label: string }[] = [
+  { id: 'forge', label: 'Forge' },
+  { id: 'alchemy', label: 'Alchimie' },
+  { id: 'free', label: 'Forge libre' },
+];
+
+const RARITIES: Rarity[] = ['common', 'rare', 'epic', 'legendary'];
+const ROW_STEP = 28;
+const ROWS_PER_PAGE = 5;
+const FREE_LIST_TOP = LIST_TOP + 24;
+const FREE_COLS = 5;
+const FREE_ROWS = 3;
+const CELL = 32;
 
 interface CraftingData {
   x?: number;
   y?: number;
-  page?: number;
   returnScene?: ReturnSceneKey;
 }
 
+// Artisanat in UI style A, one screen with three tabs: the named forge and
+// alchemy recipes, and the Forge libre (every lootable item, common to
+// legendary, at the generic cost of its palier — see recipe.ts).
 export class CraftingScene extends Phaser.Scene {
   private character!: Character;
-  private statusText!: Phaser.GameObjects.Text;
-  private craftButtons: Phaser.GameObjects.Text[] = [];
   private returnX?: number;
   private returnY?: number;
   private returnScene: ReturnSceneKey = 'Village';
+  private tab: CraftTab = 'forge';
   private page = 0;
+  private selected?: string;
+  private freeTier: 1 | 2 | 3 = 1;
+  private freeRarity: Rarity = 'common';
+  private craftable: CraftableItemInfo[] = [];
+  private loadingIcons = false;
 
   constructor() {
     super('Crafting');
@@ -45,151 +58,230 @@ export class CraftingScene extends Phaser.Scene {
     this.returnX = data?.x;
     this.returnY = data?.y;
     this.returnScene = data?.returnScene ?? 'Village';
-    this.page = data?.page ?? 0;
+    this.tab = 'forge';
+    this.page = 0;
+    this.selected = undefined;
+    this.freeTier = 1;
+    this.freeRarity = 'common';
+  }
+
+  preload(): void {
+    preloadUiKit(this);
   }
 
   async create(): Promise<void> {
-    const { width } = this.scale;
-    // Phaser reuses the same Scene instance across scene.start()/restart()
-    // calls, so this must be reset here — otherwise it keeps accumulating
-    // destroyed buttons from every previous visit (harmless to real players,
-    // who only ever click what's currently rendered, but sloppy bookkeeping).
-    this.craftButtons = [];
     const save = await SaveManager.load();
     this.character = save!.character!;
+    this.craftable = getCraftableItems();
+    const recipeItems = Object.values(RECIPES).flatMap((r) => (r.resultType === 'item' ? [r.resultItemBaseId] : []));
+    await preloadItemIcons(this, recipeItems);
+    if (!this.scene.isActive()) return;
+    this.render();
+  }
 
-    addCrispText(this, width / 2, 14, 'Artisanat', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
+  private goBack(): void {
+    this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY));
+  }
 
-    const allRecipes = Object.values(RECIPES);
-    const totalPages = Math.max(1, Math.ceil(allRecipes.length / PAGE_SIZE));
-    this.page = Phaser.Math.Clamp(this.page, 0, totalPages - 1);
-    const pageRecipes = allRecipes.slice(this.page * PAGE_SIZE, this.page * PAGE_SIZE + PAGE_SIZE);
-
-    let y = 40;
-    pageRecipes.forEach((recipe) => {
-      y += this.renderRecipe(recipe, y) + 14;
+  private render(): void {
+    this.children.removeAll(true);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Artisanat', 12).setOrigin(0.5, 0);
+    buttonRow(TABS.length, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
+      const tab = TABS[i];
+      new KitButton(this, x, 34, w, 20, tab.label, {
+        size: 8,
+        align: 'center',
+        state: tab.id === this.tab ? 'pressed' : 'normal',
+        onClick: () => {
+          if (tab.id === this.tab) return;
+          this.tab = tab.id;
+          this.page = 0;
+          this.selected = undefined;
+          this.render();
+        },
+      });
     });
+    if (this.tab === 'free') this.renderFree();
+    else this.renderRecipes(this.tab);
+  }
 
-    this.statusText = addCrispText(this, width / 2, 250, '', { fontSize: '10px', color: GOLD }).setOrigin(0.5);
+  private pager(total: number, perPage: number): void {
+    this.page = pager(this, this.page, total, perPage, (page) => {
+      this.page = page;
+      this.selected = undefined;
+      this.render();
+    });
+  }
 
-    addCrispText(this, width / 2, 278, `Page ${this.page + 1}/${totalPages}`, {
-      fontSize: '9px',
-      color: MUTED,
-    }).setOrigin(0.5);
+  private actions(list: Action[]): void {
+    actionRow(this, [...list, { label: 'Retour', onClick: () => this.goBack() }]);
+  }
 
-    if (this.page > 0) {
-      const prevButton = addCrispText(this, 50, 300, '◀ Précédent', {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 6, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-      prevButton.on('pointerdown', () => this.goToPage(this.page - 1));
+  private say(message: string, color: string = INK.text): void {
+    toast(this, this.scale.width / 2, DETAIL_TOP - 12, message, color);
+  }
+
+  private materialLines(cost: Partial<Record<string, number>>): { text: string; color: string }[] {
+    return Object.entries(cost).map(([id, count]) => {
+      const owned = this.character.materials[id] ?? 0;
+      return { text: `${materialLabel(id)} : ${owned}/${count}`, color: owned >= (count ?? 0) ? GOOD_INK : INK.danger };
+    });
+  }
+
+  // -------------------------------------------------------------- recipes
+
+  private renderRecipes(station: 'forge' | 'alchemy'): void {
+    const recipes = Object.values(RECIPES).filter((r) => r.station === station);
+    this.pager(recipes.length, ROWS_PER_PAGE);
+    recipes.slice(this.page * ROWS_PER_PAGE, (this.page + 1) * ROWS_PER_PAGE).forEach((recipe, i) => {
+      const ready = canCraft(this.character, recipe.id);
+      new KitButton(this, SCREEN_LEFT, LIST_TOP + i * ROW_STEP, SCREEN_INNER_W, 24, recipe.name, {
+        icon: recipe.resultType === 'item' ? undefined : 'potion',
+        iconTexture: recipe.resultType === 'item' ? `item-icon-${recipe.resultItemBaseId}` : undefined,
+        size: 9,
+        cost: ready ? 'Prêt' : undefined,
+        state: recipe.id === this.selected ? 'pressed' : 'normal',
+        onClick: () => {
+          this.selected = recipe.id;
+          this.render();
+        },
+      });
+    });
+    const recipe = recipes.find((r) => r.id === this.selected);
+    if (!recipe) {
+      detailPanel(this, { text: station === 'forge' ? 'La forge' : "L'alchimie", color: INK.text }, [
+        { text: '« Prêt » : tu as tout ce qu’il faut.', color: INK.soft },
+        { text: 'Les ressources se trouvent sur les monstres, chez la marchande et sur son étal.', color: INK.soft },
+      ]);
+      this.actions([]);
+      return;
     }
+    detailPanel(this, this.resultTitle(recipe), [
+      ...this.resultLines(recipe),
+      { text: recipe.description, color: INK.soft },
+      ...this.materialLines(recipe.materials),
+    ]);
+    this.actions([{ label: 'Fabriquer', disabled: !canCraft(this.character, recipe.id), onClick: () => void this.craftRecipe(recipe) }]);
+  }
 
-    if (this.page < totalPages - 1) {
-      const nextButton = addCrispText(this, width - 50, 300, 'Suivant ▶', {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 6, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-      nextButton.on('pointerdown', () => this.goToPage(this.page + 1));
+  private resultTitle(recipe: RecipeDefinition): { text: string; color: string } {
+    if (recipe.resultType === 'item') {
+      return { text: `${recipe.name} (${RARITY_LABELS[recipe.resultItemRarity]})`, color: RARITY_INK[recipe.resultItemRarity] };
     }
-
-    const freeCraftButton = addCrispText(this, width / 2, 330, 'Forge libre', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    freeCraftButton.on('pointerdown', () =>
-      this.scene.start('FreeCraft', { x: this.returnX, y: this.returnY, returnScene: this.returnScene }),
-    );
-
-    const backButton = addCrispText(this, width / 2, 362, 'Retour', {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () =>
-      this.scene.start(this.returnScene, returnSceneStartData(this.returnScene, this.returnX, this.returnY)),
-    );
+    return { text: recipe.name, color: INK.text };
   }
 
-  // Returns the total height used, measured from actual rendered text
-  // heights rather than fixed offsets — a 3-material "artisan" recipe (see
-  // recipe.ts) wraps its requirement line to more rows than the original
-  // 1-2-material recipes did, and a fixed offset would either waste space
-  // on short recipes or overlap the button on long ones.
-  private renderRecipe(recipe: RecipeDefinition, startY: number): number {
-    const { width } = this.scale;
-    let y = startY;
-    const stationLabel = recipe.station === 'forge' ? 'Forge' : 'Alchimie';
-    const nameText = addCrispText(this, 12, y, `${recipe.name} (${stationLabel})`, {
-      fontSize: '12px',
-      color: GOLD,
-    });
-    y += nameText.height + 4;
-
-    const descText = addCrispText(this, 12, y, recipe.description, {
-      fontSize: '9px',
-      color: MUTED,
-      wordWrap: { width: width - 24 },
-    });
-    y += descText.height + 6;
-
-    const requirementLines = Object.entries(recipe.materials)
-      .map(([materialId, count]) => {
-        const owned = this.character.materials[materialId] ?? 0;
-        return `${materialLabel(materialId)} : ${owned}/${count}`;
-      })
-      .join('   ');
-    const reqText = addCrispText(this, 12, y, requirementLines, {
-      fontSize: '9px',
-      color: canCraft(this.character, recipe.id) ? OK_COLOR : MUTED,
-      wordWrap: { width: width - 24 },
-    });
-    y += reqText.height + 8;
-
-    const button = addCrispText(this, 12, y, 'Fabriquer', {
-      fontSize: '10px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 6, y: 5 },
-    }).setInteractive({ useHandCursor: true });
-    button.setAlpha(canCraft(this.character, recipe.id) ? 1 : 0.5);
-    button.on('pointerdown', () => this.handleCraft(recipe.id));
-    this.craftButtons.push(button);
-    y += button.height;
-
-    return y - startY;
+  private resultLines(recipe: RecipeDefinition): { text: string; color: string }[] {
+    if (recipe.resultType === 'item') return [{ text: itemTypeLine(createItem(recipe.resultItemBaseId, recipe.resultItemRarity)), color: INK.soft }];
+    return [{ text: CONSUMABLES[recipe.resultConsumableId].description, color: INK.text }];
   }
 
-  private goToPage(page: number): void {
-    this.scene.start('Crafting', { x: this.returnX, y: this.returnY, page, returnScene: this.returnScene });
-  }
-
-  private async handleCraft(recipeId: string): Promise<void> {
-    const success = craft(this.character, recipeId);
-    if (!success) {
-      this.statusText.setText('Matériaux insuffisants.').setColor(MUTED);
+  private async craftRecipe(recipe: RecipeDefinition): Promise<void> {
+    if (!craft(this.character, recipe.id)) {
+      this.say('Matériaux insuffisants.', INK.danger);
       return;
     }
     await SaveManager.saveCharacter(this.character);
     playCraftSuccess();
-    this.statusText.setText(`${RECIPES[recipeId].name} fabriqué(e) !`).setColor(OK_COLOR);
-    this.time.delayedCall(600, () =>
-      this.scene.restart({ x: this.returnX, y: this.returnY, page: this.page, returnScene: this.returnScene }),
-    );
+    this.render();
+    this.say(`${recipe.name} fabriqué${recipe.resultType === 'item' ? ', dans le sac' : ''} !`);
+  }
+
+  // ----------------------------------------------------------- free forge
+
+  private renderFree(): void {
+    buttonRow(3, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
+      const tier = (i + 1) as 1 | 2 | 3;
+      new KitButton(this, x, LIST_TOP, w, 18, `Palier ${tier}`, {
+        size: 8,
+        align: 'center',
+        state: tier === this.freeTier ? 'pressed' : 'normal',
+        onClick: () => {
+          this.freeTier = tier;
+          this.page = 0;
+          this.selected = undefined;
+          this.render();
+        },
+      });
+    });
+    const items = this.craftable.filter((c) => c.tier === this.freeTier);
+    const perPage = FREE_COLS * FREE_ROWS;
+    this.pager(items.length, perPage);
+    const pageItems = items.slice(this.page * perPage, (this.page + 1) * perPage);
+    const missing = pageItems.filter((c) => !this.textures.exists(`item-icon-${c.baseId}`));
+    if (missing.length > 0 && !this.loadingIcons) {
+      // Icons load per page; the screen redraws once they're in.
+      this.loadingIcons = true;
+      void preloadItemIcons(this, missing.map((c) => c.baseId)).then(() => {
+        this.loadingIcons = false;
+        if (this.scene.isActive()) this.render();
+      });
+    }
+    pageItems.forEach((info, i) => {
+      const x = SCREEN_LEFT + (i % FREE_COLS) * 39;
+      const y = FREE_LIST_TOP + Math.floor(i / FREE_COLS) * 38;
+      const g = this.add.graphics();
+      drawButton(g, x, y, CELL, CELL, info.baseId === this.selected ? 'pressed' : 'normal');
+      if (!placeItemIcon(this, info.baseId, x + CELL / 2, y + CELL / 2, 24)) {
+        this.add.image(x + CELL / 2, y + CELL / 2, info.category === 'weapon' ? 'ui-icon-sword' : 'ui-icon-bag');
+      }
+      this.add
+        .zone(x, y, CELL, CELL)
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+          this.selected = info.baseId;
+          this.render();
+        });
+    });
+
+    const info = items.find((c) => c.baseId === this.selected);
+    if (!info) {
+      detailPanel(this, { text: 'Forge libre', color: INK.text }, [
+        { text: 'Tout objet trouvable, du commun au légendaire, au coût de son palier.', color: INK.soft },
+        { text: 'Choisis un objet, puis sa rareté.', color: INK.soft },
+        { text: `${items.length} objets au palier ${this.freeTier}.`, color: INK.soft },
+      ]);
+      this.actions([]);
+      return;
+    }
+    this.renderFreeDetail(info);
+  }
+
+  // Detail with a rarity picker inside the panel and the matching cost.
+  private renderFreeDetail(info: CraftableItemInfo): void {
+    addPanel(this, SCREEN_LEFT, DETAIL_TOP, SCREEN_INNER_W, DETAIL_HEIGHT);
+    const x = SCREEN_LEFT + 10;
+    panelText(this, x, DETAIL_TOP + 8, info.name, 9, RARITY_INK[this.freeRarity]);
+    panelText(this, x, DETAIL_TOP + 22, itemTypeLine(createItem(info.baseId, 'common')), 8, INK.soft);
+    buttonRow(4, x, SCREEN_INNER_W - 20, 4).forEach(({ x: bx, w }, i) => {
+      const rarity = RARITIES[i];
+      new KitButton(this, bx, DETAIL_TOP + 36, w, 18, RARITY_LABELS[rarity], {
+        size: 7,
+        align: 'center',
+        state: rarity === this.freeRarity ? 'pressed' : 'normal',
+        onClick: () => {
+          this.freeRarity = rarity;
+          this.render();
+        },
+      });
+    });
+    this.materialLines(genericCraftCost(info.tier, this.freeRarity)).forEach((line, i) => {
+      panelText(this, x, DETAIL_TOP + 60 + i * 12, line.text, 8, line.color);
+    });
+    const ready = canCraftGeneric(this.character, info.tier, this.freeRarity);
+    this.actions([{ label: 'Fabriquer', disabled: !ready, onClick: () => void this.craftFree(info) }]);
+  }
+
+  private async craftFree(info: CraftableItemInfo): Promise<void> {
+    if (!craftGeneric(this.character, info.baseId, info.tier, this.freeRarity)) {
+      this.say('Matériaux insuffisants.', INK.danger);
+      return;
+    }
+    await SaveManager.saveCharacter(this.character);
+    playCraftSuccess();
+    this.render();
+    this.say(`${info.name} (${RARITY_LABELS[this.freeRarity]}) fabriqué, dans le sac !`);
   }
 }

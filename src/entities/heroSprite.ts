@@ -1,57 +1,64 @@
 import Phaser from 'phaser';
-import { CharClass, Race } from '../game/character';
+import { Character } from '../game/character';
+import { DOLL_FEET_Y, DOLL_H, DOLL_W, FACE_H, FACE_W, Look, SHEET_COLUMNS, SHEET_H, SHEET_VIEWS, SHEET_W, renderFace, renderSheet } from '../art/heroDoll';
+import { heroLook, lookKey } from '../art/heroLook';
 
-// The playable heroes drawn by tools/art/heroes.py (build_heroes.py): one
-// sheet per race/class of 24x32 frames, 4 columns (stepA, idle, stepB,
-// breathe) x 4 rows (down, left, right, up), at the world's pixel size; plus
-// a 32x26 portrait for the interface.
+// The playable hero as it is dressed right now: its sheet (4 columns:
+// stepA, idle, stepB, breathe x 4 rows: down, left, right, up, 24x32 frames
+// at the world's pixel size) and its 32x26 portrait are drawn by the game
+// from the equipped items (art/heroDoll.ts, art/heroLook.ts). Identical
+// outfits share their textures; a new item gives a new texture.
 
 export type Facing = 'down' | 'left' | 'right' | 'up';
 
 const ROWS: Record<Facing, number> = { down: 0, left: 1, right: 2, up: 3 };
-const COLUMNS = 4;
-export const HERO_FRAME_W = 24;
-export const HERO_FRAME_H = 32;
-// Bottom row of the boots inside a frame (feet stand on the body's bottom).
-export const HERO_FEET_Y = 30;
+const COLUMNS = SHEET_COLUMNS.length;
+export const HERO_FRAME_W = DOLL_W;
+export const HERO_FRAME_H = DOLL_H;
+// Bottom row of the feet inside a frame.
+export const HERO_FEET_Y = DOLL_FEET_Y;
 
-export function heroSheetKey(race: Race, charClass: CharClass): string {
-  return `hero-${race}_${charClass}`;
+export interface HeroTextures {
+  sheet: string;
+  face: string;
 }
 
-export function heroFaceKey(race: Race, charClass: CharClass): string {
-  return `hero-face-${race}_${charClass}`;
+function canvasTexture(scene: Phaser.Scene, key: string, w: number, h: number, pixels: Uint8ClampedArray): Phaser.Textures.CanvasTexture {
+  const texture = scene.textures.createCanvas(key, w, h)!;
+  texture.context.putImageData(new ImageData(new Uint8ClampedArray(pixels), w, h), 0, 0);
+  texture.refresh();
+  return texture;
+}
+
+// Draws (once) the sheet and portrait of a look; returns their texture keys.
+export function lookTextures(scene: Phaser.Scene, look: Look): HeroTextures {
+  const id = lookKey(look);
+  const sheet = `hero-${id}`;
+  const face = `hero-face-${id}`;
+  if (!scene.textures.exists(sheet)) {
+    const texture = canvasTexture(scene, sheet, SHEET_W, SHEET_H, renderSheet(look));
+    SHEET_VIEWS.forEach((_, row) => {
+      SHEET_COLUMNS.forEach((__, col) => {
+        texture.add(row * COLUMNS + col, 0, col * DOLL_W, row * DOLL_H, DOLL_W, DOLL_H);
+      });
+    });
+  }
+  if (!scene.textures.exists(face)) canvasTexture(scene, face, FACE_W, FACE_H, renderFace(look));
+  return { sheet, face };
+}
+
+// The hero as currently equipped.
+export function heroTextures(scene: Phaser.Scene, character: Pick<Character, 'race' | 'class' | 'equipment'>): HeroTextures {
+  return lookTextures(scene, heroLook(character));
 }
 
 export function idleFrame(facing: Facing): number {
   return ROWS[facing] * COLUMNS + 1;
 }
 
-// Loads the sheet and portrait (once; textures are shared by every scene).
-export function preloadHero(scene: Phaser.Scene, race: Race, charClass: CharClass): void {
-  const base = `${import.meta.env.BASE_URL}sprites/heroes/${race}_${charClass}`;
-  const sheet = heroSheetKey(race, charClass);
-  if (!scene.textures.exists(sheet)) {
-    scene.load.spritesheet(sheet, `${base}.png`, { frameWidth: HERO_FRAME_W, frameHeight: HERO_FRAME_H });
-  }
-  const face = heroFaceKey(race, charClass);
-  if (!scene.textures.exists(face)) scene.load.image(face, `${base}_face.png`);
-}
-
-// Same, for scenes that only learn the race/class after loading the save.
-export async function loadHero(scene: Phaser.Scene, race: Race, charClass: CharClass): Promise<void> {
-  if (scene.textures.exists(heroSheetKey(race, charClass)) && scene.textures.exists(heroFaceKey(race, charClass))) return;
-  await new Promise<void>((resolve) => {
-    preloadHero(scene, race, charClass);
-    scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
-    scene.load.start();
-  });
-}
-
 // Per facing: the walk (stepA, idle, stepB, idle) and a slow breathing
 // loop for standing still (idle, breathe). Registered once per sheet.
-export function ensureHeroAnimations(scene: Phaser.Scene, race: Race, charClass: CharClass): void {
-  const sheet = heroSheetKey(race, charClass);
+export function ensureHeroAnimations(scene: Phaser.Scene, sheet: string): void {
   (Object.keys(ROWS) as Facing[]).forEach((facing) => {
     const row = ROWS[facing] * COLUMNS;
     if (!scene.anims.exists(`${sheet}-walk-${facing}`)) {

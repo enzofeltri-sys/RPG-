@@ -14,7 +14,8 @@ import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { DUNGEON_LOOT_TIER, ZONE_LEVEL } from '../game/worldMap';
 import { ChipRow, INK, KitBar, KitButton, PAL, addPanel, drawPanel, panelText, preloadUiKit, toast } from '../ui/kit';
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
-import { HERO_FEET_Y, HERO_FRAME_H, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
+import { heroLook } from '../art/heroLook';
 
 // Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
 // "élite"/"légendaire" the same way they already read rare/épique loot,
@@ -214,7 +215,6 @@ export class CombatScene extends Phaser.Scene {
       });
     }
 
-    await loadHero(this, this.character.race, this.character.class);
     this.add.image(0, 0, 'ui-battle-grass').setOrigin(0, 0);
 
     // Monster: panel top left, sprite on its platform top right.
@@ -246,7 +246,7 @@ export class CombatScene extends Phaser.Scene {
     // Hero seen from behind (its own sprite at the interface's 2x), bottom
     // left, and the hero panel beside it.
     this.add
-      .image(58, 264, heroSheetKey(this.character.race, this.character.class), idleFrame('up'))
+      .image(58, 264, heroTextures(this, this.character).sheet, idleFrame('up'))
       .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
       .setScale(2);
     addPanel(this, 100, 180, 110, 86);
@@ -642,6 +642,8 @@ export class CombatScene extends Phaser.Scene {
         monster: this.monster.name,
         scene: this.returnScene,
         mode: modeLabel(this.character),
+        // The outfit the hero fell in, for the epitaph's portrait.
+        look: heroLook(this.character),
       };
       await SaveManager.deleteSave();
       this.setLog(`${this.monster.name} vous terrasse. Votre aventure s'achève ici.`);

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { Race, CharClass } from '../game/character';
+import { Character } from '../game/character';
 import { syncSpriteOverlay } from './spriteOverlay';
-import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroSheetKey, idleFrame, loadHero } from './heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroTextures, idleFrame } from './heroSprite';
 
 export const SPEED = 70;
 const ARRIVE_THRESHOLD = 4;
@@ -29,24 +29,19 @@ export function createPlayer(scene: Phaser.Scene, x: number, y: number): PlayerS
   return player;
 }
 
-// Overlays a real sprite on top of the (still physics-driving, now hidden)
-// collision rectangle instead of replacing it — every scene's zones and
-// colliders are tuned against the rectangle's 12x16 body, and swapping the
-// GameObject type entirely would mean touching every call site that reads
-// player.width/setFillStyle/etc. Race/class aren't known until the save
-// loads deep into each scene's async create(), well after Phaser's own
-// preload() has already run, so the texture is loaded here on demand
-// rather than up front.
-export async function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSprite, race: Race, charClass: CharClass): Promise<void> {
-  await loadHero(scene, race, charClass);
-  if (!scene.scene.isActive() || !scene.textures.exists(heroSheetKey(race, charClass))) return;
-  ensureHeroAnimations(scene, race, charClass);
+// Overlays an animated sprite on top of the (still physics-driving, now
+// hidden) collision rectangle instead of replacing it — every scene's zones
+// and colliders are tuned against the rectangle's 12x16 body. The hero wears exactly what is equipped (see art/heroLook.ts); its sheet
+// is drawn by the game on the spot, so this is synchronous.
+export function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSprite, character: Character): void {
+  const { sheet } = heroTextures(scene, character);
+  ensureHeroAnimations(scene, sheet);
   const existing = player.getData('appearanceImage') as Phaser.GameObjects.GameObject | undefined;
   existing?.destroy();
   // Drawn at the world's pixel size (no scaling), feet on the bottom of the
   // 12x16 collision box every zone is tuned against.
   const sprite = scene.add
-    .sprite(player.x, player.y, heroSheetKey(race, charClass), idleFrame('down'))
+    .sprite(player.x, player.y, sheet, idleFrame('down'))
     .setOrigin(0.5, (HERO_FEET_Y - player.height / 2) / HERO_FRAME_H)
     .setDepth(player.y);
   // A soft shadow under the feet grounds the hero on any floor.
@@ -54,7 +49,7 @@ export async function setPlayerAppearance(scene: Phaser.Scene, player: PlayerSpr
   const shadow = scene.add.ellipse(player.x, player.y + player.height / 2, 14, 5, 0x221c29, 0.35).setDepth(player.y - 1);
   player.setData('shadow', shadow);
   player.setData('appearanceImage', sprite);
-  player.setData('heroSheet', heroSheetKey(race, charClass));
+  player.setData('heroSheet', sheet);
   player.setData('facing', 'down');
   player.setVisible(false);
 }

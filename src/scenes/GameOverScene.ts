@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { CLASSES, CharClass, RACES, Race } from '../game/character';
 import { MAP_LOCATIONS } from '../game/worldMap';
 import { INK, KitButton, PAL, addPanel, panelText, preloadUiKit } from '../ui/kit';
-import { HERO_FEET_Y, HERO_FRAME_H, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, idleFrame, lookTextures } from '../entities/heroSprite';
+import { Look } from '../art/heroDoll';
+import { baseLook } from '../art/heroLook';
 
 interface Epitaph {
   race: Race;
@@ -11,6 +13,7 @@ interface Epitaph {
   monster: string;
   scene: string;
   mode: string;
+  look?: Look;
 }
 
 // Mort définitive (Nuzlocke, or Difficile + mort définitive): shown once the
@@ -33,7 +36,6 @@ export class GameOverScene extends Phaser.Scene {
   // UI style A: a parchment epitaph on a dark backdrop, then back to the title.
   async create(): Promise<void> {
     const { width } = this.scale;
-    if (this.epitaph) await loadHero(this, this.epitaph.race, this.epitaph.charClass);
     this.cameras.main.setBackgroundColor(PAL.k);
     this.cameras.main.fadeIn(600);
     const e = this.epitaph;
@@ -42,7 +44,7 @@ export class GameOverScene extends Phaser.Scene {
     if (e) {
       // The fallen hero, in stone grey.
       const hero = this.add
-        .image(width / 2, 100, heroSheetKey(e.race, e.charClass), idleFrame('down'))
+        .image(width / 2, 100, lookTextures(this, e.look ?? baseLook(e.race, e.charClass)).sheet, idleFrame('down'))
         .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
         .setScale(2);
       const stone = hero.preFX?.addColorMatrix();

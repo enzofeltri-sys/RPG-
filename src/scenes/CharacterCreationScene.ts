@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { RACES, CLASSES, Race, CharClass, computeStats } from '../game/character';
+import { RACES, CLASSES, Race, CharClass, computeStats, createCharacter } from '../game/character';
 import {
   ActiveTalent,
   BRANCH_NAMES,
@@ -13,7 +13,7 @@ import {
 } from '../game/talents';
 import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
 import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
-import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroTextures, idleFrame } from '../entities/heroSprite';
 
 // Création de personnage in UI style A: race and class pickers, the
 // resulting stats, then everything the choice implies (class, starting
@@ -77,18 +77,15 @@ export class CharacterCreationScene extends Phaser.Scene {
           ? `Rage 0 à ${RAGE_MAX}`
           : `Endurance ${enduranceMax(stats.vitality)}`;
 
-    // Live preview: the chosen hero walking towards the player, at 2x.
-    const sheet = heroSheetKey(this.race, this.charClass);
-    if (this.textures.exists(sheet)) {
-      ensureHeroAnimations(this, this.race, this.charClass);
-      this.add
-        .sprite(SCREEN_LEFT + 28, y + 66, sheet, idleFrame('down'))
-        .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
-        .setScale(2)
-        .play(`${sheet}-walk-down`);
-    } else {
-      void loadHero(this, this.race, this.charClass).then(() => this.scene.isActive() && this.render());
-    }
+    // Live preview: the chosen hero, dressed as it will start (class
+    // clothes and starting weapon), walking towards the player at 2x.
+    const { sheet } = heroTextures(this, createCharacter(this.race, this.charClass));
+    ensureHeroAnimations(this, sheet);
+    this.add
+      .sprite(SCREEN_LEFT + 28, y + 66, sheet, idleFrame('down'))
+      .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
+      .setScale(2)
+      .play(`${sheet}-walk-down`);
     const sx = SCREEN_LEFT + 62;
     panelText(this, sx, y + 6, `Force ${stats.strength} · Intelligence ${stats.intelligence}`, 8);
     panelText(this, sx, y + 20, `Agilité ${stats.agility} · Vitalité ${stats.vitality}`, 8);

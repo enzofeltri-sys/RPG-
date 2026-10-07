@@ -163,7 +163,7 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     if (save?.character) {
       this.character = save.character;
-      await setPlayerAppearance(this, this.player, this.character.race, this.character.class);
+      setPlayerAppearance(this, this.player, this.character);
       if (!this.scene.isActive()) return;
       if (isChestOpened(this.character, CHEST_ID)) {
         this.chest.setFillStyle(0x3a3428);

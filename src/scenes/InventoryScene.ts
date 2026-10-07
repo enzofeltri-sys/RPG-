@@ -7,7 +7,7 @@ import { SaveManager } from '../save/SaveManager';
 import { preloadItemIcons, placeItemIcon } from '../entities/itemIcon';
 import { INK, KitButton, addPanel, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
 import { RARITY_INK, RARITY_STRIPE, comparisonLine, itemSetLine, itemStatsLine, itemTitle, itemTypeLine } from '../ui/itemText';
-import { HERO_FEET_Y, HERO_FRAME_H, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
 
 // ring1/ring2 both accept any 'ring'-category item; the two hands follow
 // the hands rule (see weapons.ts) — every other slot's category matches its
@@ -91,7 +91,6 @@ export class InventoryScene extends Phaser.Scene {
     this.character = save!.character!;
     const worn = Object.values(this.character.equipment).filter((i): i is Item => Boolean(i));
     await preloadItemIcons(this, [...worn, ...this.character.inventory].map((i) => i.baseId));
-    await loadHero(this, this.character.race, this.character.class);
     if (!this.scene.isActive()) return;
     this.render();
   }
@@ -117,7 +116,7 @@ export class InventoryScene extends Phaser.Scene {
     RIGHT_SLOTS.forEach((slot, i) => this.renderSlot(slot, LEFT + INNER_W - SLOT_W, SLOT_TOP + i * SLOT_STEP));
     // The hero from the front, at 3x so the outfit reads between the slots.
     this.add
-      .image(this.scale.width / 2, 132, heroSheetKey(this.character.race, this.character.class), idleFrame('down'))
+      .image(this.scale.width / 2, 132, heroTextures(this, this.character).sheet, idleFrame('down'))
       .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
       .setScale(3);
     this.renderStats();

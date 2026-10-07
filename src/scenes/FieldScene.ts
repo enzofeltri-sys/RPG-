@@ -220,7 +220,7 @@ export class FieldScene extends Phaser.Scene {
 
     if (save?.character) {
       this.character = save.character;
-      await setPlayerAppearance(this, this.player, this.character.race, this.character.class);
+      setPlayerAppearance(this, this.player, this.character);
       if (!this.scene.isActive()) return;
       new CharacterSheetPanel(
         this,

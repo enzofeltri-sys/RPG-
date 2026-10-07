@@ -185,7 +185,7 @@ export class RoadScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
 
     if (save?.character) {
-      await setPlayerAppearance(this, this.player, save.character.race, save.character.class);
+      setPlayerAppearance(this, this.player, save.character);
       if (!this.scene.isActive()) return;
       new CharacterSheetPanel(
         this,

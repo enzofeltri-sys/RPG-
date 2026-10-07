@@ -3,7 +3,7 @@ import { CLASSES, Character, RACES } from '../game/character';
 import { modeLabel } from '../game/difficulty';
 import { SaveManager } from '../save/SaveManager';
 import { INK, KitButton, addPanel, panelText, preloadUiKit } from '../ui/kit';
-import { HERO_FEET_Y, HERO_FRAME_H, heroSheetKey, idleFrame, loadHero } from '../entities/heroSprite';
+import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
 
 export class TitleScene extends Phaser.Scene {
   private confirmNewGame = false;
@@ -21,7 +21,6 @@ export class TitleScene extends Phaser.Scene {
     document.getElementById('boot-status')?.remove();
     this.confirmNewGame = false;
     const save = await SaveManager.load();
-    if (save?.character) await loadHero(this, save.character.race, save.character.class);
     this.render(save?.character);
   }
 
@@ -42,7 +41,7 @@ export class TitleScene extends Phaser.Scene {
     if (character) {
       // The saved hero waits on the meadow, under the banner.
       this.add
-        .image(width / 2, 206, heroSheetKey(character.race, character.class), idleFrame('down'))
+        .image(width / 2, 206, heroTextures(this, character).sheet, idleFrame('down'))
         .setOrigin(0.5, HERO_FEET_Y / HERO_FRAME_H)
         .setScale(2);
       new KitButton(this, x, 214, buttonW, 30, 'Continuer', {

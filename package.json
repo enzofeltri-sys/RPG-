@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "validate-content": "node scripts/validate-content.mjs",
     "simulate": "esbuild scripts/balance/simulate.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/simulate.mjs && node node_modules/.cache/simulate.mjs",
-    "heroes": "esbuild scripts/art/heroes.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/heroes.mjs && node node_modules/.cache/heroes.mjs"
+    "heroes": "esbuild scripts/art/heroes.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/heroes.mjs && node node_modules/.cache/heroes.mjs",
+    "zone": "esbuild scripts/art/zone.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/zone.mjs && node node_modules/.cache/zone.mjs",
+    "catalog": "esbuild scripts/art/catalog.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/catalog.mjs && node node_modules/.cache/catalog.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"

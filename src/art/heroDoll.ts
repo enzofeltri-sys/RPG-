@@ -105,6 +105,12 @@ export interface Look {
   mask?: Gear;
   quiver?: boolean;
   amulet?: boolean; // a glint at the neck
+  // People of the world (npcLooks.ts) vary these; heroes keep their race's.
+  skin?: Tones;
+  hair?: Tones;
+  hairStyle?: Race | 'bald'; // another race's hairstyle, or none
+  beard?: boolean;
+  eyes?: RGB;
 }
 
 // ------------------------------------------------------------------ canvas
@@ -257,12 +263,18 @@ class Figure {
   private readonly skin: Tones;
   private readonly hair: Tones;
   private readonly race: Race;
+  private readonly style: Race | 'bald';
+  private readonly bearded: boolean;
+  private readonly eye: RGB;
 
   constructor(private readonly look: Look) {
     this.race = look.race;
     this.b = BUILDS[look.race];
-    this.skin = SKIN[look.race];
-    this.hair = HAIR[look.race];
+    this.skin = look.skin ?? SKIN[look.race];
+    this.hair = look.hair ?? HAIR[look.race];
+    this.style = look.hairStyle ?? look.race;
+    this.bearded = look.race === 'dwarf' || !!look.beard;
+    this.eye = look.eyes ?? EYE;
   }
 
   private rows(bob = 0): Rows {
@@ -431,6 +443,14 @@ class Figure {
       }
       det.span(belt, tl + 1, tr - 1, c.trim ?? LEATHER, 'flat');
       if (!back) det.put(cx, belt, GOLD[1]);
+    } else if (shape === 'apron') {
+      // Work tunic with an apron (the trim color) over the front.
+      det.span(belt, tl + 1, tr - 1, LEATHER, 'flat');
+      if (!back && c.trim) {
+        for (let y = top + 2; y <= bottom; y++) det.span(y, cx - 3, cx + 2, c.trim, y === top + 2 ? 'light' : 'lr');
+        det.put(cx - 3, top + 1, c.trim[2]); // straps
+        det.put(cx + 2, top + 1, c.trim[2]);
+      }
     } else if (shape === 'robe') {
       if (!back && c.trim) {
         for (let y = top + 1; y <= bottom; y++) det.put(cx - 1, y, c.trim[1]);
@@ -518,8 +538,8 @@ class Figure {
     if (!back) {
       const face = d.part();
       for (const ex of [cx - 2, cx + 1]) {
-        face.put(ex, eyeY, EYE);
-        face.put(ex, eyeY - 1, EYE);
+        face.put(ex, eyeY, this.eye);
+        face.put(ex, eyeY - 1, this.eye);
       }
       if (this.race === 'orc') for (const ex of [cx - 3, cx - 2, cx + 1, cx + 2]) face.put(ex, eyeY - 2, this.skin[2]); // heavy brow
       if (this.race === 'dwarf') for (const ex of [cx - 3, cx - 2, cx + 1, cx + 2]) face.put(ex, eyeY - 2, this.hair[1]); // bushy brows
@@ -527,11 +547,11 @@ class Figure {
         face.put(cx - 3, eyeY + 1, BLUSH);
         face.put(cx + 2, eyeY + 1, BLUSH);
       }
-      if (this.race !== 'dwarf' && !L.mask) {
+      if (!this.bearded && !L.mask) {
         face.put(cx - 1, eyeY + 2, this.skin[2]); // mouth
         face.put(cx, eyeY + 2, this.skin[2]);
       }
-      if (this.race === 'dwarf') this.beardFront(d, x0, x1, eyeY);
+      if (this.bearded) this.beardFront(d, x0, x1, eyeY);
       if (L.mask) {
         const m = d.part(L.mask.mat[2]);
         for (let y = eyeY + 2; y <= bot; y++) {
@@ -571,9 +591,9 @@ class Figure {
   private hairFront(d: Doll, x0: number, x1: number, top: number, bot: number, back: boolean, hidden: boolean): void {
     const hp = d.part(this.hair[2]);
     const h = this.hair;
-    const race = this.race;
+    const race = this.style;
     const cx = 12;
-    if (hidden) return;
+    if (hidden || race === 'bald') return;
     if (race === 'orc') {
       // Shaved sides, black topknot.
       for (let y = top - 3; y <= top; y++) hp.span(y, cx - 2, cx + 1, h);
@@ -712,6 +732,27 @@ class Figure {
       // Cowl over the shoulders.
       p.span(bot + 1, x0 - 1, x1 + 1, m);
       p.put(back ? cx : cx - 1, bot + 2, m[2]);
+    } else if (g.shape === 'straw') {
+      // Wide-brimmed straw hat.
+      p.span(top - 2, x0 + 2, x1 - 2, m, 'light');
+      p.span(top - 1, x0 + 1, x1 - 1, m);
+      p.span(top, x0 + 1, x1 - 1, g.trim ?? m, 'flat'); // band
+      p.span(top + 1, x0 - 2, x1 + 2, m);
+      p.span(top + 2, x0 - 2, x1 + 2, m, 'dark');
+    } else if (g.shape === 'kerchief') {
+      // Headscarf knotted at the back.
+      p.span(top - 1, x0 + 2, x1 - 2, m, 'light');
+      p.span(top, x0 + 1, x1 - 1, m);
+      p.span(top + 1, x0, x1, m);
+      p.span(top + 2, x0, x1, m, 'dark');
+      if (back) {
+        for (let y = top + 3; y < top + 5; y++) p.span(y, x0 + 1, x1 - 1, m);
+        p.put(cx - 1, top + 5, m[2]);
+        p.put(cx, top + 6, m[1]);
+      } else {
+        p.put(x0, top + 3, m[1]);
+        p.put(x1, top + 3, m[2]);
+      }
     } else if (g.shape === 'circlet') {
       const band = top + 2;
       p.span(band, x0 + 1, x1 - 1, m, 'flat');
@@ -821,6 +862,36 @@ class Figure {
       book.put(x0, hy - 3, (g.trim ?? GOLD)[1]);
       book.put(x0 + 2, hy + 1, (g.trim ?? GOLD)[1]);
       for (let y = hy - 2; y < hy + 1; y++) book.put(x0 + (outward > 0 ? 3 : -1), y, WHITE[1]); // pages
+    } else if (shape === 'spear' || shape === 'pitchfork') {
+      // A long pole held upright, the head above the hero.
+      const ty = r.headTop - 5;
+      for (let y = ty + 3; y <= FEET_Y; y++) p.put(bx, y, WOOD[1]);
+      const head = d.part();
+      if (shape === 'spear') {
+        head.put(bx, ty, m[0]);
+        head.span(ty + 1, bx, bx, m, 'light');
+        head.span(ty + 2, bx - 1, bx + 1, m);
+      } else {
+        head.span(ty + 2, bx - 2, bx + 2, m, 'flat');
+        for (const fx of [bx - 2, bx, bx + 2]) head.put(fx, ty + 1, m[0]);
+        head.put(bx - 2, ty, m[0]);
+        head.put(bx + 2, ty, m[0]);
+      }
+    } else if (shape === 'hammer') {
+      for (let y = hy - 4; y < hy + 2; y++) p.put(bx, y, WOOD[1]);
+      const head = d.part(m[2]);
+      head.span(hy - 6, bx - 1, bx + 2, m);
+      head.span(hy - 5, bx - 1, bx + 2, m);
+    } else if (shape === 'cane') {
+      // Leaning on a walking stick.
+      const sx = bx + outward;
+      for (let y = hy; y <= FEET_Y; y++) p.put(sx, y, m[1]);
+      p.put(sx, hy - 1, m[0]);
+      p.put(sx - outward, hy - 1, m[0]);
+    } else if (shape === 'rod') {
+      // Fishing rod over the shoulder, line hanging.
+      p.line(bx, hy + 1, bx + outward * 6, r.headTop - 4, m[1]);
+      for (let y = r.headTop - 3; y < r.headTop + 4; y++) p.put(bx + outward * 7, y, STRING);
     } else if (shape === 'shield' || shape === 'tower') {
       const sh = d.part(m[2]);
       const tall = shape === 'shield' ? 7 : 10;
@@ -954,6 +1025,8 @@ class Figure {
       for (let y = r.torsoTop + 1; y < belt; y++) det.put(x0, y, c.mat[0]);
     } else if (c.shape === 'robe' && c.trim) {
       for (let y = r.torsoTop + 1; y < r.legsTop; y++) det.put(x0, y, c.trim[1]);
+    } else if (c.shape === 'apron' && c.trim) {
+      for (let y = r.torsoTop + 2; y < r.legsTop; y++) det.span(y, x0, x0 + 1, c.trim, 'flat');
     }
 
     this.headSide(d, r);
@@ -988,8 +1061,8 @@ class Figure {
     const hood = L.head?.shape === 'hood';
     const hp = d.part(this.hair[2]);
     const h = this.hair;
-    if (!hood) {
-      if (this.race === 'orc') {
+    if (!hood && this.style !== 'bald') {
+      if (this.style === 'orc') {
         for (let y = top - 3; y <= top; y++) hp.span(y, cx - 1, cx + 2, h);
         for (let y = top + 1; y < top + 5; y++) hp.put(hx1, y, h[1]);
       } else {
@@ -997,22 +1070,22 @@ class Figure {
         hp.span(top + 1, hx0 + 1, hx1 - 1, h);
         hp.span(top + 2, hx0 + 1, hx1, h);
         for (let y = top + 3; y < top + hh - 1; y++) hp.span(y, hx1 - 3, hx1, h);
-        if (this.race === 'human') hp.put(hx0 + 1, top + 3, h[1]);
-        if (this.race === 'elf') for (let y = top + hh - 1; y < top + hh + 4; y++) hp.span(y, hx1 - 3, hx1, h);
-        if (this.race === 'dwarf') for (let y = top + 2; y < top + 6; y++) hp.put(hx1 + 1, y, h[2]);
-        if (this.race === 'halfling') {
+        if (this.style === 'human') hp.put(hx0 + 1, top + 3, h[1]);
+        if (this.style === 'elf') for (let y = top + hh - 1; y < top + hh + 4; y++) hp.span(y, hx1 - 3, hx1, h);
+        if (this.style === 'dwarf') for (let y = top + 2; y < top + 6; y++) hp.put(hx1 + 1, y, h[2]);
+        if (this.style === 'halfling') {
           for (let x = hx0 + 2; x < hx1; x += 2) hp.put(x, top - 1, h[1]);
           for (let y = top + 3; y < top + 7; y++) hp.put(hx1 + mod(y, 2), y, h[2]);
         }
       }
     }
     const face = d.part();
-    face.put(hx0 + 1, eyeY, EYE);
-    face.put(hx0 + 1, eyeY - 1, EYE);
-    if (this.race !== 'dwarf' && !L.mask) face.put(hx0, eyeY + 2, this.skin[2]); // mouth
+    face.put(hx0 + 1, eyeY, this.eye);
+    face.put(hx0 + 1, eyeY - 1, this.eye);
+    if (!this.bearded && !L.mask) face.put(hx0, eyeY + 2, this.skin[2]); // mouth
     if (this.race === 'orc') face.put(hx0 + 1, eyeY - 2, this.skin[2]);
     if (this.race === 'halfling') face.put(hx0 + 2, eyeY + 1, BLUSH);
-    if (this.race === 'dwarf') {
+    if (this.bearded) {
       const beard = d.part(h[2]);
       for (let i = 0; i < 8; i++) {
         const w = i < 4 ? 5 : i < 6 ? 4 : 2;
@@ -1063,6 +1136,18 @@ class Figure {
         p.span(top + 2, hx0, hx1 + 1, m);
         for (let y = top + 3; y <= top + hh; y++) p.span(y, hx1 - 3, hx1 + 1, m);
         p.span(top + hh + 1, hx0 + 1, hx1 + 1, m);
+      } else if (g.shape === 'straw') {
+        p.span(top - 2, hx0 + 2, hx1 - 1, m, 'light');
+        p.span(top - 1, hx0 + 1, hx1, m);
+        p.span(top, hx0 + 1, hx1, g.trim ?? m, 'flat');
+        p.span(top + 1, hx0 - 3, hx1 + 2, m);
+        p.span(top + 2, hx0 - 3, hx1 + 2, m, 'dark');
+      } else if (g.shape === 'kerchief') {
+        p.span(top - 1, hx0 + 2, hx1 - 1, m, 'light');
+        p.span(top, hx0 + 1, hx1, m);
+        p.span(top + 1, hx0, hx1, m);
+        p.span(top + 2, hx0, hx1 + 1, m, 'dark');
+        for (let y = top + 3; y < top + 6; y++) p.span(y, hx1 - 2, hx1 + 1, m);
       } else if (g.shape === 'circlet') {
         p.span(top + 2, hx0 + 1, hx1, m, 'flat');
         if (g.trim) p.put(hx0 + 1, top + 2, g.trim[0]);
@@ -1120,6 +1205,29 @@ class Figure {
       head.span(hy - 6, ax - 2, ax, m);
       head.span(hy - 5, ax - 2, ax, m);
       head.put(ax - 1, hy - 7, (g.trim ?? m)[0]);
+    } else if (shape === 'spear' || shape === 'pitchfork') {
+      const tx = ax - 2;
+      for (let y = r.headTop - 2; y <= FEET_Y; y++) p.put(tx, y, WOOD[1]);
+      const ty = r.headTop - 5;
+      if (shape === 'spear') {
+        p.put(tx, ty, m[0]);
+        p.put(tx, ty + 1, m[0]);
+        p.span(ty + 2, tx - 1, tx + 1, m);
+      } else {
+        p.span(ty + 2, tx - 2, tx + 2, m, 'flat');
+        for (const fx of [tx - 2, tx, tx + 2]) p.put(fx, ty + 1, m[0]);
+      }
+    } else if (shape === 'hammer') {
+      for (let i = 1; i < 5; i++) p.put(ax - i, hy - Math.floor(i / 2), WOOD[1]);
+      const head = d.part(m[2]);
+      head.span(hy - 4, ax - 6, ax - 4, m);
+      head.span(hy - 3, ax - 6, ax - 4, m);
+    } else if (shape === 'cane') {
+      for (let y = hy; y <= FEET_Y; y++) p.put(ax - 2, y, m[1]);
+      p.put(ax - 1, hy, m[0]);
+    } else if (shape === 'rod') {
+      p.line(ax - 1, hy, ax - 8, r.headTop - 3, m[1]);
+      for (let y = r.headTop - 2; y < r.headTop + 6; y++) p.put(ax - 9, y, STRING);
     } else if (shape === 'staff') {
       const hx0 = 12 - div(this.b.headW - 1, 2) - 1;
       const tx = hx0 - 2;

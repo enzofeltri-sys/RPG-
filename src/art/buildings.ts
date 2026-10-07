@@ -22,6 +22,12 @@ export interface BuildingArt {
   // Where the footprint's bottom center sits inside the picture.
   anchorX: number;
   anchorY: number;
+  // Where the walls meet the ground (picture x), and the door if any, so
+  // the scene can settle the building: worn earth at the door, grass
+  // tufts along the foot of the walls.
+  wallX0: number;
+  wallX1: number;
+  doorX?: number;
 }
 
 // ---------------------------------------------------------------- palette
@@ -523,7 +529,7 @@ function cottage(w: number, h: number): BuildingArt {
   woodpile(pm, p.wx1 - 12, p.base + 1);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 function villageHouse(w: number, h: number): BuildingArt {
@@ -537,7 +543,7 @@ function villageHouse(w: number, h: number): BuildingArt {
   gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles', true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 function stoneCottage(w: number, h: number): BuildingArt {
@@ -552,7 +558,7 @@ function stoneCottage(w: number, h: number): BuildingArt {
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'thatch');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 function inn(w: number, h: number): BuildingArt {
@@ -585,7 +591,7 @@ function inn(w: number, h: number): BuildingArt {
   gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles', true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 // The dim back wall seen inside an open shed, optionally lit by a warm
@@ -690,7 +696,7 @@ function forge(w: number, h: number): BuildingArt {
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 function banner(pm: Pixmap, x: number, top: number, len: number): void {
@@ -737,7 +743,7 @@ function barracks(w: number, h: number): BuildingArt {
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'slate');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
 function marketHall(w: number, h: number): BuildingArt {
@@ -797,7 +803,7 @@ function marketHall(w: number, h: number): BuildingArt {
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'tiles');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1 };
 }
 
 function tower(w: number, h: number): BuildingArt {
@@ -855,7 +861,7 @@ function tower(w: number, h: number): BuildingArt {
   door(pm, Math.round(cx) + 1, base, 16, 10, true, true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(cx), anchorY: base };
+  return { pm, anchorX: Math.round(cx), anchorY: base, wallX0: x0, wallX1: x1, doorX: Math.round(cx) + 1 };
 }
 
 export function renderBuilding(kind: BuildingKind, w: number, h: number): BuildingArt {
@@ -912,7 +918,7 @@ export function renderWallBlock(w: number, h: number): BuildingArt {
     }
   }
   pm.outline(OUTLINE);
-  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1 };
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
 }
 
 // An iron portcullis between two stone posts, on a footprint of width w.
@@ -936,5 +942,5 @@ export function renderGate(w: number): BuildingArt {
     pm.hline(post, w - post - 1, y + 1, IRON[4]);
   }
   pm.outline(OUTLINE);
-  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1 };
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
 }

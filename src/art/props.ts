@@ -1161,16 +1161,17 @@ export type PropKind =
 
 export function renderProp(kind: PropKind, seed = 1): PropArt {
   switch (kind) {
+    // Sizes vary a little from one copy to the next.
     case 'tree':
-      return tree(30, seed);
+      return tree(27 + (seed % 3) * 3, seed);
     case 'big_tree':
-      return tree(46, seed);
+      return tree(43 + (seed % 3) * 3, seed);
     case 'apple_tree':
-      return tree(32, seed, true);
+      return tree(30 + (seed % 2) * 3, seed, true);
     case 'pine':
-      return pine(40, seed);
+      return pine(36 + (seed % 3) * 4, seed);
     case 'bush':
-      return bush(16, seed);
+      return bush(14 + (seed % 3) * 2, seed);
     case 'berry_bush':
       return bush(18, seed, 'berries');
     case 'flower_bush':

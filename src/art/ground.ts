@@ -58,7 +58,7 @@ function shapeDist(s: GroundShape, x: number, y: number): number {
 
 // ------------------------------------------------------------ materials
 
-const GRASS = ramp([96, 156, 70]);
+export const GRASS = ramp([96, 156, 70]);
 const DIRT = ramp([166, 126, 84]);
 const COBBLE = ramp([150, 146, 140], 0.6);
 const SLAB = ramp([158, 154, 146], 0.6);
@@ -195,6 +195,10 @@ function crop(x: number, y: number, seed: number): RGB {
   }
   if (ly === 6) return DIRT[3];
   return dirt(x, y, seed, DIRT);
+}
+
+export function groundPixel(m: GroundMaterial, x: number, y: number, seed: number): RGB {
+  return material(m, x, y, seed);
 }
 
 function material(m: GroundMaterial, x: number, y: number, seed: number): RGB {

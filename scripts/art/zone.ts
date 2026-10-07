@@ -14,6 +14,7 @@ import { GroundSpec, renderGround } from '../../src/art/ground';
 import { BuildingKind, renderBuilding, renderGate, renderWallBlock } from '../../src/art/buildings';
 import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderFlowerBed, renderPatch, renderProp, renderStoneWall } from '../../src/art/props';
 import { Pixmap } from '../../src/art/pixmap';
+import { PROP_SETTLE, TuftSpot, fringe, occlude, renderTuft, scatter, softenBase, strew, tuftsAround, vary, wear } from '../../src/art/settle';
 import { encodePng } from './png';
 
 type Item =
@@ -34,6 +35,8 @@ interface Zone {
   hero: { x: number; y: number };
   // Dark places: ambient light (0..1); torches and the hero light around them.
   ambient?: number;
+  // Wild flowers and tall grass spread over the open grass.
+  meadow?: { n: number; seed: number };
 }
 
 // Darkness with warm light pools (torches) and a softer one around the hero.
@@ -81,6 +84,7 @@ const VALOMBRE: Zone = {
       { kind: 'path', material: 'dirt', width: 10, points: [[110, 346], [238, 346]] },
       { kind: 'path', material: 'dirt', width: 10, points: [[64, 478], [150, 470], [238, 460]] },
       { kind: 'path', material: 'dirt', width: 10, points: [[240, 580], [330, 586], [420, 590], [430, 640]] },
+      { kind: 'rect', material: 'crop', x: 68, y: 250, w: 58, h: 34 },
       { kind: 'ellipse', material: 'dirt', x: 206, y: 226, w: 168, h: 98 },
       { kind: 'ellipse', material: 'cobble', x: 236, y: 250, w: 104, h: 54 },
       { kind: 'ellipse', material: 'flagstone', x: 214, y: 530, w: 52, h: 38 },
@@ -91,60 +95,72 @@ const VALOMBRE: Zone = {
     { kind: 'building', type: 'stone_house', x: 300, y: 210, w: 60, h: 60 },
     { kind: 'building', type: 'blacksmith_shop', x: 190, y: 360, w: 90, h: 50 },
     { kind: 'building', type: 'inn_building', x: 340, y: 460, w: 60, h: 70 },
-    { kind: 'prop', type: 'big_tree', x: 20, y: 76, seed: 1 },
-    { kind: 'prop', type: 'big_tree', x: 448, y: 104, seed: 2 },
-    { kind: 'prop', type: 'tree', x: 430, y: 332, seed: 3 },
-    { kind: 'prop', type: 'pine', x: 30, y: 200, seed: 4 },
-    { kind: 'prop', type: 'pine', x: 456, y: 410, seed: 5 },
-    { kind: 'prop', type: 'tree', x: 28, y: 600, seed: 6 },
-    { kind: 'prop', type: 'bush', x: 200, y: 136, seed: 1 },
-    { kind: 'prop', type: 'berry_bush', x: 60, y: 404, seed: 2 },
-    { kind: 'prop', type: 'bush', x: 380, y: 546, seed: 3 },
-    { kind: 'prop', type: 'market_stall', x: 260, y: 306 },
-    { kind: 'prop', type: 'market_stall', x: 340, y: 256 },
-    { kind: 'prop', type: 'well', x: 240, y: 560 },
-    { kind: 'prop', type: 'barrel', x: 378, y: 486 },
-    { kind: 'prop', type: 'barrel', x: 388, y: 492 },
-    { kind: 'prop', type: 'crate', x: 244, y: 382 },
-    { kind: 'prop', type: 'lamppost', x: 262, y: 150 },
-    { kind: 'prop', type: 'lamppost', x: 218, y: 440 },
-    { kind: 'prop', type: 'stump', x: 410, y: 600 },
-    { kind: 'prop', type: 'rock_small', x: 150, y: 560, seed: 4 },
-    { kind: 'fence', x: 120, y: 214, len: 40 },
-    // Small rural decor (no collision): gardens, hay, benches, flowers.
-    { kind: 'patch', material: 'crop', x: 96, y: 262, w: 60, h: 36 },
-    { kind: 'fence', x: 96, y: 238, len: 64 },
-    { kind: 'swall', x: 380, y: 178, len: 48 },
-    { kind: 'bed', x: 104, y: 196, w: 22, h: 10 },
-    { kind: 'prop', type: 'apple_tree', x: 150, y: 296, seed: 8 },
-    { kind: 'prop', type: 'haystack', x: 60, y: 312, seed: 2 },
-    { kind: 'prop', type: 'scarecrow', x: 126, y: 276, seed: 1 },
-    { kind: 'prop', type: 'woodpile', x: 160, y: 196 },
-    { kind: 'prop', type: 'bench', x: 278, y: 340 },
-    { kind: 'prop', type: 'trough', x: 140, y: 392 },
-    { kind: 'prop', type: 'sacks', x: 322, y: 290 },
-    { kind: 'prop', type: 'signpost', x: 264, y: 30 },
-    { kind: 'prop', type: 'wagon_cart', x: 300, y: 400, seed: 2 },
-    { kind: 'prop', type: 'flower_bush', x: 372, y: 236, seed: 4 },
-    { kind: 'prop', type: 'boulder_large', x: 450, y: 520, seed: 3 },
-    { kind: 'prop', type: 'log', x: 80, y: 560, seed: 2 },
-    { kind: 'prop', type: 'flowers', x: 180, y: 104, seed: 1 },
-    { kind: 'prop', type: 'flowers', x: 320, y: 120, seed: 2 },
-    { kind: 'prop', type: 'flowers', x: 110, y: 430, seed: 3 },
-    { kind: 'prop', type: 'flowers', x: 400, y: 380, seed: 4 },
-    { kind: 'prop', type: 'flowers', x: 300, y: 620, seed: 5 },
-    { kind: 'prop', type: 'tall_grass', x: 70, y: 140, seed: 1 },
-    { kind: 'prop', type: 'tall_grass', x: 420, y: 250, seed: 2 },
-    { kind: 'prop', type: 'tall_grass', x: 360, y: 610, seed: 3 },
-    { kind: 'prop', type: 'tall_grass', x: 130, y: 620, seed: 4 },
-    { kind: 'prop', type: 'tall_grass', x: 200, y: 600, seed: 5 },
-    { kind: 'prop', type: 'mushroom', x: 40, y: 110 },
+    // North-west grove: an old tree with a bush and a mushroom at its foot.
+    { kind: 'prop', type: 'big_tree', x: 26, y: 84, seed: 1 },
+    { kind: 'prop', type: 'tree', x: 62, y: 60, seed: 5 },
+    { kind: 'prop', type: 'bush', x: 40, y: 92, seed: 1 },
+    { kind: 'prop', type: 'mushroom', x: 12, y: 96 },
+    { kind: 'prop', type: 'stump', x: 84, y: 98, seed: 2 },
+    // North-east grove.
+    { kind: 'prop', type: 'big_tree', x: 452, y: 98, seed: 2 },
+    { kind: 'prop', type: 'tree', x: 420, y: 70, seed: 7 },
+    { kind: 'prop', type: 'berry_bush', x: 434, y: 110, seed: 2 },
+    { kind: 'prop', type: 'rock_small', x: 470, y: 120, seed: 4 },
+    // West pines.
+    { kind: 'prop', type: 'pine', x: 18, y: 214, seed: 6 },
+    { kind: 'prop', type: 'pine', x: 38, y: 196, seed: 4 },
+    { kind: 'prop', type: 'bush', x: 48, y: 222, seed: 9 },
+    // East: a tree by the field wall, pines at the edge with a boulder.
+    { kind: 'prop', type: 'tree', x: 432, y: 330, seed: 3 },
+    { kind: 'prop', type: 'flower_bush', x: 446, y: 338, seed: 4 },
+    { kind: 'prop', type: 'pine', x: 462, y: 404, seed: 5 },
+    { kind: 'prop', type: 'pine', x: 444, y: 420, seed: 8 },
+    { kind: 'prop', type: 'boulder_large', x: 448, y: 520, seed: 3 },
+    { kind: 'prop', type: 'rock_small', x: 466, y: 530, seed: 6 },
+    // South-west corner.
+    { kind: 'prop', type: 'tree', x: 26, y: 604, seed: 6 },
+    { kind: 'prop', type: 'bush', x: 46, y: 614, seed: 3 },
+    { kind: 'prop', type: 'log', x: 84, y: 566, seed: 2 },
+    { kind: 'prop', type: 'stump', x: 410, y: 602, seed: 4 },
+    // The cottage: a vegetable garden with its scarecrow, hay, firewood
+    // stacked against the wall, a flower bed by the door.
+    { kind: 'fence', x: 97, y: 252, len: 62 },
+    { kind: 'prop', type: 'scarecrow', x: 124, y: 280, seed: 1 },
+    { kind: 'prop', type: 'haystack', x: 54, y: 300, seed: 2 },
+    { kind: 'prop', type: 'apple_tree', x: 160, y: 300, seed: 8 },
+    { kind: 'prop', type: 'woodpile', x: 160, y: 186 },
+    { kind: 'bed', x: 104, y: 190, w: 20, h: 8 },
+    { kind: 'prop', type: 'lamppost', x: 214, y: 186 },
+    // The stone house: a barrel and a crate by the wall, flowers at the corner.
+    { kind: 'prop', type: 'barrel', x: 278, y: 242 },
+    { kind: 'prop', type: 'crate', x: 268, y: 246 },
+    { kind: 'prop', type: 'flower_bush', x: 334, y: 244, seed: 6 },
+    // The square.
+    { kind: 'prop', type: 'market_stall', x: 260, y: 306, seed: 1 },
+    { kind: 'prop', type: 'market_stall', x: 346, y: 266, seed: 3 },
+    { kind: 'prop', type: 'sacks', x: 364, y: 272 },
+    { kind: 'prop', type: 'bench', x: 214, y: 286 },
+    // The smithy: a water trough and spare wood.
+    { kind: 'prop', type: 'trough', x: 136, y: 392 },
+    { kind: 'prop', type: 'barrel', x: 228, y: 390 },
+    { kind: 'prop', type: 'wagon_cart', x: 300, y: 404, seed: 2 },
+    // The inn: barrels and a crate by the wall, a bench at the door.
+    { kind: 'prop', type: 'barrel', x: 376, y: 496 },
+    { kind: 'prop', type: 'barrel', x: 385, y: 500 },
+    { kind: 'prop', type: 'crate', x: 394, y: 494 },
+    { kind: 'prop', type: 'bench', x: 318, y: 506 },
+    { kind: 'prop', type: 'lamppost', x: 222, y: 448 },
+    // The well, the field wall, the signpost at the north road.
+    { kind: 'prop', type: 'well', x: 240, y: 560, seed: 1 },
+    { kind: 'swall', x: 392, y: 182, len: 56 },
+    { kind: 'prop', type: 'signpost', x: 262, y: 34 },
     npc('merchant_generic', 300, 270),
-    npc('villager_wanderer', 50, 280, 'right'),
+    npc('villager_wanderer', 70, 270, 'right'),
     npc('villager_wanderer', 400, 150, 'left'),
     npc('brasque_merchant', 60, 470),
     npc('guard_generic', 100, 340),
   ],
+  meadow: { n: 34, seed: 3 },
   hero: { x: 240, y: 420 },
 };
 
@@ -197,39 +213,87 @@ const CATACOMBS: Zone = {
   ambient: 0.38,
 };
 
+const isGrass = (map: Pixmap, x: number, y: number): boolean => {
+  const c = map.get(x, y);
+  return !!c && c[1] > c[0] + 20 && c[1] > c[2] + 30;
+};
+
 function drawZone(zone: Zone, heroLookValue: Look): Pixmap {
   const map = renderGround(zone.ground);
   const draws: { y: number; draw: () => void }[] = [];
-  zone.items.forEach((it) => {
+  const tufts: TuftSpot[] = [];
+  const blit = (pm: Pixmap, x: number, y: number) => map.blit(pm, Math.round(x), Math.round(y));
+  const items = [...zone.items];
+  // Meadow: flowers and tall grass where there is open grass, away from
+  // everything else, spread naturally rather than on a grid.
+  if (zone.meadow) {
+    // Keep clear of buildings (and the space in front of them) and props.
+    const blocked = (px: number, py: number) =>
+      items.some((it) => {
+        if (it.kind === 'building') return px > it.x - it.w / 2 - 10 && px < it.x + it.w / 2 + 10 && py > it.y - it.h / 2 - 10 && py < it.y + it.h / 2 + 22;
+        if (it.kind === 'fence' || it.kind === 'swall') return px > it.x - it.len / 2 - 6 && px < it.x + it.len / 2 + 6 && Math.abs(py - it.y) < 12;
+        if (it.kind === 'patch' || it.kind === 'bed') return Math.abs(px - it.x) < it.w / 2 + 8 && Math.abs(py - it.y) < it.h / 2 + 8;
+        return 'x' in it && Math.hypot(it.x - px, it.y - py) < 20;
+      });
+    const pts = scatter(4, 8, zone.ground.w - 8, zone.ground.h - 12, zone.meadow.n, 22, zone.meadow.seed, (px, py) => !isGrass(map, Math.round(px), Math.round(py)) || !isGrass(map, Math.round(px) + 6, Math.round(py)) || blocked(px, py));
+    pts.forEach(([px, py], i) => items.push({ kind: 'prop', type: i % 3 === 0 ? 'tall_grass' : 'flowers', x: px, y: py, seed: i + 1 }));
+  }
+  items.forEach((it, idx) => {
     if (it.kind === 'building') {
       const art = renderBuilding(it.type, it.w, it.h);
       const bottom = it.y + it.h / 2;
-      draws.push({ y: bottom, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(bottom - art.anchorY)) });
+      const ox = it.x - art.anchorX;
+      // Settle: shade along the foot of the walls, worn earth at the door,
+      // tufts along the walls (not in the doorway).
+      occlude(map, Math.round(ox + art.wallX0), Math.round(ox + art.wallX1), Math.round(bottom + 1), 3, 0.4);
+      if (art.doorX !== undefined) wear(map, ox + art.doorX, bottom + 6, 10, 6, idx + 3);
+      else wear(map, it.x, bottom + 5, it.w * 0.45, 6, idx + 3);
+      const skip: [number, number] | undefined = art.doorX !== undefined ? [ox + art.doorX - 9, ox + art.doorX + 9] : [ox + art.wallX0 + 4, ox + art.wallX1 - 4];
+      tufts.push(...fringe(Math.round(ox + art.wallX0), Math.round(ox + art.wallX1), Math.round(bottom), idx * 7 + 1, skip, 0.8));
+      const pm = softenBase(art.pm, art.anchorY + 1);
+      draws.push({ y: bottom, draw: () => blit(pm, ox, bottom - art.anchorY) });
     } else if (it.kind === 'prop') {
-      const art = renderProp(it.type, it.seed);
-      draws.push({ y: it.y, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
+      const seed = it.seed ?? idx + 1;
+      const art = renderProp(it.type, seed);
+      const st = PROP_SETTLE[it.type] ?? {};
+      if (st.wear) wear(map, it.x, it.y - st.wear[1] * 0.2, st.wear[0], st.wear[1], idx + 11, st.wear[2]);
+      if (st.strew) strew(map, it.x, it.y, st.strew[0], st.strew[1], st.strew[2], st.strew[3], idx + 13);
+      if (st.tufts) tufts.push(...tuftsAround(it.x, it.y, st.tufts[0], idx * 5 + seed, st.tufts[1]));
+      const pm = softenBase(st.vary ? vary(art.pm, seed * 31 + idx) : art.pm, art.anchorY);
+      draws.push({ y: it.y, draw: () => blit(pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else if (it.kind === 'wall') {
       const art = renderWallBlock(it.w, it.h);
       const bottom = it.y + it.h / 2;
-      draws.push({ y: bottom, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(bottom - art.anchorY)) });
+      occlude(map, Math.round(it.x - art.anchorX), Math.round(it.x - art.anchorX + it.w - 1), Math.round(bottom + 1), 4, 0.5);
+      draws.push({ y: bottom, draw: () => blit(art.pm, it.x - art.anchorX, bottom - art.anchorY) });
     } else if (it.kind === 'gate') {
       const art = renderGate(it.w);
       const bottom = it.y + 8;
-      draws.push({ y: bottom, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(bottom - art.anchorY)) });
+      draws.push({ y: bottom, draw: () => blit(art.pm, it.x - art.anchorX, bottom - art.anchorY) });
     } else if (it.kind === 'dprop') {
       const art = renderDungeonProp(it.type);
       // Cobwebs and torches hang on walls: drawn above the floor props.
       const order = it.type === 'cobweb' || it.type === 'torch' ? it.y + 1000 : it.y;
-      draws.push({ y: order, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
+      draws.push({ y: order, draw: () => blit(art.pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else if (it.kind === 'fence' || it.kind === 'swall') {
-      const art = it.kind === 'fence' ? renderFence(it.len) : renderStoneWall(it.len);
-      draws.push({ y: it.y, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
+      const art = it.kind === 'fence' ? renderFence(it.len) : renderStoneWall(it.len, idx);
+      const x0 = it.x - art.anchorX;
+      occlude(map, Math.round(x0), Math.round(x0 + it.len - 1), Math.round(it.y + 1), 2, 0.3);
+      if (it.kind === 'fence') for (let px = 1; px < it.len - 1; px += 8) tufts.push(...tuftsAround(x0 + px + 1, it.y, 2, idx * 3 + px, 1));
+      else tufts.push(...fringe(Math.round(x0), Math.round(x0 + it.len - 1), it.y, idx, undefined, 0.6));
+      draws.push({ y: it.y, draw: () => blit(art.pm, x0, it.y - art.anchorY) });
     } else if (it.kind === 'bed' || it.kind === 'patch') {
       const art = it.kind === 'bed' ? renderFlowerBed(it.w, it.h) : renderPatch(it.material, it.w, it.h);
-      draws.push({ y: -1000 + it.y, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
+      draws.push({ y: -1000 + it.y, draw: () => blit(art.pm, it.x - art.anchorX, it.y - art.anchorY) });
     } else {
       draws.push({ y: it.y + 8, draw: () => drawPerson(map, it.look, it.x, it.y, it.view ?? 'down') });
     }
+  });
+  // Tufts only grow on grass, and sit just in front of what they hide.
+  tufts.forEach((t) => {
+    if (!isGrass(map, t.x, t.y)) return;
+    const art = renderTuft(t.seed, t.tall);
+    draws.push({ y: t.y + 0.5, draw: () => blit(art.pm, t.x - art.anchorX, t.y - art.anchorY) });
   });
   draws.push({ y: zone.hero.y + 8, draw: () => drawPerson(map, heroLookValue, zone.hero.x, zone.hero.y, 'down') });
   draws.sort((a, b) => a.y - b.y).forEach((d) => d.draw());

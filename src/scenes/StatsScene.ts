@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { centerFrame } from '../ui/screen';
 import {
   Character,
   RACES,
@@ -67,6 +68,7 @@ export class StatsScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     this.render();

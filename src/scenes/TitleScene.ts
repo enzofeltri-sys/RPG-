@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { addMeadowBackdrop } from '../ui/backdrop';
+import { centerFrame } from '../ui/screen';
 import { CLASSES, Character, RACES } from '../game/character';
 import { modeLabel } from '../game/difficulty';
 import { SaveManager } from '../save/SaveManager';
@@ -18,6 +20,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     document.getElementById('boot-status')?.remove();
     this.confirmNewGame = false;
     const save = await SaveManager.load();
@@ -30,7 +33,7 @@ export class TitleScene extends Phaser.Scene {
   private render(character?: Character): void {
     this.children.removeAll(true);
     const { width } = this.scale;
-    this.add.image(0, 0, 'ui-battle-grass').setOrigin(0, 0);
+    addMeadowBackdrop(this);
 
     addPanel(this, 20, 44, width - 40, 92);
     panelText(this, width / 2, 60, 'Le Sceau', 20).setOrigin(0.5, 0);

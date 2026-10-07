@@ -5,7 +5,7 @@
 // and meadow flowers actually land on grass.
 
 import { GroundMaterial, GroundSpec, renderGround } from './ground';
-import { RGB } from './pixmap';
+import { Pixmap, RGB } from './pixmap';
 import { TuftSpot, occlude, scatter, strew, wear } from './settle';
 
 export type GroundOp =
@@ -19,6 +19,9 @@ export type Blocker = { kind: 'rect'; x0: number; y0: number; x1: number; y1: nu
 export interface GroundJob {
   key: string;
   ground: GroundSpec;
+  // Extra ground painted around the zone (seen when the screen is bigger
+  // than the zone); everything else stays in zone coordinates.
+  margin?: [number, number];
   ops: GroundOp[];
   tufts: TuftSpot[];
   meadow?: { n: number; seed: number; blockers: Blocker[] };
@@ -28,13 +31,34 @@ export interface GroundResult {
   key: string;
   w: number;
   h: number;
+  margin: [number, number];
   pixels: Uint8ClampedArray;
   tufts: TuftSpot[];
   meadow: [number, number][];
 }
 
+function shifted(spec: GroundSpec, mx: number, my: number): GroundSpec {
+  if (!mx && !my) return spec;
+  return {
+    ...spec,
+    w: spec.w + mx * 2,
+    h: spec.h + my * 2,
+    shapes: (spec.shapes ?? []).map((s) =>
+      s.kind === 'path' ? { ...s, points: s.points.map(([x, y]) => [x + mx, y + my] as [number, number]) } : { ...s, x: s.x + mx, y: s.y + my },
+    ),
+  };
+}
+
 export function runGroundJob(job: GroundJob): GroundResult {
-  const map = renderGround(job.ground);
+  const [mx, my] = job.margin ?? [0, 0];
+  const full = renderGround(shifted(job.ground, mx, my));
+  // Settling works in zone coordinates on a view of the bigger picture.
+  const map = {
+    w: job.ground.w,
+    h: job.ground.h,
+    get: (x: number, y: number) => full.get(x + mx, y + my),
+    set: (x: number, y: number, c: RGB, a?: number) => full.set(x + mx, y + my, c, a),
+  } as unknown as Pixmap;
   const isGrass = (x: number, y: number): boolean => {
     const c = map.get(Math.round(x), Math.round(y));
     return !!c && c[1] > c[0] + 20 && c[1] > c[2] + 30;
@@ -64,5 +88,5 @@ export function runGroundJob(job: GroundJob): GroundResult {
     }
   }
   const tufts = job.tufts.filter((t) => isGrass(t.x, t.y));
-  return { key: job.key, w: map.w, h: map.h, pixels: map.data, tufts, meadow };
+  return { key: job.key, w: full.w, h: full.h, margin: [mx, my], pixels: full.data, tufts, meadow };
 }

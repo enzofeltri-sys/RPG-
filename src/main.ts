@@ -61,9 +61,34 @@ import { MapScene } from './scenes/MapScene';
 import { CraftingScene } from './scenes/CraftingScene';
 import { MerchantScene } from './scenes/MerchantScene';
 
-// Portrait internal resolution (same total pixel budget as the previous 384x216 landscape design).
+// Portrait internal resolution: always 216 pixels wide (every screen is
+// laid out for that width); the height follows the phone's shape so the
+// game fills the whole screen (384 is the classic 9:16, taller phones get
+// more rows — menus stay centered in their 216x384 frame, zones show more).
 const GAME_WIDTH = 216;
-const GAME_HEIGHT = 384;
+const GAME_HEIGHT = gameHeight();
+
+function gameHeight(): number {
+  const w = window.innerWidth || 1;
+  const h = window.innerHeight || 1;
+  const rows = Math.round((GAME_WIDTH * h) / w / 2) * 2;
+  return Math.max(384, Math.min(520, rows));
+}
+
+// A zone smaller than the screen sits in the middle of it rather than in
+// a corner (Phaser clamps cameras to the bounds' top-left).
+const setBounds = Phaser.Cameras.Scene2D.BaseCamera.prototype.setBounds;
+Phaser.Cameras.Scene2D.BaseCamera.prototype.setBounds = function (this: Phaser.Cameras.Scene2D.BaseCamera, x: number, y: number, width: number, height: number, centerOn?: boolean) {
+  if (width < this.width) {
+    x -= Math.floor((this.width - width) / 2);
+    width = this.width;
+  }
+  if (height < this.height) {
+    y -= Math.floor((this.height - height) / 2);
+    height = this.height;
+  }
+  return setBounds.call(this, x, y, width, height, centerOn);
+};
 
 // Surface JS crashes visibly instead of leaving a silent blank screen on mobile.
 function showFatalError(message: string): void {

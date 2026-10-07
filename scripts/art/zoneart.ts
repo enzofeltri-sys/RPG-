@@ -21,8 +21,10 @@ import { encodePng } from './png';
 function render(art: ZoneArt): Pixmap {
   const job = plan(art);
   const r = runGroundJob(job);
-  const map = new Pixmap(r.w, r.h);
-  map.data.set(r.pixels);
+  // The zone itself (the margin around it is for bigger screens).
+  const map = new Pixmap(art.ground.w, art.ground.h);
+  const [mx, my] = r.margin;
+  for (let y = 0; y < map.h; y++) map.data.set(r.pixels.subarray(((y + my) * r.w + mx) * 4, ((y + my) * r.w + mx + map.w) * 4), y * map.w * 4);
   const draws: { depth: number; draw: () => void }[] = [];
   const at = (pm: Pixmap, x: number, y: number, depth: number) => draws.push({ depth, draw: () => map.blit(pm, Math.round(x), Math.round(y)) });
   Object.values(art.buildings ?? {}).forEach((b) => {

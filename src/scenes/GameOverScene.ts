@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { centerFrame } from '../ui/screen';
 import { CLASSES, CharClass, RACES, Race } from '../game/character';
 import { MAP_LOCATIONS } from '../game/worldMap';
 import { INK, KitButton, PAL, addPanel, panelText, preloadUiKit } from '../ui/kit';
@@ -35,6 +36,7 @@ export class GameOverScene extends Phaser.Scene {
 
   // UI style A: a parchment epitaph on a dark backdrop, then back to the title.
   async create(): Promise<void> {
+    centerFrame(this);
     const { width } = this.scale;
     this.cameras.main.setBackgroundColor(PAL.k);
     this.cameras.main.fadeIn(600);

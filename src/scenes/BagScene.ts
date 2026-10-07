@@ -9,7 +9,7 @@ import { SaveManager } from '../save/SaveManager';
 import { preloadItemIcons, placeItemIcon } from '../entities/itemIcon';
 import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
 import { RARITY_INK, RARITY_STRIPE, itemCompareLines, itemTitle } from '../ui/itemText';
-import { Action, DETAIL_TOP, LIST_TOP, Line, actionRow, detailPanel, pager, targetSlot } from '../ui/screen';
+import { Action, DETAIL_TOP, LIST_TOP, Line, actionRow, detailPanel, pager, targetSlot, centerFrame } from '../ui/screen';
 
 type BagTab = 'items' | 'materials' | 'consumables' | 'quest';
 
@@ -65,6 +65,7 @@ export class BagScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     await preloadItemIcons(this, this.character.inventory.map((i) => i.baseId));

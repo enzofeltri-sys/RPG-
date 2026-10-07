@@ -10,7 +10,7 @@ import { playCraftSuccess } from '../ui/sound';
 import { placeItemIcon, preloadItemIcons } from '../entities/itemIcon';
 import { INK, KitButton, addPanel, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
 import { GOOD_INK, RARITY_INK, itemTypeLine } from '../ui/itemText';
-import { Action, DETAIL_HEIGHT, DETAIL_TOP, LIST_TOP, SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager } from '../ui/screen';
+import { Action, DETAIL_HEIGHT, DETAIL_TOP, LIST_TOP, SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager, centerFrame } from '../ui/screen';
 
 type CraftTab = 'forge' | 'alchemy' | 'free';
 
@@ -70,6 +70,7 @@ export class CraftingScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     this.craftable = getCraftableItems();

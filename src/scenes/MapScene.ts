@@ -6,7 +6,7 @@ import { MAP_LOCATIONS, MAP_CONNECTIONS, MAIN_QUEST_LOCATION, QUEST_LOCATIONS, M
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
 import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
-import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, centerFrame } from '../ui/screen';
 
 const REGIONS: { id: MapRegion; label: string }[] = [
   { id: 'start', label: 'Région 1' },
@@ -66,6 +66,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     this.region = MAP_LOCATIONS.find((loc) => loc.key === this.returnScene)?.region ?? 'start';

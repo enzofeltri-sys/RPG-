@@ -3,7 +3,7 @@ import { CharClass, Race, createCharacter } from '../game/character';
 import { Difficulty, newRandomizerSeed } from '../game/difficulty';
 import { SaveManager } from '../save/SaveManager';
 import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
-import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, centerFrame } from '../ui/screen';
 
 type Mode = Difficulty | 'nuzlocke';
 
@@ -62,6 +62,7 @@ export class DifficultyScene extends Phaser.Scene {
   }
 
   create(): void {
+    centerFrame(this);
     this.render();
   }
 

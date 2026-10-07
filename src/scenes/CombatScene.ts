@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { crispIcon } from '../entities/itemIcon';
+import { addMeadowBackdrop } from '../ui/backdrop';
+import { centerFrame } from '../ui/screen';
 import { CLASSES, Character, grantXp } from '../game/character';
 import { Monster, EncounterTier, createMonster } from '../game/monster';
 import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
@@ -191,6 +194,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     this.cameras.main.setBackgroundColor('#1a1410');
     this.cameras.main.fadeIn(250);
 
@@ -216,7 +220,7 @@ export class CombatScene extends Phaser.Scene {
       });
     }
 
-    this.add.image(0, 0, 'ui-battle-grass').setOrigin(0, 0);
+    addMeadowBackdrop(this);
 
     // Monster: panel top left, sprite on its platform top right.
     addPanel(this, 6, 8, 136, 66);
@@ -237,7 +241,8 @@ export class CombatScene extends Phaser.Scene {
     }
     const monsterKey = `monster-${this.monster.id}`;
     if (this.textures.exists(monsterKey)) {
-      this.add.image(MONSTER_CENTER.x, MONSTER_CENTER.y, monsterKey).setDisplaySize(MONSTER_SIZE, MONSTER_SIZE);
+      // The painted monster redrawn at its display size (sharp pixels).
+      this.add.image(MONSTER_CENTER.x, MONSTER_CENTER.y, crispIcon(this, monsterKey, MONSTER_SIZE));
     } else {
       // Missing sprite (shouldn't happen for a real monster id, but keeps a
       // fresh id added to monster.ts without matching art from crashing the

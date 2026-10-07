@@ -32,6 +32,13 @@ const STONE_FLOOR_FRAME = 307;
 const PIPOYA_GRASS_KEY = 'tiles-pipoya-grass';
 const PIPOYA_GRASS_URL = `${import.meta.env.BASE_URL}tiles/pipoya-ground-grass.png`;
 
+// Ground tiled a bit past the zone's edges, for screens taller than the
+// zone (the game is up to 520 rows tall).
+function grown(width: number, height: number): [number, number, number, number] {
+  const my = Math.max(8, Math.ceil((520 - height) / 2) + 4);
+  return [-8, -my, width + 16, height + my * 2];
+}
+
 async function loadSpritesheet(scene: Phaser.Scene, key: string, url: string): Promise<void> {
   if (scene.textures.exists(key)) return;
   await new Promise<void>((resolve) => {
@@ -65,7 +72,8 @@ async function addTiledGround(
   // Depth pinned below everything else so callers can fire-and-forget this
   // (no need to await it before adding buildings/decor/the player) without
   // the tile layer popping in on top of them once its async load resolves.
-  return scene.add.tileSprite(0, 0, width, height, sheetKey, frame).setOrigin(0, 0).setDepth(-1000);
+  const [x, y, w, h] = grown(width, height);
+  return scene.add.tileSprite(x, y, w, h, sheetKey, frame).setOrigin(0, 0).setDepth(-1000);
 }
 
 export async function addGrassGround(
@@ -75,7 +83,8 @@ export async function addGrassGround(
 ): Promise<Phaser.GameObjects.TileSprite | undefined> {
   await loadImage(scene, PIPOYA_GRASS_KEY, PIPOYA_GRASS_URL);
   if (!scene.scene.isActive() || !scene.textures.exists(PIPOYA_GRASS_KEY)) return undefined;
-  return scene.add.tileSprite(0, 0, width, height, PIPOYA_GRASS_KEY).setOrigin(0, 0).setDepth(-1000);
+  const [x, y, w, h] = grown(width, height);
+  return scene.add.tileSprite(x, y, w, h, PIPOYA_GRASS_KEY).setOrigin(0, 0).setDepth(-1000);
 }
 
 export function addStoneFloor(

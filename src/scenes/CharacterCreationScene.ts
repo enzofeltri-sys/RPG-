@@ -12,7 +12,7 @@ import {
   manaMax,
 } from '../game/talents';
 import { INK, KitButton, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
-import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel } from '../ui/screen';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, centerFrame } from '../ui/screen';
 import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, heroTextures, idleFrame } from '../entities/heroSprite';
 
 // Création de personnage in UI style A: race and class pickers, the
@@ -32,6 +32,7 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   create(): void {
+    centerFrame(this);
     this.render();
   }
 

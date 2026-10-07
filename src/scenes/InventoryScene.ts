@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { centerFrame } from '../ui/screen';
 import { Character, getEffectiveStats } from '../game/character';
 import { Item, EquipSlot, equipSlotLabel, isUpgrade, summarizeEquippedSets } from '../game/item';
 import { handSlotAccepts, isTwoHanded, planHandEquip } from '../game/weapons';
@@ -87,6 +88,7 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     const worn = Object.values(this.character.equipment).filter((i): i is Item => Boolean(i));

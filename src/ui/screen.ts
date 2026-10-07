@@ -96,3 +96,12 @@ export function targetSlot(character: Character, item: Item): EquipSlot {
   if (!character.equipment.ring2) return 'ring2';
   return 'ring1';
 }
+
+// Menus and fights are laid out in a 216x384 frame; on taller screens the
+// camera centers that frame (the game fills the phone, the layout stays).
+export const FRAME_H = 384;
+export function centerFrame(scene: Phaser.Scene): number {
+  const off = Math.max(0, Math.floor((scene.scale.height - FRAME_H) / 2));
+  scene.cameras.main.setScroll(0, -off);
+  return off;
+}

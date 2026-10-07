@@ -8,7 +8,7 @@ import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/retur
 import { SaveManager } from '../save/SaveManager';
 import { INK, KitButton, addPanel, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
 import { GOOD_INK } from '../ui/itemText';
-import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager } from '../ui/screen';
+import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager, centerFrame } from '../ui/screen';
 
 const MUTED = INK.soft;
 const ACTIVE_COLOR = '#3260b0';
@@ -620,6 +620,7 @@ export class QuestLogScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     this.render();

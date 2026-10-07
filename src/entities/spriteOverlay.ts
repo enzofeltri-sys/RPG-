@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Facing, facingFrom } from './heroSprite';
 import { drawnOverlay } from '../world/drawnArt';
+import { crispIcon } from './itemIcon';
 
 // Shared by player.ts, wanderer.ts, and any scene overlaying a real sprite
 // on top of an existing collision rectangle: loads the texture on demand
@@ -58,10 +59,11 @@ export async function attachSpriteOverlay(
   // -1000 and UI/messages to 1000+ (see groundTexture.ts and callers of
   // setDepth(1001) et al.), well outside any world Y value, so neither can
   // collide with this range.
-  const image = scene.add
-    .image(target.x, target.y, textureKey)
-    .setDisplaySize(displaySize, displaySize)
-    .setDepth(target.y);
+  // Painted pictures bigger than their spot are redrawn at the spot's size
+  // as sharp pixel art rather than squeezed by nearest-pixel sampling.
+  const source = scene.textures.get(textureKey).getSourceImage() as { width: number };
+  const key = source.width > displaySize * 1.4 ? crispIcon(scene, textureKey, Math.round(displaySize)) : textureKey;
+  const image = scene.add.image(target.x, target.y, key).setDisplaySize(displaySize, displaySize).setDepth(target.y);
   target.setData('appearanceImage', image);
   target.setVisible(false);
 }

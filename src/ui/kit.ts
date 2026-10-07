@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { crispIcon } from '../entities/itemIcon';
 import { addCrispText } from './text';
 import type { PixelText } from './pixelFont';
 
@@ -206,7 +207,9 @@ export class KitButton {
       tx = x + 26;
     } else if (options.iconTexture) {
       if (scene.textures.exists(options.iconTexture)) {
-        this.iconImage = scene.add.image(x + 6, y + height / 2, options.iconTexture).setOrigin(0, 0.5).setDisplaySize(16, 16);
+        // Painted item icons are redrawn as 16 px pixel icons (sharp).
+        const key = options.iconTexture.startsWith('item-icon-') ? crispIcon(scene, options.iconTexture, 16) : options.iconTexture;
+        this.iconImage = scene.add.image(x + 6, y + height / 2, key).setOrigin(0, 0.5).setDisplaySize(16, 16);
       }
       tx = x + 26;
     }
@@ -440,9 +443,13 @@ export function toast(scene: Phaser.Scene, cx: number, cy: number, message: stri
 }
 
 // Menu screens: slate backdrop behind a full-height parchment panel.
+// The parchment of a menu screen, covering the whole phone; the content
+// stays in the centered 216x384 frame (the camera is scrolled up by the
+// extra rows, see ui/screen.ts centerFrame).
 export function addScreenPanel(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
   scene.cameras.main.setBackgroundColor(PAL.T);
-  return addPanel(scene, 6, 6, scene.scale.width - 12, scene.scale.height - 12);
+  const top = Math.min(0, Math.round(scene.cameras.main.scrollY / 2) * 2);
+  return addPanel(scene, 6, 6 + top, scene.scale.width - 12, scene.scale.height - 12);
 }
 
 // Splits a row of buttons evenly between x and x + width.

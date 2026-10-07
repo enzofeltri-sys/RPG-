@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { centerFrame } from '../ui/screen';
 import { Character, CLASSES } from '../game/character';
 import {
   ActiveTalent,
@@ -62,6 +63,7 @@ export class TalentsScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     if (!TALENTS[this.selected]) this.selected = STARTER_SKILL[this.character.class];

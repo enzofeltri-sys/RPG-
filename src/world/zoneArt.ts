@@ -5,7 +5,7 @@ import { GateKind, renderBarrier, renderWallBlock } from '../art/buildings';
 import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
-import { BuildingSpot, ZoneArt, buildingArt, dpropArt, lightMap, plan, step } from './zonePlan';
+import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, lightMap, plan, step } from './zonePlan';
 
 export type { BuildingSpot, PropSpot, ZoneArt, ZoneLight } from './zonePlan';
 
@@ -118,7 +118,8 @@ export interface PaintedZone {
 export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   const job = jobFor(art);
   // Until the ground arrives (first visit only), a plain base color.
-  const placeholder = scene.add.rectangle(0, 0, art.ground.w, art.ground.h, art.ground.base === 'grass' ? 0x5f9a46 : art.ground.base === 'forest' ? 0x4c7a3a : art.ground.base === 'dirt' ? 0x9a7650 : 0x4a4652).setOrigin(0, 0).setDepth(-1001);
+  const [pmx, pmy] = zoneMargin(art);
+  const placeholder = scene.add.rectangle(-pmx, -pmy, art.ground.w + pmx * 2, art.ground.h + pmy * 2, art.ground.base === 'grass' ? 0x5f9a46 : art.ground.base === 'forest' ? 0x4c7a3a : art.ground.base === 'dirt' ? 0x9a7650 : 0x4a4652).setOrigin(0, 0).setDepth(-1001);
   Object.values<BuildingSpot>(art.buildings ?? {}).forEach((b) => placeBuilding(scene, b.kind, b.x, b.y, b.w, b.h));
   (art.props ?? []).forEach((p, idx) => placeProp(scene, p.kind, p.x, p.y, p.seed ?? idx + 1));
   (art.fences ?? []).forEach((f) => {
@@ -196,7 +197,7 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
       texture.context.putImageData(new ImageData(new Uint8ClampedArray(r.pixels), r.w, r.h), 0, 0);
       texture.refresh();
     }
-    scene.add.image(0, 0, key).setOrigin(0, 0).setDepth(-1000);
+    scene.add.image(-r.margin[0], -r.margin[1], key).setOrigin(0, 0).setDepth(-1000);
     placeholder.destroy();
     r.tufts.forEach((t) => scene.add.image(t.x, t.y, tuftKey(scene, t.seed, t.tall)).setOrigin(4 / 9, 1).setDepth(t.y - FEET_TO_DEPTH + 0.5));
     r.meadow.forEach(([x, y], i) => placeProp(scene, i % 3 === 0 ? 'tall_grass' : 'flowers', x, y, (i % 8) + 1));
@@ -242,20 +243,22 @@ function heroLightKey(scene: Phaser.Scene, amb: number): string {
 }
 
 function addLighting(scene: Phaser.Scene, art: ZoneArt): { follow(target: { x: number; y: number }): void } {
-  const { w, h } = art.ground;
+  const [mx, my] = zoneMargin(art);
+  const w = art.ground.w + mx * 2;
+  const h = art.ground.h + my * 2;
   const key = `light-${art.key}`;
   if (!scene.textures.exists(key)) {
     const texture = scene.textures.createCanvas(key, w, h)!;
-    texture.context.putImageData(new ImageData(new Uint8ClampedArray(lightMap(art)), w, h), 0, 0);
+    texture.context.putImageData(new ImageData(new Uint8ClampedArray(lightMap(art, [mx, my])), w, h), 0, 0);
     texture.refresh();
   }
   const heroKey = heroLightKey(scene, art.dark!.ambient);
-  const rt = scene.add.renderTexture(0, 0, w, h).setOrigin(0, 0).setDepth(800).setBlendMode(Phaser.BlendModes.MULTIPLY);
+  const rt = scene.add.renderTexture(-mx, -my, w, h).setOrigin(0, 0).setDepth(800).setBlendMode(Phaser.BlendModes.MULTIPLY);
   let target: { x: number; y: number } | undefined;
   const redraw = () => {
     rt.clear();
     rt.stamp(key, undefined, 0, 0, { originX: 0, originY: 0 });
-    if (target) rt.stamp(heroKey, undefined, Math.round(target.x), Math.round(target.y), { blendMode: Phaser.BlendModes.ADD });
+    if (target) rt.stamp(heroKey, undefined, Math.round(target.x) + mx, Math.round(target.y) + my, { blendMode: Phaser.BlendModes.ADD });
   };
   redraw();
   scene.events.on(Phaser.Scenes.Events.POST_UPDATE, redraw);

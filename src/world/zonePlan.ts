@@ -125,6 +125,12 @@ export function dpropArt(kind: DungeonPropKind): ReturnType<typeof renderDungeon
 
 // Everything about a zone that does not need the ground to exist: the
 // ground job (with what settles into it) and the grass tufts to try.
+// Ground painted around a zone for screens bigger than it: the game is
+// 216 wide (zones are at least that) and up to 520 tall.
+export function zoneMargin(art: ZoneArt): [number, number] {
+  return [8, Math.max(8, Math.ceil((520 - art.ground.h) / 2) + 4)];
+}
+
 export function plan(art: ZoneArt): GroundJob {
   const ops: GroundOp[] = [];
   const tufts: TuftSpot[] = [];
@@ -195,6 +201,7 @@ export function plan(art: ZoneArt): GroundJob {
   return {
     key: art.key,
     ground: art.ground,
+    margin: zoneMargin(art),
     ops,
     tufts,
     meadow: art.meadow ? { ...art.meadow, blockers } : undefined,
@@ -229,10 +236,13 @@ export function step(k: number, x: number, y: number): number {
 
 // The fixed light of a dark zone, as a picture multiplied over the world:
 // cold where unlit, warm (or violet) around each light.
-export function lightMap(art: ZoneArt): Uint8ClampedArray {
-  const { w, h } = art.ground;
+// margin: the same extra border as the zone's ground.
+export function lightMap(art: ZoneArt, margin: [number, number] = [0, 0]): Uint8ClampedArray {
+  const [mx, my] = margin;
+  const w = art.ground.w + mx * 2;
+  const h = art.ground.h + my * 2;
   const amb = art.dark!.ambient;
-  const lights = zoneLights(art);
+  const lights = zoneLights(art).map((l) => ({ ...l, x: l.x + mx, y: l.y + my }));
   const out = new Uint8ClampedArray(w * h * 4);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {

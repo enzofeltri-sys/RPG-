@@ -17,7 +17,7 @@ import { playCoin } from '../ui/sound';
 import { preloadItemIcons, placeItemIcon } from '../entities/itemIcon';
 import { INK, KitButton, addScreenPanel, buttonRow, drawButton, panelText, preloadUiKit, toast } from '../ui/kit';
 import { RARITY_INK, RARITY_STRIPE, itemCompareLines, itemTitle, itemTypeLine, itemStatsLine } from '../ui/itemText';
-import { Action, DETAIL_TOP, LIST_TOP, Line, SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager } from '../ui/screen';
+import { Action, DETAIL_TOP, LIST_TOP, Line, SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, pager, centerFrame } from '../ui/screen';
 
 interface ShopEntry {
   id: string;
@@ -112,6 +112,7 @@ export class MerchantScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    centerFrame(this);
     const save = await SaveManager.load();
     this.character = save!.character!;
     const stock = getMerchantStock(this.character);

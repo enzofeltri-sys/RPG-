@@ -120,7 +120,7 @@ const DUST: RGB[] = [
 // Dungeon props lying flat on the floor (drawn under everyone) or hung on
 // a wall (just in front of the wall face); the rest stand on their feet
 // (only those get a soft contact shadow at the foot).
-const FLAT_DPROPS = new Set<DungeonPropKind>(['runes', 'puddle', 'vein']);
+const FLAT_DPROPS = new Set<DungeonPropKind>(['runes', 'puddle', 'vein', 'ember']);
 const HUNG_DPROPS = new Set<DungeonPropKind>(['torch', 'cobweb', 'chains']);
 export function dpropOffGround(kind: DungeonPropKind): boolean {
   return FLAT_DPROPS.has(kind) || kind === 'cobweb' || kind === 'chains';
@@ -251,11 +251,13 @@ export function zoneLights(art: ZoneArt): ZoneLight[] {
     if (d.kind === 'candles') lights.push({ x: d.x, y: d.y - 8, r: 36, kind: 'fire' });
     if (d.kind === 'runes') lights.push({ x: d.x, y: d.y, r: 46, kind: 'magic' });
     if (d.kind === 'vein') lights.push({ x: d.x, y: d.y, r: 34, kind: 'magic' });
+    if (d.kind === 'ember') lights.push({ x: d.x, y: d.y, r: 38, kind: 'fire' });
     if (d.kind === 'lectern' || d.kind === 'table') lights.push({ x: d.x + 5, y: d.y - 12, r: 32, kind: 'fire' });
   });
   (art.props ?? []).forEach((p) => {
     if (p.kind === 'blight_pod') lights.push({ x: p.x, y: p.y - 6, r: 34, kind: 'magic' });
     if (p.kind === 'black_well') lights.push({ x: p.x, y: p.y - 8, r: 40, kind: 'magic' });
+    if (p.kind === 'smithy') lights.push({ x: p.x - 4, y: p.y - 18, r: 56, kind: 'fire' });
     if (p.kind === 'street_lamp') lights.push({ x: p.x, y: p.y - 30, r: 60, kind: 'fire' });
   });
   return lights;

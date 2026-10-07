@@ -23,7 +23,8 @@ export type BuildingKind =
   | 'old_house'
   | 'dock_shack'
   | 'storehouse'
-  | 'lodge';
+  | 'lodge'
+  | 'stilt_hut';
 
 export interface BuildingArt {
   pm: Pixmap;
@@ -1253,6 +1254,56 @@ function lodge(w: number, h: number): BuildingArt {
   return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
+// A hut of the drowned lands, raised on stilts over the bog: grey plank
+// walls on a deck, the stilts going down into the water with ripples
+// round them, a ladder up to the door, a roof of bundled reeds.
+function stiltHut(w: number, h: number): BuildingArt {
+  const stilts = 7;
+  const p = plan(w, h, Math.max(20, Math.min(26, Math.round(h * 0.55))) + stilts, Math.max(16, Math.min(26, Math.round(h * 0.55) + 2)));
+  const pm = new Pixmap(p.W, p.H);
+  const deck = p.base - stilts;
+  // Stilts and the water round their feet.
+  for (let x = p.wx0 + 1; x <= p.wx1 - 1; x += Math.max(6, Math.floor((p.wx1 - p.wx0) / 5))) {
+    for (let y = deck + 1; y <= p.base; y++) {
+      pm.set(x, y, lit(TIMBER, -0.1 - (y - deck) * 0.06));
+      pm.set(x + 1, y, TIMBER[4]);
+    }
+    pm.set(x - 1, p.base, [150, 176, 160]);
+    pm.set(x + 2, p.base, [150, 176, 160]);
+  }
+  // Cross-bracing between the stilts.
+  for (let x = p.wx0 + 2; x < p.wx1 - 1; x++) pm.set(x, deck + 2 + ((x >> 2) & 1), TIMBER[3]);
+  // The deck: a plank edge running past the walls.
+  for (let x = p.wx0 - 2; x <= p.wx1 + 2; x++) {
+    pm.set(x, deck - 1, lit(WOOD, 0.4));
+    pm.set(x, deck, lit(WOOD, -0.3));
+  }
+  wall(pm, 'planks', p.wx0, p.wx1, p.wallTop, deck - 2);
+  for (let y = p.wallTop; y <= deck - 2; y++) for (let x = p.wx0; x <= p.wx1; x++) pm.set(x, y, mix(pm.get(x, y)!, [110, 112, 106], 0.35));
+  const doorX = Math.round((p.wx0 + p.wx1) / 2) + 4;
+  door(pm, doorX, deck - 3, Math.min(13, deck - p.wallTop - 5), 8, false, false);
+  // The ladder down to the water's edge.
+  for (let y = deck + 1; y <= p.base; y++) {
+    pm.set(doorX - 3, y, WOOD[2]);
+    pm.set(doorX + 3, y, WOOD[3]);
+    if ((y - deck) % 2 === 0) pm.hline(doorX - 2, doorX + 2, y, WOOD[1]);
+  }
+  window(pm, p.wx0 + 5, p.wallTop + 5, 5, 4, true);
+  // Fish drying on a line under the eave.
+  for (let x = p.wx1 - 12; x <= p.wx1 - 3; x += 3) {
+    pm.set(x, p.wallTop + 3, [180, 186, 190]);
+    pm.set(x, p.wallTop + 4, [140, 150, 156]);
+  }
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'thatch');
+  for (let y = 2; y <= p.wallTop + 2; y++) for (let x = 0; x < p.W; x++) {
+    const c = pm.get(x, y);
+    if (c && pm.data[(y * pm.w + x) * 4 + 3] === 255) pm.set(x, y, mix(c, [120, 128, 96], 0.35)); // reeds, greyer than straw
+  }
+  finish(pm);
+  castShadow(pm, 3);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
 export function renderBuilding(kind: BuildingKind, w: number, h: number): BuildingArt {
   switch (kind) {
     case 'cottage':
@@ -1287,6 +1338,8 @@ export function renderBuilding(kind: BuildingKind, w: number, h: number): Buildi
       return storehouse(w, h);
     case 'lodge':
       return lodge(w, h);
+    case 'stilt_hut':
+      return stiltHut(w, h);
   }
 }
 
@@ -1342,7 +1395,8 @@ function softWall(w: number, h: number, face: number, style: 'shelves' | 'crates
         pm.set(x, y, c);
       }
     }
-    if (face >= 12) {
+    // Windows only in a long wall (not on a post).
+    if (face >= 12 && w >= 60) {
       for (let x = 14; x + 8 < w; x += 48) {
         for (let j = 0; j < 7; j++) for (let i = 0; i < 8; i++) pm.set(x + i, capBottom + 4 + j, i === 0 || j === 0 || i === 7 || j === 6 || i === 4 || j === 3 ? TIMBER[2] : j < 3 ? [196, 226, 244] : [150, 196, 226]);
       }
@@ -1540,7 +1594,7 @@ export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; 
   return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
 }
 
-export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade' | 'brambles' | 'roots' | 'shelves' | 'crates' | 'rubble' | 'slab';
+export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade' | 'brambles' | 'roots' | 'shelves' | 'crates' | 'rubble' | 'slab' | 'net' | 'rift' | 'door' | 'light';
 
 // A barrier closing a passage of width w, standing on its base line: an
 // iron portcullis, rusty graveyard railings, a veil of runes, or a wooden
@@ -1548,6 +1602,10 @@ export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade' | 'bramble
 export function renderBarrier(kind: GateKind, w: number): BuildingArt {
   if (kind === 'portcullis') return renderGate(w);
   if (kind === 'brambles' || kind === 'roots' || kind === 'shelves' || kind === 'crates' || kind === 'rubble' || kind === 'slab') return heapBarrier(kind, w);
+  if (kind === 'net') return netBarrier(w);
+  if (kind === 'rift') return riftBarrier(w);
+  if (kind === 'door') return doorBarrier(w);
+  if (kind === 'light') return lightBarrier(w);
   const H = kind === 'runes' ? 34 : 28;
   const pm = new Pixmap(w, H);
   const post = 9;
@@ -1710,6 +1768,93 @@ function heapBarrier(kind: 'brambles' | 'roots' | 'shelves' | 'crates' | 'rubble
 }
 
 const CRYPT_SLAB = ramp([132, 126, 134], 0.4);
+
+// A fishing net strung tight between poles across the way, floats along
+// its top rope, weighted at the foot.
+function netBarrier(w: number): BuildingArt {
+  const H = 28;
+  const pm = new Pixmap(w, H);
+  const NET: RGB = [190, 174, 130];
+  for (let x = 0; x < w; x++) {
+    const sag = Math.round(Math.sin(((x % 44) / 44) * Math.PI) * 2);
+    for (let y = 4 + sag; y < H - 2; y++) if ((x + y) % 4 === 0 || (x - y + 400) % 4 === 0) pm.set(x, y, mix(NET, [90, 80, 60], (y / H) * 0.4));
+    pm.set(x, 3 + sag, [214, 196, 150]);
+    if (x % 9 === 4) pm.set(x, 2 + sag, [222, 120, 60]);
+    if (x % 7 === 3) pm.set(x, H - 2, [96, 98, 112]);
+  }
+  for (let x = 0; x < w; x += 44) for (let y = 0; y < H; y++) {
+    pm.set(x, y, BARK_W[1]);
+    pm.set(x + 1, y, BARK_W[2]);
+    pm.set(x + 2, y, BARK_W[3]);
+  }
+  pm.outline(OUTLINE);
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
+// A wall of dressed stone across the way with a great oak double door,
+// iron-bound, shut for a very long time (cobwebs across the gap).
+function doorBarrier(w: number): BuildingArt {
+  const H = 34;
+  const pm = new Pixmap(w, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) pm.set(x, y, cutStone(x, y, 0, 0));
+  const cx = Math.round(w / 2);
+  const dw = 30;
+  for (let y = 4; y < H; y++) {
+    for (let x = cx - dw / 2; x < cx + dw / 2; x++) {
+      if (y < 9 && Math.hypot(x - cx + 0.5, (y - 9) * 1.6) > dw / 2) continue; // arched top
+      const lx = (x - (cx - dw / 2)) % 5;
+      pm.set(x, y, lit(WOOD, (lx === 0 ? -0.6 : lx === 1 ? 0.2 : -0.05) + (x < cx ? 0.05 : -0.15) - (y < 7 ? 0.3 : 0)));
+    }
+  }
+  pm.vline(cx, 5, H - 1, [30, 22, 26]);
+  for (const by of [12, 24]) pm.hline(cx - dw / 2, cx + dw / 2 - 1, by, IRON[2]);
+  pm.set(cx - 3, 18, IRON[0]);
+  pm.set(cx + 2, 18, IRON[0]);
+  // Cobwebs across the gap.
+  for (let i = 0; i < 8; i++) pm.set(cx - 4 + i, 8 + Math.round(Math.abs(i - 3.5) * 0.6), [220, 220, 228]);
+  pm.outline(OUTLINE);
+  return { pm, anchorX: cx, anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
+// Light frozen in place across the way: a pale gold wall of light, still,
+// with motes hanging in it, brighter at its core.
+function lightBarrier(w: number): BuildingArt {
+  const H = 36;
+  const pm = new Pixmap(w, H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < w; x++) {
+      const core = 1 - Math.abs(y - H * 0.6) / (H * 0.6);
+      const a = Math.round(40 + core * 110 + Math.sin(x / 5) * 10);
+      pm.set(x, y, mix([255, 236, 170], [255, 255, 240], core), Math.max(0, Math.min(230, a)));
+    }
+  }
+  for (let x = 3; x < w; x += 7) {
+    const y = 4 + Math.round(hash2(x, 1, 511) * (H - 8));
+    pm.set(x, y, [255, 255, 255]);
+  }
+  for (let x = 0; x < w; x++) pm.set(x, H - 1, [255, 220, 130], 240);
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
+// A gaping fissure across the floor, red light welling up from below
+// (seen from above, flat, with its broken lips).
+function riftBarrier(w: number): BuildingArt {
+  const H = 22;
+  const pm = new Pixmap(w, H);
+  for (let x = 0; x < w; x++) {
+    const mid = 11 + Math.round((noise(x, 0, 23, 501) - 0.5) * 8);
+    const half = 3 + Math.round(noise(x, 1, 9, 502) * 4);
+    for (let y = mid - half - 2; y <= mid + half + 1; y++) {
+      const d = Math.abs(y - mid) / half;
+      let c: RGB;
+      if (d > 1) c = y < mid ? [70, 60, 64] : [40, 32, 36]; // broken lips
+      else if (d > 0.6) c = [30, 14, 18];
+      else c = mix([255, 120, 60], [140, 30, 30], d / 0.6 + (hash2(x, y, 503) - 0.5) * 0.3);
+      pm.set(x, y, c);
+    }
+  }
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
 
 // An iron portcullis between two stone posts, on a footprint of width w.
 export function renderGate(w: number): BuildingArt {

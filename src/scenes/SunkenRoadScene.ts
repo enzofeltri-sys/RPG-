@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { SUNKEN_ROAD } from '../world/zones/terresNoyees';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -37,17 +38,6 @@ const ODREN_LINES = [
   "Vasenoire n'est plus très loin. Suivez les passerelles, ne vous écartez pas — le fond a disparu depuis longtemps par ici.",
   'Les Limaneux contrôlent ce qui reste de terre ferme. Mieux vaut ne pas leur chercher noise.',
   "On raconte que des étrangers armés fouillent les ruines englouties depuis des mois. Personne ne sait pour le compte de qui.",
-];
-
-// Purely decorative — half-sunken ruins poking out of the water, no
-// collision, no real art yet (increment 10).
-const RUINS: { x: number; y: number }[] = [
-  { x: 80, y: 90 },
-  { x: 140, y: 60 },
-  { x: 300, y: 340 },
-  { x: 260, y: 370 },
-  { x: 190, y: 250 },
-  { x: 230, y: 100 },
 ];
 
 interface SunkenRoadData {
@@ -89,10 +79,9 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#2a3a3a');
     addZoneTitle(this, 'Route engloutie');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
-
-    RUINS.forEach((ruin) => this.add.rectangle(ruin.x, ruin.y, 22, 16, 0x2e3a38).setStrokeStyle(1, 0x141c1c));
-    this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 + 40, 280, 34, 0x1f3a3f).setStrokeStyle(1, 0x0f1e20);
+    // The causeway, the bog and the drowned ruins are drawn by the game
+    // (world/zones/terresNoyees.ts).
+    paintZone(this, SUNKEN_ROAD);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Relais des chasseurs', '→ Vasenoire']);
 

@@ -7,7 +7,7 @@
 
 import { Pixmap, RGB, Ramp, cell, hash2, lit, mix, noise, ramp } from './pixmap';
 
-export type GroundMaterial = 'grass' | 'forest' | 'cave' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop' | 'blight' | 'carpet' | 'paving' | 'mud' | 'flooded';
+export type GroundMaterial = 'grass' | 'forest' | 'cave' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop' | 'blight' | 'carpet' | 'paving' | 'mud' | 'flooded' | 'bog';
 
 export type GroundShape =
   | { kind: 'path'; material: GroundMaterial; points: [number, number][]; width: number; rough?: number }
@@ -311,6 +311,31 @@ function flooded(x: number, y: number, seed: number): RGB {
   return c;
 }
 
+// The drowned lands' standing water: dark, still and peaty, catching a
+// grey sky in short glints; scum drifting in a few patches, lily pads in
+// clusters with the odd white flower.
+const BOG = ramp([50, 76, 72], 0.5);
+function bog(x: number, y: number, seed: number): RGB {
+  const level = (noise(x, y, 26, seed) - 0.5) * 0.45 + (hash2(x, y, seed + 1) - 0.5) * 0.08;
+  let c = lit(BOG, level - 0.2);
+  const patch = noise(x, y, 16, seed + 2);
+  if (patch > 0.8) c = mix(c, [96, 112, 64], 0.5); // scum
+  // Lily pads, only where a cluster grows.
+  if (patch > 0.64) {
+    const p = cell(x, y, 9, seed + 3, 1.25);
+    if (hash2(p.id, 1, seed) < 0.5 && p.d1 < 0.28) {
+      if (p.dx > 0.02 && Math.abs(p.dy) < 0.06) return c; // the notch
+      const flower = hash2(p.id, 2, seed) < 0.12 && p.d1 < 0.08;
+      return flower ? [244, 236, 226] : lit(ramp([92, 140, 72]), -p.dy * 2 - p.dx + (p.d1 > 0.22 ? -0.6 : 0.1));
+    }
+  }
+  // Glints on the still surface.
+  const rx = Math.floor(x / 11);
+  const ry = Math.floor(y / 6);
+  if (hash2(rx, ry, seed + 4) < 0.16 && y === ry * 6 + 2 && x >= rx * 11 + 2 && x < rx * 11 + 6) c = mix(c, [196, 214, 210], 0.55);
+  return c;
+}
+
 function crop(x: number, y: number, seed: number): RGB {
   // Tilled rows of leafy plants.
   const ly = y % 7;
@@ -378,6 +403,8 @@ function material(m: GroundMaterial, x: number, y: number, seed: number): RGB {
       return dressedSlabs(x, y, seed + 53);
     case 'flooded':
       return flooded(x, y, seed + 61);
+    case 'bog':
+      return bog(x, y, seed + 67);
   }
 }
 
@@ -398,6 +425,7 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
   paving: [84, 78, 70],
   mud: MUD[4],
   flooded: [26, 40, 52],
+  bog: [40, 52, 40],
 };
 
 // Paved materials: their stones are laid one by one, so the edge of a

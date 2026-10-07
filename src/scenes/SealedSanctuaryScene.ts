@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone, placeBarrier } from '../world/zoneArt';
+import { SEALED_SANCTUARY } from '../world/zones/terresNoyees';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -55,6 +56,7 @@ export class SealedSanctuaryScene extends Phaser.Scene {
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
   private gateLabel?: PixelText;
+  private gateArt?: Phaser.GameObjects.Image;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private spawnX?: number;
@@ -75,11 +77,13 @@ export class SealedSanctuaryScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#161f2a');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Sanctuaire scellé');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    // Ground, walls, decor and light drawn by the game (world/zones/terresNoyees.ts).
+    const painted = paintZone(this, SEALED_SANCTUARY);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -159,7 +163,7 @@ export class SealedSanctuaryScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const pillar = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2a3540).setStrokeStyle(1, 0x11161c);
+      const rect = this.add.rectangle(x, y, w, h).setVisible(false);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -170,9 +174,8 @@ export class SealedSanctuaryScene extends Phaser.Scene {
   }
 
   private addGate(): void {
-    this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2a3a4a)
-      .setStrokeStyle(1, 0x111c22);
+    this.gate = this.add.rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16).setVisible(false);
+    this.gateArt = placeBarrier(this, 'runes', WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
     this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Sceau runique intact', {
@@ -186,6 +189,7 @@ export class SealedSanctuaryScene extends Phaser.Scene {
     this.gateCollider?.destroy();
     this.gate?.destroy();
     this.gateLabel?.destroy();
+    this.gateArt?.destroy();
   }
 
   private addEncounterZone(encounter: EncounterMarker): void {

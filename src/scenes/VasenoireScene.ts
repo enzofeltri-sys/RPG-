@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { VASENOIRE } from '../world/zones/terresNoyees';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -62,30 +63,10 @@ export class VasenoireScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2e3a34');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
+    // The town on stilts is drawn by the game (world/zones/terresNoyees.ts).
+    paintZone(this, VASENOIRE);
 
     addZoneTitle(this, 'Vasenoire');
-
-    // Stilt huts and a boardwalk, purely decorative. No dedicated
-    // stilt-hut-on-water sprite found in the supplied packs (the aquatic
-    // pack is underwater props, not buildings) — reuses the same generic
-    // house sprites as every other hamlet/village for now.
-    const hut1 = this.add.rectangle(60, 100, 50, 38, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    void attachSpriteOverlay(this, hut1, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 50);
-    const hut2 = this.add.rectangle(180, 90, 44, 34, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    void attachSpriteOverlay(this, hut2, 'decor-stone_house', `${import.meta.env.BASE_URL}sprites/decor/stone_house.png`, 44);
-    const hut3 = this.add.rectangle(120, 220, 60, 40, 0x4a3a30).setStrokeStyle(1, 0x241d16);
-    void attachSpriteOverlay(this, hut3, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 60);
-    const boardwalk = this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 200, 20, 0x3a4a44).setStrokeStyle(1, 0x1c2622);
-    void attachSpriteOverlay(this, boardwalk, 'decor-boardwalk_planks', `${import.meta.env.BASE_URL}sprites/decor/boardwalk_planks.png`, 40);
-
-    // Murky standing water either side of the boardwalk — a swamp town
-    // with nothing wet in sight always read as an odd gap. No collision,
-    // same reasoning as every other decorative element here.
-    const water1 = this.add.ellipse(40, 190, 34, 18, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
-    const water2 = this.add.ellipse(210, 190, 30, 16, 0x2e4038, 0.85).setStrokeStyle(1, 0x1a2620);
-    void attachSpriteOverlay(this, water1, 'decor-water_murky', `${import.meta.env.BASE_URL}sprites/decor/water_murky.png`, 34);
-    void attachSpriteOverlay(this, water2, 'decor-water_murky', `${import.meta.env.BASE_URL}sprites/decor/water_murky.png`, 30);
 
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
@@ -94,14 +75,13 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(this.yenn, true);
     addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
-    this.merchantStall = this.add.rectangle(50, 170, 28, 22, 0x5a4a30).setStrokeStyle(1, 0x241d16);
+    // Collision boxes for the stall and the forge (both drawn by the game).
+    this.merchantStall = this.add.rectangle(50, 170, 28, 22).setVisible(false);
     this.physics.add.existing(this.merchantStall, true);
-    void attachSpriteOverlay(this, this.merchantStall, 'decor-merchant_stall', `${import.meta.env.BASE_URL}sprites/decor/merchant_stall.png`, 30);
     addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
-    this.forge = this.add.rectangle(190, 230, 32, 26, 0x3a3a3a).setStrokeStyle(1, 0x161616);
+    this.forge = this.add.rectangle(190, 230, 32, 26).setVisible(false);
     this.physics.add.existing(this.forge, true);
-    void attachSpriteOverlay(this, this.forge, 'decor-blacksmith_forge', `${import.meta.env.BASE_URL}sprites/decor/blacksmith_forge.png`, 32);
     addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
@@ -116,6 +96,12 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.merchantStall);
     this.physics.add.collider(this.player, this.forge);
     this.physics.add.collider(this.player, this.toma);
+    // The huts' collision boxes.
+    Object.values(VASENOIRE.buildings!).forEach((b) => {
+      const rect = this.add.rectangle(b.x, b.y, b.w, b.h).setVisible(false);
+      this.physics.add.existing(rect, true);
+      this.physics.add.collider(this.player, rect);
+    });
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

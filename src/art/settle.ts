@@ -217,6 +217,9 @@ export const PROP_SETTLE: Record<string, PropSettle> = {
   blight_tree: { vary: true },
   thorns: { vary: true },
   black_well: { wear: [17, 8, 'blight'] },
+  swamp_tree: { vary: true },
+  sunken_ruin: { vary: true },
+  smithy: { wear: [18, 7] },
 };
 
 // The dark outline under the foot of a sprite reads like a sticker edge:

@@ -23,6 +23,19 @@ import {
   WAYSTATION,
 } from './aiglemontDepths';
 import { INTERIORS } from './interiors';
+import { RITE_ANNEX, RITE_ARCHIVE, SANCTUARY_DEPTHS, SEAL_DEPTHS, WATCHERS_LODGE } from './startDepths';
+import {
+  BROKEN_SLEEP,
+  BROTHERHOOD_TOMB,
+  CLANDESTINE_DOCK,
+  SEALED_SANCTUARY,
+  SHARD_SEEKERS_CAMP,
+  SILENT_WATCH,
+  SUNKEN_ROAD,
+  SUNKEN_RUINS,
+  VASENOIRE,
+  WARD_CORE,
+} from './terresNoyees';
 
 // Every zone drawn by the game, for the painter's neighbor drawing and the
 // mockup script.
@@ -41,6 +54,11 @@ export const ALL_ZONES: ZoneArt[] = [
   OLD_WELL,
   FORGOTTEN_GRAVE,
   SEAL_CHAMBER,
+  WATCHERS_LODGE,
+  RITE_ARCHIVE,
+  RITE_ANNEX,
+  SANCTUARY_DEPTHS,
+  SEAL_DEPTHS,
   ...Object.values(INTERIORS),
   // Aiglemont and its surroundings.
   ROAD,
@@ -60,4 +78,15 @@ export const ALL_ZONES: ZoneArt[] = [
   MARSH_LAIR,
   BLIGHTED_GROVE,
   WAYSTATION,
+  // Les Terres Noyées.
+  SUNKEN_ROAD,
+  VASENOIRE,
+  CLANDESTINE_DOCK,
+  SUNKEN_RUINS,
+  SEALED_SANCTUARY,
+  SHARD_SEEKERS_CAMP,
+  BROTHERHOOD_TOMB,
+  BROKEN_SLEEP,
+  SILENT_WATCH,
+  WARD_CORE,
 ];

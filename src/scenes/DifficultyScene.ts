@@ -133,6 +133,9 @@ export class DifficultyScene extends Phaser.Scene {
     character.difficulty = this.mode === 'nuzlocke' ? 'normal' : this.mode;
     character.permadeath = this.mode === 'nuzlocke' || (this.mode === 'hard' && this.hardPermadeath);
     if (this.randomizer) character.randomizerSeed = newRandomizerSeed();
+    // Only now does a new adventure replace the previous save (the title
+    // screen no longer wipes it before creation, so backing out is safe).
+    await SaveManager.createNewGame();
     await SaveManager.saveCharacter(character);
     this.scene.start('Hamlet');
   }

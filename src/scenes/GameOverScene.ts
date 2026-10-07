@@ -1,11 +1,7 @@
 import Phaser from 'phaser';
 import { CLASSES, CharClass, RACES, Race } from '../game/character';
 import { MAP_LOCATIONS } from '../game/worldMap';
-import { addCrispText } from '../ui/text';
-
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
-const MUTED = '#9aa0a6';
+import { INK, KitButton, PAL, addPanel, panelText, preloadUiKit } from '../ui/kit';
 
 interface Epitaph {
   race: Race;
@@ -29,43 +25,37 @@ export class GameOverScene extends Phaser.Scene {
     this.epitaph = data;
   }
 
+  preload(): void {
+    preloadUiKit(this);
+  }
+
+  // UI style A: a parchment epitaph on a dark backdrop, then back to the title.
   create(): void {
-    const { width, height } = this.scale;
-    this.cameras.main.setBackgroundColor('#0b0c10');
+    const { width } = this.scale;
+    this.cameras.main.setBackgroundColor(PAL.k);
     this.cameras.main.fadeIn(600);
     const e = this.epitaph;
 
-    addCrispText(this, width / 2, height * 0.22, 'Votre aventure s’achève', {
-      fontSize: '16px',
-      color: GOLD,
-    }).setOrigin(0.5);
-
+    panelText(this, width / 2, 70, 'Votre aventure s’achève', 13, INK.light).setOrigin(0.5, 0);
+    addPanel(this, 20, 104, width - 40, 150);
+    panelText(this, width / 2, 116, 'Ci-gît', 11).setOrigin(0.5, 0);
     if (e) {
       const place = MAP_LOCATIONS.find((l) => l.key === e.scene)?.label ?? 'les terres de Vaeloria';
-      addCrispText(
+      panelText(this, width / 2, 138, `${RACES[e.race].label} ${CLASSES[e.charClass].label}, niveau ${e.level}`, 10).setOrigin(0.5, 0);
+      panelText(
         this,
         width / 2,
-        height * 0.42,
-        [
-          `${RACES[e.race].label} ${CLASSES[e.charClass].label}, niveau ${e.level}`,
-          '',
-          `Tombé face à : ${e.monster}`,
-          `Lieu : ${place}`,
-          '',
-          `Mode : ${e.mode}`,
-        ].join('\n'),
-        { fontSize: '11px', color: MUTED, align: 'center', lineSpacing: 4, wordWrap: { width: width - 30 } },
-      ).setOrigin(0.5);
+        164,
+        [`Tombé face à : ${e.monster}`, `Lieu : ${place}`, '', `Mode : ${e.mode}`].join('\n'),
+        8,
+        INK.soft,
+        { align: 'center', lineSpacing: 3, wordWrap: { width: width - 70 } },
+      ).setOrigin(0.5, 0);
     }
-
-    const button = addCrispText(this, width / 2, height * 0.78, "Retour à l'écran titre", {
-      fontSize: '12px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    button.on('pointerdown', () => this.scene.start('Title'));
+    new KitButton(this, 32, 290, width - 64, 30, "Retour à l'écran titre", {
+      size: 10,
+      align: 'center',
+      onClick: () => this.scene.start('Title'),
+    });
   }
 }

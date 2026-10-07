@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
+import { CLASSES, Character, RACES } from '../game/character';
+import { modeLabel } from '../game/difficulty';
 import { SaveManager } from '../save/SaveManager';
-import { addCrispText } from '../ui/text';
-import { preloadUiKit } from '../ui/kit';
+import { INK, KitButton, addPanel, panelText, preloadUiKit } from '../ui/kit';
 
 export class TitleScene extends Phaser.Scene {
+  private confirmNewGame = false;
+
   constructor() {
     super('Title');
   }
@@ -15,40 +18,55 @@ export class TitleScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     document.getElementById('boot-status')?.remove();
-
-    const { width, height } = this.scale;
-
-    addCrispText(this, width / 2, height * 0.28, 'Le Sceau\nde Vaeloria', {
-      fontSize: '27px',
-      color: '#e8d9b5',
-      align: 'center',
-    }).setOrigin(0.5);
-
-    const hasSave = await SaveManager.hasSave();
-
-    this.createButton(width / 2, height * 0.55, 'Nouvelle partie', async () => {
-      await SaveManager.createNewGame();
-      this.scene.start('CharacterCreation');
-    });
-
-    if (hasSave) {
-      this.createButton(width / 2, height * 0.63, 'Continuer', async () => {
-        await SaveManager.load();
-        this.scene.start('Hamlet');
-      });
-    }
+    this.confirmNewGame = false;
+    const save = await SaveManager.load();
+    this.render(save?.character);
   }
 
-  private createButton(x: number, y: number, label: string, onClick: () => void): void {
-    const text = addCrispText(this, x, y, label, {
-      fontSize: '15px',
-      color: '#0b0c10',
-      backgroundColor: '#e8d9b5',
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
+  // Title in UI style A: the meadow backdrop (a placeholder until the
+  // decor step paints a proper title illustration), the name on a
+  // parchment banner, and the two choices as kit buttons.
+  private render(character?: Character): void {
+    this.children.removeAll(true);
+    const { width } = this.scale;
+    this.add.image(0, 0, 'ui-battle-grass').setOrigin(0, 0);
 
-    text.on('pointerdown', onClick);
+    addPanel(this, 20, 64, width - 40, 92);
+    panelText(this, width / 2, 80, 'Le Sceau', 20).setOrigin(0.5, 0);
+    panelText(this, width / 2, 108, 'de Vaeloria', 20).setOrigin(0.5, 0);
+
+    const buttonW = 152;
+    const x = (width - buttonW) / 2;
+    if (character) {
+      new KitButton(this, x, 214, buttonW, 30, 'Continuer', {
+        icon: 'door',
+        size: 11,
+        onClick: () => this.scene.start('Hamlet'),
+      });
+      addPanel(this, x, 248, buttonW, 30);
+      panelText(this, width / 2, 254, `${RACES[character.race].label} ${CLASSES[character.class].label} · niveau ${character.level}`, 8).setOrigin(0.5, 0);
+      panelText(this, width / 2, 265, modeLabel(character), 7, INK.soft).setOrigin(0.5, 0);
+    }
+    // With a save, a first tap only asks: a new adventure replaces it once
+    // its mode is confirmed (DifficultyScene).
+    new KitButton(this, x, character ? 290 : 230, buttonW, 30, this.confirmNewGame ? 'Remplacer la partie ?' : 'Nouvelle partie', {
+      icon: 'star',
+      size: this.confirmNewGame ? 9 : 11,
+      onClick: () => {
+        if (character && !this.confirmNewGame) {
+          this.confirmNewGame = true;
+          this.render(character);
+          return;
+        }
+        this.scene.start('CharacterCreation');
+      },
+    });
+    if (this.confirmNewGame) {
+      addPanel(this, x, 324, buttonW, 34);
+      panelText(this, width / 2, 331, "L'ancienne partie sera effacée au moment de commencer.", 7, INK.danger, {
+        align: 'center',
+        wordWrap: { width: buttonW - 16 },
+      }).setOrigin(0.5, 0);
+    }
   }
 }

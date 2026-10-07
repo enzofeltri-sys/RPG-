@@ -257,6 +257,10 @@ function addLighting(scene: Phaser.Scene, art: ZoneArt): { follow(target: { x: n
     rt.clear();
     rt.stamp(key, undefined, 0, 0, { originX: 0, originY: 0 });
     if (target) rt.stamp(heroKey, undefined, Math.round(target.x) + mx, Math.round(target.y) + my, { blendMode: Phaser.BlendModes.ADD });
+    // The stamp leaves the renderer in ADD mode; the camera would then add
+    // its background over the page's color (visible around small rooms).
+    const renderer = scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+    if (renderer.type === Phaser.WEBGL) renderer.setBlendMode(Phaser.BlendModes.NORMAL);
   };
   redraw();
   scene.events.on(Phaser.Scenes.Events.POST_UPDATE, redraw);

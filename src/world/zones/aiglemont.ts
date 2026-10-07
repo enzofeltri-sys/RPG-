@@ -211,9 +211,10 @@ export const ROAD: ZoneArt = {
 };
 
 // Le Faubourg des quais: the docks outside the walls. Muddy lanes, a
-// harbour basin crossed by a plank footbridge (the scene blocks the water
-// either side of it), tarred shacks, a storehouse by the lane north to
-// the warehouse, nets and boats, puddles.
+// canal from the river crossing the whole district between two flagged
+// quays (the scene can't walk on the water; a footbridge crosses it),
+// boats moored along the north quay, tarred shacks, a storehouse by the
+// lane north to the warehouse, nets drying, puddles.
 export const FAUBOURG: ZoneArt<'store' | 'shackW' | 'shackE' | 'shackS'> = {
   key: 'faubourg',
   ground: {
@@ -224,48 +225,56 @@ export const FAUBOURG: ZoneArt<'store' | 'shackW' | 'shackE' | 'shackS'> = {
     shapes: [
       // Worn cobbled lanes: north-south to the warehouse and the city, west
       // to the drowned chapel, east to the river road.
-      { kind: 'path', material: 'cobble', width: 24, points: [[130, 0], [128, 120], [132, 200], [130, 280]] },
+      { kind: 'path', material: 'cobble', width: 24, points: [[130, 0], [128, 120], [132, 200], [130, 262]] },
       { kind: 'path', material: 'cobble', width: 22, points: [[130, 330], [128, 400]] },
       { kind: 'path', material: 'cobble', width: 20, points: [[0, 200], [80, 206], [132, 200], [200, 196], [260, 200]] },
-      // The quay around the basin, the basin itself.
-      { kind: 'rect', material: 'planks', x: 52, y: 270, w: 156, h: 64 },
-      { kind: 'rect', material: 'water', x: 66, y: 284, w: 128, h: 36 },
-      // Puddles and a scrap of grass at the edges.
+      // The quays and the canal between them, edge to edge.
+      { kind: 'rect', material: 'paving', x: -20, y: 262, w: 300, h: 24 },
+      { kind: 'rect', material: 'water', x: -20, y: 286, w: 300, h: 30 },
+      { kind: 'rect', material: 'paving', x: -20, y: 316, w: 300, h: 12 },
+      // Puddles and scraps of grass at the edges.
       { kind: 'ellipse', material: 'marsh', x: 20, y: 228, w: 30, h: 14, rough: 3 },
       { kind: 'ellipse', material: 'marsh', x: 196, y: 238, w: 24, h: 10, rough: 2 },
       { kind: 'ellipse', material: 'grass', x: 196, y: 340, w: 70, h: 60, rough: 8 },
-      { kind: 'ellipse', material: 'grass', x: -10, y: 330, w: 60, h: 80, rough: 8 },
+      { kind: 'ellipse', material: 'grass', x: -10, y: 336, w: 60, h: 80, rough: 8 },
     ],
   },
-  bridges: [{ x: 116, y: 281, w: 28, h: 42 }],
-  // The basin's water either side of the footbridge.
+  // The north quay's wall going down into the water, the footbridge.
+  patches: [{ material: 'quay', x: 130, y: 288, w: 260, h: 6 }],
+  bridges: [{ x: 114, y: 280, w: 32, h: 42 }],
+  // The canal either side of the footbridge.
   solids: [
-    { x: 91, y: 302, w: 50, h: 36 },
-    { x: 169, y: 302, w: 50, h: 36 },
+    { x: 57, y: 301, w: 114, h: 28 },
+    { x: 203, y: 301, w: 114, h: 28 },
   ],
   buildings: {
     store: { kind: 'storehouse', x: 50, y: 42, w: 80, h: 50 },
     shackW: { kind: 'dock_shack', x: 60, y: 150, w: 46, h: 32 },
     shackE: { kind: 'dock_shack', x: 206, y: 140, w: 44, h: 32 },
-    shackS: { kind: 'dock_shack', x: 214, y: 372, w: 40, h: 28 },
+    shackS: { kind: 'dock_shack', x: 214, y: 376, w: 40, h: 28 },
   },
   props: [
-    // On the quay: crates, barrels, rope, mooring posts, nets, boats.
-    { kind: 'rowboat', x: 92, y: 302, seed: 1 },
-    { kind: 'rowboat', x: 170, y: 308, seed: 2 },
-    { kind: 'mooring_post', x: 70, y: 280 },
-    { kind: 'mooring_post', x: 186, y: 280 },
-    { kind: 'mooring_post', x: 70, y: 330 },
-    { kind: 'crate', x: 80, y: 270 },
-    { kind: 'crate', x: 88, y: 276 },
-    { kind: 'barrel', x: 190, y: 314 },
-    { kind: 'barrel', x: 200, y: 322 },
-    { kind: 'sacks', x: 176, y: 334 },
-    { kind: 'net_rack', x: 34, y: 300, seed: 1 },
-    { kind: 'net_rack', x: 226, y: 290, seed: 2 },
+    // Boats moored along the north quay, their posts on the flagstones.
+    { kind: 'rowboat', x: 54, y: 310, seed: 1 },
+    { kind: 'rowboat', x: 196, y: 312, seed: 2 },
+    { kind: 'rowboat', x: 238, y: 306, seed: 3 },
+    { kind: 'mooring_post', x: 36, y: 282 },
+    { kind: 'mooring_post', x: 84, y: 282 },
+    { kind: 'mooring_post', x: 182, y: 282 },
+    { kind: 'mooring_post', x: 224, y: 282 },
+    // On the quays: nets, crates, barrels, sacks.
+    { kind: 'net_rack', x: 26, y: 276, seed: 1 },
+    { kind: 'crate', x: 100, y: 272 },
+    { kind: 'crate', x: 92, y: 278 },
+    { kind: 'barrel', x: 166, y: 274 },
+    { kind: 'barrel', x: 174, y: 280 },
+    { kind: 'sacks', x: 246, y: 274 },
+    { kind: 'crate', x: 30, y: 326 },
+    { kind: 'barrel', x: 236, y: 326 },
     // Along the lanes.
     { kind: 'lamppost', x: 112, y: 214 },
     { kind: 'lamppost', x: 150, y: 116 },
+    { kind: 'lamppost', x: 112, y: 262 },
     { kind: 'barrel', x: 92, y: 160 },
     { kind: 'crate', x: 24, y: 168 },
     { kind: 'crate', x: 240, y: 156 },
@@ -274,12 +283,13 @@ export const FAUBOURG: ZoneArt<'store' | 'shackW' | 'shackE' | 'shackS'> = {
     { kind: 'barrel', x: 100, y: 72 },
     { kind: 'sacks', x: 24, y: 80 },
     { kind: 'woodpile', x: 26, y: 116 },
+    { kind: 'net_rack', x: 230, y: 242, seed: 2 },
     // Scrub at the edges.
-    { kind: 'bush', x: 236, y: 350, seed: 3 },
+    { kind: 'bush', x: 236, y: 352, seed: 3 },
     { kind: 'reeds', x: 26, y: 236, seed: 4 },
     { kind: 'reeds', x: 204, y: 246, seed: 5 },
-    { kind: 'tree', x: 16, y: 380, seed: 6 },
-    { kind: 'bush', x: 40, y: 392, seed: 7 },
+    { kind: 'tree', x: 16, y: 386, seed: 6 },
+    { kind: 'bush', x: 40, y: 396, seed: 7 },
   ],
   next: ['city', 'river-road'],
   preview: {

@@ -1626,6 +1626,30 @@ function cellarHatch(w: number, h: number): PropArt {
   return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
 }
 
+// The face of a quay wall going down into the water (flat, anchor at the
+// center): courses of cut stone, a lit coping, iron mooring rings, green
+// slime and a dark wet band at the water line.
+function quayFace(w: number, h: number): PropArt {
+  const pm = new Pixmap(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const course = Math.floor((y - 1) / 3);
+      const lx = (x + (course % 2) * 5) % 10;
+      let c: RGB = y === 0 ? CUT_P[0] : lx === 0 || (y - 1) % 3 === 0 ? CUT_P[4] : lit(CUT_P, -0.25 - y * 0.06 + (hash2(Math.floor((x + (course % 2) * 5) / 10), course, 381) - 0.5) * 0.4);
+      if (y >= h - 2) c = mix(c, [40, 66, 50], 0.6);
+      else if (y > 1 && noise(x, y, 4, 382) > 0.7) c = mix(c, [70, 100, 60], 0.45);
+      pm.set(x, y, c);
+    }
+  }
+  for (let x = 20; x < w - 4; x += 44) {
+    pm.set(x, 2, IRON[1]);
+    pm.set(x - 1, 3, IRON[2]);
+    pm.set(x + 1, 3, IRON[2]);
+    pm.set(x, 4, IRON[3]);
+  }
+  return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
+}
+
 // Stone steps going down into the dark between two low side walls,
 // seen from above (flat, anchor at the center): the top step lit, each
 // one below it darker.
@@ -1659,12 +1683,13 @@ function stairsDown(w: number, h: number): PropArt {
   return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
 }
 
-export type PatchKind = 'crop' | 'water' | 'planks' | 'lava' | 'marsh' | 'hatch' | 'stairs';
+export type PatchKind = 'crop' | 'water' | 'planks' | 'lava' | 'marsh' | 'hatch' | 'stairs' | 'quay';
 
 function patch(material: PatchKind, w: number, h: number): PropArt {
   const pm = new Pixmap(w, h);
   if (material === 'hatch') return cellarHatch(w, h);
   if (material === 'stairs') return stairsDown(w, h);
+  if (material === 'quay') return quayFace(w, h);
   if (material === 'lava') {
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {

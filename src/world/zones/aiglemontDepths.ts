@@ -344,10 +344,13 @@ export const SUNKEN_CHAPEL: ZoneArt = {
     seed: 371,
     shapes: [
       { kind: 'rect', material: 'aisle', x: 90, y: 0, w: 40, h: 420 },
-      { kind: 'ellipse', material: 'marsh', x: 30, y: 250, w: 70, h: 50, rough: 6 },
-      { kind: 'ellipse', material: 'marsh', x: 130, y: 330, w: 70, h: 40, rough: 6 },
-      { kind: 'ellipse', material: 'water', x: 140, y: 120, w: 50, h: 30, rough: 4 },
-      { kind: 'ellipse', material: 'marsh', x: 30, y: 60, w: 50, h: 40, rough: 5 },
+      // The flood: standing water over the nave's slabs, deeper pools.
+      { kind: 'ellipse', material: 'flooded', x: 20, y: 236, w: 90, h: 70, rough: 8 },
+      { kind: 'ellipse', material: 'flooded', x: 120, y: 316, w: 90, h: 60, rough: 8 },
+      { kind: 'ellipse', material: 'flooded', x: 120, y: 100, w: 90, h: 60, rough: 8 },
+      { kind: 'ellipse', material: 'flooded', x: 20, y: 40, w: 70, h: 60, rough: 6 },
+      { kind: 'ellipse', material: 'water', x: 146, y: 118, w: 40, h: 22, rough: 3 },
+      { kind: 'ellipse', material: 'water', x: 40, y: 262, w: 30, h: 16, rough: 3 },
     ],
   },
   walls: enclosure(420, 'mossy', FOUR_24, { backFace: 16 }),
@@ -363,7 +366,6 @@ export const SUNKEN_CHAPEL: ZoneArt = {
   dprops: [
     d('pillar', 60, 330),
     d('pillar', 160, 100),
-    d('puddle', 100, 230),
     d('puddle', 70, 380),
     d('rubble', 60, 200),
     d('rubble', 176, 160),

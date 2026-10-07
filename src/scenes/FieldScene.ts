@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { FIELD } from '../world/zones/field';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { materialLabel, MaterialId } from '../game/material';
@@ -57,25 +58,6 @@ const GATHER_NODES: GatherNode[] = [
 // as immediate as it did before for genuine play.
 const GATHER_COOLDOWN_MS = 5000;
 
-// Purely decorative — no collision, no real art yet (increment 10). Just
-// enough visual density that the Champ doesn't read as an empty box.
-const TREES: { x: number; y: number }[] = [
-  { x: 50, y: 60 },
-  { x: 420, y: 60 },
-  { x: 330, y: 100 },
-  { x: 60, y: 260 },
-  { x: 430, y: 260 },
-  { x: 300, y: 260 },
-  { x: 150, y: 440 },
-];
-
-const ROCKS: { x: number; y: number }[] = [
-  { x: 150, y: 90 },
-  { x: 240, y: 140 },
-  { x: 180, y: 320 },
-  { x: 400, y: 440 },
-];
-
 interface FieldData {
   x?: number;
   y?: number;
@@ -108,9 +90,8 @@ export class FieldScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
     addZoneTitle(this, 'Le Champ');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
-
-    this.drawDecorations();
+    // Ground, stream, bridge and decor drawn by the game (world/zones/field.ts).
+    paintZone(this, FIELD);
 
     // A bit of grazing livestock — pure ambiance, south bank only (river
     // colliders aren't set up yet at this point, so keep clear of the
@@ -182,7 +163,6 @@ export class FieldScene extends Phaser.Scene {
     ]);
 
     GATHER_NODES.forEach((node) => {
-      this.add.rectangle(node.x, node.y, 16, 16, 0x6b5a3a).setStrokeStyle(1, 0x0b0c10);
       addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
     });
 
@@ -251,30 +231,20 @@ export class FieldScene extends Phaser.Scene {
     }
   }
 
-  private drawDecorations(): void {
-    TREES.forEach((tree) => this.add.circle(tree.x, tree.y, 10, 0x24401f).setStrokeStyle(1, 0x162a13));
-    ROCKS.forEach((rock) => this.add.rectangle(rock.x, rock.y, 14, 10, 0x5a5a52).setStrokeStyle(1, 0x35352f));
-  }
 
   private addRiver(): void {
     const color = 0x2e5a7a;
     const rightWidth = WORLD_WIDTH - BRIDGE_X - BRIDGE_WIDTH;
 
-    const leftRiver = this.add
-      .rectangle(BRIDGE_X / 2, RIVER_Y, BRIDGE_X, RIVER_HEIGHT, color)
-      .setStrokeStyle(1, 0x1a3a50);
+    // Collision only: the stream and its bridge are drawn by paintZone().
+    const leftRiver = this.add.rectangle(BRIDGE_X / 2, RIVER_Y, BRIDGE_X, RIVER_HEIGHT, color).setVisible(false);
     this.physics.add.existing(leftRiver, true);
     this.physics.add.collider(this.player, leftRiver);
 
-    const rightRiver = this.add
-      .rectangle(BRIDGE_X + BRIDGE_WIDTH + rightWidth / 2, RIVER_Y, rightWidth, RIVER_HEIGHT, color)
-      .setStrokeStyle(1, 0x1a3a50);
+    const rightRiver = this.add.rectangle(BRIDGE_X + BRIDGE_WIDTH + rightWidth / 2, RIVER_Y, rightWidth, RIVER_HEIGHT, color).setVisible(false);
     this.physics.add.existing(rightRiver, true);
     this.physics.add.collider(this.player, rightRiver);
 
-    this.add
-      .rectangle(BRIDGE_X + BRIDGE_WIDTH / 2, RIVER_Y, BRIDGE_WIDTH, RIVER_HEIGHT, 0x6b4a2f)
-      .setStrokeStyle(1, 0x2e1f14);
   }
 
   private rollNextEncounterThreshold(): void {

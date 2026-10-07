@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Facing, facingFrom } from './heroSprite';
+import { drawnOverlay } from '../world/drawnArt';
 
 // Shared by player.ts, wanderer.ts, and any scene overlaying a real sprite
 // on top of an existing collision rectangle: loads the texture on demand
@@ -15,6 +16,15 @@ export async function attachSpriteOverlay(
   url: string,
   displaySize: number,
 ): Promise<void> {
+  // Things the game now draws itself (buildings, decor, people): built on
+  // the spot, sized and anchored by their own art rather than displaySize.
+  const drawn = drawnOverlay(scene, target, textureKey);
+  if (drawn) {
+    (target.getData('appearanceImage') as Phaser.GameObjects.GameObject | undefined)?.destroy();
+    target.setData('appearanceImage', drawn);
+    target.setVisible(false);
+    return;
+  }
   if (!scene.textures.exists(textureKey)) {
     await new Promise<void>((resolve) => {
       scene.load.image(textureKey, url);
@@ -64,7 +74,7 @@ export async function attachSpriteOverlay(
 // tracking position correctly, but reading as "not actually walking."
 export function syncSpriteOverlay(target: Phaser.GameObjects.Shape, moving = false): void {
   const image = target.getData('appearanceImage') as Phaser.GameObjects.Image | undefined;
-  if (!image) return;
+  if (!image || image.getData('static')) return;
   const heroSheet = target.getData('heroSheet') as string | undefined;
   if (heroSheet && image instanceof Phaser.GameObjects.Sprite) {
     // Animated hero (heroSprite.ts): walk cycle facing the way it moves.

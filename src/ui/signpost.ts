@@ -1,24 +1,16 @@
 import Phaser from 'phaser';
 import { addCrispText } from './text';
-import { EXIT_TEXT, PAL } from './kit';
+import { EXIT_TEXT } from './kit';
+import { placeProp } from '../world/drawnArt';
 
 // A landmark at a crossroads: a small wooden post plus an always-readable
 // list of directions, e.g. ['↓ Basse-Combe', '↑ Repaire du Loup', '→ Forêt'].
 // Purely informational — visible as soon as the player is nearby, in the
 // same outlined style as the zone's exit labels.
 export function addSignpost(scene: Phaser.Scene, x: number, y: number, directions: string[]): void {
-  const g = scene.add.graphics();
-  const px = Math.round(x / 2) * 2;
-  const py = Math.round(y / 2) * 2;
-  // Post.
-  g.fillStyle(PAL.k, 1).fillRect(px - 4, py - 18, 8, 30);
-  g.fillStyle(PAL.b, 1).fillRect(px - 2, py - 16, 4, 26);
-  g.fillStyle(PAL.n, 1).fillRect(px - 2, py - 16, 2, 26);
-  // Board.
-  g.fillStyle(PAL.k, 1).fillRect(px - 16, py - 24, 32, 14);
-  g.fillStyle(PAL.n, 1).fillRect(px - 14, py - 22, 28, 10);
-  g.fillStyle(PAL.N, 1).fillRect(px - 14, py - 22, 28, 2);
-  g.fillStyle(PAL.b, 1).fillRect(px - 10, py - 18, 20, 2);
+  // The post itself is world art drawn by the game, standing at the foot
+  // of where the old drawn post was.
+  placeProp(scene, 'signpost', Math.round(x), Math.round(y) + 12, 3);
 
   addCrispText(scene, x, y - 30, directions.join('\n'), {
     fontSize: '9px',

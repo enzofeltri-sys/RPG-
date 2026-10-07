@@ -30,6 +30,7 @@ const CLOTH_BLUE = ramp([70, 110, 180]);
 const CANVAS = ramp([234, 226, 206], 0.4);
 const WATER = ramp([62, 112, 150], 0.4);
 const LINEN: RGB = [242, 236, 220];
+const CLAY_P = ramp([170, 104, 70]);
 const SHADOW: RGB = [20, 28, 20];
 const FLOWERS: RGB[] = [
   [236, 92, 96],
@@ -983,6 +984,204 @@ function stump(seed: number): PropArt {
   return { pm, anchorX: 9, anchorY: base };
 }
 
+// A weathered stone altar: a thick slab on a base, a carved band, candles
+// and a few offerings (flowers, a bowl).
+function altar(): PropArt {
+  const pm = new Pixmap(34, 30);
+  const base = 27;
+  groundShadow(pm, 19, base, 15, 2.5);
+  const AL = ramp([168, 162, 150], 0.5);
+  // Base block.
+  for (let y = 14; y <= base; y++) for (let x = 5; x <= 28; x++) {
+    const f = cell(x, y, 5, 12, 1.6);
+    pm.set(x, y, lit(AL, (x === 5 ? 0.4 : x === 28 ? -0.7 : -0.1) + (f.d2 - f.d1 < 0.1 ? -0.6 : (hash2(f.id, 1, 3) - 0.5) * 0.4) + (y > base - 2 ? -0.4 : 0)));
+  }
+  // Carved band with a sun sign.
+  for (let x = 7; x <= 26; x++) pm.set(x, 18, AL[3]);
+  for (let x = 7; x <= 26; x++) pm.set(x, 19, AL[1]);
+  pm.set(16, 21, AL[4]);
+  pm.set(17, 21, AL[4]);
+  pm.set(16, 22, AL[4]);
+  pm.set(17, 22, AL[4]);
+  for (const [dx, dy] of [[-2, 0], [3, 0], [0, -2], [1, -2], [0, 3], [1, 3]]) pm.set(16 + dx, 21 + dy, AL[3]);
+  // Top slab, overhanging, lit.
+  for (let y = 9; y <= 13; y++) for (let x = 2; x <= 31; x++) pm.set(x, y, lit(AL, (y === 9 ? 0.7 : y === 13 ? -0.6 : 0.3) + (x === 2 ? 0.2 : x === 31 ? -0.5 : 0) + (hash2(x, y, 4) - 0.5) * 0.25));
+  // Moss on the slab's edge.
+  for (let x = 3; x < 12; x++) if (hash2(x, 1, 8) < 0.5) pm.set(x, 13, MOSS[2]);
+  // Candles, a bowl, flowers.
+  for (const [cx, hgt] of [[6, 5], [9, 3], [27, 4]] as [number, number][]) {
+    for (let j = 0; j < hgt; j++) pm.set(cx, 8 - j, j === hgt - 1 ? [252, 244, 220] : [236, 226, 200]);
+    pm.set(cx, 8 - hgt, [255, 220, 120]);
+    pm.set(cx, 7 - hgt, [250, 160, 70]);
+  }
+  for (let x = 14; x <= 19; x++) pm.set(x, 8, x === 14 ? CLAY_P[1] : x === 19 ? CLAY_P[3] : CLAY_P[2]);
+  pm.hline(15, 18, 7, [214, 180, 80]);
+  pm.set(22, 8, [236, 92, 96]);
+  pm.set(23, 7, [248, 212, 92]);
+  pm.set(24, 8, [246, 244, 236]);
+  pm.set(23, 8, LEAVES[2]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 17, anchorY: base };
+}
+
+// A standing stone: a tall weathered menhir with lichen and a carved
+// spiral, leaning slightly.
+function standingStone(seed: number): PropArt {
+  const pm = new Pixmap(18, 34);
+  const base = 31;
+  groundShadow(pm, 11, base, 7, 2);
+  const MEN = ramp([138, 136, 128], 0.5);
+  const lean = seed % 2 ? 1 : -1;
+  for (let y = 2; y <= base; y++) {
+    const t = (y - 2) / (base - 2);
+    const hw = Math.round(3 + t * 3.5 + (y < 5 ? -1 : 0));
+    const cx = 9 + Math.round((1 - t) * lean * 1.5);
+    for (let x = cx - hw; x <= cx + hw; x++) {
+      const nx = (x - cx) / hw;
+      let c = lit(MEN, -nx * 0.9 + 0.15 + (y < 5 ? 0.4 : 0) + (noise(x, y, 3, seed) - 0.5) * 0.5);
+      if (noise(x, y, 4, seed + 4) > 0.68) c = mix(c, [170, 182, 120], 0.45); // lichen
+      if (y > base - 3) c = mix(c, MOSS[3], 0.4);
+      pm.set(x, y, c);
+    }
+  }
+  // Carved spiral.
+  for (let a = 0; a < 12; a += 0.5) {
+    const r = a * 0.28;
+    const x = Math.round(9 + Math.cos(a) * r);
+    const y = Math.round(16 + Math.sin(a) * r);
+    if (pm.filled(x, y)) pm.set(x, y, MEN[4]);
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: 9, anchorY: base };
+}
+
+// A broken column of a fallen sanctuary, ivy climbing it.
+function ruinPillar(seed: number): PropArt {
+  const pm = new Pixmap(16, 40);
+  const base = 37;
+  groundShadow(pm, 9, base, 7, 1.8);
+  const COL = ramp([176, 170, 156], 0.5);
+  const top = 6 + (seed % 3) * 3;
+  for (let y = top; y <= base; y++) {
+    const capital = y > base - 4;
+    const x0 = capital ? 1 : 3;
+    const x1 = capital ? 14 : 12;
+    for (let x = x0; x <= x1; x++) {
+      const nx = (x - (x0 + x1) / 2) / ((x1 - x0) / 2);
+      const flute = !capital && (x - x0) % 3 === 0;
+      pm.set(x, y, lit(COL, -nx * 0.9 + 0.2 + (flute ? -0.3 : 0) + (y === base - 3 ? 0.5 : 0)));
+    }
+  }
+  // Broken, jagged top.
+  for (let x = 3; x <= 12; x++) {
+    const cut = Math.round(hash2(x, seed, 2) * 3);
+    for (let j = 0; j < cut; j++) pm.data[((top + j) * pm.w + x) * 4 + 3] = 0;
+    pm.set(x, top + cut, COL[0]);
+  }
+  // Ivy.
+  for (let y = base - 2; y > top + 6; y--) {
+    const x = 4 + Math.round(Math.sin(y / 3 + seed) * 2.5 + 3);
+    if (hash2(x, y, seed) < 0.75) pm.set(x, y, LEAVES[hash2(y, x, 2) < 0.5 ? 1 : 3]);
+    if (hash2(x, y, seed + 1) < 0.4) pm.set(x + 1, y, LEAVES[2]);
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: 8, anchorY: base };
+}
+
+// Reeds and cattails for river banks.
+function reeds(seed: number): PropArt {
+  const pm = new Pixmap(16, 20);
+  const rnd = seeded(seed + 61);
+  const R = ramp([110, 150, 72]);
+  for (let i = 0; i < 8; i++) {
+    const x0 = 2 + Math.floor(rnd() * 12);
+    const h = 8 + Math.floor(rnd() * 9);
+    const lean = rnd() < 0.5 ? -1 : 1;
+    for (let j = 0; j < h; j++) {
+      const x = x0 + (j > h * 0.7 ? lean : 0);
+      pm.set(x, 18 - j, lit(R, (j / h) * 1.2 - 0.6 + (i % 2 ? 0.2 : -0.1)));
+    }
+    if (rnd() < 0.45) {
+      // A cattail head.
+      const x = x0 + lean;
+      for (let j = 0; j < 3; j++) pm.set(x, 18 - h + 1 + j, j === 0 ? [150, 96, 60] : [112, 70, 46]);
+    }
+  }
+  return { pm, anchorX: 8, anchorY: 18 };
+}
+
+// A rock with veins of rusty iron ore and a few glinting flecks.
+function oreRock(seed: number): PropArt {
+  const art = rock(20, seed, false);
+  const pm = art.pm;
+  const ORE = ramp([170, 92, 60]);
+  for (let y = 0; y < pm.h; y++) {
+    for (let x = 0; x < pm.w; x++) {
+      if (pm.data[(y * pm.w + x) * 4 + 3] !== 255) continue;
+      const c = pm.get(x, y)!;
+      if (c[0] + c[1] + c[2] < 150) continue; // keep the outline
+      const vein = Math.abs(noise(x, y, 5, seed + 3) - 0.5) < 0.06;
+      if (vein) pm.set(x, y, lit(ORE, (hash2(x, y, seed) - 0.5) * 0.8));
+      else if (hash2(x, y, seed + 9) < 0.025) pm.set(x, y, [236, 220, 190]);
+    }
+  }
+  return art;
+}
+
+// A clump of wild herbs: broad leaves, a few pale flower heads.
+function herbPatch(seed: number): PropArt {
+  const pm = new Pixmap(18, 14);
+  groundShadow(pm, 10, 12, 8, 1.6, 50);
+  const rnd = seeded(seed + 71);
+  const H = ramp([96, 160, 90]);
+  for (let i = 0; i < 9; i++) {
+    const x = 3 + Math.floor(rnd() * 12);
+    const y = 5 + Math.floor(rnd() * 6);
+    // A leaf: a small lit oval with a midrib.
+    for (let j = -1; j <= 1; j++) for (let k = -2; k <= 2; k++) if (Math.abs(k) + Math.abs(j) * 2 <= 3) pm.set(x + k, y + j, lit(H, -k * 0.3 - j * 0.5 + 0.1));
+    pm.set(x, y, H[3]);
+  }
+  for (let i = 0; i < 4; i++) {
+    const x = 4 + Math.floor(rnd() * 10);
+    const y = 2 + Math.floor(rnd() * 3);
+    pm.vline(x, y + 1, y + 4, H[3]);
+    pm.set(x, y, [240, 240, 220]);
+    pm.set(x - 1, y, [214, 222, 196]);
+    pm.set(x + 1, y, [214, 222, 196]);
+  }
+  outlineOpaque(pm, 0.6);
+  return { pm, anchorX: 9, anchorY: 12 };
+}
+
+// A plank bridge across a stream: boards with gaps, two side rails on
+// posts. Flat (drawn under the characters walking on it).
+export function renderBridge(w: number, h: number): PropArt {
+  const pm = new Pixmap(w + 4, h + 8);
+  const ox = 2;
+  const oy = 4;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const board = Math.floor(x / 6);
+      const gap = x % 6 === 5;
+      const sag = Math.round(Math.sin((y / h) * Math.PI) * 0);
+      pm.set(ox + x, oy + y + sag, gap ? [40, 32, 30] : lit(WOOD, (hash2(board, 1, 5) - 0.5) * 0.6 + (x % 6 === 0 ? 0.35 : 0) + (y === 0 ? 0.3 : y === h - 1 ? -0.5 : 0)));
+    }
+  }
+  // Rails along the top and bottom edges, on posts.
+  for (const ry of [oy - 1, oy + h - 1]) {
+    for (let x = 0; x < w + 4; x++) {
+      pm.set(x, ry - 2, lit(WOOD_GREY, 0.5));
+      pm.set(x, ry - 1, lit(WOOD_GREY, -0.3));
+    }
+    for (let x = 0; x < w + 4; x += 10) {
+      pm.rect(x, ry - 3, 2, 5, WOOD[2]);
+      pm.set(x, ry - 3, WOOD[0]);
+    }
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: 0, anchorY: 0 };
+}
+
 // A rural lantern post: a wooden post, an iron arm and a hanging lantern.
 function lamppost(): PropArt {
   const pm = new Pixmap(20, 34);
@@ -1208,7 +1407,13 @@ export type PropKind =
   | 'signpost'
   | 'log'
   | 'lamppost'
-  | 'stump';
+  | 'stump'
+  | 'altar'
+  | 'standing_stone'
+  | 'ruin_pillar'
+  | 'reeds'
+  | 'ore_rock'
+  | 'herb_patch';
 
 export function renderProp(kind: PropKind, seed = 1): PropArt {
   switch (kind) {
@@ -1275,6 +1480,18 @@ export function renderProp(kind: PropKind, seed = 1): PropArt {
       return lamppost();
     case 'stump':
       return stump(seed);
+    case 'altar':
+      return altar();
+    case 'standing_stone':
+      return standingStone(seed);
+    case 'ruin_pillar':
+      return ruinPillar(seed);
+    case 'reeds':
+      return reeds(seed);
+    case 'ore_rock':
+      return oreRock(seed);
+    case 'herb_patch':
+      return herbPatch(seed);
   }
 }
 

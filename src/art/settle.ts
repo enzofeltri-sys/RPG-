@@ -196,6 +196,11 @@ export const PROP_SETTLE: Record<string, PropSettle> = {
   scarecrow: { strew: [7, 3, STRAW_BITS, 6], tufts: [5, 3] },
   barrel: { tufts: [5, 1] },
   crate: { tufts: [6, 1] },
+  altar: { wear: [18, 6, 'flagstone'], tufts: [16, 3] },
+  standing_stone: { tufts: [7, 3], vary: true },
+  ruin_pillar: { tufts: [7, 3], vary: true },
+  ore_rock: { wear: [12, 5, 'dirt'], tufts: [10, 2] },
+  herb_patch: { tufts: [8, 2] },
 };
 
 // The dark outline under the foot of a sprite reads like a sticker edge:

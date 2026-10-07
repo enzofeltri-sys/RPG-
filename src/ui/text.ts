@@ -34,5 +34,8 @@ export function addCrispText(
     fontSize: scaleFontSize(style.fontSize) ?? '17px',
   });
   text.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+  // World labels (names, exits, monsters — ui/kit.ts's outlined styles)
+  // float above the world art, which is depth-sorted by ground y.
+  if (style.stroke === '#221c29' && style.strokeThickness === 3) text.setDepth(900);
   return text;
 }

@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { BuildingSpot, buildingTop, paintZone } from '../world/zoneArt';
+import { VALOMBRE } from '../world/zones/valombre';
 import { Wanderer } from '../entities/wanderer';
 import { Character, placedStatPoints, resetStatPoints } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -81,35 +82,20 @@ export class VillageScene extends Phaser.Scene {
 
     addZoneTitle(this, 'Valombre');
 
-    this.bertrandHouse = this.addBuilding(120, 160, 70, 50, 'cottage');
-    this.ombelineHouse = this.addBuilding(300, 210, 60, 60, 'stone_house');
-    this.forgeBuilding = this.addBuilding(190, 360, 90, 50, 'blacksmith_shop');
-    addCrispText(this, 190, 330, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-    this.innBuilding = this.addBuilding(340, 460, 60, 70, 'inn_building');
-    addCrispText(this, 340, 420, 'Auberge du Cerf Bleu', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-
-    // Decoration only, no collision — makes the wide-open grass between
-    // buildings read as a village edge rather than an empty field.
-    this.addTree(20, 60);
-    this.addTree(440, 90);
-    this.addTree(430, 320);
-    this.addBush(200, 130);
-    this.addBush(60, 400);
-    this.addBush(380, 540);
+    // Buildings and decor are drawn by the game from world/zones/valombre.ts;
+    // the scene keeps the buildings' collision boxes.
+    const b = VALOMBRE.buildings!;
+    this.bertrandHouse = this.addBuilding(b.bertrand);
+    this.ombelineHouse = this.addBuilding(b.ombeline);
+    this.forgeBuilding = this.addBuilding(b.forge);
+    addCrispText(this, b.forge.x, buildingTop(b.forge) - 2, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
+    this.innBuilding = this.addBuilding(b.inn);
+    addCrispText(this, b.inn.x, buildingTop(b.inn) - 2, 'Auberge du Cerf Bleu', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
 
     this.merchantNpc = this.add.rectangle(300, 270, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 24);
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 300, 250, 'Marchande', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-
-    // Market stalls near the merchant + a well further south — purely
-    // decorative, no collision.
-    const stall1 = this.add.rectangle(260, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
-    void attachSpriteOverlay(this, stall1, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
-    const stall2 = this.add.rectangle(340, 250, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
-    void attachSpriteOverlay(this, stall2, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
-    const well = this.add.circle(240, 550, 16, 0x4a4a52).setStrokeStyle(2, 0x2e2b3a);
-    void attachSpriteOverlay(this, well, 'decor-well', `${import.meta.env.BASE_URL}sprites/decor/well.png`, 32);
 
     // Ambient villagers, clear of every building/zone/signpost.
     this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15, 'villager_wanderer'), new Wanderer(this, 400, 150, 0x7a8a6a, 25, 'villager_wanderer')];
@@ -463,30 +449,12 @@ export class VillageScene extends Phaser.Scene {
     this.tapControl.setEnabled(true);
   }
 
-  private addBuilding(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    spriteKey: 'village_house' | 'inn_building' | 'blacksmith_forge' | 'cottage' | 'stone_house' | 'blacksmith_shop' = 'village_house',
-  ): Phaser.GameObjects.Rectangle {
-    const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
+  // Collision box only: the building itself is drawn by paintZone().
+  private addBuilding(spot: BuildingSpot): Phaser.GameObjects.Rectangle {
+    const rect = this.add.rectangle(spot.x, spot.y, spot.w, spot.h).setVisible(false);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
-    void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
     return rect;
-  }
-
-  // Purely decorative (no collision) — a wide-open ground tile between
-  // buildings otherwise reads as empty rather than "the edge of a village."
-  private addTree(x: number, y: number): void {
-    const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
-    void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
-  }
-
-  private addBush(x: number, y: number): void {
-    const bush = this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
-    void attachSpriteOverlay(this, bush, 'decor-bush', `${import.meta.env.BASE_URL}sprites/decor/bush.png`, 16);
   }
 
   // The 3 formerly dead-end "personne ne répond" buildings, now each their
@@ -542,12 +510,9 @@ export class VillageScene extends Phaser.Scene {
     });
   }
 
-  // Real Kenney tile (see entities/groundTexture.ts) rather than the
-  // procedural mottled texture used before real tilesets were available.
-  // Fire-and-forget: the tile layer is depth-pinned below everything else,
-  // so nothing needs to wait on its (async) texture load.
+  // Ground, buildings and decor drawn by the game (world/zoneArt.ts).
   private drawGround(): void {
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
+    paintZone(this, VALOMBRE);
   }
 
   private showMessage(message: string): void {

@@ -464,10 +464,10 @@ export function addZoneTitle(scene: Phaser.Scene, name: string): void {
   const text = addCrispText(scene, scene.scale.width / 2, 0, name, { fontSize: '9px', color: INK.text })
     .setOrigin(0.5, 0)
     .setScrollFactor(0)
-    .setDepth(501);
+    .setDepth(961);
   const w = Math.min(scene.scale.width - 84, Math.ceil((text.width + 20) / 2) * 2);
   const h = 22;
-  const g = scene.add.graphics().setScrollFactor(0).setDepth(500);
+  const g = scene.add.graphics().setScrollFactor(0).setDepth(960);
   drawPanel(g, Math.round((scene.scale.width - w) / 4) * 2, 6, w, h);
   text.setY(6 + Math.round((h - text.height) / 2));
 }

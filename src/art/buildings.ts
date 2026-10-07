@@ -15,7 +15,8 @@ export type BuildingKind =
   | 'blacksmith_shop'
   | 'guard_barracks'
   | 'market_hall'
-  | 'stone_tower';
+  | 'stone_tower'
+  | 'barn';
 
 export interface BuildingArt {
   pm: Pixmap;
@@ -546,6 +547,63 @@ function villageHouse(w: number, h: number): BuildingArt {
   return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
 }
 
+// A plank barn with its gable to the yard: big braced double doors, a
+// hay loft opening above them, a fieldstone footing, a thatched roof.
+function barn(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(26, Math.min(32, Math.round(h * 0.6))), Math.max(26, Math.min(40, Math.round(h * 0.7) + 6)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'planks', p.wx0, p.wx1, p.wallTop, p.base, { plinth: 3 });
+  // Corner posts.
+  for (const px of [p.wx0, p.wx1 - 1]) for (let y = p.wallTop; y <= p.base - 3; y++) {
+    pm.set(px, y, TIMBER[2]);
+    pm.set(px + 1, y, TIMBER[3]);
+  }
+  // Double doors with X braces, one leaf ajar onto the dark inside.
+  const doorX = Math.round((p.wx0 + p.wx1) / 2);
+  const dw = Math.min(22, Math.round((p.wx1 - p.wx0) * 0.45));
+  const dh = Math.min(22, p.base - p.wallTop - 4);
+  const dx0 = doorX - Math.round(dw / 2);
+  const dTop = p.base - dh + 1;
+  for (let y = dTop - 1; y <= p.base; y++) for (let x = dx0 - 1; x <= dx0 + dw; x++) pm.set(x, y, TIMBER[3]);
+  for (let y = dTop; y <= p.base; y++) {
+    for (let x = dx0; x < dx0 + dw; x++) {
+      const leaf = x < doorX ? 0 : 1;
+      if (leaf === 1 && x > doorX + dw / 2 - 5) {
+        pm.set(x, y, [34, 26, 26]); // ajar: the dark barn
+        continue;
+      }
+      pm.set(x, y, lit(WOOD, ((x - dx0) % 4 === 0 ? -0.6 : 0.1) + (y === dTop ? -0.4 : 0) + (leaf ? -0.15 : 0.1)));
+    }
+  }
+  const brace = (x0: number, x1: number) => {
+    for (let i = 0; i <= dh - 3; i++) {
+      const t = i / (dh - 3);
+      pm.set(Math.round(x0 + (x1 - x0) * t), dTop + 1 + i, WOOD[0]);
+      pm.set(Math.round(x1 - (x1 - x0) * t), dTop + 1 + i, WOOD[0]);
+    }
+    pm.hline(x0, x1, dTop + 1, WOOD[0]);
+    pm.hline(x0, x1, p.base - 1, WOOD[3]);
+  };
+  brace(dx0 + 1, doorX - 2);
+  // Hay spilling at the foot of the open leaf.
+  for (let x = doorX + Math.round(dw / 2) - 6; x < dx0 + dw; x++) if (hash2(x, 3, 5) < 0.7) pm.set(x, p.base - (hash2(x, 4, 5) < 0.4 ? 1 : 0), [214, 176, 96]);
+  finish(pm);
+  // Thatched gable roof seen from the front, with a loft opening.
+  gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'thatch', false);
+  const lx = doorX - 4;
+  const ly = Math.round((2 + p.wallTop) / 2) + 2;
+  for (let y = ly; y < ly + 7; y++) for (let x = lx; x < lx + 8; x++) pm.set(x, y, y < ly + 3 ? [34, 26, 26] : hash2(x, y, 7) < 0.6 ? [226, 190, 110] : [186, 146, 76]);
+  pm.hline(lx - 1, lx + 8, ly - 1, TIMBER[2]);
+  pm.vline(lx - 1, ly, ly + 6, TIMBER[2]);
+  pm.vline(lx + 8, ly, ly + 6, TIMBER[3]);
+  // Hoist beam.
+  pm.hline(doorX - 1, doorX + 1, ly - 3, TIMBER[1]);
+  pm.vline(doorX, ly - 2, ly - 1, TIMBER[2]);
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
 function stoneCottage(w: number, h: number): BuildingArt {
   const p = plan(w, h, Math.max(24, Math.min(30, Math.round(h * 0.5))), Math.max(20, Math.min(32, Math.round(h * 0.5) + 4)));
   const pm = new Pixmap(p.W, p.H);
@@ -882,6 +940,8 @@ export function renderBuilding(kind: BuildingKind, w: number, h: number): Buildi
       return marketHall(w, h);
     case 'stone_tower':
       return tower(w, h);
+    case 'barn':
+      return barn(w, h);
   }
 }
 

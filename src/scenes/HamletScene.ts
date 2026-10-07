@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { BuildingSpot, paintZone } from '../world/zoneArt';
+import { BASSE_COMBE } from '../world/zones/basseCombe';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -89,19 +90,13 @@ export class HamletScene extends Phaser.Scene {
     // to the exit zone — nothing should block that path (see DESIGN.md's
     // Container/pathing lessons: narrow gaps between colliders make
     // automated and real movement equally unreliable).
-    this.thibaultHouse = this.addBuilding(50, 90, 44, 36, 'cottage');
-    this.solangeHouse = this.addBuilding(190, 90, 44, 36, 'stone_house');
+    const b = BASSE_COMBE.buildings!;
+    this.thibaultHouse = this.addBuilding(b.thibault);
+    this.solangeHouse = this.addBuilding(b.solange);
     // A third hut further south, off the x=120 centerline — keeps the
     // extended hamlet from reading as an empty stretch of grass while
     // staying "deliberately sparse" (see the class doc comment).
-    this.fauvetteHouse = this.addBuilding(190, 300, 40, 32, 'cottage');
-
-    // Decoration only, no collision. Kept clear of the x=120 centerline and
-    // the farm/shrine transition strips at the world's left/right edges.
-    this.addTree(90, 220);
-    this.addTree(150, 220);
-    this.addBush(30, 180);
-    this.addBush(210, 180);
+    this.fauvetteHouse = this.addBuilding(b.fauvette);
 
     // An old chest stashed beside that third, mostly-abandoned hut.
     this.chest = this.add.rectangle(150, 330, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
@@ -224,29 +219,12 @@ export class HamletScene extends Phaser.Scene {
     this.villager.update();
   }
 
-  private addBuilding(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    spriteKey: 'village_house' | 'cottage' | 'stone_house' = 'village_house',
-  ): Phaser.GameObjects.Rectangle {
-    const rect = this.add.rectangle(x, y, w, h, 0x5a4632).setStrokeStyle(1, 0x2e2419);
+  // Collision box only: the building itself is drawn by paintZone().
+  private addBuilding(spot: BuildingSpot): Phaser.GameObjects.Rectangle {
+    const rect = this.add.rectangle(spot.x, spot.y, spot.w, spot.h).setVisible(false);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
-    void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
     return rect;
-  }
-
-  // Purely decorative (no collision).
-  private addTree(x: number, y: number): void {
-    const canopy = this.add.circle(x, y, 12, 0x2e5a2e).setStrokeStyle(1, 0x1a3a1a);
-    void attachSpriteOverlay(this, canopy, 'decor-tree', `${import.meta.env.BASE_URL}sprites/decor/tree.png`, 24);
-  }
-
-  private addBush(x: number, y: number): void {
-    const bush = this.add.circle(x, y, 7, 0x3a6a3a).setStrokeStyle(1, 0x1a3a1a);
-    void attachSpriteOverlay(this, bush, 'decor-bush', `${import.meta.env.BASE_URL}sprites/decor/bush.png`, 16);
   }
 
   // The 3 formerly dead-end "personne ne répond" cabanes, each now their
@@ -301,12 +279,9 @@ export class HamletScene extends Phaser.Scene {
     });
   }
 
-  // Real Kenney tile (see entities/groundTexture.ts) rather than the
-  // procedural mottled texture used before real tilesets were available.
-  // Fire-and-forget: the tile layer is depth-pinned below everything else,
-  // so nothing needs to wait on its (async) texture load.
+  // Ground, buildings and decor drawn by the game (world/zones/basseCombe.ts).
   private drawGround(): void {
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
+    paintZone(this, BASSE_COMBE);
   }
 
   private talkToVillager(): void {

@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addPlazaGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { SHRINE } from '../world/zones/shrine';
 import { Character } from '../game/character';
 import { getMainQuestStage, advanceMainQuestStage, MainQuestStage } from '../game/mainQuest';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -87,21 +88,15 @@ export class ShrineScene extends Phaser.Scene {
     this.dialog = undefined;
     this.loreIndex = 0;
     this.cameras.main.setBackgroundColor('#3a3a4a');
-    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Le petit sanctuaire');
 
     // Shrine altar + standing stones, purely decorative.
-    this.add.rectangle(100, 50, 30, 20, 0x8a8a9a).setStrokeStyle(1, 0x4a4a5a);
-    this.add.rectangle(60, 70, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
-    this.add.rectangle(140, 70, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
+    // Ground, altar, columns, standing stones and grove drawn by the game
+    // (world/zones/shrine.ts).
+    paintZone(this, SHRINE);
 
-    // A couple more standing stones lining the path up to the altar.
-    this.add.rectangle(70, 220, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
-    this.add.rectangle(150, 280, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
-    this.add.rectangle(90, 340, 8, 24, 0x6a6a7a).setStrokeStyle(1, 0x35354a);
-
-    addCrispText(this, 100, 30, 'Autel', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
+    addCrispText(this, 100, 22, 'Autel', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);

@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { FARM } from '../world/zones/farm';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -69,25 +70,19 @@ export class FarmScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#4a5a2a');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'La ferme isolée');
 
     // Farmhouse + crop rows, purely decorative.
-    const farmhouse = this.add.rectangle(50, 70, 40, 32, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
-    void attachSpriteOverlay(this, farmhouse, 'decor-cottage', `${import.meta.env.BASE_URL}sprites/decor/cottage.png`, 40);
+    // Ground, buildings and decor drawn by the game (world/zones/farm.ts);
+    // the farmhouse and the barn get collision boxes.
+    paintZone(this, FARM);
+    const buildings = Object.values(FARM.buildings!).map((spot) => {
+      const rect = this.add.rectangle(spot.x, spot.y, spot.w, spot.h).setVisible(false);
+      this.physics.add.existing(rect, true);
+      return rect;
+    });
 
-    const cropField1 = this.add.rectangle(143, 66, 82, 62, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
-    void attachSpriteOverlay(this, cropField1, 'decor-farm_field', `${import.meta.env.BASE_URL}sprites/decor/farm_field.png`, 82);
-
-    // More crop rows further south, on the approach to the farmhouse.
-    const cropField2 = this.add.rectangle(63, 276, 82, 62, 0x3a5a2a).setStrokeStyle(1, 0x1f3a18);
-    void attachSpriteOverlay(this, cropField2, 'decor-farm_field', `${import.meta.env.BASE_URL}sprites/decor/farm_field.png`, 82);
-
-    const scarecrow = this.add.rectangle(190, 260, 10, 26, 0x8a6a3a);
-    void attachSpriteOverlay(this, scarecrow, 'decor-scarecrow', `${import.meta.env.BASE_URL}sprites/decor/scarecrow.png`, 28);
-
-    // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.farmer = this.add.rectangle(170, 100, 14, 20, 0x8a6a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.farmer, 'npc-farmer_generic', `${import.meta.env.BASE_URL}sprites/npc/farmer_generic.png`, 24);
     this.physics.add.existing(this.farmer, true);
@@ -95,6 +90,7 @@ export class FarmScene extends Phaser.Scene {
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.farmer);
+    this.physics.add.collider(this.player, buildings);
     this.addRatKingZone();
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

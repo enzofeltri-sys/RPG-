@@ -65,7 +65,7 @@ const SLAB = ramp([158, 154, 146], 0.6);
 const FLOOR = ramp([92, 88, 100], 0.5);
 const AISLE = ramp([112, 106, 112], 0.5);
 const SAND = ramp([214, 190, 138]);
-const WATER = ramp([70, 136, 192], 0.4);
+const WATER = ramp([58, 116, 150], 0.4);
 const MARSH = ramp([92, 110, 66]);
 const PLANK = ramp([150, 102, 64]);
 const MOSS: RGB = [92, 126, 70];
@@ -258,16 +258,34 @@ export function renderGround(spec: GroundSpec): Pixmap {
   const wobbleAt = (x: number, y: number) => (noise(x, y, 9, seed + 51) - 0.5) * 3.2 + (noise(x, y, 3, seed + 52) - 0.5) * 1.2;
   // Paved shapes get a broader, lumpier outline.
   const pavedWobble = (x: number, y: number) => (noise(x, y, 18, seed + 53) - 0.5) * 6 + wobbleAt(x, y);
+  // Each shape only matters inside its bounding box, grown by how far its
+  // edge can wobble or fray: skipping the rest keeps a big zone fast.
+  const boxes = shapes.map((s) => {
+    const paved = PAVED[s.material];
+    const m = paved ? paved.fray + paved.size * paved.stretch + 12 : 8;
+    if (s.kind === 'path') {
+      const xs = s.points.map((p) => p[0]);
+      const ys = s.points.map((p) => p[1]);
+      const r = s.width / 2 + m;
+      return [Math.min(...xs) - r, Math.min(...ys) - r, Math.max(...xs) + r, Math.max(...ys) + r];
+    }
+    return [s.x - m, s.y - m, s.x + s.w + m, s.y + s.h + m];
+  });
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       let m = base;
       let edge = Infinity; // depth inside the shape giving m
       let outside = Infinity; // distance to the nearest shape seen from outside
       let pavedEdge = Infinity; // how deep the stone under this pixel sits in its paving
-      const wobble = wobbleAt(x, y);
-      shapes.forEach((s) => {
+      let wobble = NaN;
+      for (let i = 0; i < shapes.length; i++) {
+        const b = boxes[i];
+        if (x < b[0] || y < b[1] || x > b[2] || y > b[3]) continue;
+        const s = shapes[i];
         const paved = PAVED[s.material];
         if (paved) {
+          // Far outside the paving (beyond its frayed edge and wobble): skip.
+          if (shapeDist(s, x, y) > paved.fray + paved.size * paved.stretch + 8) continue;
           // Decide per stone, from where the stone's center sits.
           const c = cell(x, y, paved.size, seed + paved.seed, paved.stretch);
           const sx = x - (c.dx / 2) * paved.size * paved.stretch;
@@ -280,15 +298,16 @@ export function renderGround(spec: GroundSpec): Pixmap {
             edge = Infinity;
             pavedEdge = depth;
           }
-          return;
+          continue;
         }
+        if (Number.isNaN(wobble)) wobble = wobbleAt(x, y);
         const d = shapeDist(s, x, y) + (s.kind === 'path' || s.kind === 'ellipse' ? wobble : 0);
         if (d < 0) {
           m = s.material;
           edge = -d;
           pavedEdge = Infinity;
         } else outside = Math.min(outside, d);
-      });
+      }
       let c = material(m, x, y, seed);
       const paved = PAVED[m];
       if (paved && pavedEdge !== Infinity) {

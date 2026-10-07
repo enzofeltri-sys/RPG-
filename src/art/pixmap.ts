@@ -133,3 +133,72 @@ export function seeded(seed: number): () => number {
     return s / 4294967296;
   };
 }
+
+// A 5-tone ramp: highlight, light, mid, shade, deep. Lights lean warm and
+// shades lean cool, like hand-picked pixel art palettes.
+export type Ramp = readonly [RGB, RGB, RGB, RGB, RGB];
+
+export function ramp(mid: RGB, warmth = 1): Ramp {
+  const k = (c: RGB, f: number, dr: number, dg: number, db: number): RGB => [
+    clamp(Math.round(c[0] * f + dr * warmth)),
+    clamp(Math.round(c[1] * f + dg * warmth)),
+    clamp(Math.round(c[2] * f + db * warmth)),
+  ];
+  return [k(mid, 1.32, 14, 10, -6), k(mid, 1.15, 8, 5, -4), mid, k(mid, 0.78, -4, 0, 10), k(mid, 0.56, -6, -2, 16)];
+}
+
+export function clamp(v: number): number {
+  return Math.max(0, Math.min(255, v));
+}
+
+export function mix(a: RGB, b: RGB, k: number): RGB {
+  return [Math.round(a[0] + (b[0] - a[0]) * k), Math.round(a[1] + (b[1] - a[1]) * k), Math.round(a[2] + (b[2] - a[2]) * k)];
+}
+
+// Picks a ramp tone from a light level in about -1 (deep) .. 1 (highlight).
+export function lit(r: Ramp, level: number): RGB {
+  if (level > 0.62) return r[0];
+  if (level > 0.22) return r[1];
+  if (level > -0.22) return r[2];
+  if (level > -0.62) return r[3];
+  return r[4];
+}
+
+export interface Cell {
+  id: number; // stable id of the nearest seed
+  d1: number; // distance to the nearest seed
+  d2: number; // distance to the second nearest
+  dx: number; // offset from the nearest seed, -1..1 over a cell
+  dy: number;
+}
+
+// Jittered Voronoi cells (natural stones, cobbles, slabs): size in pixels,
+// stretch > 1 widens cells horizontally.
+export function cell(x: number, y: number, size: number, seed: number, stretch = 1): Cell {
+  const fx = x / (size * stretch);
+  const fy = y / size;
+  const gx = Math.floor(fx);
+  const gy = Math.floor(fy);
+  let d1 = Infinity;
+  let d2 = Infinity;
+  let id = 0;
+  let bx = 0;
+  let by = 0;
+  for (let j = -1; j <= 1; j++) {
+    for (let i = -1; i <= 1; i++) {
+      const cx = gx + i;
+      const cy = gy + j;
+      const px = cx + 0.15 + hash2(cx, cy, seed) * 0.7;
+      const py = cy + 0.15 + hash2(cx, cy, seed + 1) * 0.7;
+      const d = Math.hypot(fx - px, fy - py);
+      if (d < d1) {
+        d2 = d1;
+        d1 = d;
+        id = cx * 7919 + cy * 104729;
+        bx = fx - px;
+        by = fy - py;
+      } else if (d < d2) d2 = d;
+    }
+  }
+  return { id, d1, d2, dx: bx * 2, dy: by * 2 };
+}

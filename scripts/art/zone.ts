@@ -12,7 +12,7 @@ import { heroLook } from '../../src/art/heroLook';
 import { NPC_LOOKS } from '../../src/art/npcLooks';
 import { GroundSpec, renderGround } from '../../src/art/ground';
 import { BuildingKind, renderBuilding, renderGate, renderWallBlock } from '../../src/art/buildings';
-import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderProp } from '../../src/art/props';
+import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderFlowerBed, renderPatch, renderProp, renderStoneWall } from '../../src/art/props';
 import { Pixmap } from '../../src/art/pixmap';
 import { encodePng } from './png';
 
@@ -20,6 +20,9 @@ type Item =
   | { kind: 'building'; type: BuildingKind; x: number; y: number; w: number; h: number }
   | { kind: 'prop'; type: PropKind; x: number; y: number; seed?: number }
   | { kind: 'fence'; x: number; y: number; len: number }
+  | { kind: 'swall'; x: number; y: number; len: number }
+  | { kind: 'bed'; x: number; y: number; w: number; h: number }
+  | { kind: 'patch'; material: 'crop' | 'water' | 'planks' | 'marsh'; x: number; y: number; w: number; h: number }
   | { kind: 'wall'; x: number; y: number; w: number; h: number }
   | { kind: 'gate'; x: number; y: number; w: number }
   | { kind: 'dprop'; type: DungeonPropKind; x: number; y: number }
@@ -37,8 +40,8 @@ interface Zone {
 function light(map: Pixmap, zone: Zone): void {
   if (zone.ambient === undefined) return;
   const lights: [number, number, number, boolean][] = zone.items
-    .filter((it): it is Extract<Item, { kind: 'dprop' }> => it.kind === 'dprop' && it.type === 'torch')
-    .map((it) => [it.x, it.y - 12, 70, true]);
+    .filter((it): it is Extract<Item, { kind: 'dprop' }> => it.kind === 'dprop' && (it.type === 'torch' || it.type === 'brazier'))
+    .map((it) => [it.x, it.y - 12, it.type === 'brazier' ? 80 : 70, true]);
   lights.push([zone.hero.x, zone.hero.y, 56, false]);
   for (let y = 0; y < map.h; y++) {
     for (let x = 0; x < map.w; x++) {
@@ -78,8 +81,9 @@ const VALOMBRE: Zone = {
       { kind: 'path', material: 'dirt', width: 10, points: [[110, 346], [238, 346]] },
       { kind: 'path', material: 'dirt', width: 10, points: [[64, 478], [150, 470], [238, 460]] },
       { kind: 'path', material: 'dirt', width: 10, points: [[240, 580], [330, 586], [420, 590], [430, 640]] },
-      { kind: 'ellipse', material: 'cobble', x: 206, y: 226, w: 168, h: 98 },
-      { kind: 'ellipse', material: 'cobble', x: 214, y: 528, w: 52, h: 40 },
+      { kind: 'ellipse', material: 'dirt', x: 206, y: 226, w: 168, h: 98 },
+      { kind: 'ellipse', material: 'cobble', x: 236, y: 250, w: 104, h: 54 },
+      { kind: 'ellipse', material: 'flagstone', x: 214, y: 530, w: 52, h: 38 },
     ],
   },
   items: [
@@ -107,6 +111,34 @@ const VALOMBRE: Zone = {
     { kind: 'prop', type: 'stump', x: 410, y: 600 },
     { kind: 'prop', type: 'rock_small', x: 150, y: 560, seed: 4 },
     { kind: 'fence', x: 120, y: 214, len: 40 },
+    // Small rural decor (no collision): gardens, hay, benches, flowers.
+    { kind: 'patch', material: 'crop', x: 96, y: 262, w: 60, h: 36 },
+    { kind: 'fence', x: 96, y: 238, len: 64 },
+    { kind: 'swall', x: 380, y: 178, len: 48 },
+    { kind: 'bed', x: 104, y: 196, w: 22, h: 10 },
+    { kind: 'prop', type: 'apple_tree', x: 150, y: 296, seed: 8 },
+    { kind: 'prop', type: 'haystack', x: 60, y: 312, seed: 2 },
+    { kind: 'prop', type: 'scarecrow', x: 126, y: 276, seed: 1 },
+    { kind: 'prop', type: 'woodpile', x: 160, y: 196 },
+    { kind: 'prop', type: 'bench', x: 278, y: 340 },
+    { kind: 'prop', type: 'trough', x: 140, y: 392 },
+    { kind: 'prop', type: 'sacks', x: 322, y: 290 },
+    { kind: 'prop', type: 'signpost', x: 264, y: 30 },
+    { kind: 'prop', type: 'wagon_cart', x: 300, y: 400, seed: 2 },
+    { kind: 'prop', type: 'flower_bush', x: 372, y: 236, seed: 4 },
+    { kind: 'prop', type: 'boulder_large', x: 450, y: 520, seed: 3 },
+    { kind: 'prop', type: 'log', x: 80, y: 560, seed: 2 },
+    { kind: 'prop', type: 'flowers', x: 180, y: 104, seed: 1 },
+    { kind: 'prop', type: 'flowers', x: 320, y: 120, seed: 2 },
+    { kind: 'prop', type: 'flowers', x: 110, y: 430, seed: 3 },
+    { kind: 'prop', type: 'flowers', x: 400, y: 380, seed: 4 },
+    { kind: 'prop', type: 'flowers', x: 300, y: 620, seed: 5 },
+    { kind: 'prop', type: 'tall_grass', x: 70, y: 140, seed: 1 },
+    { kind: 'prop', type: 'tall_grass', x: 420, y: 250, seed: 2 },
+    { kind: 'prop', type: 'tall_grass', x: 360, y: 610, seed: 3 },
+    { kind: 'prop', type: 'tall_grass', x: 130, y: 620, seed: 4 },
+    { kind: 'prop', type: 'tall_grass', x: 200, y: 600, seed: 5 },
+    { kind: 'prop', type: 'mushroom', x: 40, y: 110 },
     npc('merchant_generic', 300, 270),
     npc('villager_wanderer', 50, 280, 'right'),
     npc('villager_wanderer', 400, 150, 'left'),
@@ -150,6 +182,14 @@ const CATACOMBS: Zone = {
     { kind: 'dprop', type: 'bones', x: 70, y: 290 },
     { kind: 'dprop', type: 'cobweb', x: 0, y: 0 },
     { kind: 'dprop', type: 'cobweb', x: 0, y: 228 },
+    { kind: 'dprop', type: 'pillar', x: 70, y: 420 },
+    { kind: 'dprop', type: 'pillar', x: 150, y: 420 },
+    { kind: 'dprop', type: 'pillar', x: 70, y: 610 },
+    { kind: 'dprop', type: 'brazier', x: 110, y: 300 },
+    { kind: 'dprop', type: 'urn', x: 180, y: 500 },
+    { kind: 'dprop', type: 'urn', x: 40, y: 400 },
+    { kind: 'dprop', type: 'rubble', x: 150, y: 270 },
+    { kind: 'dprop', type: 'rubble', x: 60, y: 580 },
     { kind: 'prop', type: 'rock_small', x: 150, y: 600, seed: 2 },
     { kind: 'prop', type: 'mushroom', x: 40, y: 600 },
   ],
@@ -181,9 +221,12 @@ function drawZone(zone: Zone, heroLookValue: Look): Pixmap {
       // Cobwebs and torches hang on walls: drawn above the floor props.
       const order = it.type === 'cobweb' || it.type === 'torch' ? it.y + 1000 : it.y;
       draws.push({ y: order, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
-    } else if (it.kind === 'fence') {
-      const art = renderFence(it.len);
+    } else if (it.kind === 'fence' || it.kind === 'swall') {
+      const art = it.kind === 'fence' ? renderFence(it.len) : renderStoneWall(it.len);
       draws.push({ y: it.y, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
+    } else if (it.kind === 'bed' || it.kind === 'patch') {
+      const art = it.kind === 'bed' ? renderFlowerBed(it.w, it.h) : renderPatch(it.material, it.w, it.h);
+      draws.push({ y: -1000 + it.y, draw: () => map.blit(art.pm, Math.round(it.x - art.anchorX), Math.round(it.y - art.anchorY)) });
     } else {
       draws.push({ y: it.y + 8, draw: () => drawPerson(map, it.look, it.x, it.y, it.view ?? 'down') });
     }

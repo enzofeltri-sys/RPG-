@@ -8,12 +8,12 @@ import { writeFileSync } from 'fs';
 import { DOLL_H, DOLL_W, renderFrame } from '../../src/art/heroDoll';
 import { NPC_LOOKS } from '../../src/art/npcLooks';
 import { BuildingKind, renderBuilding, renderGate, renderWallBlock } from '../../src/art/buildings';
-import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderPatch, renderProp } from '../../src/art/props';
+import { DungeonPropKind, PropKind, renderDungeonProp, renderFence, renderFlowerBed, renderPatch, renderProp, renderStoneWall } from '../../src/art/props';
 import { Pixmap } from '../../src/art/pixmap';
 import { encodePng } from './png';
 
-const sheet = new Pixmap(600, 520);
-sheet.rect(0, 0, 600, 520, [120, 176, 72]);
+const sheet = new Pixmap(600, 640);
+sheet.rect(0, 0, 600, 640, [120, 176, 72]);
 const labels: { text: string; x: number; y: number }[] = [];
 
 let cx = 6;
@@ -48,16 +48,18 @@ const buildings: [BuildingKind, number, number][] = [
 ];
 buildings.forEach(([k, w, h]) => place(renderBuilding(k, w, h).pm, k));
 newRow();
-const props: PropKind[] = ['big_tree', 'tree', 'pine', 'bush', 'berry_bush', 'rock_small', 'boulder_large', 'mushroom', 'crystal_glow', 'treasure_chest_closed', 'treasure_chest_open', 'market_stall', 'merchant_stall', 'well', 'wagon_cart', 'scarecrow', 'barrel', 'crate', 'lamppost', 'stump'];
+const props: PropKind[] = ['big_tree', 'tree', 'apple_tree', 'pine', 'bush', 'berry_bush', 'flower_bush', 'tall_grass', 'flowers', 'rock_small', 'boulder_large', 'mushroom', 'crystal_glow', 'treasure_chest_closed', 'treasure_chest_open', 'market_stall', 'merchant_stall', 'well', 'wagon_cart', 'scarecrow', 'barrel', 'crate', 'sacks', 'haystack', 'woodpile', 'bench', 'trough', 'signpost', 'log', 'lamppost', 'stump'];
 props.forEach((k) => place(renderProp(k, 3).pm, k));
-place(renderFence(36).pm, 'fence');
+place(renderFence(40).pm, 'fence');
+place(renderStoneWall(48).pm, 'stone_wall');
+place(renderFlowerBed(28, 14).pm, 'flower_bed');
 place(renderPatch('crop', 60, 40).pm, 'farm_field');
 place(renderPatch('water', 34, 20).pm, 'water');
 place(renderPatch('lava', 28, 18).pm, 'lava');
 newRow();
 place(renderWallBlock(30, 60).pm, 'wall');
 place(renderGate(80).pm, 'gate');
-(['torch', 'bones', 'sarcophagus', 'cobweb'] as DungeonPropKind[]).forEach((k) => place(renderDungeonProp(k).pm, k));
+(['torch', 'brazier', 'bones', 'sarcophagus', 'pillar', 'urn', 'rubble', 'cobweb'] as DungeonPropKind[]).forEach((k) => place(renderDungeonProp(k).pm, k));
 newRow();
 Object.entries(NPC_LOOKS).forEach(([id, look]) => {
   const pm = new Pixmap(DOLL_W, DOLL_H);

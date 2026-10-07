@@ -12,25 +12,44 @@ import { modeLabel } from '../game/difficulty';
 import { CLASS_RESOURCE, MAX_LEVEL, RAGE_MAX, enduranceMax } from '../game/talents';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
-import { addCrispText } from '../ui/text';
 import { playCraftSuccess } from '../ui/sound';
+import { INK, KitBar, KitButton, PAL, addPanel, addScreenPanel, drawPanel, panelText, preloadUiKit, toast } from '../ui/kit';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
+const LEFT = 14;
+const INNER_W = 188;
+const ROWS_Y = 146;
+const ROW_H = 36;
 
-const ALLOCATABLE_STATS: { stat: AllocatableStat; label: string }[] = [
-  { stat: 'strength', label: 'Force' },
-  { stat: 'intelligence', label: 'Intelligence' },
-  { stat: 'agility', label: 'Agilité' },
-  { stat: 'vitality', label: 'Vitalité' },
+// What one point actually does (see combatEngine.ts / character.ts).
+const ALLOCATABLE_STATS: { stat: AllocatableStat; label: string; effect: (resource: string) => string }[] = [
+  { stat: 'strength', label: 'Force', effect: () => 'Épées, haches, armes à deux mains.' },
+  {
+    stat: 'intelligence',
+    label: 'Intelligence',
+    effect: (resource) => `Sorts, résistance magique${resource === 'mana' ? ', +1 mana max' : ''}.`,
+  },
+  { stat: 'agility', label: 'Agilité', effect: () => 'Dagues, arcs, esquive, initiative, fuite.' },
+  { stat: 'vitality', label: 'Vitalité', effect: (resource) => `+4 PV max${resource === 'endurance' ? ', +1 endurance max' : ''}.` },
 ];
 
+const EXTRA_STATS: [keyof ReturnType<typeof getEffectiveStats>, string][] = [
+  ['fireDamage', 'Feu'],
+  ['iceDamage', 'Glace'],
+  ['electricDamage', 'Foudre'],
+  ['poisonDamage', 'Poison'],
+  ['darkDamage', 'Ombre'],
+  ['earthDamage', 'Terre'],
+  ['lifeSteal', 'Vol de vie'],
+];
+
+// Statistiques in UI style A: identity and XP, the HP and class resource
+// gauges, the four allocatable stats (base value, gear total, what a point
+// does, a + button), then armor, elemental bonuses and gold.
 export class StatsScene extends Phaser.Scene {
   private character!: Character;
   private returnScene: ReturnSceneKey = 'Village';
   private returnX?: number;
   private returnY?: number;
-  private pointsText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Stats');
@@ -42,130 +61,98 @@ export class StatsScene extends Phaser.Scene {
     this.returnY = data?.y;
   }
 
+  preload(): void {
+    preloadUiKit(this);
+  }
+
   async create(): Promise<void> {
-    const { width } = this.scale;
     const save = await SaveManager.load();
     this.character = save!.character!;
+    this.render();
+  }
 
-    addCrispText(this, width / 2, 14, 'Statistiques', { fontSize: '16px', color: GOLD }).setOrigin(0.5);
+  private render(): void {
+    this.children.removeAll(true);
+    const c = this.character;
+    const stats = getEffectiveStats(c);
+    addScreenPanel(this);
+    panelText(this, this.scale.width / 2, 14, 'Statistiques', 12).setOrigin(0.5, 0);
 
-    const raceLabel = RACES[this.character.race].label;
-    const classLabel = CLASSES[this.character.class].label;
+    // Identity, level, XP.
+    const frame = this.add.graphics();
+    drawPanel(frame, LEFT, 34, 40, 36);
+    this.add.image(LEFT + 4, 39, 'ui-hero-face').setOrigin(0, 0);
+    panelText(this, 62, 35, `${RACES[c.race].label} ${CLASSES[c.class].label}`, 10);
+    const mode = `${modeLabel(c)}${c.randomizerSeed !== undefined ? ' · Randomizer' : ''}`;
+    panelText(this, 62, 50, `Niveau ${c.level} · ${mode}`, 8, INK.soft);
+    const maxed = c.level >= MAX_LEVEL;
+    new KitBar(this, 62, 63, 140, PAL.p, PAL.P).set(maxed ? 1 : c.xp / xpToNextLevel(c.level));
+    panelText(this, LEFT + INNER_W, 70, maxed ? 'Niveau maximum' : `XP ${c.xp}/${xpToNextLevel(c.level)}`, 7, INK.soft).setOrigin(1, 0);
 
-    addCrispText(
-      this,
-      12,
-      36,
-      [
-        `${raceLabel} ${classLabel} — ${modeLabel(this.character)}${this.character.randomizerSeed !== undefined ? ' · Randomizer' : ''}`,
-        this.character.level >= MAX_LEVEL
-          ? `Niveau ${this.character.level} (maximum)`
-          : `Niveau ${this.character.level}  (XP ${this.character.xp}/${xpToNextLevel(this.character.level)})`,
-      ].join('\n'),
-      { fontSize: '11px', color: GOLD, lineSpacing: 4 },
+    // Gauges.
+    this.gauge(82, 'PV', `${c.hp}/${c.maxHp}`, c.hp / c.maxHp, PAL.h, PAL.H);
+    const resource = CLASS_RESOURCE[c.class];
+    if (resource === 'mana') this.gauge(106, 'Mana', `${c.mp}/${c.maxMp}`, c.mp / Math.max(1, c.maxMp), PAL.u, PAL.i);
+    else if (resource === 'rage') this.gauge(106, 'Rage', `0/${RAGE_MAX} · se remplit en combat`, 0, PAL.O, PAL.o);
+    else this.gauge(106, 'Endurance', `${enduranceMax(stats.vitality)} · pleine à chaque combat`, 1, PAL.c, PAL.v);
+
+    // Allocatable stats.
+    panelText(this, LEFT, 132, 'Caractéristiques', 9);
+    const points = c.statPoints;
+    panelText(this, LEFT + INNER_W, 133, `${points} point${points > 1 ? 's' : ''} à placer`, 8, points > 0 ? INK.danger : INK.soft).setOrigin(
+      1,
+      0,
     );
+    addPanel(this, LEFT, ROWS_Y, INNER_W, ROW_H * 4 + 8);
+    ALLOCATABLE_STATS.forEach((entry, i) => this.statRow(entry, ROWS_Y + 6 + i * ROW_H, stats[entry.stat]));
 
-    // The 4 allocatable stats show the base value (what a stat point
-    // actually changes) — the effective, gear-boosted value goes in
-    // parentheses so the player still sees the full picture without
-    // conflating "what I invested" with "what my sword adds."
-    let y = 76;
-    ALLOCATABLE_STATS.forEach(({ stat, label }) => {
-      this.renderStatRow(label, stat, y);
-      y += 20;
+    // Armor, elemental bonuses, gold.
+    const parts = [`Armure ${stats.armor}`];
+    EXTRA_STATS.forEach(([key, label]) => {
+      if ((stats[key] as number) > 0) parts.push(`${label} +${stats[key]}`);
     });
+    parts.push(`Or ${c.gold}`);
+    const extra = panelText(this, LEFT + 2, ROWS_Y + ROW_H * 4 + 14, parts.join(' · '), 8, INK.text, {
+      wordWrap: { width: INNER_W - 4 },
+      lineSpacing: 2,
+    });
+    if (extra.y + extra.height > 340) extra.setFontSize(Math.round(7 * 1.2));
 
-    this.pointsText = addCrispText(this, 12, y + 4, '', { fontSize: '10px', color: GOLD });
-    this.refreshPointsText();
-    y += 22;
-
-    const stats = getEffectiveStats(this.character);
-    // Poison and lifesteal are paired onto one line each with a neighbor
-    // (rather than getting their own solo line like earlier drafts) so a
-    // character with every magic stat active at once — realistic once
-    // dual-wield/panoplies stack several elemental lines together — still
-    // fits above the Retour button instead of running into it (see the
-    // dynamic backButton position below, which also guards against this).
-    const extraLines: string[] = [];
-    if (stats.armor > 0 || stats.fireDamage > 0) {
-      extraLines.push(`Armure ${stats.armor}   Dégâts de feu ${stats.fireDamage}`);
-    }
-    if (stats.poisonDamage > 0 || stats.lifeSteal > 0) {
-      extraLines.push(`Dégâts de poison ${stats.poisonDamage}   Vol de vie ${stats.lifeSteal}`);
-    }
-    if (stats.iceDamage > 0 || stats.electricDamage > 0) {
-      extraLines.push(`Dégâts de glace ${stats.iceDamage}   Dégâts électriques ${stats.electricDamage}`);
-    }
-    if (stats.darkDamage > 0 || stats.earthDamage > 0) {
-      extraLines.push(`Dégâts obscurs ${stats.darkDamage}   Dégâts de terre ${stats.earthDamage}`);
-    }
-
-    const statBlock = addCrispText(
-      this,
-      12,
-      y,
-      [
-        `PV ${this.character.hp}/${this.character.maxHp}`,
-        this.resourceLine(stats.vitality),
-        '',
-        ...extraLines,
-        `Or : ${this.character.gold}`,
-      ],
-      { fontSize: '11px', color: GOLD, lineSpacing: 6 },
-    );
-
-    // Anchored below the block's actual measured height (same idea as
-    // CraftingScene's per-recipe height measurement) instead of a fixed y —
-    // a fixed offset overlapped the Retour button once every magic stat
-    // line was present at once (confirmed in testing: ~5px overlap).
-    const backButtonY = Math.max(362, statBlock.y + statBlock.height + 18);
-    const backButton = addCrispText(this, width / 2, backButtonY, 'Retour', {
-      fontSize: '13px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 10, y: 6 },
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    backButton.on('pointerdown', () => this.goBack());
+    new KitButton(this, LEFT, 344, INNER_W, 28, 'Retour', { size: 10, align: 'center', onClick: () => this.goBack() });
   }
 
-  private renderStatRow(label: string, stat: AllocatableStat, y: number): void {
-    const { width } = this.scale;
-    const base = this.character.stats[stat];
-    const effective = getEffectiveStats(this.character)[stat];
-    const suffix = effective !== base ? ` (${effective})` : '';
-    addCrispText(this, 12, y, `${label} : ${base}${suffix}`, { fontSize: '11px', color: GOLD });
-
-    const button = addCrispText(this, width - 14, y - 2, '+', {
-      fontSize: '12px',
-      color: DARK,
-      backgroundColor: GOLD,
-      padding: { x: 8, y: 2 },
-    })
-      .setOrigin(1, 0)
-      .setInteractive({ useHandCursor: true });
-    button.setAlpha(this.character.statPoints > 0 ? 1 : 0.4);
-    button.on('pointerdown', () => this.handleAllocate(stat));
+  private gauge(y: number, label: string, value: string, ratio: number, fill: number, light: number): void {
+    panelText(this, LEFT, y, label, 8);
+    panelText(this, LEFT + INNER_W, y, value, 8, INK.soft).setOrigin(1, 0);
+    new KitBar(this, LEFT, y + 12, INNER_W, fill, light).set(ratio);
   }
 
-  private resourceLine(vitality: number): string {
-    const resource = CLASS_RESOURCE[this.character.class];
-    if (resource === 'mana') return `Mana ${this.character.mp}/${this.character.maxMp}`;
-    if (resource === 'rage') return `Rage : 0 à ${RAGE_MAX}, se remplit en combat`;
-    return `Endurance ${enduranceMax(vitality)}, pleine à chaque combat`;
-  }
-
-  private refreshPointsText(): void {
-    this.pointsText.setText(`Points de stat disponibles : ${this.character.statPoints}`);
+  private statRow(entry: (typeof ALLOCATABLE_STATS)[number], y: number, effective: number): void {
+    const base = this.character.stats[entry.stat];
+    const x = LEFT + 10;
+    panelText(this, x, y + 2, entry.label, 9);
+    const value = panelText(this, LEFT + INNER_W - 40, y + 2, `${base}`, 10).setOrigin(1, 0);
+    if (effective !== base) {
+      panelText(this, value.x - value.width - 4, y + 3, `(${effective} équipé)`, 8, INK.soft).setOrigin(1, 0);
+    }
+    panelText(this, x, y + 16, entry.effect(CLASS_RESOURCE[this.character.class]), 7, INK.soft);
+    const hasPoints = this.character.statPoints > 0;
+    new KitButton(this, LEFT + INNER_W - 34, y + 2, 24, 24, '+', {
+      size: 12,
+      align: 'center',
+      state: hasPoints ? 'normal' : 'disabled',
+      onClick: () => void this.handleAllocate(entry.stat),
+    });
   }
 
   private async handleAllocate(stat: AllocatableStat): Promise<void> {
-    const success = allocateStatPoint(this.character, stat);
-    if (!success) return;
+    if (!allocateStatPoint(this.character, stat)) {
+      toast(this, this.scale.width / 2, ROWS_Y - 6, 'Aucun point à placer : on en gagne à chaque niveau.');
+      return;
+    }
     await SaveManager.saveCharacter(this.character);
     playCraftSuccess();
-    this.scene.restart({ returnScene: this.returnScene, x: this.returnX, y: this.returnY });
+    this.render();
   }
 
   private goBack(): void {

@@ -10,14 +10,13 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton } from '../ui/dialog';
 
 // Large enough to fill the portrait canvas (216x384) at every camera
 // position — see HamletScene's WORLD_HEIGHT comment for why a smaller world
 // leaves a black band showing through.
 const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 400;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 const QUEST_ID = 'shrine_pilgrims';
 
 const LORE_LINES = [
@@ -68,7 +67,7 @@ export class ShrineScene extends Phaser.Scene {
   private hermit!: Phaser.GameObjects.Rectangle;
   private silhouette?: Phaser.GameObjects.Rectangle;
   private baseInteractables: Interactable[] = [];
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private loreIndex = 0;
   private spawnX?: number;
   private spawnY?: number;
@@ -84,7 +83,7 @@ export class ShrineScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.loreIndex = 0;
     this.cameras.main.setBackgroundColor('#3a3a4a');
     void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
@@ -384,68 +383,16 @@ export class ShrineScene extends Phaser.Scene {
   // fits in; the 3-way ending choice is the first to need more room for a
   // 3rd button, so it passes a taller value instead of every existing call
   // site needing to change.
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[], _boxHeight?: number): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const boxTop = height / 2 - 100;
-
-    // Measured before the buttons so a long paragraph can push them down
-    // instead of running underneath them — every dialog before the 3-way
-    // ending choice stayed short enough that the fixed height/2+50 offset
-    // never visibly overlapped, but that was luck, not a guarantee (confirmed
-    // by testing: this exact text/button combo overlapped at a fixed offset).
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    const bg = this.add
-      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    this.dialogElements = [bg, label];
-
-    // Clamped so a long paragraph pushes buttons down but never past the
-    // visible canvas (height) — an unreachable off-screen button would be
-    // strictly worse than the pre-fix behavior of drawing it mid-paragraph
-    // at a fixed offset, at least still on-screen and tappable.
-    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
-    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
-
-    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
-    if (contentBottom - boxTop + 12 > boxHeight) {
-      bg.setSize(width - 20, contentBottom - boxTop + 12);
-    }
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 

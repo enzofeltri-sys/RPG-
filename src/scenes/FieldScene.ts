@@ -17,6 +17,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
+import { showBanner } from '../ui/dialog';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 480;
@@ -90,7 +91,6 @@ export class FieldScene extends Phaser.Scene {
   private spawnY?: number;
   private character!: Character;
   private sheep: Wanderer[] = [];
-  private messageText?: Phaser.GameObjects.Text;
 
   constructor() {
     super('Field');
@@ -348,22 +348,6 @@ export class FieldScene extends Phaser.Scene {
   }
 
   private showMessage(message: string): void {
-    this.messageText?.destroy();
-    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(1800, () => {
-      this.messageText?.destroy();
-      this.messageText = undefined;
-    });
+    showBanner(this, message);
   }
 }

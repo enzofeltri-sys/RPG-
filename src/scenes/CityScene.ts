@@ -11,11 +11,10 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
 
 const WORLD_WIDTH = 520;
 const WORLD_HEIGHT = 480;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 const MUTED = '#9aa0a6';
 const QUEST_ID = 'city_road_patrol';
 const ALPHA_QUEST_ID = 'city_road_patrol_alpha';
@@ -53,7 +52,7 @@ export class CityScene extends Phaser.Scene {
   private mage!: Phaser.GameObjects.Rectangle;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private citizens: Wanderer[] = [];
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private mageLineIndex = 0;
   private citizenLineIndex = 0;
   private spawnX?: number;
@@ -71,7 +70,7 @@ export class CityScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.mageLineIndex = 0;
     this.drawGround();
 
@@ -1895,67 +1894,21 @@ export class CityScene extends Phaser.Scene {
     this.openDialog(text, [{ label: 'Fermer', onClick: () => this.closeDialog() }]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[]): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    this.dialogElements = [bg, label];
-
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 
   private showMessage(message: string): void {
-    const messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(1800, () => messageText.destroy());
+    showBanner(this, message);
   }
 
   private leaveCity(): void {

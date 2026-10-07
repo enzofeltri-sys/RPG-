@@ -13,11 +13,10 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { playQuestComplete } from '../ui/sound';
+import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 640;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 
 const VILLAGER_LINES = [
   'Valombre reçoit pas mal de voyageurs ces temps-ci.',
@@ -52,7 +51,6 @@ export class VillageScene extends Phaser.Scene {
   private buildings: Phaser.GameObjects.Rectangle[] = [];
   private isTransitioning = false;
   private character!: Character;
-  private messageText?: Phaser.GameObjects.Text;
   private merchantNpc!: Phaser.GameObjects.Rectangle;
   private forgeBuilding!: Phaser.GameObjects.Rectangle;
   private bertrandHouse!: Phaser.GameObjects.Rectangle;
@@ -62,7 +60,7 @@ export class VillageScene extends Phaser.Scene {
   private weaponMaster!: Phaser.GameObjects.Rectangle;
   private villagers: Wanderer[] = [];
   private villagerLineIndex = 0;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -457,59 +455,16 @@ export class VillageScene extends Phaser.Scene {
     ]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[], _boxHeight?: number): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const boxTop = height / 2 - 100;
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    const bg = this.add
-      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    this.dialogElements = [bg, label];
-
-    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
-    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
-
-    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
-    if (contentBottom - boxTop + 12 > boxHeight) {
-      bg.setSize(width - 20, contentBottom - boxTop + 12);
-    }
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 
@@ -601,23 +556,7 @@ export class VillageScene extends Phaser.Scene {
   }
 
   private showMessage(message: string): void {
-    this.messageText?.destroy();
-    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(1800, () => {
-      this.messageText?.destroy();
-      this.messageText = undefined;
-    });
+    showBanner(this, message);
   }
 
   private leaveVillage(): void {

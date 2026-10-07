@@ -12,6 +12,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -28,8 +29,6 @@ const SENTINELS_QUEST_ID = 'sunkenroad_sentinels';
 // same "unpredictable danger" feel as every other region's random fights.
 const AMBIENT_MONSTER_IDS = ['bog_wraith', 'corrupted_sentinel'];
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 
 // Flavor-only lines once Odren's quest is turned in — the same rumor-mill
 // role the wanderer played before being given a name and a quest.
@@ -70,8 +69,7 @@ export class SunkenRoadScene extends Phaser.Scene {
   private refugeeLineIndex = 0;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
-  private messageText?: Phaser.GameObjects.Text;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -263,50 +261,16 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.showMessage(line);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[]): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    this.dialogElements = [bg, label];
-
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 
@@ -326,23 +290,7 @@ export class SunkenRoadScene extends Phaser.Scene {
   }
 
   private showMessage(message: string): void {
-    this.messageText?.destroy();
-    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(2200, () => {
-      this.messageText?.destroy();
-      this.messageText = undefined;
-    });
+    showBanner(this, message, 2200);
   }
 
   private enterSunkenRuins(): void {

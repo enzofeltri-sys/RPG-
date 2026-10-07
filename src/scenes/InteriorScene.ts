@@ -6,11 +6,10 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
+import { DialogBox, DialogButton } from '../ui/dialog';
 
 const WORLD_WIDTH = 160;
 const WORLD_HEIGHT = 160;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 
 interface InteriorData {
   // Every "house" on the overworld used to be a flat dead end ("Personne ne
@@ -38,7 +37,7 @@ export class InteriorScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isTransitioning = false;
   private lineIndex = 0;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private roomData!: InteriorData;
 
   constructor() {
@@ -52,7 +51,7 @@ export class InteriorScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.lineIndex = 0;
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.cameras.main.setBackgroundColor(this.roomData.floorColor);
 
     addCrispText(this, this.scale.width / 2, 12, this.roomData.label, {
@@ -130,60 +129,16 @@ export class InteriorScene extends Phaser.Scene {
     this.openDialog(line, [{ label: 'Fermer', onClick: () => this.closeDialog() }]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[]): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const boxTop = height / 2 - 100;
-    const boxHeight = 200;
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    const bg = this.add
-      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    this.dialogElements = [bg, label];
-
-    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
-    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
-
-    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
-    if (contentBottom - boxTop + 12 > boxHeight) {
-      bg.setSize(width - 20, contentBottom - boxTop + 12);
-    }
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 

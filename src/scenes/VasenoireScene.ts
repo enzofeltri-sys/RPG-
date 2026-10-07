@@ -10,13 +10,12 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton } from '../ui/dialog';
 
 const RUINS_QUEST_ID = 'vasenoire_ruins';
 const RUINS_LEADER_QUEST_ID = 'vasenoire_ruins_leader';
 const FISHERMAN_QUEST_ID = 'vasenoire_fisherman';
 
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
@@ -45,7 +44,7 @@ export class VasenoireScene extends Phaser.Scene {
   private merchantStall!: Phaser.GameObjects.Rectangle;
   private forge!: Phaser.GameObjects.Rectangle;
   private toma!: Phaser.GameObjects.Rectangle;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -60,7 +59,7 @@ export class VasenoireScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2e3a34');
     void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
 
@@ -563,50 +562,16 @@ export class VasenoireScene extends Phaser.Scene {
     this.openDialog('« Bonne pêche, grâce à vous. »', [{ label: 'Fermer', onClick: () => this.closeDialog() }]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[]): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    this.dialogElements = [bg, label];
-
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 

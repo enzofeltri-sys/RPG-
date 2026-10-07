@@ -12,6 +12,7 @@ import { playChestOpen, playQuestComplete } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
 
 const CHEST_ID = 'hamlet_chest_1';
 const WORLD_WIDTH = 240;
@@ -20,8 +21,6 @@ const WORLD_WIDTH = 240;
 // the bottom (the camera can't scroll past its bounds, so there's nothing
 // left to draw there). Same fix applied to every other undersized scene.
 const WORLD_HEIGHT = 400;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 
 const MENTOR_QUEST_ID = 'wolves_threat';
 
@@ -64,7 +63,7 @@ export class HamletScene extends Phaser.Scene {
   private solangeHouse!: Phaser.GameObjects.Rectangle;
   private fauvetteHouse!: Phaser.GameObjects.Rectangle;
   private villagerLineIndex = 0;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -80,7 +79,7 @@ export class HamletScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.drawGround();
 
     addCrispText(this, this.scale.width / 2, 12, 'Basse-Combe', {
@@ -586,81 +585,21 @@ export class HamletScene extends Phaser.Scene {
     );
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[], boxHeight = 200): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[], _boxHeight?: number): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const boxTop = height / 2 - 100;
-
-    // Measured before the buttons so a long paragraph pushes them down
-    // instead of running underneath them (found via testing: Gontrand's
-    // Tome III completion text overlapped its own button at the old fixed
-    // offset — see ShrineScene.openDialog for the same fix applied there
-    // first).
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    const bg = this.add
-      .rectangle(10, boxTop, width - 20, boxHeight, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    this.dialogElements = [bg, label];
-
-    const maxButtonStartY = height - 20 - (buttons.length - 1) * 26;
-    const buttonStartY = Math.min(Math.max(height / 2 + 50, label.y + label.height + 14), maxButtonStartY);
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, buttonStartY + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
-
-    const contentBottom = buttonStartY + (buttons.length - 1) * 26 + 15;
-    if (contentBottom - boxTop + 12 > boxHeight) {
-      bg.setSize(width - 20, contentBottom - boxTop + 12);
-    }
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 
   private showMessage(message: string): void {
-    const messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(1800, () => messageText.destroy());
+    showBanner(this, message);
   }
 
   private async handleChestTap(): Promise<void> {

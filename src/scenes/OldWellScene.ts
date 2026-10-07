@@ -9,6 +9,7 @@ import { playChestOpen } from '../ui/sound';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
+import { showBanner } from '../ui/dialog';
 
 // Small and short on purpose — the low-stakes counterpart to Dungeon/Catacombs:
 // no gate, no boss, just a couple of easy fights and a guaranteed (but modest)
@@ -46,7 +47,6 @@ export class OldWellScene extends Phaser.Scene {
   private clearedMonsterIds = new Set<string>();
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
-  private messageText?: Phaser.GameObjects.Text;
   private spawnX?: number;
   private spawnY?: number;
 
@@ -218,23 +218,7 @@ export class OldWellScene extends Phaser.Scene {
   }
 
   private showMessage(message: string): void {
-    this.messageText?.destroy();
-    this.messageText = addCrispText(this, this.scale.width / 2, 30, message, {
-      fontSize: '10px',
-      color: '#e8d9b5',
-      backgroundColor: '#0b0c10',
-      padding: { x: 8, y: 5 },
-      align: 'center',
-      wordWrap: { width: this.scale.width - 20 },
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
-
-    this.time.delayedCall(1800, () => {
-      this.messageText?.destroy();
-      this.messageText = undefined;
-    });
+    showBanner(this, message);
   }
 
   private leaveOldWell(): void {

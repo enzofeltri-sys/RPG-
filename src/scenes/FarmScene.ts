@@ -9,6 +9,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
+import { DialogBox, DialogButton } from '../ui/dialog';
 
 const WORLD_WIDTH = 220;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -17,8 +18,6 @@ const WORLD_WIDTH = 220;
 const WORLD_HEIGHT = 400;
 const MIN_ENCOUNTER_DISTANCE = 150;
 const MAX_ENCOUNTER_DISTANCE = 300;
-const GOLD = '#e8d9b5';
-const DARK = '#0b0c10';
 const QUEST_ID = 'crop_pests';
 const KING_QUEST_ID = 'crop_pests_king';
 const KING_ZONE_ID = 'rat_king_zone';
@@ -46,7 +45,7 @@ export class FarmScene extends Phaser.Scene {
   private encounterThreshold = 0;
   private character!: Character;
   private farmer!: Phaser.GameObjects.Rectangle;
-  private dialogElements: Phaser.GameObjects.GameObject[] = [];
+  private dialog?: DialogBox;
   private clearedMonsterIds = new Set<string>();
   private spawnX?: number;
   private spawnY?: number;
@@ -65,7 +64,7 @@ export class FarmScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.isTransitioning = false;
-    this.dialogElements = [];
+    this.dialog = undefined;
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#4a5a2a');
@@ -303,50 +302,16 @@ export class FarmScene extends Phaser.Scene {
     ]);
   }
 
-  private openDialog(text: string, buttons: { label: string; onClick: () => void }[]): void {
+  // Parchment dialogue box (ui/dialog.ts): long speeches page behind "Suite".
+  private openDialog(text: string, buttons: DialogButton[]): void {
     this.closeDialog();
     this.tapControl.setEnabled(false);
-
-    const { width, height } = this.scale;
-    const bg = this.add
-      .rectangle(10, height / 2 - 100, width - 20, 200, 0x0b0c10, 0.97)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(800)
-      .setStrokeStyle(1, 0xe8d9b5);
-
-    const label = addCrispText(this, width / 2, height / 2 - 80, text, {
-      fontSize: '10px',
-      color: GOLD,
-      align: 'center',
-      lineSpacing: 5,
-      wordWrap: { width: width - 44 },
-    })
-      .setOrigin(0.5, 0)
-      .setScrollFactor(0)
-      .setDepth(801);
-
-    this.dialogElements = [bg, label];
-
-    buttons.forEach((button, i) => {
-      const buttonText = addCrispText(this, width / 2, height / 2 + 50 + i * 26, button.label, {
-        fontSize: '10px',
-        color: DARK,
-        backgroundColor: GOLD,
-        padding: { x: 8, y: 5 },
-      })
-        .setOrigin(0.5)
-        .setScrollFactor(0)
-        .setDepth(801)
-        .setInteractive({ useHandCursor: true });
-      buttonText.on('pointerdown', button.onClick);
-      this.dialogElements.push(buttonText);
-    });
+    this.dialog = new DialogBox(this, text, buttons);
   }
 
   private closeDialog(): void {
-    this.dialogElements.forEach((el) => el.destroy());
-    this.dialogElements = [];
+    this.dialog?.destroy();
+    this.dialog = undefined;
     this.tapControl.setEnabled(true);
   }
 

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { crispIcon } from '../entities/itemIcon';
+import { safeTop } from './safeArea';
 import { addCrispText } from './text';
 import type { PixelText } from './pixelFont';
 
@@ -477,6 +478,7 @@ export function addZoneTitle(scene: Phaser.Scene, name: string): void {
   const w = Math.min(scene.scale.width - 84, Math.ceil((text.width + 20) / 2) * 2);
   const h = 22;
   const g = scene.add.graphics().setScrollFactor(0).setDepth(960);
-  drawPanel(g, Math.round((scene.scale.width - w) / 4) * 2, 6, w, h);
-  text.setY(6 + Math.round((h - text.height) / 2));
+  const top = 6 + safeTop();
+  drawPanel(g, Math.round((scene.scale.width - w) / 4) * 2, top, w, h);
+  text.setY(top + Math.round((h - text.height) / 2));
 }

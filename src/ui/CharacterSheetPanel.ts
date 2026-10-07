@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { safeTop } from './safeArea';
 import { Character, RACES, CLASSES, xpToNextLevel } from '../game/character';
 import { MAX_LEVEL, talentPointsAvailable } from '../game/talents';
 import { SaveManager } from '../save/SaveManager';
@@ -54,6 +55,8 @@ export class CharacterSheetPanel {
     onToggle?: (open: boolean) => void,
   ) {
     this.scene = scene;
+    // Everything built here moves down below the iPhone's status bar.
+    const builtFrom = scene.children.list.length;
     const talentPoints = talentPointsAvailable(character);
     const unspent = character.statPoints > 0 || talentPoints > 0;
 
@@ -111,6 +114,8 @@ export class CharacterSheetPanel {
     this.panel.setVisible(false);
 
     if (character.pendingNotice) this.showNotice(scene, character);
+    const dy = safeTop();
+    if (dy) scene.children.list.slice(builtFrom).forEach((o) => ((o as unknown as { y: number }).y += dy));
   }
 
   private fix<T extends Fixed>(obj: T, depth = 1001): T {

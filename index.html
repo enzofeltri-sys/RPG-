@@ -19,14 +19,12 @@
         touch-action: none;
         height: 100%;
       }
-      /* The game keeps clear of the iPhone's status bar (and its blur) and
-         of the home indicator: it fills the screen between the two. */
+      /* The game fills the whole screen, under the iPhone's status bar
+         too; its HUD keeps clear of it (src/ui/safeArea.ts). */
       #game {
-        position: fixed;
-        left: env(safe-area-inset-left);
-        right: env(safe-area-inset-right);
-        top: env(safe-area-inset-top);
-        bottom: env(safe-area-inset-bottom);
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
       }
       #boot-status {
         color: #f0deb2;

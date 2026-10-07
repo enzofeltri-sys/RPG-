@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { measureSafeArea } from './ui/safeArea';
 import './fonts.css';
 import './pixel-art-styles.css';
 import { TitleScene } from './scenes/TitleScene';
@@ -67,13 +68,11 @@ import { MerchantScene } from './scenes/MerchantScene';
 // more rows — menus stay centered in their 216x384 frame, zones show more).
 const GAME_WIDTH = 216;
 const GAME_HEIGHT = gameHeight();
+measureSafeArea(GAME_WIDTH);
 
 function gameHeight(): number {
-  // The area the game gets (index.html keeps it clear of the status bar
-  // and the home indicator).
-  const box = document.getElementById('game')?.getBoundingClientRect();
-  const w = box?.width || window.innerWidth || 1;
-  const h = box?.height || window.innerHeight || 1;
+  const w = window.innerWidth || 1;
+  const h = window.innerHeight || 1;
   const rows = Math.round((GAME_WIDTH * h) / w / 2) * 2;
   return Math.max(384, Math.min(520, rows));
 }

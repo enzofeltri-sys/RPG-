@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { safeTop } from './safeArea';
 import { Character } from '../game/character';
 import { EquipSlot, Item } from '../game/item';
 import { handRule, planHandEquip } from '../game/weapons';
@@ -101,7 +102,9 @@ export function targetSlot(character: Character, item: Item): EquipSlot {
 // camera centers that frame (the game fills the phone, the layout stays).
 export const FRAME_H = 384;
 export function centerFrame(scene: Phaser.Scene): number {
-  const off = Math.max(0, Math.floor((scene.scale.height - FRAME_H) / 2));
+  const spare = Math.max(0, scene.scale.height - FRAME_H);
+  // Centered, but never under the iPhone's status bar when there is room.
+  const off = Math.min(spare, Math.max(Math.floor(spare / 2), safeTop()));
   scene.cameras.main.setScroll(0, -off);
   return off;
 }

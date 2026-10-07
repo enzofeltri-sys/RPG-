@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { safeBottom, safeTop } from './safeArea';
 import { INK, KitButton, drawPanel, panelText } from './kit';
 import type { PixelText } from './pixelFont';
 
@@ -40,7 +41,7 @@ export class DialogBox {
   }
 
   private textHeightFor(buttonCount: number): number {
-    const available = this.scene.scale.height - 12 - 34 - buttonCount * BUTTON_STEP;
+    const available = this.scene.scale.height - safeTop() - safeBottom() - 12 - 34 - buttonCount * BUTTON_STEP;
     return Math.min(196, available);
   }
 
@@ -100,7 +101,7 @@ export class DialogBox {
     // A page count ("1/2") gets a row of its own above the text.
     const paged = this.pages.length > 1 ? 6 : 0;
     const panelH = Math.ceil((body.height + 30 + paged + buttons.length * BUTTON_STEP) / 2) * 2;
-    const top = Math.round((scene.scale.height - 6 - panelH) / 2) * 2;
+    const top = Math.round((scene.scale.height - safeBottom() - 6 - panelH) / 2) * 2;
     const g = scene.add.graphics();
     drawPanel(g, PANEL_X, top, this.width, panelH);
     body.setY(top + 12 + paged);
@@ -161,7 +162,7 @@ export function showBanner(scene: Phaser.Scene, message: string, duration = 1800
     .setDepth(1002);
   const w = Math.ceil(Math.min(scene.scale.width - 24, text.width + 24) / 2) * 2;
   const h = Math.ceil((text.height + 16) / 2) * 2;
-  const top = 40;
+  const top = 40 + safeTop();
   text.setY(top + 8);
   const g = scene.add.graphics().setScrollFactor(0).setDepth(1001);
   drawPanel(g, Math.round((scene.scale.width - w) / 4) * 2, top, w, h);

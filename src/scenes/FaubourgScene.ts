@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addPlazaGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { FAUBOURG } from '../world/zones/aiglemont';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -70,16 +71,11 @@ export class FaubourgScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2e3440');
-    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
+    // The quays are drawn by the game (world/zones/aiglemont.ts): the
+    // basin (solid either side of its footbridge), shacks and storehouse.
+    const painted = paintZone(this, FAUBOURG);
 
     addZoneTitle(this, 'Le Faubourg des quais');
-
-    // Crates and a moored boat hull, purely decorative.
-    this.add.rectangle(60, 150, 40, 30, 0x4a4638).setStrokeStyle(1, 0x22201a);
-    this.add.rectangle(200, 140, 40, 30, 0x4a4638).setStrokeStyle(1, 0x22201a);
-    this.add.rectangle(130, 300, 90, 24, 0x3a4a52).setStrokeStyle(1, 0x1a232a);
-    this.add.rectangle(80, 270, 20, 14, 0x4a4030).setStrokeStyle(1, 0x22201a);
-    this.add.rectangle(190, 310, 20, 14, 0x4a4030).setStrokeStyle(1, 0x22201a);
 
     // Off the x=130 centerline (spawn sits on it), same lesson as every other
     // location this session.
@@ -90,6 +86,13 @@ export class FaubourgScene extends Phaser.Scene {
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.informant);
+    painted.follow(this.player);
+    // The buildings' collision boxes.
+    Object.values(FAUBOURG.buildings!).forEach((b) => {
+      const rect = this.add.rectangle(b.x, b.y, b.w, b.h).setVisible(false);
+      this.physics.add.existing(rect, true);
+      this.physics.add.collider(this.player, rect);
+    });
     ENCOUNTERS.filter((e) => !this.clearedEncounterIds.has(e.id)).forEach((encounter) =>
       this.addEncounterZone(encounter),
     );

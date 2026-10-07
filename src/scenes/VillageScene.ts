@@ -468,6 +468,7 @@ export class VillageScene extends Phaser.Scene {
     const configs = {
       bertrand: {
         label: 'Maison de Bertrand',
+        room: 'fisher',
         floorColor: 0x2a2420,
         npcName: 'Bertrand',
         npcColor: 0x5a6a7a,
@@ -480,6 +481,7 @@ export class VillageScene extends Phaser.Scene {
       },
       ombeline: {
         label: "Maison d'Ombeline",
+        room: 'cats',
         floorColor: 0x2a2028,
         npcName: 'Ombeline',
         npcColor: 0x8a5a7a,
@@ -492,6 +494,7 @@ export class VillageScene extends Phaser.Scene {
       },
       inn: {
         label: 'Auberge du Cerf Bleu',
+        room: 'inn',
         floorColor: 0x2a2418,
         npcName: "Fernand, l'aubergiste",
         npcColor: 0x7a5a3a,

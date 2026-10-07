@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BuildingKind } from '../art/buildings';
 import { NPC_LOOKS } from '../art/npcLooks';
 import { Pixmap, hash2 } from '../art/pixmap';
-import { PropKind, renderPatch } from '../art/props';
+import { PatchKind, PropKind, renderPatch } from '../art/props';
 import { buildingArt, propArt } from './zonePlan';
 import { HERO_FEET_Y, HERO_FRAME_H, ensureHeroAnimations, idleFrame, lookTextures } from '../entities/heroSprite';
 
@@ -100,7 +100,7 @@ const DECOR_BUILDINGS: Record<string, BuildingKind> = {
   stone_tower: 'stone_tower',
 };
 
-const DECOR_PATCHES: Record<string, 'crop' | 'water' | 'planks' | 'lava' | 'marsh'> = {
+const DECOR_PATCHES: Record<string, PatchKind> = {
   farm_field: 'crop',
   water_murky: 'marsh',
   lava_pool: 'lava',

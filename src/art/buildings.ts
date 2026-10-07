@@ -17,7 +17,13 @@ export type BuildingKind =
   | 'market_hall'
   | 'stone_tower'
   | 'barn'
-  | 'mausoleum';
+  | 'mausoleum'
+  | 'town_house'
+  | 'merchant_house'
+  | 'old_house'
+  | 'dock_shack'
+  | 'storehouse'
+  | 'lodge';
 
 export interface BuildingArt {
   pm: Pixmap;
@@ -944,6 +950,309 @@ function tower(w: number, h: number): BuildingArt {
   return { pm, anchorX: Math.round(cx), anchorY: base, wallX0: x0, wallX1: x1, doorX: Math.round(cx) + 1 };
 }
 
+// ------------------------------------------------------------ the town
+
+// A striped canvas awning over a shop front, with its shadow on the wall.
+function awning(pm: Pixmap, x0: number, x1: number, y: number, depth: number, colors: [Ramp, Ramp]): void {
+  for (let j = 0; j < depth; j++) {
+    for (let x = x0 - (j >> 1); x <= x1 + (j >> 1); x++) {
+      const stripe = Math.floor((x - x0 + 40) / 3) % 2;
+      const r = colors[stripe];
+      pm.set(x, y + j, lit(r, j === 0 ? 0.45 : j === depth - 1 ? -0.5 : 0.1 - j * 0.08));
+    }
+  }
+  // Scalloped valance.
+  for (let x = x0 - (depth >> 1); x <= x1 + (depth >> 1); x++) {
+    const stripe = Math.floor((x - x0 + 40) / 3) % 2;
+    if ((x - x0 + 40) % 3 !== 2) pm.set(x, y + depth, colors[stripe][3]);
+  }
+  for (let x = x0; x <= x1; x++) {
+    const c = pm.get(x, y + depth + 1);
+    if (c) pm.set(x, y + depth + 1, mix(c, [30, 24, 34], 0.45));
+  }
+}
+
+// A hanging shop sign on an iron bracket: a board with a painted emblem.
+function shopSign(pm: Pixmap, x: number, y: number, emblem: 'boot' | 'loaf' | 'key' | 'book' | 'cup'): void {
+  pm.hline(x, x + 9, y, IRON[2]);
+  pm.set(x, y + 1, IRON[2]);
+  pm.set(x + 3, y + 1, IRON[3]);
+  pm.set(x + 8, y + 1, IRON[3]);
+  for (let j = 0; j < 7; j++) for (let i = 0; i < 8; i++) pm.set(x + 2 + i, y + 2 + j, lit(WOOD, i === 0 ? 0.4 : i === 7 || j === 6 ? -0.5 : 0.05));
+  const ex = x + 4;
+  const ey = y + 4;
+  const G: RGB = [238, 196, 80];
+  const shapes: Record<typeof emblem, [number, number][]> = {
+    boot: [[1, 0], [1, 1], [1, 2], [2, 2], [3, 2]],
+    loaf: [[0, 1], [1, 0], [2, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2]],
+    key: [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1], [3, 1], [3, 2]],
+    book: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2]],
+    cup: [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, 2]],
+  };
+  shapes[emblem].forEach(([i, j]) => pm.set(ex + i, ey + j, emblem === 'loaf' ? [226, 170, 96] : G));
+}
+
+// A tall town house: a cut-stone shop floor, a jettied timber-framed floor
+// above, a steep gable. The variant (from its size) picks the roof, the
+// shutters and the trade.
+function townHouse(w: number, h: number): BuildingArt {
+  const v = Math.floor(hash2(w, h, 301) * 4);
+  const lower = 21;
+  const upper = 19;
+  const p = plan(w, h, lower + upper, Math.max(24, Math.min(36, Math.round(h * 0.55) + 6)));
+  const pm = new Pixmap(p.W, p.H);
+  const split = p.base - lower + 1;
+  wall(pm, 'cut', p.wx0 + 1, p.wx1 - 1, split, p.base, { plinth: 2 });
+  wall(pm, 'daub', p.wx0 - 1, p.wx1 + 1, p.wallTop, split - 1, { frame: true });
+  pm.hline(p.wx0 - 1, p.wx1 + 1, split - 1, TIMBER[3]);
+  pm.hline(p.wx0 + 1, p.wx1 - 1, split, [40, 34, 40]);
+  // Carved beam ends under the jetty.
+  for (let x = p.wx0 + 3; x < p.wx1 - 1; x += 7) pm.set(x, split, TIMBER[2]);
+  const doorLeft = v % 2 === 0;
+  const doorX = doorLeft ? p.wx0 + 11 : p.wx1 - 11;
+  door(pm, doorX, p.base, 16, 9, true, true);
+  // The shop window: wide, warm, with a sill of goods.
+  const sx0 = doorLeft ? doorX + 9 : p.wx0 + 5;
+  const sx1 = doorLeft ? p.wx1 - 5 : doorX - 9;
+  if (sx1 - sx0 >= 9) {
+    window(pm, sx0, split + 5, sx1 - sx0, 8, true);
+    pm.hline(sx0 - 1, sx1, split + 13, CUT[1]);
+    pm.hline(sx0 - 1, sx1, split + 14, CUT[3]);
+  }
+  const SH = [SHUTTERS.blue, SHUTTERS.green, SHUTTERS.red, SHUTTERS.ochre][v];
+  windowsRow(pm, p, p.wallTop + 6, -100, 0, 6, 7, { shutters: SH, boxes: v !== 2 });
+  shopSign(pm, doorLeft ? doorX + 5 : doorX - 15, split + 1, (['boot', 'loaf', 'key', 'cup'] as const)[v]);
+  if (v === 1 || v === 3) chimney(pm, p.wx1 - 14, 6, 14);
+  gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, v === 2 ? 'tiles' : 'slate', true);
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
+// A merchant's house all in cut stone: a tiled hip roof, a striped awning
+// over the counter, shuttered windows with flower boxes above.
+function merchantHouse(w: number, h: number): BuildingArt {
+  const v = Math.floor(hash2(w, h, 302) * 3);
+  const p = plan(w, h, 38, Math.max(20, Math.min(30, Math.round(h * 0.45) + 4)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'cut', p.wx0, p.wx1, p.wallTop, p.base, { plinth: 2 });
+  // A moulded string course between the floors.
+  const course = p.wallTop + 17;
+  pm.hline(p.wx0, p.wx1, course, CUT[0]);
+  pm.hline(p.wx0, p.wx1, course + 1, CUT[3]);
+  const doorX = p.wx1 - 10;
+  door(pm, doorX, p.base, 15, 9, true, true);
+  windowsRow(pm, p, p.wallTop + 5, -100, 0, 6, 7, { shutters: [SHUTTERS.green, SHUTTERS.red, SHUTTERS.blue][v], boxes: true });
+  // Counter under the awning.
+  const cx0 = p.wx0 + 4;
+  const cx1 = doorX - 9;
+  const RED = ramp([182, 58, 54]);
+  const CREAM = ramp([236, 226, 196], 0.6);
+  const GREEN = ramp([70, 128, 84]);
+  const BLUE = ramp([66, 104, 162], 0.5);
+  awning(pm, cx0, cx1, course + 3, 5, [[RED, GREEN, BLUE][v], CREAM]);
+  for (let y = course + 9; y <= p.base - 1; y++) for (let x = cx0; x <= cx1; x++) pm.set(x, y, y < p.base - 6 ? [44, 34, 40] : lit(WOOD, y === p.base - 6 ? 0.5 : -0.1 + ((x - cx0) % 5 === 0 ? -0.5 : 0)));
+  // Goods on the counter: bolts of cloth, jars or loaves.
+  for (let x = cx0 + 1; x < cx1 - 2; x += 4) {
+    const k = hash2(x, v, 303);
+    const c: RGB = v === 0 ? (k < 0.5 ? [196, 72, 70] : [86, 120, 180]) : v === 1 ? [226, 176, 96] : k < 0.5 ? [150, 186, 120] : [214, 196, 150];
+    pm.hline(x, x + 2, p.base - 7, c);
+    pm.hline(x, x + 2, p.base - 8, mix(c, [255, 255, 255], 0.3));
+  }
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'tiles');
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
+// Boards nailed across a window.
+function boarded(pm: Pixmap, x: number, y: number, w: number, h: number): void {
+  for (let j = -1; j <= h; j++) for (let i = -1; i <= w; i++) pm.set(x + i, y + j, i === -1 || j === -1 || i === w || j === h ? TIMBER[3] : [28, 22, 28]);
+  for (let i = -2; i <= w + 1; i++) {
+    pm.set(x + i, y + Math.round((i + 2) * (h / (w + 4))), lit(WOOD, -0.1));
+    pm.set(x + i, y + h - 1 - Math.round((i + 2) * (h / (w + 4))), lit(WOOD, 0.2));
+  }
+  pm.hline(x - 2, x + w + 1, y + (h >> 1), lit(WOOD, 0.35));
+}
+
+// An old house nobody has lived in for generations: soot-dark stone,
+// sagging mossy shingles with a hole, boarded windows, a door held shut by
+// chains and a padlock.
+function oldHouse(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(26, Math.min(32, Math.round(h * 0.6))), Math.max(22, Math.min(32, Math.round(h * 0.55) + 4)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'field', p.wx0, p.wx1, p.wallTop, p.base);
+  for (let y = p.wallTop; y <= p.base; y++) {
+    for (let x = p.wx0; x <= p.wx1; x++) {
+      const c = pm.get(x, y)!;
+      // Soot and damp: darker, colder, streaked down from the eave.
+      const streak = hash2(x, 1, 311) < 0.2 ? 0.18 : 0;
+      pm.set(x, y, mix(c, [40, 42, 52], 0.32 + streak - ((y - p.wallTop) / (p.base - p.wallTop)) * 0.1));
+    }
+  }
+  const doorX = Math.round((p.wx0 + p.wx1) / 2);
+  door(pm, doorX, p.base, 17, 10, true, true);
+  for (let y = p.base - 16; y <= p.base; y++) for (let x = doorX - 5; x <= doorX + 4; x++) {
+    const c = pm.get(x, y);
+    if (c) pm.set(x, y, mix(c, [36, 30, 34], 0.35));
+  }
+  // Chains across the door, a padlock in the middle.
+  for (let i = -6; i <= 5; i++) {
+    const y1 = p.base - 11 + Math.round(Math.abs(i) * 0.5);
+    const LINK: RGB[] = [[176, 178, 190], [110, 112, 126]];
+    pm.set(doorX + i, y1, LINK[i & 1]);
+    pm.set(doorX + i, p.base - 5 - Math.round(Math.abs(i) * 0.5), LINK[(i + 1) & 1]);
+  }
+  pm.rect(doorX - 1, p.base - 10, 3, 3, [150, 120, 60]);
+  pm.set(doorX, p.base - 11, IRON[1]);
+  // A pale seal pasted on the door.
+  pm.rect(doorX - 3, p.base - 15, 2, 3, [214, 200, 160]);
+  pm.set(doorX - 3, p.base - 13, [150, 50, 50]);
+  const ww = 7;
+  boarded(pm, p.wx0 + 6, p.wallTop + 8, ww, 7);
+  boarded(pm, p.wx1 - 6 - ww, p.wallTop + 8, ww, 7);
+  ivy(pm, p.wx1 - 3, p.wallTop + 2, p.base, 13);
+  ivy(pm, p.wx0 + 2, p.wallTop + 9, p.base, 17);
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
+  // Sagging: a few shingle rows dip; a hole shows dark rafters.
+  const hx = Math.round(p.W * 0.62);
+  const hy = Math.round((2 + p.wallTop) / 2);
+  for (let j = 0; j < 5; j++) for (let i = 0; i < 7 - Math.abs(j - 2); i++) pm.set(hx + i - j % 2, hy + j, (i + j) % 3 === 0 ? TIMBER[2] : [24, 18, 24]);
+  for (let x = 4; x < p.W - 8; x++) if (noise(x, 3, 6, 312) > 0.6) pm.set(x, hy - 2 + Math.round(noise(x, 0, 9, 313) * 4), mix(SHINGLE[2], MOSS, 0.7));
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
+// A dock-side shack: tarred plank walls, a mossy shingle roof, fishing
+// nets hung to dry, a lantern by the door.
+function dockShack(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(20, Math.min(26, Math.round(h * 0.65))), Math.max(16, Math.min(26, Math.round(h * 0.6) + 2)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'planks', p.wx0, p.wx1, p.wallTop, p.base);
+  for (let y = p.wallTop; y <= p.base; y++) for (let x = p.wx0; x <= p.wx1; x++) pm.set(x, y, mix(pm.get(x, y)!, [52, 46, 50], 0.38));
+  for (const px of [p.wx0, p.wx1 - 1]) for (let y = p.wallTop; y <= p.base; y++) {
+    pm.set(px, y, TIMBER[2]);
+    pm.set(px + 1, y, TIMBER[3]);
+  }
+  const doorX = p.wx0 + 10;
+  door(pm, doorX, p.base, Math.min(15, p.base - p.wallTop - 3), 8, false, false);
+  window(pm, p.wx1 - 11, p.wallTop + 6, 5, 5, true);
+  // A net draped on the wall: a mesh of knots, sagging, with floats.
+  const nx0 = doorX + 7;
+  const nx1 = Math.min(p.wx1 - 14, nx0 + 16);
+  if (nx1 - nx0 > 6) {
+    const NET: RGB = [176, 160, 120];
+    for (let x = nx0; x <= nx1; x++) {
+      const sag = Math.round(Math.sin(((x - nx0) / (nx1 - nx0)) * Math.PI) * 3);
+      for (let y = p.wallTop + 4; y <= p.wallTop + 11 + sag; y++) if ((x + y) % 3 === 0 || (x - y + 60) % 3 === 0) pm.set(x, y, NET);
+      if ((x - nx0) % 5 === 2) pm.set(x, p.wallTop + 12 + sag, [214, 120, 60]);
+    }
+    pm.hline(nx0 - 1, nx1 + 1, p.wallTop + 3, TIMBER[3]);
+  }
+  pm.set(doorX - 7, p.wallTop + 4, IRON[2]);
+  for (let j = 5; j < 8; j++) for (let i = -1; i <= 1; i++) pm.set(doorX - 7 + i, p.wallTop + j, j === 5 || j === 7 ? IRON[3] : WARM[1]);
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
+// A storehouse on the quays: fieldstone footing, plank walls, wide doors
+// under a hoist beam with its rope and hook, a loft door above.
+function storehouse(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(30, Math.min(38, Math.round(h * 0.6))), Math.max(22, Math.min(32, Math.round(h * 0.5) + 4)));
+  const pm = new Pixmap(p.W, p.H);
+  wall(pm, 'planks', p.wx0, p.wx1, p.wallTop, p.base, { plinth: 6 });
+  for (let y = p.wallTop; y <= p.base - 6; y++) for (let x = p.wx0; x <= p.wx1; x++) pm.set(x, y, mix(pm.get(x, y)!, [70, 60, 56], 0.25));
+  for (let x = p.wx0; x <= p.wx1; x += 16) for (let y = p.wallTop; y <= p.base - 6; y++) {
+    pm.set(x, y, TIMBER[2]);
+    pm.set(x + 1, y, TIMBER[3]);
+  }
+  const doorX = Math.round((p.wx0 + p.wx1) / 2);
+  const dw = 20;
+  const dTop = p.base - 18;
+  for (let y = dTop - 1; y <= p.base; y++) for (let x = doorX - dw / 2 - 1; x <= doorX + dw / 2; x++) pm.set(x, y, TIMBER[3]);
+  for (let y = dTop; y <= p.base; y++) for (let x = doorX - dw / 2; x < doorX + dw / 2; x++) {
+    const leaf = x < doorX;
+    pm.set(x, y, lit(WOOD, ((x - doorX + 40) % 4 === 0 ? -0.6 : 0.05) + (y === dTop ? -0.4 : 0) + (leaf ? 0.1 : -0.15)));
+  }
+  pm.vline(doorX, dTop, p.base, TIMBER[4]);
+  for (const sx of [doorX - dw / 2 + 1, doorX + 1]) {
+    for (let i = 0; i < dw / 2 - 2; i++) pm.set(sx + i, dTop + 2 + Math.round(i * 1.5), WOOD[0]);
+    pm.hline(sx, sx + dw / 2 - 3, dTop + 2, WOOD[0]);
+  }
+  pm.rect(doorX - 2, dTop + 8, 4, 2, IRON[2]); // the bar
+  // Loft door and hoist.
+  const ly = p.wallTop + 3;
+  for (let y = ly; y < ly + 8; y++) for (let x = doorX - 4; x < doorX + 4; x++) pm.set(x, y, y === ly ? [24, 18, 24] : [34, 26, 30]);
+  pm.hline(doorX - 5, doorX + 4, ly - 1, TIMBER[2]);
+  for (let y = ly - 3; y < dTop - 4; y++) pm.set(doorX + 6, y, [196, 176, 130]);
+  pm.hline(doorX - 1, doorX + 8, ly - 3, TIMBER[1]);
+  pm.set(doorX + 5, dTop - 4, IRON[1]);
+  pm.set(doorX + 6, dTop - 3, IRON[1]);
+  pm.set(doorX + 7, dTop - 4, IRON[1]);
+  window(pm, p.wx0 + 6, p.wallTop + 8, 5, 5, false);
+  window(pm, p.wx1 - 11, p.wallTop + 8, 5, 5, false);
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
+// A hunters' lodge: walls of stacked logs with notched corners, antlers
+// over the door, a pelt stretched on a frame, a shingle roof.
+function lodge(w: number, h: number): BuildingArt {
+  const p = plan(w, h, Math.max(22, Math.min(28, Math.round(h * 0.65))), Math.max(18, Math.min(28, Math.round(h * 0.6) + 2)));
+  const pm = new Pixmap(p.W, p.H);
+  const LOG = ramp([138, 96, 60]);
+  for (let y = p.wallTop; y <= p.base; y++) {
+    const ly = (p.base - y) % 4;
+    for (let x = p.wx0; x <= p.wx1; x++) {
+      let c = lit(LOG, ly === 3 ? 0.45 : ly === 2 ? 0.15 : ly === 1 ? -0.15 : -0.6);
+      if (hash2(x >> 2, (p.base - y) >> 2, 321) < 0.1) c = mix(c, [60, 44, 34], 0.3);
+      pm.set(x, y, c);
+    }
+    // Log ends at the corners.
+    for (const ex of [p.wx0 - 1, p.wx1 + 1]) {
+      const r: RGB = ly === 0 ? TIMBER[3] : ly === 3 ? [210, 172, 116] : [186, 146, 96];
+      pm.set(ex, y, r);
+      pm.set(ex + (ex < p.wx0 ? -1 : 1), y, ly === 0 ? TIMBER[3] : [170, 128, 84]);
+    }
+  }
+  const doorX = Math.round((p.wx0 + p.wx1) / 2) - 4;
+  door(pm, doorX, p.base, Math.min(13, p.base - p.wallTop - 7), 9, false, false);
+  // Antlers above the door.
+  const ay = p.base - 15;
+  const BONE: RGB = [226, 214, 186];
+  pm.rect(doorX - 1, ay, 3, 2, [150, 110, 70]);
+  for (let i = 1; i <= 5; i++) {
+    pm.set(doorX - 1 - i, ay - Math.round(i * 0.6), BONE);
+    pm.set(doorX + 1 + i, ay - Math.round(i * 0.6), BONE);
+  }
+  for (const s of [-1, 1]) {
+    pm.set(doorX + s * 4, ay - 3, BONE);
+    pm.set(doorX + s * 6, ay - 5, BONE);
+    pm.set(doorX + s * 3, ay - 2, BONE);
+  }
+  // A pelt on a frame, right of the door.
+  const fx = doorX + 9;
+  if (fx + 10 < p.wx1) {
+    pm.hline(fx, fx + 10, p.wallTop + 4, TIMBER[2]);
+    pm.hline(fx, fx + 10, p.base - 3, TIMBER[2]);
+    pm.vline(fx, p.wallTop + 4, p.base - 3, TIMBER[2]);
+    pm.vline(fx + 10, p.wallTop + 4, p.base - 3, TIMBER[3]);
+    const FUR = ramp([150, 110, 74]);
+    pm.ellipse(fx + 2, p.wallTop + 6, 7, p.base - p.wallTop - 10, (dx, dy) => lit(FUR, -dx * 0.4 - dy * 0.3 + (hash2(Math.round(dx * 9), Math.round(dy * 9), 322) - 0.5) * 0.4));
+  }
+  window(pm, p.wx0 + 5, p.wallTop + 7, 5, 5, true);
+  hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
+  chimney(pm, p.wx0 + 8, 1, 8);
+  finish(pm);
+  castShadow(pm, 4);
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+}
+
 export function renderBuilding(kind: BuildingKind, w: number, h: number): BuildingArt {
   switch (kind) {
     case 'cottage':
@@ -966,6 +1275,18 @@ export function renderBuilding(kind: BuildingKind, w: number, h: number): Buildi
       return barn(w, h);
     case 'mausoleum':
       return mausoleum(w, h);
+    case 'town_house':
+      return townHouse(w, h);
+    case 'merchant_house':
+      return merchantHouse(w, h);
+    case 'old_house':
+      return oldHouse(w, h);
+    case 'dock_shack':
+      return dockShack(w, h);
+    case 'storehouse':
+      return storehouse(w, h);
+    case 'lodge':
+      return lodge(w, h);
   }
 }
 
@@ -978,16 +1299,149 @@ const BRICK = ramp([128, 116, 112], 0.4);
 // face of rough stones along the bottom, rising above the footprint.
 // Catacomb walls get burial niches in their face (skulls and bones in
 // arched recesses); face 0 draws only the cap (walls seen side-on).
-export type WallStyle = 'crypt' | 'rock' | 'mossy' | 'carved';
+export type WallStyle = 'crypt' | 'rock' | 'mossy' | 'carved' | 'shelves' | 'crates' | 'thicket' | 'roots' | 'reeds' | 'timber';
 
 const ROCK_CAP = ramp([58, 52, 56], 0.4);
 const ROCK_FACE = ramp([112, 100, 96], 0.5);
 const CARVED_CAP = ramp([44, 38, 62], 0.4);
 const CARVED_FACE = ramp([92, 84, 118], 0.4);
 
+// Wall blocks that are not masonry: bookcases, stacked crates, a corrupted
+// thicket, a mass of roots, a bank of reeds. Same footprint contract as
+// the stone blocks (a top seen from above, a face rising in front).
+const SHELF_WOOD = ramp([112, 74, 50]);
+const BOOKS: RGB[] = [
+  [150, 52, 50],
+  [62, 92, 140],
+  [70, 112, 72],
+  [176, 136, 70],
+  [110, 70, 120],
+  [190, 176, 150],
+];
+const CRATE_W = ramp([164, 122, 76]);
+const THICK = ramp([66, 56, 72], 0.6);
+const ROOT = ramp([106, 80, 60]);
+const REED = ramp([110, 136, 66]);
+
+function softWall(w: number, h: number, face: number, style: 'shelves' | 'crates' | 'thicket' | 'roots' | 'reeds' | 'timber', seed: number): BuildingArt {
+  const rise = face ? 8 : 0;
+  const H = h + rise;
+  const pm = new Pixmap(w, H);
+  const capBottom = H - face - 1;
+  if (style === 'timber') {
+    // A house's inside wall: a dark beam on top, whitewashed daub between
+    // timber posts below, a skirting board, small windows letting in day.
+    for (let y = 0; y <= capBottom; y++) for (let x = 0; x < w; x++) pm.set(x, y, lit(TIMBER, (y === 0 || x === 0 ? 0.3 : -0.2) + (hash2(x >> 2, y >> 1, seed) - 0.5) * 0.3));
+    for (let y = capBottom + 1; y < H; y++) {
+      for (let x = 0; x < w; x++) {
+        const post = x % 24 < 2;
+        let c = post ? TIMBER[x % 24 === 0 ? 2 : 3] : mix(daub(x, y), [255, 246, 226], 0.15);
+        if (y - capBottom === 1) c = TIMBER[3];
+        if (y >= H - 3) c = lit(TIMBER, y === H - 3 ? 0.2 : -0.3);
+        if (y - capBottom <= 3 && !post) c = mix(c, [30, 24, 30], 0.25);
+        pm.set(x, y, c);
+      }
+    }
+    if (face >= 12) {
+      for (let x = 14; x + 8 < w; x += 48) {
+        for (let j = 0; j < 7; j++) for (let i = 0; i < 8; i++) pm.set(x + i, capBottom + 4 + j, i === 0 || j === 0 || i === 7 || j === 6 || i === 4 || j === 3 ? TIMBER[2] : j < 3 ? [196, 226, 244] : [150, 196, 226]);
+      }
+    }
+  } else if (style === 'shelves') {
+    // Rows of bookcases seen from above and in front: each row shows its
+    // plank top, then the spines of its books; the face rises in front.
+    const spine = (x: number, y: number, row: number): RGB => {
+      const ly = y % 7;
+      if (x % 12 === 0 || x % 12 === 11) return lit(SHELF_WOOD, x % 12 === 0 ? 0.2 : -0.5);
+      if (ly === 0) return lit(SHELF_WOOD, 0.35);
+      if (ly === 6) return SHELF_WOOD[4];
+      const book = Math.floor((x + row * 5) / 2);
+      const tall = hash2(book, row, seed + 1);
+      if ((ly === 1 && tall < 0.5) || tall > 0.92) return [30, 22, 26];
+      const b = BOOKS[Math.floor(hash2(book, 3 + row, seed + 2) * BOOKS.length)];
+      if (ly === 3 && hash2(book, 4 + row, seed) < 0.5) return [214, 180, 90]; // gilt band
+      return mix(b, x % 2 ? [20, 16, 22] : [255, 240, 210], x % 2 ? 0.25 : 0.12);
+    };
+    for (let y = 0; y <= capBottom; y++) {
+      const row = Math.floor(y / 11);
+      const ly = y % 11;
+      for (let x = 0; x < w; x++) {
+        let c: RGB;
+        if (ly < 3) c = lit(SHELF_WOOD, ly === 0 ? 0.5 : ly === 1 ? 0.2 : -0.1);
+        else c = mix(spine(x, ly - 3, row), [18, 12, 16], 0.25 + (ly === 3 ? 0.3 : 0));
+        pm.set(x, y, c);
+      }
+    }
+    for (let y = capBottom + 1; y < H; y++) for (let x = 0; x < w; x++) {
+      let c = spine(x, y - capBottom - 1, 99);
+      if (y - capBottom <= 2) c = mix(c, [20, 14, 18], 0.3);
+      pm.set(x, y, c);
+    }
+  } else if (style === 'crates') {
+    // Crates stacked high: tops of the upper row seen from above, fronts
+    // with plank seams and diagonal braces.
+    const cs = 12;
+    for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) {
+      const top = y <= capBottom;
+      const lx = x % cs;
+      const ly = top ? y % cs : (y - capBottom - 1) % cs;
+      const id = Math.floor(x / cs) + (top ? 0 : 50) + Math.floor((top ? y : y - capBottom) / cs) * 7;
+      const tone = (hash2(id, 1, seed) - 0.5) * 0.4 - (top ? 0 : 0.2);
+      let c: RGB;
+      if (lx === 0 || ly === 0) c = lit(CRATE_W, tone + 0.5);
+      else if (lx === cs - 1 || ly === cs - 1) c = lit(CRATE_W, tone - 0.7);
+      else if (!top && (lx === ly || lx === cs - 1 - ly)) c = lit(CRATE_W, tone + 0.2);
+      else c = lit(CRATE_W, tone + (ly % 4 === 0 ? -0.35 : 0));
+      if (!top && y - capBottom <= 2) c = mix(c, [24, 18, 20], 0.35);
+      pm.set(x, y, c);
+    }
+  } else if (style === 'thicket' || style === 'roots' || style === 'reeds') {
+    // An organic mass: a dark tangle on top, a ragged outline, its foot.
+    const R = style === 'thicket' ? THICK : style === 'roots' ? ROOT : REED;
+    const ragged = (x: number, y: number) => Math.min(x, w - 1 - x, y) < 3 && noise(x, y, 4, seed + 9) * 3.2 > Math.min(x, w - 1 - x, y) + 0.4;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < w; x++) {
+        if (ragged(x, y)) continue;
+        const front = y > capBottom;
+        let level: number;
+        if (style === 'reeds') {
+          // Stems: vertical strokes, lit tips, darker toward the water.
+          // Clumps of stems: each column lit or in shade, tips catching
+          // the light, gaps dark between the clumps.
+          const clump = noise(x, y, 5, seed + 7);
+          const stem = hash2(x, Math.floor(y / 7), seed) < 0.6;
+          const tip = hash2(x, Math.floor((y + 3) / 7), seed + 8) < 0.12;
+          level = clump < 0.3 ? -0.9 : (stem ? 0.3 : -0.45) + (tip ? 0.6 : 0) - (front ? (y - capBottom) / face : 0) * 0.6 + (hash2(x, y >> 2, seed + 1) - 0.5) * 0.25;
+          if (!front && hash2(x, y, seed + 2) < 0.04) {
+            pm.set(x, y, [120, 76, 48]); // cattail
+            continue;
+          }
+        } else {
+          // Twisted strands: a direction field gives long lit runs.
+          const a = noise(x, y, 9, seed + 3) * Math.PI * 2;
+          const strand = Math.sin(x * Math.cos(a) * 0.9 + y * Math.sin(a) * 0.9 + noise(x, y, 5, seed + 4) * 4);
+          level = strand * 0.55 - 0.15 - (front ? (y - capBottom) / face : 0) * 0.5;
+          if (style === 'thicket' && strand > 0.93 && hash2(x, y, seed + 5) < 0.25) {
+            pm.set(x, y, [196, 120, 244]); // a glowing vein
+            continue;
+          }
+          if (style === 'thicket' && hash2(x, y, seed + 6) < 0.03) level += 0.9; // thorn tips
+        }
+        if (y >= H - 2) level -= 0.5;
+        pm.set(x, y, lit(R, level));
+      }
+    }
+  }
+  pm.outline(OUTLINE);
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
 export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; face?: number; seed?: number; style?: WallStyle } = {}): BuildingArt {
   const seed = opts.seed ?? 61;
   const style = opts.style ?? 'crypt';
+  if (style === 'shelves' || style === 'crates' || style === 'thicket' || style === 'roots' || style === 'reeds' || style === 'timber') {
+    return softWall(w, h, opts.face ?? Math.min(18, Math.max(12, Math.round(h * 0.35))), style, seed);
+  }
   const cap = style === 'rock' ? ROCK_CAP : style === 'carved' ? CARVED_CAP : CAP;
   const brick = style === 'rock' ? ROCK_FACE : style === 'carved' ? CARVED_FACE : BRICK;
   const face = opts.face ?? Math.min(18, Math.max(12, Math.round(h * 0.35)));
@@ -1086,13 +1540,14 @@ export function renderWallBlock(w: number, h: number, opts: { niches?: boolean; 
   return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
 }
 
-export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade';
+export type GateKind = 'portcullis' | 'rusty' | 'runes' | 'barricade' | 'brambles' | 'roots' | 'shelves' | 'crates' | 'rubble' | 'slab';
 
 // A barrier closing a passage of width w, standing on its base line: an
 // iron portcullis, rusty graveyard railings, a veil of runes, or a wooden
 // barricade of planks and stakes.
 export function renderBarrier(kind: GateKind, w: number): BuildingArt {
   if (kind === 'portcullis') return renderGate(w);
+  if (kind === 'brambles' || kind === 'roots' || kind === 'shelves' || kind === 'crates' || kind === 'rubble' || kind === 'slab') return heapBarrier(kind, w);
   const H = kind === 'runes' ? 34 : 28;
   const pm = new Pixmap(w, H);
   const post = 9;
@@ -1158,6 +1613,103 @@ export function renderBarrier(kind: GateKind, w: number): BuildingArt {
 }
 
 const BARK_W = ramp([112, 80, 58]);
+
+// Barriers that are heaps or walls of things across the passage: a hedge
+// of corrupted brambles, a knot of roots, shelves pushed across and
+// locked with chains, crates piled up, a fall of rubble, a sealed slab.
+function heapBarrier(kind: 'brambles' | 'roots' | 'shelves' | 'crates' | 'rubble' | 'slab', w: number): BuildingArt {
+  const H = kind === 'shelves' ? 34 : kind === 'slab' ? 30 : 26;
+  const pm = new Pixmap(w, H);
+  if (kind === 'brambles' || kind === 'roots') {
+    const R = kind === 'brambles' ? THICK : ROOT;
+    // Arching canes or roots, overlapping along the whole width.
+    for (let k = 0; k < Math.round(w / 3); k++) {
+      const x0 = hash2(k, 1, 401) * w;
+      const span = 10 + hash2(k, 2, 401) * 18;
+      const dir = hash2(k, 3, 401) < 0.5 ? -1 : 1;
+      const height = (kind === 'roots' ? 10 : 14) + hash2(k, 4, 401) * (H - 16);
+      const thick = kind === 'roots' ? 3 : 2;
+      for (let t = 0; t <= 1; t += 0.02) {
+        const x = Math.round(x0 + dir * span * t);
+        const y = Math.round(H - 2 - Math.sin(t * Math.PI * (kind === 'roots' ? 1 : 0.85)) * height);
+        for (let j = 0; j < thick; j++) pm.set(x, y + j, lit(R, j === 0 ? 0.4 : j === thick - 1 ? -0.55 : 0));
+        if (kind === 'brambles' && Math.round(t * 50) % 5 === 0) pm.set(x + dir, y - 1, R[0]);
+      }
+      if (kind === 'brambles' && hash2(k, 5, 401) < 0.3) pm.set(Math.round(x0 + dir * span), H - 3, [196, 120, 244]);
+    }
+  } else if (kind === 'shelves') {
+    // Bookcases dragged across the passage, chained together.
+    for (let x = 0; x < w; x++) for (let y = 4; y < H; y++) {
+      const lx = x % 22;
+      const ly = (y - 4) % 7;
+      let c: RGB;
+      if (lx === 0 || lx === 21 || y === 4) c = lit(SHELF_WOOD, lx === 0 || y === 4 ? 0.35 : -0.5);
+      else if (ly === 0) c = lit(SHELF_WOOD, 0.3);
+      else if (ly === 6) c = SHELF_WOOD[4];
+      else {
+        const b = BOOKS[Math.floor(hash2(Math.floor(x / 2), Math.floor((y - 4) / 7), 402) * BOOKS.length)];
+        c = hash2(Math.floor(x / 2), Math.floor((y - 4) / 7), 403) < 0.18 ? [30, 22, 26] : mix(b, x % 2 ? [20, 16, 22] : [255, 240, 210], 0.15);
+      }
+      pm.set(x, y, c);
+    }
+    for (let x = 0; x < w; x++) {
+      const y = 14 + Math.round(Math.sin((x / 22) * Math.PI) * 3);
+      pm.set(x, y, x % 2 ? [176, 178, 190] : [110, 112, 126]);
+    }
+    for (let x = 18; x < w; x += 44) {
+      pm.rect(x, 14, 4, 5, [170, 136, 64]);
+      pm.set(x + 1, 16, [60, 44, 30]);
+    }
+  } else if (kind === 'crates') {
+    // A pile of crates and barrels, higher in the middle.
+    const cs = 12;
+    for (let x = 0; x + cs <= w + cs; x += cs - 1) {
+      const rows = 1 + Math.round(hash2(x, 1, 404) * 1.4);
+      for (let r = 0; r < rows; r++) {
+        const bx = x + (r % 2) * 5;
+        const by = H - (r + 1) * (cs - 1);
+        for (let j = 0; j < cs; j++) for (let i = 0; i < cs; i++) {
+          if (bx + i >= w) continue;
+          const edge = i === 0 || j === 0 ? 0.45 : i === cs - 1 || j === cs - 1 ? -0.7 : 0;
+          const brace = i === j || i === cs - 1 - j ? 0.2 : 0;
+          pm.set(bx + i, by + j, lit(CRATE_W, edge + brace + (hash2(bx, r, 405) - 0.5) * 0.4 + (j % 4 === 0 ? -0.3 : 0)));
+        }
+      }
+    }
+  } else if (kind === 'rubble') {
+    // Fallen masonry: blocks of every size heaped across the way.
+    for (let k = 0; k < Math.round(w / 2.5); k++) {
+      const bw = 4 + Math.floor(hash2(k, 1, 406) * 8);
+      const bh = 3 + Math.floor(hash2(k, 2, 406) * 5);
+      const bx = Math.floor(hash2(k, 3, 406) * (w - bw));
+      const centre = 1 - Math.abs(bx + bw / 2 - w / 2) / (w / 2);
+      const by = H - bh - Math.floor(hash2(k, 4, 406) * (6 + centre * 10));
+      for (let j = 0; j < bh; j++) for (let i = 0; i < bw; i++) pm.set(bx + i, by + j, lit(BRICK, (j === 0 ? 0.55 : 0) + (i === bw - 1 ? -0.6 : i === 0 ? 0.2 : 0) - j * 0.08 + (hash2(k, 5, 406) - 0.5) * 0.4));
+    }
+  } else {
+    // A great slab standing across the way, carved with a sealed circle.
+    for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) {
+      const post = x < 8 || x >= w - 8;
+      const s = cell(x, y, 7, 407, 1.3);
+      let c = post ? cutStone(x, y, x < 8 ? 0 : w - 8, 0) : lit(CRYPT_SLAB, (y === 0 ? 0.6 : 0) + (x === 8 ? 0.3 : 0) + (s.d2 - s.d1 < 0.05 ? -0.4 : 0) + (hash2(x, y, 408) - 0.5) * 0.2 - (y / H) * 0.3);
+      if (y >= H - 2) c = mix(c, [24, 20, 28], 0.4);
+      pm.set(x, y, c);
+    }
+    const cx = Math.round(w / 2);
+    const cy = Math.round(H / 2);
+    for (let a = 0; a < 64; a++) {
+      const ang = (a / 64) * Math.PI * 2;
+      pm.set(Math.round(cx + Math.cos(ang) * 9), Math.round(cy + Math.sin(ang) * 9), CRYPT_SLAB[4]);
+      if (a % 8 === 0) pm.set(Math.round(cx + Math.cos(ang) * 6), Math.round(cy + Math.sin(ang) * 6), [150, 50, 50]);
+    }
+    pm.vline(cx, cy - 5, cy + 5, CRYPT_SLAB[4]);
+    pm.hline(cx - 5, cx + 5, cy, CRYPT_SLAB[4]);
+  }
+  pm.outline(OUTLINE);
+  return { pm, anchorX: Math.round(w / 2), anchorY: H - 1, wallX0: 0, wallX1: w - 1 };
+}
+
+const CRYPT_SLAB = ramp([132, 126, 134], 0.4);
 
 // An iron portcullis between two stone posts, on a footprint of width w.
 export function renderGate(w: number): BuildingArt {

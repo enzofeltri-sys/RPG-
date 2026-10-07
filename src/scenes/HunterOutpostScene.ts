@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { HUNTER_OUTPOST } from '../world/zones/aiglemont';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
 import { getMainQuestStage, advanceMainQuestStage } from '../game/mainQuest';
@@ -53,16 +54,12 @@ export class HunterOutpostScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.dialog = undefined;
-    this.cameras.main.setBackgroundColor('#3a4a32');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.setBackgroundColor('#5f9a46');
+    // The clearing, the lodge, the fire and the woods are drawn by the game
+    // (world/zones/aiglemont.ts).
+    paintZone(this, HUNTER_OUTPOST);
 
     addZoneTitle(this, 'Relais des chasseurs');
-
-    // Hunting lodge + campfire, purely decorative.
-    this.add.rectangle(150, 100, 44, 34, 0x4a3a28).setStrokeStyle(1, 0x241d14);
-    this.add.circle(120, 160, 8, 0xb5602a).setStrokeStyle(1, 0x5a2e10);
-    this.add.rectangle(70, 220, 18, 10, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
-    this.add.rectangle(170, 230, 18, 10, 0x6b5a42).setStrokeStyle(1, 0x2e2419);
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hunter = this.add.rectangle(160, 190, 14, 20, 0x5a6a3a).setStrokeStyle(1, 0x0b0c10);
@@ -72,6 +69,10 @@ export class HunterOutpostScene extends Phaser.Scene {
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.hunter);
+    const lodge = HUNTER_OUTPOST.buildings!.lodge;
+    const lodgeBox = this.add.rectangle(lodge.x, lodge.y, lodge.w, lodge.h).setVisible(false);
+    this.physics.add.existing(lodgeBox, true);
+    this.physics.add.collider(this.player, lodgeBox);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

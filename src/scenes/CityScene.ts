@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addPlazaGround } from '../entities/groundTexture';
+import { BuildingSpot, buildingTop, paintZone } from '../world/zoneArt';
+import { CITY } from '../world/zones/aiglemont';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { QUESTS, getQuestProgress, startQuest, turnInQuest } from '../game/quest';
@@ -72,18 +73,21 @@ export class CityScene extends Phaser.Scene {
     this.buildings = [];
     this.dialog = undefined;
     this.mageLineIndex = 0;
-    this.drawGround();
+    // The city is drawn by the game (world/zones/aiglemont.ts); the scene
+    // keeps every building's collision box.
+    const painted = paintZone(this, CITY);
 
     addZoneTitle(this, 'Aiglemont');
 
-    const garrison = this.addBuilding(150, 100, 80, 60, 'guard_barracks');
-    addCrispText(this, 150, 68, 'Caserne', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-
-    const tower = this.addBuilding(400, 130, 50, 100, 'stone_tower');
-    addCrispText(this, 400, 78, 'Tour des Mages', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-
-    const market = this.addBuilding(280, 340, 100, 60, 'market_hall');
-    addCrispText(this, 280, 308, 'Marché', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
+    const b = CITY.buildings!;
+    this.addBuilding(b.garrison);
+    addCrispText(this, b.garrison.x, buildingTop(b.garrison) - 2, 'Caserne', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
+    this.addBuilding(b.tower);
+    addCrispText(this, b.tower.x, buildingTop(b.tower) - 2, 'Tour des Mages', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
+    this.addBuilding(b.market);
+    addCrispText(this, b.market.x, buildingTop(b.market) - 2, 'Marché', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
+    // The town houses around the square.
+    [b.nw, b.n, b.ne, b.w, b.sw, b.sMid, b.e, b.crypt, b.se].forEach((spot) => this.addBuilding(spot));
 
     // Each NPC kept off the straight west-entrance-to-building lines, same
     // lesson as every other location this session.
@@ -102,13 +106,12 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
     addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
-    // Stall near the market + a couple of ambient citizens — no collision.
-    const stall = this.add.rectangle(230, 300, 20, 14, 0x6b5a3a).setStrokeStyle(1, 0x2e2419);
-    void attachSpriteOverlay(this, stall, 'decor-market_stall', `${import.meta.env.BASE_URL}sprites/decor/market_stall.png`, 32);
+    // A couple of ambient citizens.
     this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15, 'villager_wanderer'), new Wanderer(this, 150, 420, 0x8a7a8a, 20, 'villager_wanderer')];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
-    this.physics.add.collider(this.player, [garrison, tower, market]);
+    this.physics.add.collider(this.player, this.buildings);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.captain);
     this.physics.add.collider(this.player, this.mage);
     this.physics.add.collider(this.player, this.merchantNpc);
@@ -245,26 +248,12 @@ export class CityScene extends Phaser.Scene {
     this.showMessage(line);
   }
 
-  private addBuilding(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    spriteKey?: 'guard_barracks' | 'stone_tower' | 'market_hall',
-  ): Phaser.GameObjects.Rectangle {
-    const rect = this.add.rectangle(x, y, w, h, 0x5a5468).setStrokeStyle(1, 0x2e2b3a);
+  // Collision box only: the building itself is drawn by paintZone().
+  private addBuilding(spot: BuildingSpot): Phaser.GameObjects.Rectangle {
+    const rect = this.add.rectangle(spot.x, spot.y, spot.w, spot.h).setVisible(false);
     this.physics.add.existing(rect, true);
     this.buildings.push(rect);
-    if (spriteKey) {
-      void attachSpriteOverlay(this, rect, `decor-${spriteKey}`, `${import.meta.env.BASE_URL}sprites/decor/${spriteKey}.png`, Math.max(w, h));
-    }
     return rect;
-  }
-
-  // Real Kenney cobblestone tile (see entities/groundTexture.ts) rather
-  // than the procedural checker used before real tilesets were available.
-  private drawGround(): void {
-    void addPlazaGround(this, WORLD_WIDTH, WORLD_HEIGHT);
   }
 
   private talkToCaptain(): void {

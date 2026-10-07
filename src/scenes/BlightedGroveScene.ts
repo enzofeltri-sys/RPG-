@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone, placeBarrier } from '../world/zoneArt';
+import { BLIGHTED_GROVE } from '../world/zones/aiglemontDepths';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -55,6 +56,7 @@ export class BlightedGroveScene extends Phaser.Scene {
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
   private gateLabel?: PixelText;
+  private gateArt?: Phaser.GameObjects.Image;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private spawnX?: number;
@@ -75,11 +77,13 @@ export class BlightedGroveScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#1f2a1c');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Bosquet corrompu');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    // Ground, walls, decor and light drawn by the game (world/zones/aiglemontDepths.ts).
+    const painted = paintZone(this, BLIGHTED_GROVE);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -159,7 +163,7 @@ export class BlightedGroveScene extends Phaser.Scene {
     // Purely decorative, kept well clear of the center corridor (x=110) that
     // the encounters, gate, and boss zone all sit on.
     const tree = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x2a3020).setStrokeStyle(1, 0x141a0d);
+      const rect = this.add.rectangle(x, y, w, h).setVisible(false);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };
@@ -169,9 +173,8 @@ export class BlightedGroveScene extends Phaser.Scene {
   }
 
   private addGate(): void {
-    this.gate = this.add
-      .rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16, 0x2a3020)
-      .setStrokeStyle(1, 0x141a0d);
+    this.gate = this.add.rectangle(WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH, 16).setVisible(false);
+    this.gateArt = placeBarrier(this, 'brambles', WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
     this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Ronces noircies', {
@@ -185,6 +188,7 @@ export class BlightedGroveScene extends Phaser.Scene {
     this.gateCollider?.destroy();
     this.gate?.destroy();
     this.gateLabel?.destroy();
+    this.gateArt?.destroy();
   }
 
   private addEncounterZone(encounter: EncounterMarker): void {
@@ -273,7 +277,7 @@ export class BlightedGroveScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('HunterOutpost', { x: 110, y: 30 });
+      this.scene.start('HunterOutpost', { x: 110, y: 262 });
     });
   }
 }

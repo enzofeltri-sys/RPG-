@@ -8,6 +8,8 @@ import { addCrispText } from '../ui/text';
 import { ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { DialogBox, DialogButton } from '../ui/dialog';
 import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { paintZone } from '../world/zoneArt';
+import { INTERIORS, RoomKind } from '../world/zones/interiors';
 
 const WORLD_WIDTH = 160;
 const WORLD_HEIGHT = 160;
@@ -20,6 +22,8 @@ interface InteriorData {
   // enterable" a one-line addition per building instead of a new file each.
   label: string;
   floorColor: number;
+  // Which furnished room (world/zones/interiors.ts).
+  room?: RoomKind;
   npcName: string;
   npcColor: number;
   // Basename under public/sprites/npc/ (see spritecook-assets-npc.json) —
@@ -60,8 +64,8 @@ export class InteriorScene extends Phaser.Scene {
     // A couple of undecorated furniture blocks so the room doesn't read as
     // an empty box — purely decorative, no collision (small room, nothing
     // to dodge).
-    this.add.rectangle(30, 40, 24, 16, 0x4a3a2a).setStrokeStyle(1, 0x2e2015);
-    this.add.rectangle(WORLD_WIDTH - 30, 40, 16, 16, 0x4a3a2a).setStrokeStyle(1, 0x2e2015);
+    // The room, its furniture and the hearth's light are drawn by the game.
+    const painted = paintZone(this, INTERIORS[this.roomData.room ?? 'house']);
 
     const npc = this.add.rectangle(WORLD_WIDTH / 2, 60, 14, 20, this.roomData.npcColor).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(npc, true);
@@ -73,6 +77,7 @@ export class InteriorScene extends Phaser.Scene {
 
     this.player = createPlayer(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, npc);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

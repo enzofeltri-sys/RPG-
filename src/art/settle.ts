@@ -208,6 +208,15 @@ export const PROP_SETTLE: Record<string, PropSettle> = {
   totem: { tufts: [5, 2] },
   gravestone: { tufts: [6, 2], vary: true },
   dead_tree: { tufts: [8, 2], vary: true },
+  banner_pole: { tufts: [4, 2] },
+  planter: {},
+  mooring_post: { tufts: [4, 1] },
+  net_rack: { wear: [14, 4], tufts: [13, 2] },
+  pelt_rack: { wear: [10, 4], tufts: [10, 2] },
+  milestone: { tufts: [5, 2], vary: true },
+  blight_tree: { vary: true },
+  thorns: { vary: true },
+  black_well: { wear: [17, 8, 'blight'] },
 };
 
 // The dark outline under the foot of a sprite reads like a sticker edge:

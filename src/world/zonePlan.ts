@@ -7,7 +7,7 @@ import { BuildingArt, BuildingKind, GateKind, WallStyle, renderBuilding } from '
 import { GroundSpec } from '../art/ground';
 import { Blocker, GroundJob, GroundOp } from '../art/groundJob';
 import { RGB } from '../art/pixmap';
-import { DungeonPropKind, PropArt, PropKind, renderDungeonProp, renderProp } from '../art/props';
+import { DungeonPropKind, PatchKind, PropArt, PropKind, renderDungeonProp, renderProp } from '../art/props';
 import { PROP_SETTLE, TuftSpot, fringe, softenBase, tuftsAround, vary } from '../art/settle';
 
 const buildingArts = new Map<string, BuildingArt>();
@@ -74,7 +74,13 @@ export interface ZoneArt<B extends string = string> {
   // small light of his own.
   dark?: { ambient: number; lights?: ZoneLight[]; shade?: [number, number, number] };
   // Flat patches laid on the ground (a lava vent, a field of crops…).
-  patches?: { material: 'crop' | 'water' | 'planks' | 'lava' | 'marsh'; x: number; y: number; w: number; h: number }[];
+  patches?: { material: PatchKind; x: number; y: number; w: number; h: number }[];
+  // Invisible obstacles the zone itself adds (water, a fountain's basin):
+  // center and size, like the scenes' collision boxes.
+  solids?: { x: number; y: number; w: number; h: number }[];
+  // A closed room smaller than the screen: no ground around it, only the
+  // dark.
+  enclosed?: boolean;
   // Zones to draw ahead of time while this one is shown (next door).
   next?: string[];
   // Mockups only (scripts/art/zoneart.ts): who stands where, as in the scene.
@@ -111,6 +117,18 @@ const DUST: RGB[] = [
   [52, 46, 54],
 ];
 
+// Dungeon props lying flat on the floor (drawn under everyone) or hung on
+// a wall (just in front of the wall face); the rest stand on their feet
+// (only those get a soft contact shadow at the foot).
+const FLAT_DPROPS = new Set<DungeonPropKind>(['runes', 'puddle', 'vein']);
+const HUNG_DPROPS = new Set<DungeonPropKind>(['torch', 'cobweb', 'chains']);
+export function dpropOffGround(kind: DungeonPropKind): boolean {
+  return FLAT_DPROPS.has(kind) || kind === 'cobweb' || kind === 'chains';
+}
+export function dpropDepth(kind: DungeonPropKind, y: number): number {
+  return FLAT_DPROPS.has(kind) ? -900 : HUNG_DPROPS.has(kind) ? y + 12 : y - 8;
+}
+
 const dpropArts = new Map<DungeonPropKind, ReturnType<typeof renderDungeonProp>>();
 export function dpropArt(kind: DungeonPropKind): ReturnType<typeof renderDungeonProp> {
   let a = dpropArts.get(kind);
@@ -128,11 +146,16 @@ export function dpropArt(kind: DungeonPropKind): ReturnType<typeof renderDungeon
 // Ground painted around a zone for screens bigger than it: the game is
 // 216 wide (zones are at least that) and up to 520 tall.
 export function zoneMargin(art: ZoneArt): [number, number] {
+  if (art.enclosed) return [0, 0];
   return [8, Math.max(8, Math.ceil((520 - art.ground.h) / 2) + 4)];
 }
 
+// Trodden earth only shows on soft ground (not on a paved town).
+const SOFT = new Set(['grass', 'forest', 'dirt', 'sand', 'marsh', 'blight', 'cave', 'mud']);
+
 export function plan(art: ZoneArt): GroundJob {
   const ops: GroundOp[] = [];
+  const soft = SOFT.has(art.ground.base);
   const tufts: TuftSpot[] = [];
   const blockers: Blocker[] = [];
   Object.values<BuildingSpot>(art.buildings ?? {}).forEach((b, idx) => {
@@ -140,7 +163,9 @@ export function plan(art: ZoneArt): GroundJob {
     const bottom = b.y + b.h / 2;
     const ox = b.x - a.anchorX;
     ops.push({ op: 'occlude', x0: Math.round(ox + a.wallX0), x1: Math.round(ox + a.wallX1), y: Math.round(bottom + 1), depth: 3, strength: 0.4 });
-    if (a.doorX !== undefined) ops.push({ op: 'wear', cx: ox + a.doorX, cy: bottom + 6, rx: 10, ry: 6, seed: idx + 3 });
+    if (!soft) {
+      // Paved: no trodden earth.
+    } else if (a.doorX !== undefined) ops.push({ op: 'wear', cx: ox + a.doorX, cy: bottom + 6, rx: 10, ry: 6, seed: idx + 3 });
     else ops.push({ op: 'wear', cx: b.x, cy: bottom + 5, rx: b.w * 0.45, ry: 6, seed: idx + 3 });
     const skip: [number, number] = a.doorX !== undefined ? [ox + a.doorX - 9, ox + a.doorX + 9] : [ox + a.wallX0 + 4, ox + a.wallX1 - 4];
     tufts.push(...fringe(Math.round(ox + a.wallX0), Math.round(ox + a.wallX1), Math.round(bottom), idx * 7 + 1, skip, 0.8));
@@ -149,7 +174,7 @@ export function plan(art: ZoneArt): GroundJob {
   (art.props ?? []).forEach((p, idx) => {
     const seed = p.seed ?? idx + 1;
     const st = PROP_SETTLE[p.kind] ?? {};
-    if (st.wear) ops.push({ op: 'wear', cx: p.x, cy: p.y - st.wear[1] * 0.2, rx: st.wear[0], ry: st.wear[1], seed: idx + 11, mat: st.wear[2] });
+    if (st.wear && soft) ops.push({ op: 'wear', cx: p.x, cy: p.y - st.wear[1] * 0.2, rx: st.wear[0], ry: st.wear[1], seed: idx + 11, mat: st.wear[2] });
     const sw = STREW[p.kind];
     if (sw) ops.push({ op: 'strew', cx: p.x, cy: p.y, rx: sw[0], ry: sw[1], colors: sw[2], n: sw[3], seed: idx + 13 });
     if (st.tufts) tufts.push(...tuftsAround(p.x, p.y, st.tufts[0], idx * 5 + seed, st.tufts[1]));
@@ -225,6 +250,13 @@ export function zoneLights(art: ZoneArt): ZoneLight[] {
     if (d.kind === 'brazier') lights.push({ x: d.x, y: d.y - 14, r: 84, kind: 'fire' });
     if (d.kind === 'candles') lights.push({ x: d.x, y: d.y - 8, r: 36, kind: 'fire' });
     if (d.kind === 'runes') lights.push({ x: d.x, y: d.y, r: 46, kind: 'magic' });
+    if (d.kind === 'vein') lights.push({ x: d.x, y: d.y, r: 34, kind: 'magic' });
+    if (d.kind === 'lectern' || d.kind === 'table') lights.push({ x: d.x + 5, y: d.y - 12, r: 32, kind: 'fire' });
+  });
+  (art.props ?? []).forEach((p) => {
+    if (p.kind === 'blight_pod') lights.push({ x: p.x, y: p.y - 6, r: 34, kind: 'magic' });
+    if (p.kind === 'black_well') lights.push({ x: p.x, y: p.y - 8, r: 40, kind: 'magic' });
+    if (p.kind === 'street_lamp') lights.push({ x: p.x, y: p.y - 30, r: 60, kind: 'fire' });
   });
   return lights;
 }

@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addDirtGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { ROAD } from '../world/zones/aiglemont';
 import { Wanderer } from '../entities/wanderer';
 import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
@@ -23,24 +24,6 @@ const TRAVELER_LINES = [
   'Je fais la navette entre Valombre et Aiglemont depuis des années.',
   'Les caravanes se font escorter depuis que les sangliers corrompus rôdent.',
   'Bon vent, voyageur. La route est longue mais sûre en plein jour.',
-];
-
-// Purely decorative — parked wagons/crates along the roadside, no collision,
-// no real art yet (increment 10).
-const WAGONS: { x: number; y: number }[] = [
-  { x: 90, y: 60 },
-  { x: 380, y: 150 },
-  { x: 220, y: 180 },
-  { x: 130, y: 300 },
-  { x: 400, y: 330 },
-  { x: 280, y: 360 },
-];
-
-const BOULDERS: { x: number; y: number }[] = [
-  { x: 40, y: 200 },
-  { x: 440, y: 60 },
-  { x: 320, y: 260 },
-  { x: 60, y: 340 },
 ];
 
 const ALPHA_ZONE_ID = 'boar_alpha_zone';
@@ -91,18 +74,11 @@ export class RoadScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
-    this.cameras.main.setBackgroundColor('#6b5a42');
+    this.cameras.main.setBackgroundColor('#5f9a46');
     addZoneTitle(this, 'Route commerciale');
-    void addDirtGround(this, WORLD_WIDTH, WORLD_HEIGHT);
-
-    WAGONS.forEach((wagon) => {
-      const shape = this.add.rectangle(wagon.x, wagon.y, 26, 16, 0x4a3a28).setStrokeStyle(1, 0x1f1810);
-      void attachSpriteOverlay(this, shape, 'decor-wagon_cart', `${import.meta.env.BASE_URL}sprites/decor/wagon_cart.png`, 26);
-    });
-    BOULDERS.forEach((b) => {
-      const shape = this.add.rectangle(b.x, b.y, 20, 16, 0x6a6a62).setStrokeStyle(1, 0x38382f);
-      void attachSpriteOverlay(this, shape, 'decor-boulder_large', `${import.meta.env.BASE_URL}sprites/decor/boulder_large.png`, 22);
-    });
+    // The road, the caravan's halt, fields and woods are drawn by the game
+    // (world/zones/aiglemont.ts).
+    paintZone(this, ROAD);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Valombre', '→ Aiglemont']);
 

@@ -237,6 +237,7 @@ export class HamletScene extends Phaser.Scene {
     const configs = {
       thibault: {
         label: 'Cabane de Thibault',
+        room: 'house',
         floorColor: 0x2a2420,
         npcName: 'Thibault',
         npcColor: 0x6a5a4a,
@@ -249,6 +250,7 @@ export class HamletScene extends Phaser.Scene {
       },
       solange: {
         label: 'Cabane de Solange',
+        room: 'weaver',
         floorColor: 0x28242a,
         npcName: 'Solange',
         npcColor: 0x8a6a7a,
@@ -261,6 +263,7 @@ export class HamletScene extends Phaser.Scene {
       },
       fauvette: {
         label: 'Cabane de Fauvette',
+        room: 'garden',
         floorColor: 0x242a24,
         npcName: 'Fauvette',
         npcColor: 0x7a8a6a,

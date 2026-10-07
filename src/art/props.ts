@@ -1600,8 +1600,71 @@ function stoneWall(len: number, seed: number): PropArt {
 }
 
 // Flat props drawn from ground materials (fields, ponds, boardwalks).
-function patch(material: 'crop' | 'water' | 'planks' | 'lava' | 'marsh', w: number, h: number): PropArt {
+// A cellar hatch flush with the street: two oak leaves in a cut-stone
+// frame, held shut by a chain and a padlock (flat, anchor at the center).
+function cellarHatch(w: number, h: number): PropArt {
   const pm = new Pixmap(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const frame = x < 2 || y < 2 || x >= w - 2 || y >= h - 2;
+      if (frame) {
+        pm.set(x, y, lit(CUT_P, (y < 2 || x < 2 ? 0.3 : -0.4) + ((x + y) % 7 === 0 ? -0.4 : 0)));
+        continue;
+      }
+      const lx = x - 2;
+      const seam = lx % 4 === 0;
+      const mid = x === Math.floor(w / 2);
+      pm.set(x, y, mid ? [30, 22, 26] : lit(WOOD_GREY, (seam ? -0.55 : 0.05) + (y === 2 ? -0.4 : 0) + (hash2(lx >> 2, y >> 2, 380) - 0.5) * 0.3 - 0.2));
+    }
+  }
+  // Iron straps, the chain across both leaves, a padlock.
+  for (const sy of [4, h - 5]) pm.hline(3, w - 4, sy, IRON[3]);
+  const cy = Math.floor(h / 2);
+  for (let x = 3; x < w - 3; x++) pm.set(x, cy + ((x & 1) ? 0 : 1), (x & 1) ? [176, 178, 190] : [110, 112, 126]);
+  pm.rect(Math.floor(w / 2) - 1, cy - 1, 3, 4, [170, 136, 64]);
+  pm.set(Math.floor(w / 2), cy + 1, [60, 44, 30]);
+  return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
+}
+
+// Stone steps going down into the dark between two low side walls,
+// seen from above (flat, anchor at the center): the top step lit, each
+// one below it darker.
+function stairsDown(w: number, h: number): PropArt {
+  const pm = new Pixmap(w, h);
+  const side = 4;
+  const steps = Math.max(3, Math.floor((h - 2) / 4));
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (x < side || x >= w - side) {
+        const outer = x === 0 || x === w - 1;
+        pm.set(x, y, lit(CUT_P, (outer ? -0.6 : x < side ? 0.35 : -0.15) + (y % 5 === 0 ? -0.4 : 0)));
+        continue;
+      }
+      const k = Math.min(steps - 1, Math.floor((y - 1) / 4));
+      const ly = (y - 1) % 4;
+      const dark = k / steps;
+      let c = lit(CUT_P, (ly === 0 ? 0.5 : ly === 3 ? -0.6 : 0) - dark * 0.4);
+      c = mix(c, [16, 12, 20], Math.min(0.92, dark * 1.05));
+      if (y === 0) c = CUT_P[1];
+      pm.set(x, y, c);
+    }
+  }
+  // Shadow cast by the side walls onto the steps.
+  for (let y = 1; y < h; y++) {
+    const c = pm.get(side, y);
+    if (c) pm.set(side, y, mix(c, [16, 12, 20], 0.5));
+    const d = pm.get(w - side - 1, y);
+    if (d) pm.set(w - side - 1, y, mix(d, [16, 12, 20], 0.3));
+  }
+  return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
+}
+
+export type PatchKind = 'crop' | 'water' | 'planks' | 'lava' | 'marsh' | 'hatch' | 'stairs';
+
+function patch(material: PatchKind, w: number, h: number): PropArt {
+  const pm = new Pixmap(w, h);
+  if (material === 'hatch') return cellarHatch(w, h);
+  if (material === 'stairs') return stairsDown(w, h);
   if (material === 'lava') {
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -1633,6 +1696,411 @@ function patch(material: 'crop' | 'water' | 'planks' | 'lava' | 'marsh', w: numb
     }
   }
   return { pm, anchorX: Math.round(w / 2), anchorY: Math.round(h / 2) };
+}
+
+// ------------------------------------------------------------- the town
+
+const CUT_P = ramp([168, 162, 156], 0.5);
+
+// A town fountain: a round basin of cut stone, a column with a bowl, water
+// falling from it in thin streams, ripples in the basin.
+function fountain(seed: number): PropArt {
+  const pm = new Pixmap(46, 46);
+  const base = 43;
+  groundShadow(pm, 24, base - 1, 21, 3.5);
+  const cx = 22.5;
+  const cy = 32;
+  const rx = 21;
+  const ry = 8;
+  const wall = 4;
+  const inRim = (x: number, y: number, k = 0) => ((x - cx) / (rx - k)) ** 2 + ((y - cy) / (ry - k * 0.8)) ** 2 <= 1;
+  // The curb: its top (a ring of cut stones) and its outer face in front.
+  for (let y = 0; y <= base; y++) {
+    for (let x = 0; x < pm.w; x++) {
+      const nx = (x - cx) / rx;
+      if (Math.abs(nx) > 1) continue;
+      const front = cy + Math.sqrt(1 - nx * nx) * ry;
+      if (inRim(x, y)) {
+        const ang = Math.atan2((y - cy) / ry, nx);
+        const joint = Math.floor(((ang + Math.PI) / (Math.PI * 2)) * 22) !== Math.floor(((Math.atan2((y - cy) / ry, (x + 1 - cx) / rx) + Math.PI) / (Math.PI * 2)) * 22);
+        pm.set(x, y, joint ? CUT_P[3] : lit(CUT_P, 0.45 - nx * 0.35 + (y > cy ? -0.15 : 0.1)));
+      } else if (y > front && y <= front + wall) {
+        const k = (y - front) / wall;
+        pm.set(x, y, (x + Math.round(y / 5)) % 7 === 0 ? CUT_P[4] : lit(CUT_P, -0.05 - nx * 0.45 - k * 0.35));
+      }
+    }
+  }
+  // Water inside the curb, a shaded band under its far rim, ripples.
+  for (let y = 0; y <= base; y++) {
+    for (let x = 0; x < pm.w; x++) {
+      if (!inRim(x, y, 3)) continue;
+      const shade = !inRim(x, y - 2, 3);
+      const r = Math.hypot((x - cx) / 1.0, (y - cy + 1) * 2.4);
+      const ring = Math.abs(r - 9) < 0.6 || Math.abs(r - 14.5) < 0.6;
+      pm.set(x, y, shade ? [30, 56, 78] : ring ? [176, 216, 236] : lit(WATER, 0.05 - (x - cx) / rx * 0.35 + (hash2(x >> 1, y, seed) < 0.06 ? 0.7 : 0)));
+    }
+  }
+  // Column with a moulded base, rising from the water.
+  for (let y = 13; y <= 31; y++) for (let x = 20; x <= 25; x++) pm.set(x, y, lit(CUT_P, x === 20 ? 0.5 : x === 25 ? -0.6 : 0.05 + ((y - 13) % 6 === 0 ? -0.35 : 0)));
+  for (let x = 19; x <= 26; x++) pm.set(x, 31, lit(CUT_P, x === 19 ? 0.3 : x === 26 ? -0.7 : -0.2));
+  // Upper bowl, filled, overflowing.
+  pm.ellipse(12, 9, 22, 7, (dx, dy) => (dy < 0.15 && Math.abs(dx) < 0.8 ? lit(WATER, 0.25 + (dx < -0.3 ? 0.4 : 0)) : lit(CUT_P, -dx * 0.6 + (dy > 0.3 ? -0.45 : 0.3))));
+  for (let x = 14; x <= 31; x++) pm.set(x, 15, lit(CUT_P, -0.65));
+  pm.rect(21, 5, 4, 4, CUT_P[1]);
+  pm.vline(24, 5, 8, CUT_P[3]);
+  pm.rect(22, 3, 2, 2, CUT_P[0]);
+  pm.set(22, 1, [220, 240, 255]);
+  pm.set(23, 2, [176, 216, 236]);
+  // Thin streams falling from the bowl's rim into the basin.
+  for (const sx of [13, 16, 29, 32]) {
+    const out = sx < 22 ? -1 : 1;
+    for (let j = 0; j < 15; j++) {
+      const x = sx + out * Math.floor(j / 5);
+      pm.set(x, 15 + j, j % 4 === 0 ? [236, 248, 255] : [160, 206, 232], 220);
+    }
+    pm.set(sx + out * 3 - 1, 30, [236, 248, 255]);
+    pm.set(sx + out * 3 + 1, 30, [236, 248, 255]);
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: 23, anchorY: base };
+}
+
+// A town street lamp: a cast-iron post on a stone foot, a glass lantern.
+function streetLamp(): PropArt {
+  const pm = new Pixmap(16, 40);
+  const solid = new Pixmap(16, 40);
+  const base = 37;
+  solid.rect(5, base - 2, 6, 3, CUT_P[2]);
+  solid.hline(5, 10, base - 2, CUT_P[0]);
+  for (let y = 12; y < base - 2; y++) {
+    solid.set(7, y, IRON[1]);
+    solid.set(8, y, IRON[3]);
+  }
+  solid.hline(6, 9, 20, IRON[1]);
+  solid.hline(6, 9, base - 4, IRON[2]);
+  // Lantern: a cap, four glass panes, a base.
+  solid.hline(5, 10, 5, IRON[1]);
+  solid.hline(6, 9, 4, IRON[0]);
+  solid.set(7, 3, IRON[1]);
+  for (let y = 6; y <= 10; y++) {
+    solid.set(4, y, IRON[2]);
+    solid.set(11, y, IRON[3]);
+    for (let x = 5; x <= 10; x++) solid.set(x, y, x === 7 || x === 8 ? (y < 8 ? [255, 250, 210] : [255, 220, 130]) : y < 8 ? [252, 226, 150] : [240, 180, 90]);
+  }
+  solid.hline(4, 11, 11, IRON[2]);
+  outlineOpaque(solid);
+  groundShadow(solid, 8, base, 5, 1.4);
+  halo(pm, 8, 8, 12, [255, 214, 130], 150);
+  pm.blit(solid, 0, 0);
+  return { pm, anchorX: 8, anchorY: base };
+}
+
+// The city's banner on a tall pole: red cloth, a golden eagle.
+function bannerPole(seed: number): PropArt {
+  const pm = new Pixmap(18, 50);
+  const base = 47;
+  groundShadow(pm, 8, base, 5, 1.4);
+  for (let y = 3; y <= base; y++) {
+    pm.set(6, y, WOOD[1]);
+    pm.set(7, y, WOOD[3]);
+  }
+  pm.rect(5, 1, 4, 2, GOLD[1]);
+  pm.hline(5, 15, 5, IRON[2]);
+  const RED = ramp([176, 48, 52]);
+  const sway = seed % 2;
+  for (let j = 0; j < 24; j++) {
+    for (let i = 0; i < 9; i++) {
+      if (j >= 21 && i === 4) continue;
+      if (j >= 22 && (i === 3 || i === 5)) continue;
+      const fold = Math.sin((i + j * 0.3 + sway) * 0.9) * 0.35;
+      pm.set(7 + i, 6 + j, j === 1 || j === 19 ? GOLD[1] : lit(RED, fold + (i === 0 ? 0.3 : i === 8 ? -0.4 : 0)));
+    }
+  }
+  // Eagle: spread wings, head, tail.
+  const ex = 11;
+  const ey = 12;
+  const G = GOLD[0];
+  const D = GOLD[2];
+  [[0, 0], [0, 1], [0, 2], [0, 3], [-1, 1], [1, 1], [-2, 0], [2, 0], [-3, 1], [3, 1], [-2, 2], [2, 2], [-1, 4], [1, 4], [0, -1]].forEach(([i, j]) => pm.set(ex + i, ey + j, j > 1 ? D : G));
+  pm.set(ex + 1, ey - 1, [200, 120, 40]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 7, anchorY: base };
+}
+
+// A small tree in a square stone planter (squares and boulevards).
+function planter(seed: number): PropArt {
+  const t = tree(22 + (seed % 2) * 3, seed);
+  const W = Math.max(t.pm.w, 26);
+  const pm = new Pixmap(W, t.pm.h + 6);
+  const ox = Math.round((W - t.pm.w) / 2);
+  pm.blit(t.pm, ox, 0);
+  const base = t.pm.h + 4;
+  const cx = ox + t.anchorX;
+  for (let y = base - 7; y <= base; y++) {
+    for (let x = cx - 9; x <= cx + 9; x++) {
+      const topFace = y < base - 4;
+      pm.set(x, y, topFace ? (Math.abs(x - cx) < 7 && y > base - 7 ? lit(ramp([110, 84, 60]), (hash2(x, y, seed) - 0.5) * 0.6) : lit(CUT_P, 0.45 - (x === cx + 9 ? 0.6 : 0))) : lit(CUT_P, (x === cx - 9 ? 0.2 : x === cx + 9 ? -0.7 : -0.2) + ((x - cx + 9) % 6 === 0 ? -0.35 : 0)));
+    }
+  }
+  for (let y = base - 9; y <= base - 4; y++) for (let x = cx - 1; x <= cx + 1; x++) pm.set(x, y, barkPixel(x, y, cx - 1, cx + 1));
+  outlineOpaque(pm);
+  return { pm, anchorX: cx, anchorY: base };
+}
+
+// ------------------------------------------------------------ the quays
+
+// A mooring post with a coil of rope.
+function mooringPost(): PropArt {
+  const pm = new Pixmap(12, 16);
+  const base = 13;
+  groundShadow(pm, 6, base, 5, 1.4);
+  for (let y = 3; y <= base; y++) for (let x = 3; x <= 7; x++) pm.set(x, y, lit(WOOD_GREY, (x === 3 ? 0.4 : x === 7 ? -0.6 : 0) + (y === 3 ? 0.5 : 0)));
+  const ROPE: RGB[] = [[214, 190, 140], [170, 146, 100]];
+  for (let j = 0; j < 3; j++) pm.hline(2, 8, 6 + j * 2, ROPE[j % 2]);
+  pm.set(9, 9, ROPE[0]);
+  pm.set(10, 10, ROPE[1]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 5, anchorY: base };
+}
+
+// A rowboat on the water, seen from above at an angle: pointed bow and
+// stern, a lit gunwale, plank bottom with two thwarts, the tarred hull
+// side showing below, a dark water line.
+function rowboat(seed: number): PropArt {
+  const L = 36;
+  const W = 13;
+  const pm = new Pixmap(L + 4, W + 8);
+  const cy = 2 + W / 2;
+  const HULL = ramp([86, 64, 52]);
+  const half = (x: number) => (W / 2) * Math.pow(Math.max(0, Math.sin((Math.PI * (x - 2)) / L)), x > L / 2 ? 1.1 : 0.7);
+  // Hull side below the gunwale (seen on the near side), then the boat.
+  for (let x = 2; x <= L + 2; x++) {
+    const h = half(x);
+    if (h < 0.6) continue;
+    const top = Math.round(cy - h);
+    const bottom = Math.round(cy + h);
+    for (let y = bottom; y <= bottom + 2; y++) pm.set(x, y, lit(HULL, -0.3 - (y - bottom) * 0.25));
+    for (let y = top; y < bottom; y++) {
+      const inner = h - Math.abs(y - cy);
+      let c: RGB;
+      if (inner < 1.2) c = lit(WOOD, y < cy ? 0.55 : 0.15); // gunwale
+      else if (inner < 2.2) c = lit(WOOD_GREY, -0.6); // its shadow inside
+      else c = lit(WOOD_GREY, 0.1 + ((y - top) % 3 === 0 ? -0.3 : 0) + (hash2(x >> 3, y, seed + 390) - 0.5) * 0.25);
+      if (inner >= 2.2 && (Math.abs(x - 13) < 1 || Math.abs(x - 26) < 1)) c = lit(WOOD, 0.35); // thwarts
+      pm.set(x, y, c);
+    }
+  }
+  // An oar resting across, a coil of rope in the bow.
+  for (let i = 0; i < 18; i++) pm.set(9 + i, Math.round(cy - 1 + i * 0.12), [206, 172, 120]);
+  pm.rect(25, Math.round(cy) - 1, 4, 2, [196, 160, 110]);
+  pm.set(31, Math.round(cy), [214, 190, 140]);
+  pm.set(32, Math.round(cy) - 1, [170, 146, 100]);
+  outlineOpaque(pm, 0.7);
+  // Water line: a dark shadow and a glint along the hull.
+  for (let x = 4; x <= L; x++) {
+    const y = Math.round(cy + half(x)) + 3;
+    if (!pm.filled(x, y)) pm.set(x, y, [20, 40, 58], 110);
+    if (x % 5 === 2 && !pm.filled(x, y + 1)) pm.set(x, y + 1, [200, 230, 250], 160);
+  }
+  return { pm, anchorX: Math.round(L / 2) + 2, anchorY: Math.round(cy + W / 2) + 2 };
+}
+
+// Fishing nets hung to dry between two poles.
+function netRack(seed: number): PropArt {
+  const pm = new Pixmap(30, 26);
+  const base = 23;
+  groundShadow(pm, 15, base, 13, 1.6);
+  for (const px of [3, 25]) for (let y = 3; y <= base; y++) {
+    pm.set(px, y, WOOD[1]);
+    pm.set(px + 1, y, WOOD[3]);
+  }
+  pm.hline(2, 27, 4, WOOD[2]);
+  const NET: RGB = [184, 168, 126];
+  for (let x = 5; x <= 24; x++) {
+    const sag = Math.round(Math.sin(((x - 5) / 19) * Math.PI) * 4);
+    const len = 10 + sag + Math.round(hash2(x, 1, seed) * 2);
+    for (let y = 5; y < 5 + len; y++) if ((x + y) % 3 === 0 || (x - y + 99) % 3 === 0) pm.set(x, y, lit(ramp(NET), (hash2(x, y, seed) - 0.5) * 0.5));
+    if ((x - 5) % 6 === 3) {
+      pm.set(x, 5 + len, [222, 120, 60]);
+      pm.set(x + 1, 5 + len, [190, 90, 46]);
+    }
+  }
+  outlineOpaque(pm, 0.6);
+  return { pm, anchorX: 15, anchorY: base };
+}
+
+// ----------------------------------------------------------- the hunters
+
+// A hide stretched on a wooden frame to dry.
+function peltRack(seed: number): PropArt {
+  const pm = new Pixmap(22, 28);
+  const base = 25;
+  groundShadow(pm, 11, base, 9, 1.6);
+  for (const px of [3, 17]) for (let y = 4; y <= base; y++) {
+    pm.set(px, y, WOOD[1]);
+    pm.set(px + 1, y, WOOD[3]);
+  }
+  pm.hline(2, 19, 5, WOOD[2]);
+  pm.hline(2, 19, 21, WOOD[2]);
+  const FUR = seed % 2 ? ramp([156, 116, 78]) : ramp([120, 108, 96], 0.6);
+  pm.ellipse(5, 6, 12, 15, (dx, dy) => lit(FUR, -dx * 0.45 - dy * 0.3 + (hash2(Math.round(dx * 12), Math.round(dy * 15), 340 + seed) - 0.5) * 0.45));
+  // Legs of the hide tied to the frame.
+  for (const [x, y] of [[5, 7], [16, 7], [5, 19], [16, 19]]) pm.set(x, y, FUR[3]);
+  for (let i = 0; i < 4; i++) pm.set(10 + (i & 1), 9 + i * 2, FUR[0]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 11, anchorY: base };
+}
+
+// A milestone by the road: a squat round post of pale stone with a band
+// of red paint and a carved notch for each league.
+function milestone(seed: number): PropArt {
+  const pm = new Pixmap(12, 16);
+  const base = 13;
+  groundShadow(pm, 7, base, 5, 1.4);
+  for (let y = 3; y <= base; y++) {
+    for (let x = 2; x <= 9; x++) {
+      const nx = (x - 5.5) / 4;
+      if (y === 3 && Math.abs(nx) > 0.6) continue;
+      let c = lit(CUT_P, -nx * 0.8 + 0.15 + (y === 3 ? 0.5 : y === 4 ? 0.25 : 0) + (hash2(x, y, seed) - 0.5) * 0.15);
+      if (y === 6 || y === 7) c = lit(CLOTH_RED, -nx * 0.7);
+      pm.set(x, y, c);
+    }
+  }
+  for (let i = 0; i < 1 + (seed % 3); i++) pm.set(4 + i * 2, 10, CUT_P[4]);
+  pm.set(2, base - 1, MOSS[1]);
+  pm.set(3, base, MOSS[2]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 6, anchorY: base };
+}
+
+// --------------------------------------------------------- the corruption
+
+const ROT = ramp([70, 58, 76], 0.6);
+const VEIN: RGB = [190, 110, 240];
+
+// A tree taken by the corruption: black twisted bark, violet veins that
+// glow, a few withered leaves, pustules at the foot.
+function blightTree(seed: number): PropArt {
+  const pm = new Pixmap(40, 50);
+  const base = 47;
+  groundShadow(pm, 22, base, 13, 3);
+  const branch = (x: number, y: number, ang: number, len: number, wid: number, depth: number) => {
+    let cx = x;
+    let cy = y;
+    for (let i = 0; i < len; i++) {
+      cx += Math.cos(ang);
+      cy += Math.sin(ang);
+      ang += (hash2(Math.round(cx), Math.round(cy), seed + 350) - 0.5) * 0.55;
+      for (let k = 0; k < wid; k++) {
+        const vein = wid > 2 && k === 1 && hash2(Math.round(cx), Math.round(cy), seed + 351) < 0.35;
+        pm.set(Math.round(cx) + k - (wid >> 1), Math.round(cy), vein ? VEIN : lit(ROT, k === 0 ? 0.35 : k === wid - 1 ? -0.6 : -0.1));
+      }
+    }
+    if (depth > 0) {
+      branch(cx, cy, ang - 0.7, len * 0.62, Math.max(1, wid - 1), depth - 1);
+      branch(cx, cy, ang + 0.55, len * 0.58, Math.max(1, wid - 1), depth - 1);
+      if (depth > 1) branch(cx, cy, ang + 0.1, len * 0.5, Math.max(1, wid - 2), depth - 2);
+    }
+  };
+  branch(20, base, -Math.PI / 2 + (hash2(seed, 1, 352) - 0.5) * 0.3, 16, 5, 3);
+  // Roots clawing the ground.
+  for (const [dx, a] of [[-1, Math.PI * 0.92], [1, Math.PI * 0.08], [0, Math.PI * 0.6]] as [number, number][]) {
+    let x = 20 + dx * 2;
+    let y = base - 1;
+    for (let i = 0; i < 7; i++) {
+      x += Math.cos(a);
+      y += Math.sin(a) * 0.4;
+      pm.set(Math.round(x), Math.round(y), ROT[3]);
+    }
+  }
+  // Withered leaves clinging on, and pustules.
+  const rnd = seeded(seed + 353);
+  for (let i = 0; i < 14; i++) {
+    const x = 4 + Math.floor(rnd() * 32);
+    const y = 4 + Math.floor(rnd() * 22);
+    if (pm.filled(x, y + 1) || pm.filled(x - 1, y)) pm.set(x, y, rnd() < 0.5 ? [112, 96, 60] : [92, 70, 86]);
+  }
+  for (const [px, py] of [[15, base - 2], [26, base - 1]]) {
+    pm.ellipse(px - 2, py - 3, 5, 4, (dx, dy) => (dx * dx + dy * dy < 0.25 ? [236, 170, 255] : lit(ramp([150, 80, 190]), -dx * 0.5 - dy * 0.5)));
+  }
+  outlineOpaque(pm);
+  return { pm, anchorX: 20, anchorY: base };
+}
+
+// A clump of corrupted brambles: black stems, thorns, sickly violet buds.
+function thorns(seed: number): PropArt {
+  const pm = new Pixmap(34, 26);
+  const base = 23;
+  groundShadow(pm, 18, base, 14, 2.4);
+  const rnd = seeded(seed + 360);
+  const CANE = ramp([86, 64, 92], 0.6);
+  // Arching canes: up from the root, then curving over and down, 2 px
+  // thick (lit on top), thorns on both sides, a few violet buds.
+  for (let s = 0; s < 7; s++) {
+    const rootX = 8 + rnd() * 18;
+    const dir = rnd() < 0.5 ? -1 : 1;
+    const span = 7 + rnd() * 8;
+    const height = 9 + rnd() * 9;
+    let prev: [number, number] | undefined;
+    for (let t = 0; t <= 1.0001; t += 0.03) {
+      const x = Math.round(rootX + dir * span * t);
+      const y = Math.round(base - Math.sin(t * Math.PI * 0.85) * height);
+      if (prev && prev[0] === x && prev[1] === y) continue;
+      prev = [x, y];
+      pm.set(x, y, lit(CANE, 0.35));
+      pm.set(x, y + 1, lit(CANE, -0.45));
+      if (Math.round(t * 100) % 12 === 0) {
+        pm.set(x + dir, y - 1, CANE[0]);
+        pm.set(x - dir, y + 2, CANE[3]);
+      }
+    }
+    if (rnd() < 0.6 && prev) {
+      pm.set(prev[0], prev[1] - 1, [214, 150, 250]);
+      pm.set(prev[0] + 1, prev[1] - 1, VEIN);
+    }
+  }
+  outlineOpaque(pm, 0.75);
+  return { pm, anchorX: 17, anchorY: base };
+}
+
+// A cluster of glowing corrupted pods swelling out of the ground.
+function blightPod(seed: number): PropArt {
+  const pm = new Pixmap(24, 20);
+  const t = new Pixmap(24, 20);
+  const base = 17;
+  const POD = ramp([150, 76, 186]);
+  const rnd = seeded(seed + 370);
+  const pods: [number, number, number][] = [[12, 12, 5], [6 + rnd() * 2, 14, 3], [17 + rnd() * 2, 14, 3.5]];
+  pods.forEach(([px, py, r]) => {
+    t.ellipse(Math.round(px - r), Math.round(py - r * 1.1), Math.round(r * 2), Math.round(r * 2.2), (dx, dy) => (dx * dx + (dy + 0.35) * (dy + 0.35) < 0.08 ? [246, 210, 255] : lit(POD, sphere(dx * 0.9, dy * 0.9) * 0.9)));
+  });
+  for (let x = 3; x <= 21; x++) t.set(x, base, ROT[3]);
+  outlineOpaque(t, 0.7);
+  halo(pm, 12, 11, 12, [190, 110, 240], 110);
+  pm.blit(t, 0, 0);
+  return { pm, anchorX: 12, anchorY: base };
+}
+
+// A well gone black: its stones charred, a dark sludge inside with a
+// violet glow, thorns climbing the posts.
+function blackWell(seed: number): PropArt {
+  const pm = new Pixmap(28, 36);
+  const base = 33;
+  groundShadow(pm, 16, base, 12, 2.5);
+  stoneRing(pm, 2, 21, 24, 13, seed);
+  for (let y = 0; y < pm.h; y++) for (let x = 0; x < pm.w; x++) {
+    const c = pm.get(x, y);
+    if (!c || pm.data[(y * pm.w + x) * 4 + 3] !== 255) continue;
+    pm.set(x, y, c[2] > c[0] + 20 ? mix([40, 20, 50], VEIN, hash2(x, y, seed) < 0.2 ? 0.6 : 0.15) : mix(c, [34, 30, 40], 0.45));
+  }
+  for (const px of [4, 22]) for (let y = 10; y <= 27; y++) {
+    pm.set(px, y, ROT[1]);
+    pm.set(px + 1, y, ROT[3]);
+    if (hash2(px, y, seed) < 0.3) pm.set(px + (y % 2 ? -1 : 2), y, ROT[2]);
+  }
+  for (let x = 4; x <= 23; x++) pm.set(x, 10 + (x > 12 && x < 16 ? 1 : 0), ROT[2]); // broken beam
+  outlineOpaque(pm);
+  return { pm, anchorX: 14, anchorY: base };
 }
 
 export type PropKind =
@@ -1679,7 +2147,20 @@ export type PropKind =
   | 'campfire'
   | 'totem'
   | 'gravestone'
-  | 'dead_tree';
+  | 'dead_tree'
+  | 'fountain'
+  | 'street_lamp'
+  | 'banner_pole'
+  | 'planter'
+  | 'mooring_post'
+  | 'rowboat'
+  | 'net_rack'
+  | 'pelt_rack'
+  | 'milestone'
+  | 'blight_tree'
+  | 'thorns'
+  | 'blight_pod'
+  | 'black_well';
 
 export function renderProp(kind: PropKind, seed = 1): PropArt {
   switch (kind) {
@@ -1772,6 +2253,32 @@ export function renderProp(kind: PropKind, seed = 1): PropArt {
       return gravestone(seed);
     case 'dead_tree':
       return deadTree(seed);
+    case 'fountain':
+      return fountain(seed);
+    case 'street_lamp':
+      return streetLamp();
+    case 'banner_pole':
+      return bannerPole(seed);
+    case 'planter':
+      return planter(seed);
+    case 'mooring_post':
+      return mooringPost();
+    case 'rowboat':
+      return rowboat(seed);
+    case 'net_rack':
+      return netRack(seed);
+    case 'pelt_rack':
+      return peltRack(seed);
+    case 'milestone':
+      return milestone(seed);
+    case 'blight_tree':
+      return blightTree(seed);
+    case 'thorns':
+      return thorns(seed);
+    case 'blight_pod':
+      return blightPod(seed);
+    case 'black_well':
+      return blackWell(seed);
   }
 }
 
@@ -1787,13 +2294,40 @@ export function renderFlowerBed(w: number, h: number, seed = 1): PropArt {
   return flowerBed(w, h, seed);
 }
 
-export function renderPatch(material: 'crop' | 'water' | 'planks' | 'lava' | 'marsh', w: number, h: number): PropArt {
+export function renderPatch(material: PatchKind, w: number, h: number): PropArt {
   return patch(material, w, h);
 }
 
 // ---------------------------------------------------------------- dungeons
 
-export type DungeonPropKind = 'torch' | 'bones' | 'sarcophagus' | 'cobweb' | 'pillar' | 'brazier' | 'urn' | 'rubble' | 'candles' | 'skulls' | 'runes';
+export type DungeonPropKind =
+  | 'torch'
+  | 'bones'
+  | 'sarcophagus'
+  | 'cobweb'
+  | 'pillar'
+  | 'brazier'
+  | 'urn'
+  | 'rubble'
+  | 'candles'
+  | 'skulls'
+  | 'runes'
+  | 'bookshelf'
+  | 'lectern'
+  | 'scrolls'
+  | 'chains'
+  | 'statue'
+  | 'table'
+  | 'puddle'
+  | 'vein'
+  | 'bed'
+  | 'hearth'
+  | 'stool'
+  | 'dining_table'
+  | 'counter'
+  | 'loom'
+  | 'cat_basket'
+  | 'pots';
 
 const CRYPT = ramp([124, 118, 128], 0.4);
 const BONE = ramp([226, 218, 194], 0.6);
@@ -1820,7 +2354,332 @@ function halo(pm: Pixmap, cx: number, cy: number, r: number, c: RGB, alpha: numb
   }
 }
 
+const SHELF_P = ramp([112, 74, 50]);
+const SPINES: RGB[] = [
+  [150, 52, 50],
+  [62, 92, 140],
+  [70, 112, 72],
+  [176, 136, 70],
+  [110, 70, 120],
+];
+const PAPER = ramp([226, 214, 180], 0.6);
+
+function moreDungeonProps(kind: DungeonPropKind): PropArt | undefined {
+  if (kind === 'bookshelf') {
+    // A free-standing bookcase, a few books fallen, one leaning.
+    const pm = new Pixmap(24, 34);
+    const base = 31;
+    groundShadow(pm, 13, base, 11, 2);
+    for (let y = 2; y <= base; y++) for (let x = 1; x <= 21; x++) {
+      const side = x <= 2 || x >= 20;
+      const ly = (y - 4) % 7;
+      let c: RGB;
+      if (y <= 3) c = lit(SHELF_P, y === 2 ? 0.5 : 0.2);
+      else if (side) c = lit(SHELF_P, x <= 2 ? 0.25 : -0.55);
+      else if (ly === 6 || y === base) c = lit(SHELF_P, -0.2);
+      else if (ly === 0) c = [36, 26, 30];
+      else {
+        const b = Math.floor(x / 2) + Math.floor((y - 4) / 7) * 3;
+        c = hash2(b, 1, 501) < 0.15 ? [36, 26, 30] : mix(SPINES[Math.floor(hash2(b, 2, 501) * SPINES.length)], x % 2 ? [20, 16, 22] : [255, 240, 210], 0.14);
+        if (ly === 3 && hash2(b, 3, 501) < 0.5) c = [214, 180, 90];
+      }
+      pm.set(x, y, c);
+    }
+    outlineOpaque(pm);
+    return { pm, anchorX: 12, anchorY: base };
+  }
+  if (kind === 'lectern') {
+    // A reading stand with an open book and a candle stub.
+    const pm = new Pixmap(18, 24);
+    const t = new Pixmap(18, 24);
+    const base = 21;
+    for (let y = 11; y <= base; y++) {
+      t.set(8, y, SHELF_P[1]);
+      t.set(9, y, SHELF_P[3]);
+    }
+    t.hline(5, 12, base, SHELF_P[2]);
+    for (let j = 0; j < 4; j++) t.hline(3 + j, 14 - j, 10 - j, lit(SHELF_P, -0.2 - j * 0.1));
+    // The open book on the slope.
+    for (let y = 5; y <= 9; y++) for (let x = 4; x <= 13; x++) t.set(x, y, x === 8 || x === 9 ? PAPER[3] : lit(PAPER, (x < 8 ? 0.3 : -0.1) + ((y + x) % 3 === 0 && y > 5 ? -0.4 : 0)));
+    t.set(14, 7, [240, 230, 200]);
+    t.set(14, 6, [255, 210, 120]);
+    outlineOpaque(t, 0.7);
+    halo(pm, 14, 6, 8, [255, 200, 120], 90);
+    groundShadow(pm, 10, base, 6, 1.5);
+    pm.blit(t, 0, 0);
+    return { pm, anchorX: 9, anchorY: base };
+  }
+  if (kind === 'scrolls') {
+    // Rolled scrolls and loose sheets heaped on the floor.
+    const pm = new Pixmap(22, 12);
+    const roll = (x: number, y: number, len: number) => {
+      for (let i = 0; i < len; i++) {
+        pm.set(x + i, y, lit(PAPER, 0.4));
+        pm.set(x + i, y + 1, lit(PAPER, -0.1));
+        pm.set(x + i, y + 2, lit(PAPER, -0.6));
+      }
+      pm.set(x + len, y + 1, PAPER[4]);
+      pm.set(x - 1, y + 1, [150, 50, 50]);
+    };
+    for (let y = 7; y <= 10; y++) for (let x = 2; x <= 9; x++) pm.set(x, y, lit(PAPER, (x + y) % 4 === 0 ? -0.5 : 0.1));
+    roll(5, 6, 10);
+    roll(9, 8, 9);
+    roll(3, 3, 8);
+    outlineOpaque(pm, 0.6);
+    return { pm, anchorX: 11, anchorY: 10 };
+  }
+  if (kind === 'chains') {
+    // Chains and a manacle hanging from a ring in the wall.
+    const pm = new Pixmap(14, 22);
+    const C: RGB[] = [[150, 152, 166], [92, 94, 108]];
+    for (const [x0, len] of [[4, 16], [9, 12]] as [number, number][]) {
+      for (let j = 0; j < len; j++) pm.set(x0 + Math.round(Math.sin(j / 4) * 0.6), 2 + j, C[j & 1]);
+    }
+    pm.rect(3, 18, 4, 3, C[1]);
+    pm.set(4, 19, [30, 26, 34]);
+    pm.set(5, 19, [30, 26, 34]);
+    pm.hline(3, 10, 1, C[0]);
+    outlineOpaque(pm, 0.6);
+    return { pm, anchorX: 6, anchorY: 0 };
+  }
+  if (kind === 'statue') {
+    // A stone knight on a plinth, hands on the hilt of a sword.
+    const pm = new Pixmap(20, 44);
+    const base = 41;
+    groundShadow(pm, 11, base, 9, 2);
+    for (let y = base - 7; y <= base; y++) for (let x = 2; x <= 17; x++) pm.set(x, y, lit(CRYPT, (y === base - 7 ? 0.6 : 0) + (x === 2 ? 0.3 : x === 17 ? -0.6 : -0.1)));
+    const body = (x: number, y: number, k: number) => pm.set(x, y, lit(CRYPT, k));
+    for (let y = 8; y < base - 7; y++) {
+      const half = y < 13 ? 3 : y < 26 ? 5 : 4;
+      for (let x = 10 - half; x <= 9 + half; x++) body(x, y, (x - 9.5) / half * -0.7 + 0.1 + (y === 13 ? -0.3 : 0));
+    }
+    // Helm with a slit, pauldrons, the sword in front.
+    for (let y = 3; y < 8; y++) for (let x = 7; x <= 12; x++) body(x, y, x < 9 ? 0.5 : x > 11 ? -0.5 : 0.1);
+    pm.hline(8, 11, 5, CRYPT[4]);
+    pm.hline(4, 15, 13, CRYPT[1]);
+    for (let y = 14; y < base - 7; y++) pm.set(10, y, CRYPT[0]);
+    pm.hline(7, 13, 17, CRYPT[0]);
+    pm.set(5, 30, [96, 128, 80]);
+    pm.set(6, 31, [96, 128, 80]);
+    outlineOpaque(pm);
+    return { pm, anchorX: 10, anchorY: base };
+  }
+  if (kind === 'table') {
+    // A heavy table with ledgers, an inkwell and a candle.
+    const pm = new Pixmap(30, 22);
+    const t = new Pixmap(30, 22);
+    const base = 19;
+    for (let y = 6; y <= 11; y++) for (let x = 1; x <= 28; x++) t.set(x, y, lit(SHELF_P, (y === 6 ? 0.5 : 0.15) + (x === 28 ? -0.5 : 0) + (x % 7 === 0 ? -0.25 : 0)));
+    for (let y = 12; y <= 13; y++) t.hline(1, 28, y, SHELF_P[3]);
+    for (const lx of [2, 26]) for (let y = 14; y <= base; y++) {
+      t.set(lx, y, SHELF_P[2]);
+      t.set(lx + 1, y, SHELF_P[4]);
+    }
+    for (let y = 7; y <= 10; y++) for (let x = 4; x <= 12; x++) t.set(x, y, x === 8 ? PAPER[3] : lit(PAPER, x < 8 ? 0.2 : -0.1));
+    t.rect(15, 7, 6, 3, [110, 50, 50]);
+    t.hline(15, 20, 7, [150, 70, 64]);
+    t.rect(22, 8, 2, 2, [30, 30, 40]);
+    t.set(25, 6, [240, 230, 200]);
+    t.set(25, 5, [255, 210, 120]);
+    outlineOpaque(t, 0.7);
+    halo(pm, 25, 5, 9, [255, 200, 120], 80);
+    groundShadow(pm, 15, base, 13, 1.8);
+    pm.blit(t, 0, 0);
+    return { pm, anchorX: 15, anchorY: base };
+  }
+  if (kind === 'puddle') {
+    // Standing water on the floor (flat).
+    const pm = new Pixmap(30, 12);
+    pm.ellipse(0, 0, 30, 12, (dx, dy) => (dx * dx + dy * dy > 0.8 ? [40, 46, 56] : dy < -0.2 && Math.abs(dx) < 0.5 && (Math.round(dx * 15) & 1) ? [150, 170, 190] : [60, 76, 92]));
+    for (let i = 3; i < pm.data.length; i += 4) if (pm.data[i]) pm.data[i] = 200;
+    return { pm, anchorX: 15, anchorY: 6 };
+  }
+  if (kind === 'vein') {
+    // Cracks in the floor glowing with the corruption (flat).
+    const pm = new Pixmap(40, 24);
+    const crack = (x: number, y: number, ang: number, len: number, depth: number) => {
+      let cx = x;
+      let cy = y;
+      for (let i = 0; i < len; i++) {
+        cx += Math.cos(ang);
+        cy += Math.sin(ang) * 0.6;
+        ang += (hash2(Math.round(cx), Math.round(cy), 509) - 0.5) * 0.8;
+        pm.set(Math.round(cx), Math.round(cy), i < len * 0.6 ? [214, 150, 252] : [150, 82, 200], 230);
+      }
+      if (depth > 0) {
+        crack(cx, cy, ang - 0.8, len * 0.6, depth - 1);
+        crack(cx, cy, ang + 0.7, len * 0.5, depth - 1);
+      }
+    };
+    crack(20, 12, 0.2, 12, 2);
+    crack(20, 12, Math.PI + 0.3, 11, 2);
+    halo(pm, 20, 12, 16, [170, 90, 230], 70);
+    return { pm, anchorX: 20, anchorY: 12 };
+  }
+  return undefined;
+}
+
+const QUILT = ramp([160, 70, 64]);
+const STRAW_P = ramp([214, 180, 110]);
+
+function homeProps(kind: DungeonPropKind): PropArt | undefined {
+  if (kind === 'bed') {
+    // A wooden bed, its head against the wall: pillow, a patchwork quilt.
+    const pm = new Pixmap(24, 36);
+    const base = 33;
+    groundShadow(pm, 13, base, 11, 2);
+    for (let y = 1; y <= base; y++) for (let x = 2; x <= 21; x++) {
+      const frame = x <= 3 || x >= 20 || y <= 3 || y >= base - 1;
+      if (frame) pm.set(x, y, lit(SHELF_P, x <= 3 || y <= 3 ? 0.3 : -0.5));
+      else if (y <= 10) pm.set(x, y, lit(PAPER, (x < 8 ? 0.3 : 0) - (y === 10 ? 0.4 : 0)));
+      else {
+        const patch = (Math.floor(x / 4) + Math.floor(y / 5)) % 3;
+        const r = patch === 0 ? QUILT : patch === 1 ? ramp([196, 160, 90]) : ramp([96, 120, 150]);
+        pm.set(x, y, lit(r, (x === 4 ? 0.3 : x === 19 ? -0.4 : 0) + (y === 11 ? 0.4 : 0) - ((x + y) % 4 === 0 ? 0.15 : 0)));
+      }
+    }
+    outlineOpaque(pm);
+    return { pm, anchorX: 12, anchorY: base };
+  }
+  if (kind === 'hearth') {
+    // A stone fireplace built into the back wall, a fire in it, a pot.
+    const pm = new Pixmap(34, 34);
+    const t = new Pixmap(34, 34);
+    const base = 31;
+    for (let y = 2; y <= base; y++) for (let x = 2; x <= 31; x++) {
+      const s = cell(x, y, 5, 511, 1.4);
+      t.set(x, y, s.d2 - s.d1 < 0.12 ? STONE[4] : lit(STONE, -s.dx * 0.4 - s.dy * 0.5 + (hash2(s.id, 1, 512) - 0.5) * 0.5));
+    }
+    // Mantel, opening, coals and flames.
+    for (let x = 1; x <= 32; x++) {
+      t.set(x, 10, lit(SHELF_P, 0.3));
+      t.set(x, 11, SHELF_P[3]);
+    }
+    for (let y = 15; y <= base; y++) for (let x = 8; x <= 25; x++) {
+      if (y === 15 && (x === 8 || x === 25)) continue;
+      t.set(x, y, mix([24, 16, 18], [255, 140, 60], Math.max(0, (y - 20) / 14) * 0.6));
+    }
+    for (let x = 10; x <= 23; x++) t.set(x, base - 1, hash2(x, 2, 513) < 0.5 ? [255, 200, 90] : [214, 76, 44]);
+    flame(t, 14, base - 2, 8);
+    flame(t, 19, base - 2, 10);
+    // A pot hanging over the fire, a pot on the mantel.
+    t.vline(17, 16, 19, IRON[2]);
+    for (let y = 20; y <= 23; y++) t.hline(14, 20, y, lit(IRON, y === 20 ? 0.3 : -0.3));
+    t.rect(5, 7, 4, 3, CLAY_P[1]);
+    t.rect(25, 6, 3, 4, ramp([150, 180, 120])[2]);
+    outlineOpaque(t);
+    halo(pm, 17, 24, 22, [255, 170, 80], 120);
+    pm.blit(t, 0, 0);
+    return { pm, anchorX: 17, anchorY: base };
+  }
+  if (kind === 'stool') {
+    const pm = new Pixmap(10, 10);
+    const base = 8;
+    groundShadow(pm, 5, base, 4, 1.2);
+    pm.ellipse(1, 1, 8, 4, (dx, dy) => lit(SHELF_P, -dx * 0.4 - dy * 0.5 + 0.2));
+    for (const lx of [2, 7]) pm.vline(lx, 4, base, SHELF_P[3]);
+    pm.vline(5, 5, base, SHELF_P[2]);
+    outlineOpaque(pm);
+    return { pm, anchorX: 5, anchorY: base };
+  }
+  if (kind === 'dining_table') {
+    // A table laid with bread, mugs and a candle.
+    const pm = new Pixmap(30, 22);
+    const t = new Pixmap(30, 22);
+    const base = 19;
+    for (let y = 5; y <= 11; y++) for (let x = 1; x <= 28; x++) t.set(x, y, lit(SHELF_P, (y === 5 ? 0.5 : 0.15) + (x === 28 ? -0.5 : 0) + (x % 7 === 0 ? -0.25 : 0)));
+    for (let y = 12; y <= 13; y++) t.hline(1, 28, y, SHELF_P[3]);
+    for (const lx of [2, 26]) for (let y = 14; y <= base; y++) {
+      t.set(lx, y, SHELF_P[2]);
+      t.set(lx + 1, y, SHELF_P[4]);
+    }
+    // Bread, two mugs, a plate.
+    t.ellipse(5, 6, 7, 4, (dx, dy) => lit(STRAW_P, -dx * 0.4 - dy * 0.6));
+    for (const mx of [15, 20]) {
+      t.rect(mx, 5, 3, 4, lit(WOOD_GREY, 0.2));
+      t.hline(mx, mx + 2, 5, [246, 240, 220]);
+      t.set(mx + 3, 6, WOOD_GREY[3]);
+    }
+    t.ellipse(8, 9, 6, 2, () => [214, 210, 200]);
+    t.set(25, 6, [240, 230, 200]);
+    t.set(25, 5, [255, 210, 120]);
+    outlineOpaque(t, 0.7);
+    halo(pm, 25, 5, 9, [255, 200, 120], 80);
+    groundShadow(pm, 15, base, 13, 1.8);
+    pm.blit(t, 0, 0);
+    return { pm, anchorX: 15, anchorY: base };
+  }
+  if (kind === 'counter') {
+    // The inn's counter: a long plank top, a front of boards, mugs and a
+    // keg on it.
+    const pm = new Pixmap(60, 22);
+    const base = 19;
+    groundShadow(pm, 31, base, 29, 2);
+    for (let y = 4; y <= base; y++) for (let x = 1; x <= 58; x++) {
+      if (y <= 7) pm.set(x, y, lit(SHELF_P, y === 4 ? 0.55 : 0.2));
+      else pm.set(x, y, lit(SHELF_P, -0.25 + (x % 6 === 0 ? -0.45 : 0) + (y === 8 ? -0.4 : 0)));
+    }
+    for (const mx of [10, 16, 40]) {
+      pm.rect(mx, 1, 3, 4, lit(WOOD_GREY, 0.2));
+      pm.hline(mx, mx + 2, 1, [246, 240, 220]);
+    }
+    pm.ellipse(24, -1, 10, 8, (dx) => lit(WOOD, -dx * 0.6));
+    pm.hline(24, 33, 1, IRON[2]);
+    outlineOpaque(pm);
+    return { pm, anchorX: 30, anchorY: base };
+  }
+  if (kind === 'loom') {
+    // A weaver's loom with a half-woven blue and gold cloth.
+    const pm = new Pixmap(28, 30);
+    const base = 27;
+    groundShadow(pm, 15, base, 12, 2);
+    for (const px of [2, 24]) for (let y = 2; y <= base; y++) {
+      pm.set(px, y, SHELF_P[1]);
+      pm.set(px + 1, y, SHELF_P[3]);
+    }
+    pm.hline(2, 25, 3, SHELF_P[2]);
+    pm.hline(2, 25, 20, SHELF_P[2]);
+    for (let x = 5; x <= 22; x += 2) pm.vline(x, 4, 12, [226, 214, 186]);
+    for (let y = 12; y <= 19; y++) for (let x = 4; x <= 23; x++) pm.set(x, y, (x + y) % 5 === 0 ? [214, 170, 70] : lit(ramp([70, 100, 170]), (y - 15) * -0.1 + (x % 2 ? 0.1 : -0.1)));
+    pm.rect(8, 22, 12, 3, SHELF_P[2]);
+    outlineOpaque(pm);
+    return { pm, anchorX: 14, anchorY: base };
+  }
+  if (kind === 'cat_basket') {
+    // A wicker basket with a sleeping cat curled in it.
+    const pm = new Pixmap(16, 12);
+    const base = 10;
+    groundShadow(pm, 8, base, 7, 1.4);
+    pm.ellipse(1, 3, 14, 8, (dx, dy) => (dy < -0.2 ? undefined : lit(STRAW_P, -dx * 0.5 + ((Math.round(dx * 7) + Math.round(dy * 4)) % 2 ? -0.3 : 0.1))));
+    const C = ramp([226, 140, 60]); // a ginger cat
+    pm.ellipse(3, 1, 10, 6, (dx, dy) => lit(C, -dx * 0.4 - dy * 0.6));
+    pm.set(10, 2, C[0]);
+    pm.set(12, 2, C[0]);
+    outlineOpaque(pm, 0.7);
+    return { pm, anchorX: 8, anchorY: base };
+  }
+  if (kind === 'pots') {
+    // Clay pots of seedlings on a low plank.
+    const pm = new Pixmap(24, 14);
+    const base = 12;
+    groundShadow(pm, 12, base, 11, 1.4);
+    pm.hline(1, 22, base - 1, SHELF_P[2]);
+    pm.hline(1, 22, base, SHELF_P[4]);
+    for (const [px, h] of [[3, 5], [10, 6], [17, 5]] as [number, number][]) {
+      for (let y = base - 5; y <= base - 2; y++) for (let x = px; x <= px + 4; x++) pm.set(x, y, lit(CLAY_P, x === px ? 0.4 : x === px + 4 ? -0.5 : 0));
+      for (let j = 0; j < h; j++) pm.set(px + 2 + (j > 2 ? (j % 2 ? 1 : -1) : 0), base - 6 - j, LEAVES[j % 2 ? 1 : 2]);
+      pm.set(px + 1, base - 9, LEAVES[0]);
+      pm.set(px + 3, base - 8, px === 10 ? [222, 72, 60] : LEAVES[1]); // a first tomato
+    }
+    outlineOpaque(pm, 0.7);
+    return { pm, anchorX: 12, anchorY: base };
+  }
+  return undefined;
+}
+
 export function renderDungeonProp(kind: DungeonPropKind): PropArt {
+  const more = moreDungeonProps(kind) ?? homeProps(kind);
+  if (more) return more;
   if (kind === 'candles') {
     // A cluster of melted candles on the floor, wax pooled at their feet.
     const pm = new Pixmap(20, 20);

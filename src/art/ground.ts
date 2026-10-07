@@ -7,7 +7,7 @@
 
 import { Pixmap, RGB, Ramp, cell, hash2, lit, mix, noise, ramp } from './pixmap';
 
-export type GroundMaterial = 'grass' | 'forest' | 'cave' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop';
+export type GroundMaterial = 'grass' | 'forest' | 'cave' | 'dirt' | 'cobble' | 'flagstone' | 'sand' | 'water' | 'marsh' | 'stonefloor' | 'aisle' | 'planks' | 'crop' | 'blight' | 'carpet' | 'paving' | 'mud';
 
 export type GroundShape =
   | { kind: 'path'; material: GroundMaterial; points: [number, number][]; width: number; rough?: number }
@@ -62,9 +62,11 @@ export const GRASS = ramp([96, 156, 70]);
 const DIRT = ramp([166, 126, 84]);
 const COBBLE = ramp([150, 146, 140], 0.6);
 const SLAB = ramp([158, 154, 146], 0.6);
+const PAVING = ramp([196, 184, 160], 0.55);
 const FLOOR = ramp([92, 88, 100], 0.5);
 const AISLE = ramp([112, 106, 112], 0.5);
 const SAND = ramp([214, 190, 138]);
+const MUD = ramp([118, 100, 82], 0.7);
 const WATER = ramp([58, 116, 150], 0.4);
 const MARSH = ramp([92, 110, 66]);
 const PLANK = ramp([150, 102, 64]);
@@ -238,6 +240,40 @@ function planks(x: number, y: number, seed: number): RGB {
   return lit(PLANK, (ly === 1 ? 0.4 : ly === bh - 1 ? -0.35 : 0) + tone + grain);
 }
 
+// Ground taken by the corruption: dark ashen soil, a net of cracks with
+// violet veins glowing in some of them, dead grass, glinting specks.
+const BLIGHT = ramp([92, 80, 88], 0.6);
+function blight(x: number, y: number, seed: number): RGB {
+  const level = (noise(x, y, 14, seed) - 0.5) * 0.7 + (noise(x, y, 4, seed + 1) - 0.5) * 0.4 + (hash2(x, y, seed + 2) - 0.5) * 0.2;
+  let c = level > 0.25 ? BLIGHT[1] : level < -0.25 ? BLIGHT[3] : BLIGHT[2];
+  const v = cell(x, y, 15, seed + 3, 1.2);
+  if (v.d2 - v.d1 < 0.06 && noise(x, y, 6, seed + 4) > 0.42) {
+    // A crack; the deeper ones glow.
+    return noise(x, y, 23, seed + 5) > 0.62 ? (hash2(x, y, seed + 6) < 0.5 ? [196, 120, 244] : [150, 82, 200]) : [44, 34, 48];
+  }
+  // Dead grass: short pale strokes.
+  const bx = Math.floor(x / 4);
+  const by = Math.floor(y / 5);
+  if (hash2(bx, by, seed + 7) < 0.3 && noise(x, y, 30, seed + 8) > 0.45) {
+    const col = bx * 4 + Math.floor(hash2(bx, by, seed + 9) * 4);
+    const tip = by * 5 + 1;
+    if (x === col && (y === tip || y === tip + 1)) return y === tip ? [150, 138, 104] : [112, 100, 80];
+  }
+  if (hash2(x, y, seed + 10) < 0.006) c = [220, 170, 250];
+  return c;
+}
+
+// A runner of red carpet with a woven diamond pattern (archives, halls).
+const CARPET = ramp([150, 46, 52]);
+function carpet(x: number, y: number, seed: number): RGB {
+  const dx = ((x % 8) + 8) % 8;
+  const dy = ((y % 8) + 8) % 8;
+  const diamond = Math.abs(dx - 3.5) + Math.abs(dy - 3.5) === 3.5 || Math.abs(dx - 3.5) + Math.abs(dy - 3.5) === 3;
+  const wear = noise(x, y, 18, seed) > 0.7 ? -0.35 : 0;
+  if (diamond) return mix(CARPET[1], [214, 160, 70], 0.45 + wear * 0.5);
+  return lit(CARPET, wear + (hash2(x, y, seed + 1) - 0.5) * 0.25 + ((x + y) & 1 ? 0.05 : -0.05));
+}
+
 function crop(x: number, y: number, seed: number): RGB {
   // Tilled rows of leafy plants.
   const ly = y % 7;
@@ -284,6 +320,25 @@ function material(m: GroundMaterial, x: number, y: number, seed: number): RGB {
       return planks(x, y, seed + 37);
     case 'crop':
       return crop(x, y, seed + 41);
+    case 'blight':
+      return blight(x, y, seed + 43);
+    case 'carpet':
+      return carpet(x, y, seed + 47);
+    case 'mud':
+      // Trodden mud of the quays: greyer and darker than country earth, with
+      // wet hollows that catch the sky.
+      {
+        const n = noise(x, y, 13, seed + 57);
+        if (n > 0.83) {
+          // Puddle: a dark muddy rim, still water reflecting a pale sky.
+          if (n < 0.845) return MUD[4];
+          const above = noise(x, y - 2, 13, seed + 57) < 0.845;
+          return above ? [78, 84, 92] : hash2(x >> 2, y, seed + 58) < 0.08 ? [168, 184, 196] : [104, 116, 128];
+        }
+        return dirt(x, y, seed + 59, MUD);
+      }
+    case 'paving':
+      return slabs(x, y, seed + 53, PAVING, 10, 1.3);
   }
 }
 
@@ -299,6 +354,10 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
   marsh: MARSH[4],
   planks: PLANK[4],
   crop: DIRT[4],
+  blight: BLIGHT[4],
+  carpet: [206, 156, 66],
+  paving: PAVING[4],
+  mud: MUD[4],
 };
 
 // Paved materials: their stones are laid one by one, so the edge of a
@@ -307,6 +366,7 @@ const RIM: Partial<Record<GroundMaterial, RGB>> = {
 const PAVED: Partial<Record<GroundMaterial, { size: number; stretch: number; seed: number; fray: number }>> = {
   cobble: { size: 6, stretch: 1.25, seed: 13, fray: 7 },
   flagstone: { size: 9, stretch: 1.3, seed: 17, fray: 8 },
+  paving: { size: 10, stretch: 1.3, seed: 53, fray: 6 },
 };
 
 export function renderGround(spec: GroundSpec): Pixmap {

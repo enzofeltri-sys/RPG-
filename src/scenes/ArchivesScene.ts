@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addStoneFloor } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { ARCHIVES } from '../world/zones/aiglemontDepths';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
 import { playChestOpen } from '../ui/sound';
@@ -67,11 +68,13 @@ export class ArchivesScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#241f2e');
-    void addStoneFloor(this, WORLD_WIDTH, WORLD_HEIGHT);
 
     addZoneTitle(this, 'Les Archives scellées');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    // Ground, walls, decor and light drawn by the game (world/zones/aiglemontDepths.ts).
+    const painted = paintZone(this, ARCHIVES);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -145,7 +148,7 @@ export class ArchivesScene extends Phaser.Scene {
 
   private addShelves(): void {
     const shelf = (x: number, y: number, w: number, h: number) => {
-      const rect = this.add.rectangle(x, y, w, h, 0x342c40).setStrokeStyle(1, 0x181420);
+      const rect = this.add.rectangle(x, y, w, h).setVisible(false);
       this.physics.add.existing(rect, true);
       this.physics.add.collider(this.player, rect);
     };

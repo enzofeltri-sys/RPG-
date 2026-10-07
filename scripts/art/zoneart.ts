@@ -14,7 +14,7 @@ import { GateKind, renderBarrier, renderWallBlock } from '../../src/art/building
 import { renderBridge, renderFence, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../../src/art/props';
 import { renderTuft, softenBase } from '../../src/art/settle';
 import { Pixmap } from '../../src/art/pixmap';
-import { BAYER, ZoneArt, buildingArt, dpropArt, lightMap, plan, propArt } from '../../src/world/zonePlan';
+import { BAYER, ZoneArt, buildingArt, dpropArt, dpropDepth, dpropOffGround, lightMap, plan, propArt } from '../../src/world/zonePlan';
 import { ALL_ZONES } from '../../src/world/zones';
 import { encodePng } from './png';
 
@@ -73,8 +73,8 @@ function render(art: ZoneArt): Pixmap {
   });
   (art.dprops ?? []).forEach((d) => {
     const a = dpropArt(d.kind);
-    const pm = d.kind === 'runes' || d.kind === 'cobweb' ? a.pm : softenBase(a.pm, a.anchorY);
-    at(pm, d.x - a.anchorX, d.y - a.anchorY, d.kind === 'runes' ? -900 : d.kind === 'torch' || d.kind === 'cobweb' ? d.y + 12 : d.y - 8);
+    const pm = dpropOffGround(d.kind) ? a.pm : softenBase(a.pm, a.anchorY);
+    at(pm, d.x - a.anchorX, d.y - a.anchorY, dpropDepth(d.kind, d.y));
   });
   r.tufts.forEach((t) => {
     const a = renderTuft((t.seed % 24) + 1, t.tall);

@@ -5,7 +5,7 @@ import { GateKind, renderBarrier, renderWallBlock } from '../art/buildings';
 import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
-import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, lightMap, plan, step } from './zonePlan';
+import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, lightMap, plan, step } from './zonePlan';
 
 export type { BuildingSpot, PropSpot, ZoneArt, ZoneLight } from './zonePlan';
 
@@ -156,11 +156,11 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
     const key = pixmapTexture(scene, `bridge-${art.key}-${idx}`, a.pm);
     scene.add.image(br.x - 2, br.y - 4, key).setOrigin(0, 0).setDepth(-800);
   });
-  // Walls the zone itself makes solid (side walls the scene doesn't know).
+  // Walls and obstacles the zone itself makes solid (side walls, water,
+  // a fountain: things the scene doesn't know about).
   const solids: Phaser.GameObjects.Rectangle[] = [];
-  (art.walls ?? []).forEach((wl) => {
-    if (!wl.solid) return;
-    const rect = scene.add.rectangle(wl.x, wl.y, wl.w, wl.h).setVisible(false);
+  [...(art.walls ?? []).filter((wl) => wl.solid), ...(art.solids ?? [])].forEach((b) => {
+    const rect = scene.add.rectangle(b.x, b.y, b.w, b.h).setVisible(false);
     scene.physics.add.existing(rect, true);
     solids.push(rect);
   });
@@ -175,10 +175,8 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   });
   (art.dprops ?? []).forEach((d) => {
     const a = dpropArt(d.kind);
-    const key = pixmapTexture(scene, `dprop-${d.kind}`, d.kind === 'runes' || d.kind === 'cobweb' ? a.pm : softenBase(a.pm, a.anchorY));
-    // Torches and cobwebs hang on walls: just in front of the wall face.
-    const depth = d.kind === 'runes' ? -900 : d.kind === 'torch' || d.kind === 'cobweb' ? d.y + 12 : d.y - FEET_TO_DEPTH;
-    scene.add.image(Math.round(d.x - a.anchorX), Math.round(d.y - a.anchorY), key).setOrigin(0, 0).setDepth(depth);
+    const key = pixmapTexture(scene, `dprop-${d.kind}`, dpropOffGround(d.kind) ? a.pm : softenBase(a.pm, a.anchorY));
+    scene.add.image(Math.round(d.x - a.anchorX), Math.round(d.y - a.anchorY), key).setOrigin(0, 0).setDepth(dpropDepth(d.kind, d.y));
   });
   const lighting = art.dark ? addLighting(scene, art) : undefined;
   // Beyond a small dark zone's edges, the dark itself.

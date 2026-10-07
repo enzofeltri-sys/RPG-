@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { addGrassGround } from '../entities/groundTexture';
+import { paintZone } from '../world/zoneArt';
+import { RIVER_ROAD } from '../world/zones/aiglemont';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
 import { isChestOpened, openChest, chestLootMessage } from '../game/chest';
@@ -26,17 +27,6 @@ const FISHERMAN_LINES = [
   "Les marais commencent juste après ce relais. Ne quittez pas le chemin.",
   'On dit que la forêt profonde débute de l\'autre côté des marécages.',
   "Les serpents ne sont pas méchants, tant qu'on ne marche pas dessus.",
-];
-
-// Purely decorative — reed patches along the water's edge, no collision, no
-// real art yet (increment 10).
-const REEDS: { x: number; y: number }[] = [
-  { x: 70, y: 80 },
-  { x: 110, y: 60 },
-  { x: 320, y: 340 },
-  { x: 280, y: 360 },
-  { x: 180, y: 260 },
-  { x: 220, y: 90 },
 ];
 
 interface RiverRoadData {
@@ -77,12 +67,11 @@ export class RiverRoadScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
-    this.cameras.main.setBackgroundColor('#38493a');
+    this.cameras.main.setBackgroundColor('#5f9a46');
     addZoneTitle(this, 'Route fluviale');
-    void addGrassGround(this, WORLD_WIDTH, WORLD_HEIGHT);
-
-    REEDS.forEach((reed) => this.add.circle(reed.x, reed.y, 6, 0x2e5a3a).setStrokeStyle(1, 0x14301c));
-    this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 + 40, 260, 30, 0x2a4a5a).setStrokeStyle(1, 0x142530);
+    // The road, the river (solid) and its banks are drawn by the game
+    // (world/zones/aiglemont.ts).
+    const painted = paintZone(this, RIVER_ROAD);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Faubourg des quais', '→ Relais des chasseurs']);
 
@@ -91,6 +80,7 @@ export class RiverRoadScene extends Phaser.Scene {
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.fisherman.sprite);
+    painted.follow(this.player);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

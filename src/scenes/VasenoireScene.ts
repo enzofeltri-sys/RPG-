@@ -64,7 +64,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2e3a34');
     // The town on stilts is drawn by the game (world/zones/terresNoyees.ts).
-    paintZone(this, VASENOIRE);
+    const painted = paintZone(this, VASENOIRE);
 
 
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
@@ -87,6 +87,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(this.toma, true);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.yenn);
     this.physics.add.collider(this.player, this.merchantStall);
     this.physics.add.collider(this.player, this.forge);

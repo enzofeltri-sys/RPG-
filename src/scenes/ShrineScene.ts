@@ -93,7 +93,7 @@ export class ShrineScene extends Phaser.Scene {
     // Shrine altar + standing stones, purely decorative.
     // Ground, altar, columns, standing stones and grove drawn by the game
     // (world/zones/shrine.ts).
-    paintZone(this, SHRINE);
+    const painted = paintZone(this, SHRINE);
 
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
@@ -102,6 +102,7 @@ export class ShrineScene extends Phaser.Scene {
     this.physics.add.existing(this.hermit, true);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.hermit);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

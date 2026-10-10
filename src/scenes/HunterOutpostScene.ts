@@ -57,7 +57,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5f9a46');
     // The clearing, the lodge, the fire and the woods are drawn by the game
     // (world/zones/aiglemont.ts).
-    paintZone(this, HUNTER_OUTPOST);
+    const painted = paintZone(this, HUNTER_OUTPOST);
 
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
@@ -66,6 +66,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.existing(this.hunter, true);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT / 2);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.hunter);
     const lodge = HUNTER_OUTPOST.buildings!.lodge;
     const lodgeBox = this.add.rectangle(lodge.x, lodge.y, lodge.w, lodge.h).setVisible(false);

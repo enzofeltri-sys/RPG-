@@ -87,7 +87,7 @@ export const WOLF_DEN: ZoneArt = {
   ],
   props: [
     { kind: 'haystack', x: 74, y: 96, seed: 6 },
-    { kind: 'boulder_large', x: 170, y: 470, seed: 2 },
+    { kind: 'boulder_large', x: 140, y: 490, seed: 2 },
     { kind: 'rock_small', x: 50, y: 360, seed: 3 },
     { kind: 'rock_small', x: 170, y: 240, seed: 4 },
     { kind: 'boulder_large', x: 40, y: 160, seed: 5 },
@@ -140,7 +140,7 @@ export const OLD_WELL: ZoneArt = {
     { x: 200, y: 140, w: 30, h: 80, style: 'mossy' },
   ],
   props: [
-    { kind: 'reeds', x: 84, y: 62, seed: 1 },
+    { kind: 'reeds', x: 72, y: 70, seed: 1 },
     { kind: 'reeds', x: 136, y: 58, seed: 2 },
     { kind: 'mushroom', x: 40, y: 280 },
     { kind: 'rock_small', x: 170, y: 286, seed: 3 },

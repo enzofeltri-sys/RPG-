@@ -77,7 +77,7 @@ export class RoadScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#5f9a46');
     // The road, the caravan's halt, fields and woods are drawn by the game
     // (world/zones/aiglemont.ts).
-    paintZone(this, ROAD);
+    const painted = paintZone(this, ROAD);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, ['← Valombre', '→ Aiglemont']);
 
@@ -90,6 +90,7 @@ export class RoadScene extends Phaser.Scene {
     this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30, 'villager_wanderer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.guard);
     this.physics.add.collider(this.player, this.traveler.sprite);
     this.addAlphaZone();

@@ -1,5 +1,5 @@
-import type { ZoneArt } from '../zonePlan';
-import { Keepout, fill } from './scatterDecor';
+import type { PropSpot, ZoneArt } from '../zonePlan';
+import { Keepout, woods } from './scatterDecor';
 
 // Aiglemont and its surroundings. Each zone keeps its scene's layout
 // (exits, NPCs, encounter spots) and gets its own look.
@@ -53,7 +53,7 @@ export const CITY: ZoneArt<
     { kind: 'street_lamp', x: 112, y: 256 },
     { kind: 'street_lamp', x: 430, y: 240 },
     { kind: 'street_lamp', x: 232, y: 128 },
-    { kind: 'street_lamp', x: 172, y: 402 },
+    { kind: 'street_lamp', x: 196, y: 410 },
     // Banners at the gates: north to the archives, west to the road.
     { kind: 'banner_pole', x: 226, y: 34, seed: 1 },
     { kind: 'banner_pole', x: 290, y: 34, seed: 2 },
@@ -95,6 +95,14 @@ export const CITY: ZoneArt<
     { material: 'hatch', x: 470, y: 401, w: 22, h: 16 },
     { material: 'stairs', x: 262, y: 466, w: 34, h: 28 },
   ],
+  ambience: {
+    pigeons: [[204, 262], [212, 266], [220, 260], [326, 264], [334, 258], [118, 296]],
+  },
+  walkers: [
+    { look: 'townsman', path: [[16, 272], [120, 268], [200, 242], [320, 242], [420, 256], [496, 252]] },
+    { look: 'townswoman', path: [[258, 14], [258, 140], [220, 176], [178, 226]] },
+    { look: 'burgher', path: [[300, 238], [360, 236], [420, 248], [424, 276]] },
+  ],
   // The fountain's basin and the well's ring.
   solids: [
     { x: 262, y: 205, w: 42, h: 18 },
@@ -133,8 +141,45 @@ const ROAD_KEEP: Keepout = {
     [240, 20, 24], // to the old halt
     [30, 180, 20], // exit labels
     [450, 180, 20],
+    [40, 110, 22], // arrivals
+    [40, 200, 22],
+    [440, 110, 22],
+    [240, 60, 22],
   ],
 };
+
+const ROAD_PROPS: PropSpot[] = [
+  // The caravan: two carts, crates, a fire, the horses' trough.
+  { kind: 'wagon_cart', x: 104, y: 80, seed: 1 },
+  { kind: 'wagon_cart', x: 196, y: 92, seed: 2 },
+  { kind: 'crate', x: 128, y: 92 },
+  { kind: 'crate', x: 136, y: 98 },
+  { kind: 'sacks', x: 176, y: 74 },
+  { kind: 'barrel', x: 82, y: 98 },
+  { kind: 'campfire', x: 150, y: 86, seed: 1 },
+  { kind: 'trough', x: 214, y: 70 },
+  { kind: 'tree', x: 300, y: 118, seed: 8 },
+  { kind: 'bush', x: 190, y: 140, seed: 9 },
+  // Milestones.
+  { kind: 'milestone', x: 60, y: 132, seed: 1 },
+  { kind: 'milestone', x: 420, y: 134, seed: 2 },
+  // Hedges and trees along the road, the fields with their fences.
+  { kind: 'bush', x: 300, y: 214, seed: 1 },
+  { kind: 'bush', x: 330, y: 196, seed: 2 },
+  { kind: 'berry_bush', x: 178, y: 214, seed: 3 },
+  { kind: 'apple_tree', x: 380, y: 222, seed: 4 },
+  { kind: 'haystack', x: 400, y: 300, seed: 1 },
+  { kind: 'scarecrow', x: 330, y: 274, seed: 2 },
+  { kind: 'haystack', x: 234, y: 330, seed: 3 },
+  // The wallow: an overturned cart, broken fence.
+  { kind: 'log', x: 104, y: 278, seed: 2 },
+  { kind: 'boulder_large', x: 18, y: 240, seed: 1 },
+  // Rocks, as the scene had them.
+  { kind: 'boulder_large', x: 440, y: 60, seed: 2 },
+  { kind: 'boulder_large', x: 320, y: 360, seed: 3 },
+  { kind: 'rock_small', x: 58, y: 376, seed: 4 },
+  // Woods at the edges.
+];
 
 export const ROAD: ZoneArt = {
   key: 'road',
@@ -156,43 +201,13 @@ export const ROAD: ZoneArt = {
       { kind: 'rect', material: 'crop', x: 140, y: 300, w: 80, h: 44 },
     ],
   },
-  props: [
-    // The caravan: two carts, crates, a fire, the horses' trough.
-    { kind: 'wagon_cart', x: 104, y: 80, seed: 1 },
-    { kind: 'wagon_cart', x: 196, y: 92, seed: 2 },
-    { kind: 'crate', x: 128, y: 92 },
-    { kind: 'crate', x: 136, y: 98 },
-    { kind: 'sacks', x: 176, y: 74 },
-    { kind: 'barrel', x: 82, y: 98 },
-    { kind: 'campfire', x: 150, y: 86, seed: 1 },
-    { kind: 'trough', x: 214, y: 70 },
-    { kind: 'tree', x: 300, y: 118, seed: 8 },
-    { kind: 'bush', x: 190, y: 140, seed: 9 },
-    // Milestones.
-    { kind: 'milestone', x: 60, y: 132, seed: 1 },
-    { kind: 'milestone', x: 420, y: 134, seed: 2 },
-    // Hedges and trees along the road, the fields with their fences.
-    { kind: 'bush', x: 300, y: 214, seed: 1 },
-    { kind: 'bush', x: 330, y: 196, seed: 2 },
-    { kind: 'berry_bush', x: 178, y: 214, seed: 3 },
-    { kind: 'apple_tree', x: 380, y: 222, seed: 4 },
-    { kind: 'haystack', x: 400, y: 300, seed: 1 },
-    { kind: 'scarecrow', x: 330, y: 274, seed: 2 },
-    { kind: 'haystack', x: 234, y: 330, seed: 3 },
-    // The wallow: an overturned cart, broken fence.
-    { kind: 'log', x: 104, y: 278, seed: 2 },
-    { kind: 'boulder_large', x: 40, y: 200, seed: 1 },
-    // Rocks, as the scene had them.
-    { kind: 'boulder_large', x: 440, y: 60, seed: 2 },
-    { kind: 'boulder_large', x: 320, y: 360, seed: 3 },
-    { kind: 'rock_small', x: 60, y: 340, seed: 4 },
-    // Woods at the edges.
-    ...fill({ x: 0, y: 4, w: 70, h: 50 }, 4, 22, [['tree', 2], ['pine', 2], ['bush', 1]], 211, ROAD_KEEP, 6),
-    ...fill({ x: 270, y: 4, w: 210, h: 90 }, 9, 24, [['tree', 3], ['big_tree', 1], ['pine', 2], ['bush', 2]], 212, ROAD_KEEP, 8),
-    ...fill({ x: 0, y: 300, w: 140, h: 100 }, 7, 24, [['tree', 3], ['pine', 3], ['bush', 2]], 213, ROAD_KEEP, 6),
-    ...fill({ x: 380, y: 320, w: 100, h: 80 }, 6, 24, [['pine', 3], ['tree', 2], ['bush', 2]], 214, ROAD_KEEP, 6),
-    ...fill({ x: 250, y: 330, w: 130, h: 70 }, 4, 26, [['tree', 2], ['bush', 2], ['rock_small', 1]], 215, ROAD_KEEP, 6),
-  ],
+  props: [...ROAD_PROPS, ...woods(ROAD_KEEP, ROAD_PROPS, [
+    [{ x: 0, y: 4, w: 70, h: 50 }, 4, 22, [['tree', 2], ['pine', 2], ['bush', 1]], 211, 6],
+    [{ x: 270, y: 4, w: 210, h: 90 }, 9, 24, [['tree', 3], ['big_tree', 1], ['pine', 2], ['bush', 2]], 212, 8],
+    [{ x: 0, y: 300, w: 140, h: 100 }, 7, 24, [['tree', 3], ['pine', 3], ['bush', 2]], 213, 6],
+    [{ x: 380, y: 320, w: 100, h: 80 }, 6, 24, [['pine', 3], ['tree', 2], ['bush', 2]], 214, 6],
+    [{ x: 250, y: 330, w: 130, h: 70 }, 4, 26, [['tree', 2], ['bush', 2], ['rock_small', 1]], 215, 6],
+  ])],
   fences: [
     { x: 300, y: 248, len: 56 },
     { x: 362, y: 310, len: 40 },
@@ -200,6 +215,7 @@ export const ROAD: ZoneArt = {
     { x: 72, y: 290, len: 24 },
   ],
   meadow: { n: 36, seed: 211 },
+  walkers: [{ look: 'porter', path: [[20, 114], [120, 148], [200, 188], [240, 192], [280, 188], [360, 150], [460, 114]] }],
   next: ['city', 'valombre'],
   preview: {
     hero: [240, 230],
@@ -239,6 +255,10 @@ export const FAUBOURG: ZoneArt<'store' | 'shackW' | 'shackE' | 'shackS'> = {
       { kind: 'ellipse', material: 'grass', x: -10, y: 336, w: 60, h: 80, rough: 8 },
     ],
   },
+  walkers: [
+    { look: 'docker', path: [[130, 44], [128, 200], [130, 256]] },
+    { look: 'fishwife', path: [[12, 206], [80, 208], [132, 204], [250, 200]] },
+  ],
   // The north quay's wall going down into the water, the footbridge.
   patches: [{ material: 'quay', x: 130, y: 288, w: 260, h: 6 }],
   bridges: [{ x: 114, y: 280, w: 32, h: 42 }],
@@ -263,16 +283,16 @@ export const FAUBOURG: ZoneArt<'store' | 'shackW' | 'shackE' | 'shackS'> = {
     { kind: 'mooring_post', x: 182, y: 282 },
     { kind: 'mooring_post', x: 224, y: 282 },
     // On the quays: nets, crates, barrels, sacks.
-    { kind: 'net_rack', x: 26, y: 276, seed: 1 },
+    { kind: 'net_rack', x: 58, y: 240, seed: 1 },
     { kind: 'crate', x: 100, y: 272 },
     { kind: 'crate', x: 92, y: 278 },
-    { kind: 'barrel', x: 166, y: 274 },
-    { kind: 'barrel', x: 174, y: 280 },
+    { kind: 'barrel', x: 156, y: 272 },
+    { kind: 'barrel', x: 163, y: 278 },
     { kind: 'sacks', x: 246, y: 274 },
     { kind: 'crate', x: 30, y: 326 },
     { kind: 'barrel', x: 236, y: 326 },
     // Along the lanes.
-    { kind: 'lamppost', x: 112, y: 214 },
+    { kind: 'lamppost', x: 104, y: 222 },
     { kind: 'lamppost', x: 150, y: 116 },
     { kind: 'lamppost', x: 112, y: 262 },
     { kind: 'barrel', x: 92, y: 160 },
@@ -314,8 +334,33 @@ const RIVER_KEEP: Keepout = {
     [350, 100, 22], // chest
     [30, 180, 20],
     [370, 180, 20],
+    [40, 200, 22], // arrivals
+    [360, 200, 22],
   ],
 };
+
+const RIVER_ROAD_PROPS: PropSpot[] = [
+  // Reeds and willows along the north bank.
+  { kind: 'reeds', x: 30, y: 274, seed: 1 },
+  { kind: 'reeds', x: 150, y: 276, seed: 2 },
+  { kind: 'reeds', x: 186, y: 278, seed: 3 },
+  { kind: 'reeds', x: 262, y: 270, seed: 4 },
+  { kind: 'reeds', x: 340, y: 272, seed: 5 },
+  { kind: 'reeds', x: 60, y: 326, seed: 6 },
+  { kind: 'reeds', x: 240, y: 330, seed: 7 },
+  { kind: 'big_tree', x: 220, y: 258, seed: 4 },
+  { kind: 'tree', x: 46, y: 256, seed: 5 },
+  { kind: 'tree', x: 370, y: 254, seed: 6 },
+  // The jetty: a boat tied up, a stool of a crate, a basket.
+  { kind: 'rowboat', x: 132, y: 286, seed: 3 },
+  { kind: 'mooring_post', x: 118, y: 268 },
+  { kind: 'crate', x: 84, y: 262 },
+  // By the road: rocks, a bench, the copse with the chest.
+  { kind: 'boulder_large', x: 290, y: 150, seed: 5 },
+  { kind: 'rock_small', x: 130, y: 230, seed: 6 },
+  { kind: 'log', x: 260, y: 226, seed: 4 },
+  // The far bank: woods.
+];
 
 export const RIVER_ROAD: ZoneArt = {
   key: 'river-road',
@@ -336,31 +381,12 @@ export const RIVER_ROAD: ZoneArt = {
   bridges: [{ x: 92, y: 262, w: 22, h: 26 }],
   // The river.
   solids: [{ x: 200, y: 298, w: 400, h: 36 }],
-  props: [
-    // Reeds and willows along the north bank.
-    { kind: 'reeds', x: 30, y: 274, seed: 1 },
-    { kind: 'reeds', x: 150, y: 276, seed: 2 },
-    { kind: 'reeds', x: 186, y: 278, seed: 3 },
-    { kind: 'reeds', x: 262, y: 270, seed: 4 },
-    { kind: 'reeds', x: 340, y: 272, seed: 5 },
-    { kind: 'reeds', x: 60, y: 326, seed: 6 },
-    { kind: 'reeds', x: 240, y: 330, seed: 7 },
-    { kind: 'big_tree', x: 220, y: 258, seed: 4 },
-    { kind: 'tree', x: 46, y: 256, seed: 5 },
-    { kind: 'tree', x: 370, y: 254, seed: 6 },
-    // The jetty: a boat tied up, a stool of a crate, a basket.
-    { kind: 'rowboat', x: 132, y: 286, seed: 3 },
-    { kind: 'mooring_post', x: 118, y: 268 },
-    { kind: 'crate', x: 84, y: 262 },
-    // By the road: rocks, a bench, the copse with the chest.
-    { kind: 'boulder_large', x: 290, y: 150, seed: 5 },
-    { kind: 'rock_small', x: 130, y: 230, seed: 6 },
-    { kind: 'log', x: 260, y: 226, seed: 4 },
-    ...fill({ x: 0, y: 4, w: 400, h: 150 }, 20, 26, [['tree', 4], ['big_tree', 1], ['pine', 2], ['bush', 3], ['berry_bush', 1]], 231, RIVER_KEEP, 8),
-    // The far bank: woods.
-    ...fill({ x: 0, y: 330, w: 400, h: 70 }, 14, 22, [['tree', 3], ['pine', 3], ['bush', 2]], 232, RIVER_KEEP, 0),
-  ],
+  props: [...RIVER_ROAD_PROPS, ...woods(RIVER_KEEP, RIVER_ROAD_PROPS, [
+    [{ x: 0, y: 4, w: 400, h: 150 }, 20, 26, [['tree', 4], ['big_tree', 1], ['pine', 2], ['bush', 3], ['berry_bush', 1]], 231, 8],
+    [{ x: 0, y: 330, w: 400, h: 70 }, 14, 22, [['tree', 3], ['pine', 3], ['bush', 2]], 232, 0],
+  ])],
   meadow: { n: 26, seed: 231 },
+  walkers: [{ look: 'townsman', path: [[20, 198], [120, 192], [200, 186], [300, 192], [380, 198]] }],
   next: ['faubourg', 'hunter-outpost'],
   preview: {
     hero: [200, 220],
@@ -381,8 +407,32 @@ const OUTPOST_KEEP: Keepout = {
     [160, 190, 26], // hunter
     [130, 172, 22], // fire
     [150, 100, 34], // lodge
+    [80, 120, 14], // hides drying
+    [196, 108, 14],
+    [110, 262, 20], // arrivals
+    [190, 40, 20],
+    [40, 150, 20],
+    [186, 150, 20],
   ],
 };
+
+const HUNTER_OUTPOST_PROPS: PropSpot[] = [
+  { kind: 'campfire', x: 130, y: 178, seed: 2 },
+  { kind: 'log', x: 70, y: 220, seed: 5 },
+  { kind: 'log', x: 170, y: 230, seed: 6 },
+  { kind: 'pelt_rack', x: 196, y: 108, seed: 1 },
+  { kind: 'pelt_rack', x: 80, y: 120, seed: 2 },
+  { kind: 'woodpile', x: 186, y: 128 },
+  { kind: 'stump', x: 84, y: 194, seed: 3 },
+  { kind: 'barrel', x: 126, y: 124 },
+  // The marsh edge, the sickened south.
+  { kind: 'reeds', x: 176, y: 28, seed: 1 },
+  { kind: 'reeds', x: 204, y: 62, seed: 2 },
+  { kind: 'reeds', x: 150, y: 14, seed: 3 },
+  { kind: 'dead_tree', x: 196, y: 276, seed: 1 },
+  { kind: 'thorns', x: 46, y: 282, seed: 1 },
+  { kind: 'thorns', x: 160, y: 292, seed: 2 },
+];
 
 export const HUNTER_OUTPOST: ZoneArt<'lodge'> = {
   key: 'hunter-outpost',
@@ -403,26 +453,11 @@ export const HUNTER_OUTPOST: ZoneArt<'lodge'> = {
   buildings: {
     lodge: { kind: 'lodge', x: 150, y: 100, w: 44, h: 34 },
   },
-  props: [
-    { kind: 'campfire', x: 130, y: 178, seed: 2 },
-    { kind: 'log', x: 70, y: 220, seed: 5 },
-    { kind: 'log', x: 170, y: 230, seed: 6 },
-    { kind: 'pelt_rack', x: 196, y: 108, seed: 1 },
-    { kind: 'pelt_rack', x: 80, y: 120, seed: 2 },
-    { kind: 'woodpile', x: 186, y: 128 },
-    { kind: 'stump', x: 92, y: 184, seed: 3 },
-    { kind: 'barrel', x: 126, y: 124 },
-    // The marsh edge, the sickened south.
-    { kind: 'reeds', x: 176, y: 28, seed: 1 },
-    { kind: 'reeds', x: 204, y: 62, seed: 2 },
-    { kind: 'reeds', x: 150, y: 14, seed: 3 },
-    { kind: 'dead_tree', x: 196, y: 276, seed: 1 },
-    { kind: 'thorns', x: 46, y: 282, seed: 1 },
-    { kind: 'thorns', x: 160, y: 292, seed: 2 },
-    ...fill({ x: 0, y: 4, w: 90, h: 120 }, 7, 22, [['pine', 3], ['tree', 2], ['bush', 2], ['fern', 2]], 241, OUTPOST_KEEP, 4),
-    ...fill({ x: 0, y: 176, w: 80, h: 80 }, 4, 22, [['pine', 2], ['bush', 2], ['fern', 1]], 242, OUTPOST_KEEP, 4),
-    ...fill({ x: 140, y: 196, w: 80, h: 60 }, 3, 22, [['tree', 1], ['bush', 2], ['fern', 1]], 243, OUTPOST_KEEP, 4),
-  ],
+  props: [...HUNTER_OUTPOST_PROPS, ...woods(OUTPOST_KEEP, HUNTER_OUTPOST_PROPS, [
+    [{ x: 0, y: 4, w: 90, h: 120 }, 7, 22, [['pine', 3], ['tree', 2], ['bush', 2], ['fern', 2]], 241, 4],
+    [{ x: 0, y: 176, w: 80, h: 80 }, 4, 22, [['pine', 2], ['bush', 2], ['fern', 1]], 242, 4],
+    [{ x: 140, y: 196, w: 80, h: 60 }, 3, 22, [['tree', 1], ['bush', 2], ['fern', 1]], 243, 4],
+  ])],
   meadow: { n: 10, seed: 241 },
   next: ['river-road'],
   preview: {

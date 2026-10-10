@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BuildingKind } from '../art/buildings';
+import { AnimalFrame, deer, sheep } from '../art/critters';
 import { NPC_LOOKS } from '../art/npcLooks';
 import { Pixmap, hash2 } from '../art/pixmap';
 import { PatchKind, PropKind, renderPatch } from '../art/props';
@@ -67,6 +68,24 @@ export function npcSprite(scene: Phaser.Scene, id: string, target: Phaser.GameOb
   return sprite;
 }
 
+// Animals that wander (entities/wanderer.ts): a frame per stride and a
+// head-down pose, flipped to face the way they go (see syncSpriteOverlay).
+const ANIMALS: Record<string, (f: AnimalFrame) => Pixmap> = { sheep, deer };
+
+export function animalTexture(scene: Phaser.Scene, name: string, frame: AnimalFrame): string {
+  return pixmapTexture(scene, `animal-${name}-${frame}`, ANIMALS[name](frame));
+}
+
+function animalSprite(scene: Phaser.Scene, name: string, target: Phaser.GameObjects.Shape): Phaser.GameObjects.Image {
+  (['a', 'b', 'graze'] as const).forEach((f) => animalTexture(scene, name, f));
+  const bottom = target.y + target.height / 2;
+  const image = scene.add.image(target.x, bottom, `animal-${name}-a`).setOrigin(0.5, 1).setDepth(target.y);
+  const shadow = scene.add.ellipse(target.x, bottom, image.width - 2, 4, 0x221c29, 0.3).setDepth(target.y - 1);
+  target.setData('shadow', shadow);
+  target.setData('animal', name);
+  return image;
+}
+
 // Old decor sprite keys mapped to the art drawn by the game.
 const DECOR_PROPS: Record<string, PropKind> = {
   tree: 'tree',
@@ -113,6 +132,7 @@ const DECOR_PATCHES: Record<string, PatchKind> = {
 export function drawnOverlay(scene: Phaser.Scene, target: Phaser.GameObjects.Shape, textureKey: string): Phaser.GameObjects.GameObject | undefined {
   const [prefix, ...rest] = textureKey.split('-');
   const name = rest.join('-');
+  if (prefix === 'npc' && ANIMALS[name]) return animalSprite(scene, name, target);
   if (prefix === 'npc') return npcSprite(scene, name, target);
   if (prefix !== 'decor') return undefined;
   const seed = 1 + Math.floor(hash2(Math.round(target.x), Math.round(target.y), 17) * 997);

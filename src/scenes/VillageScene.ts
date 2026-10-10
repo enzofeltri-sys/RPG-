@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { BuildingSpot, paintZone } from '../world/zoneArt';
+import { BuildingSpot, PaintedZone, paintZone } from '../world/zoneArt';
 import { VALOMBRE } from '../world/zones/valombre';
 import { Wanderer } from '../entities/wanderer';
 import { Character, placedStatPoints, resetStatPoints } from '../game/character';
@@ -78,8 +78,7 @@ export class VillageScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.buildings = [];
-    this.drawGround();
-
+    const painted = this.drawGround();
 
     // Buildings and decor are drawn by the game from world/zones/valombre.ts;
     // the scene keeps the buildings' collision boxes.
@@ -107,7 +106,8 @@ export class VillageScene extends Phaser.Scene {
     this.weaponMaster = this.add.rectangle(100, 340, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.weaponMaster, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
 
-    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 80);
+    this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 50);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.merchantNpc);
     this.villagers.forEach((v) => this.physics.add.collider(this.player, v.sprite));
@@ -508,8 +508,8 @@ export class VillageScene extends Phaser.Scene {
   }
 
   // Ground, buildings and decor drawn by the game (world/zoneArt.ts).
-  private drawGround(): void {
-    paintZone(this, VALOMBRE);
+  private drawGround(): PaintedZone {
+    return paintZone(this, VALOMBRE);
   }
 
   private showMessage(message: string): void {

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { BuildingSpot, paintZone } from '../world/zoneArt';
+import { BuildingSpot, PaintedZone, paintZone } from '../world/zoneArt';
 import { BASSE_COMBE } from '../world/zones/basseCombe';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
@@ -82,7 +82,7 @@ export class HamletScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.buildings = [];
     this.dialog = undefined;
-    this.drawGround();
+    const painted = this.drawGround();
 
 
     // Kept well clear of the x=120 centerline running from spawn straight up
@@ -118,6 +118,7 @@ export class HamletScene extends Phaser.Scene {
     void attachSpriteOverlay(this, this.gontrand, 'npc-gontrand_scholar', `${import.meta.env.BASE_URL}sprites/npc/gontrand_scholar.png`, 24);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.buildings);
     this.physics.add.collider(this.player, this.mentor);
     this.physics.add.collider(this.player, this.villager.sprite);
@@ -280,8 +281,8 @@ export class HamletScene extends Phaser.Scene {
   }
 
   // Ground, buildings and decor drawn by the game (world/zones/basseCombe.ts).
-  private drawGround(): void {
-    paintZone(this, BASSE_COMBE);
+  private drawGround(): PaintedZone {
+    return paintZone(this, BASSE_COMBE);
   }
 
   private talkToVillager(): void {

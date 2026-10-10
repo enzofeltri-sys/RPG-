@@ -9,6 +9,7 @@ import { Blocker, GroundJob, GroundOp } from '../art/groundJob';
 import { RGB } from '../art/pixmap';
 import { DungeonPropKind, PatchKind, PropArt, PropKind, renderDungeonProp, renderProp } from '../art/props';
 import { PROP_SETTLE, TuftSpot, fringe, softenBase, tuftsAround, vary } from '../art/settle';
+import type { AmbienceSpec, Walker } from './ambience';
 
 const buildingArts = new Map<string, BuildingArt>();
 
@@ -81,6 +82,10 @@ export interface ZoneArt<B extends string = string> {
   // A closed room smaller than the screen: no ground around it, only the
   // dark.
   enclosed?: boolean;
+  // The zone's small life (world/ambience.ts): what it gets beyond what its
+  // ground, decor and light already bring, and people walking about.
+  ambience?: AmbienceSpec;
+  walkers?: Walker[];
   // Zones to draw ahead of time while this one is shown (next door).
   next?: string[];
   // Mockups only (scripts/art/zoneart.ts): who stands where, as in the scene.

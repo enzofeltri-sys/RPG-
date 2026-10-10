@@ -23,7 +23,7 @@ export const WATCHERS_LODGE: ZoneArt = {
   },
   walls: enclosure(420, 'timber', FOUR_24, { backFace: 18 }),
   dprops: [
-    d('round_table', 110, 80),
+    d('round_table', 110, 46),
     d('candles', 56, 50),
     d('candles', 164, 50),
     d('bookshelf', 40, 34),
@@ -54,9 +54,9 @@ export const RITE_ARCHIVE: ZoneArt = {
   },
   walls: enclosure(420, 'carved', FOUR_24, { backFace: 16 }).map((w, i) => (i >= 3 ? { ...w, style: 'shelves' as const } : w)),
   dprops: [
-    d('lectern', 110, 60),
-    d('candles', 84, 72),
-    d('candles', 136, 72),
+    d('lectern', 110, 38),
+    d('candles', 66, 60),
+    d('candles', 154, 60),
     d('bookshelf', 40, 34),
     d('bookshelf', 64, 34),
     d('bookshelf', 156, 34),
@@ -85,7 +85,7 @@ export const RITE_ANNEX: ZoneArt = {
   walls: enclosure(420, 'carved', FOUR_24, { backFace: 16 }).map((w, i) => (i >= 3 ? { ...w, style: 'shelves' as const } : w)),
   dprops: [
     d('runes', 110, 74),
-    d('lectern', 110, 60),
+    d('lectern', 110, 38),
     d('bookshelf', 50, 34),
     d('bookshelf', 170, 34),
     d('scrolls', 60, 120),
@@ -115,7 +115,7 @@ export const SANCTUARY_DEPTHS: ZoneArt = {
     ],
   },
   walls: enclosure(420, 'carved', FOUR_24, { backFace: 16 }),
-  props: [{ kind: 'altar', x: 110, y: 50 }],
+  props: [{ kind: 'altar', x: 110, y: 36 }],
   dprops: [
     d('runes', 110, 74),
     d('brazier', 50, 80),

@@ -1,5 +1,5 @@
 import type { ZoneArt } from '../zonePlan';
-import { Keepout, fill } from './scatterDecor';
+import { Keepout, woods } from './scatterDecor';
 
 // The forest: dense woods on a shaded floor of moss and leaf litter, two
 // trails crossing at the signpost (west: the field, east: the cave, north:
@@ -16,9 +16,13 @@ const KEEP: Keepout = {
     [130, 180, 20], // guard
     [350, 350, 26], // wolf marker
     [300, 250, 26], // goblin marker
-    [150, 220, 30], // deer's walk
+    [150, 220, 44], // deer's walk
     [200, 200, 36], // signpost
-    [40, 200, 24], // arrival from the field
+    [40, 200, 24], // arrivals: from the field…
+    [40, 150, 24],
+    [360, 150, 24], // …the cave
+    [200, 30, 22], // …the goblin camp
+    [200, 340, 22], // …the old well
   ],
 };
 
@@ -35,12 +39,12 @@ export const FOREST: ZoneArt = {
       { kind: 'ellipse', material: 'dirt', x: 176, y: 180, w: 48, h: 40 },
     ],
   },
-  props: [
-    // Big trees first (spaced), then the understorey between them.
-    ...fill({ x: 0, y: 6, w: 400, h: 394 }, 36, 30, [['big_tree', 3], ['tree', 4], ['pine', 3]], 61, KEEP, 6),
-    ...fill({ x: 0, y: 6, w: 400, h: 394 }, 44, 18, [['bush', 4], ['berry_bush', 1], ['fern', 6]], 62, KEEP, 2),
-    ...fill({ x: 0, y: 6, w: 400, h: 394 }, 16, 30, [['mushroom', 3], ['rock_small', 3], ['stump', 2], ['log', 2], ['boulder_large', 1]], 63, KEEP, 4),
-  ],
+  // Big trees first (spaced), then the understorey between them.
+  props: woods(KEEP, [], [
+    [{ x: 0, y: 6, w: 400, h: 394 }, 36, 30, [['big_tree', 3], ['tree', 4], ['pine', 3]], 61, 6],
+    [{ x: 0, y: 6, w: 400, h: 394 }, 44, 18, [['bush', 4], ['berry_bush', 1], ['fern', 6]], 62, 2],
+    [{ x: 0, y: 6, w: 400, h: 394 }, 16, 30, [['mushroom', 3], ['rock_small', 3], ['stump', 2], ['log', 2], ['boulder_large', 1]], 63, 4],
+  ]),
   meadow: { n: 10, seed: 61 },
   next: ['field', 'goblin-camp'],
   preview: {

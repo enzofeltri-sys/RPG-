@@ -89,6 +89,21 @@ export function syncSpriteOverlay(target: Phaser.GameObjects.Shape, moving = fal
     shadow?.setPosition(target.x, target.y + target.height / 2).setDepth(target.y - 1);
     return;
   }
+  const animal = target.getData('animal') as string | undefined;
+  if (animal) {
+    // Drawn animal (world/drawnArt.ts): strides while it goes, grazes
+    // when it stops; the art faces left.
+    const body = target.body as Phaser.Physics.Arcade.Body | null;
+    const vx = body?.velocity.x ?? 0;
+    if (vx) image.setFlipX(vx > 0);
+    const phase = moving ? ((target.getData('walkPhase') as number | undefined) ?? 0) + 1 : 0;
+    target.setData('walkPhase', phase);
+    const frame = moving ? (Math.floor(phase / 9) % 2 ? 'b' : 'a') : 'graze';
+    const bottom = target.y + target.height / 2;
+    image.setTexture(`animal-${animal}-${frame}`).setPosition(target.x, bottom).setDepth(target.y);
+    (target.getData('shadow') as Phaser.GameObjects.Ellipse | undefined)?.setPosition(target.x, bottom).setDepth(target.y - 1);
+    return;
+  }
   if (!moving) {
     target.setData('walkPhase', 0);
     image.setPosition(target.x, target.y).setDepth(target.y);

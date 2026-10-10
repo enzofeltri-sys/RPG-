@@ -52,6 +52,7 @@ export const FARM: ZoneArt<'farmhouse' | 'barn'> = {
   ],
   beds: [{ x: 32, y: 92, w: 14, h: 6 }],
   meadow: { n: 14, seed: 31 },
+  ambience: { chickens: [[110, 196], [126, 184], [150, 236], [96, 214]] },
   next: ['basse-combe'],
   preview: {
     hero: [110, 280],

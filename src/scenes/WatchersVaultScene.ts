@@ -246,7 +246,7 @@ export class WatchersVaultScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Archives', { x: 44, y: 44 });
+      this.scene.start('Archives', { x: 40, y: 58 });
     });
   }
 }

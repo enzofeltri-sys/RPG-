@@ -75,7 +75,7 @@ export class FarmScene extends Phaser.Scene {
     // Farmhouse + crop rows, purely decorative.
     // Ground, buildings and decor drawn by the game (world/zones/farm.ts);
     // the farmhouse and the barn get collision boxes.
-    paintZone(this, FARM);
+    const painted = paintZone(this, FARM);
     const buildings = Object.values(FARM.buildings!).map((spot) => {
       const rect = this.add.rectangle(spot.x, spot.y, spot.w, spot.h).setVisible(false);
       this.physics.add.existing(rect, true);
@@ -87,6 +87,7 @@ export class FarmScene extends Phaser.Scene {
     this.physics.add.existing(this.farmer, true);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.farmer);
     this.physics.add.collider(this.player, buildings);
     this.addRatKingZone();

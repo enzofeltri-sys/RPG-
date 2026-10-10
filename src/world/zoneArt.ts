@@ -6,6 +6,7 @@ import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
 import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, lightMap, plan, step } from './zonePlan';
+import { Ambience } from './ambience';
 
 export type { BuildingSpot, PropSpot, ZoneArt, ZoneLight } from './zonePlan';
 
@@ -179,6 +180,7 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
     scene.add.image(Math.round(d.x - a.anchorX), Math.round(d.y - a.anchorY), key).setOrigin(0, 0).setDepth(dpropDepth(d.kind, d.y));
   });
   const lighting = art.dark ? addLighting(scene, art) : undefined;
+  const life = new Ambience(scene, art);
   // Beyond a small dark zone's edges, the dark itself.
   if (art.dark) scene.cameras.main.setBackgroundColor(0x0e0c12);
   // Phaser reuses a scene's instance: a ground arriving after the player
@@ -207,6 +209,7 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   return {
     follow: (target) => {
       lighting?.follow(target);
+      life.follow(target);
       const body = target as unknown as Phaser.GameObjects.GameObject;
       if (solids.length && body.body) scene.physics.add.collider(body, solids);
     },

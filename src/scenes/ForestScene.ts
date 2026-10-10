@@ -80,6 +80,7 @@ export class ForestScene extends Phaser.Scene {
   private distanceWalked = 0;
   private encounterThreshold = 0;
   private deer!: Wanderer;
+  private startleDeer = (): void => {};
   private spawnX?: number;
   private spawnY?: number;
   private interactKey!: Phaser.Input.Keyboard.Key;
@@ -104,7 +105,7 @@ export class ForestScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#24401f');
 
     // Ground, woods and trails drawn by the game (world/zones/forest.ts).
-    paintZone(this, FOREST);
+    const painted = paintZone(this, FOREST);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, [
       '← Champ',
@@ -114,9 +115,10 @@ export class ForestScene extends Phaser.Scene {
     ]);
 
     // A shy bit of wildlife — clear of both zones and the signpost.
-    this.deer = new Wanderer(this, 150, 220, 0x9a7a52, 35);
+    this.deer = new Wanderer(this, 150, 220, 0x9a7a52, 35, 'deer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.deer.sprite);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -182,7 +184,11 @@ export class ForestScene extends Phaser.Scene {
           return deerSprite.y;
         },
         radius: 18,
-        onTap: () => this.showMessage('Un cerf détale dans les fourrés.'),
+        onTap: () => {
+          if (this.deer.gone) return;
+          this.showMessage('Un chevreuil détale dans les fourrés.');
+          this.startleDeer();
+        },
       },
       ...FOREST_NPCS.map((npc) => ({
         x: npc.x,
@@ -192,6 +198,10 @@ export class ForestScene extends Phaser.Scene {
       })),
     ];
     this.tapControl.setInteractables(interactables);
+    this.startleDeer = () => {
+      this.deer.flee(this.player.x);
+      this.tapControl.setInteractables(interactables.slice(1));
+    };
 
     // A zone overlap can fire and call scene.start() while this load is still
     // pending (Arcade Physics keeps ticking regardless of async create()'s
@@ -221,6 +231,8 @@ export class ForestScene extends Phaser.Scene {
     if (arrived) this.tapControl.clearMoveTarget();
     this.tapControl.update(delta);
     this.deer.update();
+    // It doesn't wait to be walked up to.
+    if (!this.deer.gone && Phaser.Math.Distance.Between(this.player.x, this.player.y, this.deer.sprite.x, this.deer.sprite.y) < 30) this.startleDeer();
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.tapControl.interactViaKey();

@@ -74,13 +74,14 @@ export class BanditCampScene extends Phaser.Scene {
 
 
     // Ground, huts or tents, fire and decor drawn by the game (world/zones/camps.ts).
-    paintZone(this, BANDIT_CAMP);
+    const painted = paintZone(this, BANDIT_CAMP);
 
     this.guard = this.add.rectangle(190, 185, 14, 20, 0x7a6a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
     this.physics.add.existing(this.guard, true);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.guard);
     ENCOUNTERS.filter((e) => !this.clearedEncounterIds.has(e.id)).forEach((encounter) =>
       this.addEncounterZone(encounter),

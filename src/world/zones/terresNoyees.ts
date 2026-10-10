@@ -1,5 +1,6 @@
-import type { ZoneArt } from '../zonePlan';
-import { Keepout, fill } from './scatterDecor';
+import type { GroundSpec } from '../../art/ground';
+import type { PropSpot, ZoneArt } from '../zonePlan';
+import { Keepout, woods } from './scatterDecor';
 import { FOUR_24, THREE_24, THREE_30, d, enclosure } from './dungeonKit';
 
 // Les Terres Noyées: the drowned delta. Each zone keeps its scene's layout
@@ -10,7 +11,28 @@ import { FOUR_24, THREE_24, THREE_30, d, enclosure } from './dungeonKit';
 // out, cypresses hung with moss; boardwalks to the ruins' entrance (south)
 // and to a forgotten chest (north).
 const CAUSEWAY: [number, number][] = [[0, 200], [70, 202], [140, 190], [200, 168], [270, 158], [340, 152], [400, 150]];
+const SUNKEN_GROUND: GroundSpec = {
+  w: 400,
+  h: 400,
+  base: 'mud',
+  seed: 701,
+  shapes: [
+    { kind: 'ellipse', material: 'bog', x: -30, y: 10, w: 190, h: 150, rough: 14 },
+    { kind: 'ellipse', material: 'bog', x: 150, y: 210, w: 110, h: 100, rough: 12 },
+    { kind: 'ellipse', material: 'bog', x: -20, y: 260, w: 170, h: 160, rough: 14 },
+    { kind: 'ellipse', material: 'bog', x: 300, y: 190, w: 130, h: 120, rough: 12 },
+    { kind: 'ellipse', material: 'bog', x: 190, y: 20, w: 120, h: 90, rough: 10 },
+    { kind: 'ellipse', material: 'marsh', x: 220, y: 330, w: 120, h: 80, rough: 10 },
+    // The causeway, the boardwalks off it.
+    { kind: 'path', material: 'flagstone', width: 22, points: CAUSEWAY },
+    { kind: 'path', material: 'planks', width: 10, points: [[262, 160], [270, 240], [280, 336]] },
+    { kind: 'path', material: 'planks', width: 9, points: [[330, 154], [346, 120], [350, 108]] },
+    { kind: 'ellipse', material: 'flagstone', x: 256, y: 334, w: 50, h: 34 },
+  ],
+};
+
 const SUNKEN_KEEP: Keepout = {
+  ground: SUNKEN_GROUND,
   roads: [
     { points: CAUSEWAY, clear: 20 },
     { points: [[262, 160], [270, 240], [280, 330]], clear: 12 },
@@ -23,44 +45,32 @@ const SUNKEN_KEEP: Keepout = {
     [280, 355, 30], // ruins entrance
     [30, 180, 20],
     [370, 130, 20],
+    [300, 320, 22], // arrivals
+    [360, 150, 22],
+    [40, 200, 22],
   ],
 };
 
+const SUNKEN_ROAD_PROPS: PropSpot[] = [
+  // The drowned ruins (where the scene had them).
+  { kind: 'sunken_ruin', x: 70, y: 96, seed: 1 },
+  { kind: 'sunken_ruin', x: 140, y: 66, seed: 2 },
+  { kind: 'sunken_ruin', x: 316, y: 346, seed: 3 },
+  { kind: 'sunken_ruin', x: 236, y: 376, seed: 4 },
+  { kind: 'sunken_ruin', x: 190, y: 262, seed: 5 },
+  { kind: 'sunken_ruin', x: 230, y: 92, seed: 6 },
+  { kind: 'ruin_pillar', x: 256, y: 330, seed: 1 },
+  { kind: 'ruin_pillar', x: 324, y: 318, seed: 2 },
+  { kind: 'mooring_post', x: 338, y: 122 },
+];
+
 export const SUNKEN_ROAD: ZoneArt = {
   key: 'sunken-road',
-  ground: {
-    w: 400,
-    h: 400,
-    base: 'mud',
-    seed: 701,
-    shapes: [
-      { kind: 'ellipse', material: 'bog', x: -30, y: 10, w: 190, h: 150, rough: 14 },
-      { kind: 'ellipse', material: 'bog', x: 150, y: 210, w: 110, h: 100, rough: 12 },
-      { kind: 'ellipse', material: 'bog', x: -20, y: 260, w: 170, h: 160, rough: 14 },
-      { kind: 'ellipse', material: 'bog', x: 300, y: 190, w: 130, h: 120, rough: 12 },
-      { kind: 'ellipse', material: 'bog', x: 190, y: 20, w: 120, h: 90, rough: 10 },
-      { kind: 'ellipse', material: 'marsh', x: 220, y: 330, w: 120, h: 80, rough: 10 },
-      // The causeway, the boardwalks off it.
-      { kind: 'path', material: 'flagstone', width: 22, points: CAUSEWAY },
-      { kind: 'path', material: 'planks', width: 10, points: [[262, 160], [270, 240], [280, 336]] },
-      { kind: 'path', material: 'planks', width: 9, points: [[330, 154], [346, 120], [350, 108]] },
-      { kind: 'ellipse', material: 'flagstone', x: 256, y: 334, w: 50, h: 34 },
-    ],
-  },
-  props: [
-    // The drowned ruins (where the scene had them).
-    { kind: 'sunken_ruin', x: 80, y: 96, seed: 1 },
-    { kind: 'sunken_ruin', x: 140, y: 66, seed: 2 },
-    { kind: 'sunken_ruin', x: 316, y: 346, seed: 3 },
-    { kind: 'sunken_ruin', x: 236, y: 376, seed: 4 },
-    { kind: 'sunken_ruin', x: 190, y: 262, seed: 5 },
-    { kind: 'sunken_ruin', x: 230, y: 92, seed: 6 },
-    { kind: 'ruin_pillar', x: 256, y: 330, seed: 1 },
-    { kind: 'ruin_pillar', x: 306, y: 326, seed: 2 },
-    { kind: 'mooring_post', x: 344, y: 112 },
-    ...fill({ x: 0, y: 4, w: 400, h: 396 }, 16, 30, [['swamp_tree', 4], ['dead_tree', 2], ['reeds', 4]], 701, SUNKEN_KEEP, 6),
-    ...fill({ x: 0, y: 4, w: 400, h: 396 }, 22, 18, [['reeds', 5], ['fern', 1], ['rock_small', 1]], 702, SUNKEN_KEEP, 2),
-  ],
+  ground: SUNKEN_GROUND,
+  props: [...SUNKEN_ROAD_PROPS, ...woods(SUNKEN_KEEP, SUNKEN_ROAD_PROPS, [
+    [{ x: 0, y: 4, w: 400, h: 396 }, 16, 30, [['swamp_tree', 4], ['dead_tree', 2], ['reeds', 4]], 701, 6],
+    [{ x: 0, y: 4, w: 400, h: 396 }, 22, 18, [['reeds', 5], ['fern', 1], ['rock_small', 1]], 702, 2],
+  ])],
   next: ['hunter-outpost', 'vasenoire'],
   preview: { hero: [200, 220], npcs: [['villager_wanderer', 90, 200]] },
 };
@@ -104,7 +114,7 @@ export const VASENOIRE: ZoneArt<'hutA' | 'hutB' | 'hutC' | 'hutD'> = {
     { kind: 'smithy', x: 190, y: 243 },
     { kind: 'barrel', x: 210, y: 210 },
     { kind: 'rowboat', x: 92, y: 126, seed: 4 },
-    { kind: 'rowboat', x: 210, y: 176, seed: 5 },
+    { kind: 'rowboat', x: 226, y: 190, seed: 5 },
     { kind: 'mooring_post', x: 96, y: 52 },
     { kind: 'mooring_post', x: 182, y: 166 },
     { kind: 'net_rack', x: 90, y: 140, seed: 3 },
@@ -121,6 +131,10 @@ export const VASENOIRE: ZoneArt<'hutA' | 'hutB' | 'hutC' | 'hutD'> = {
     { kind: 'reeds', x: 230, y: 250, seed: 3 },
     { kind: 'reeds', x: 10, y: 250, seed: 4 },
     { kind: 'reeds', x: 150, y: 290, seed: 5 },
+  ],
+  walkers: [
+    { look: 'marsh_local', path: [[120, 310], [120, 160], [118, 30]] },
+    { look: 'fishwife', path: [[14, 154], [120, 154], [230, 154]] },
   ],
   next: ['sunken-road'],
   preview: {
@@ -205,7 +219,7 @@ export const SUNKEN_RUINS: ZoneArt = {
     { kind: 'reeds', x: 186, y: 350, seed: 2 },
     { kind: 'fern', x: 186, y: 410, seed: 3 },
   ],
-  dprops: [d('rubble', 60, 200), d('rubble', 170, 160), d('pillar', 160, 400), d('cobweb', 14, 14), d('bones', 50, 400)],
+  dprops: [d('rubble', 60, 216), d('rubble', 170, 160), d('pillar', 160, 400), d('cobweb', 14, 14), d('bones', 50, 400)],
   patches: [{ material: 'stairs', x: 30, y: 22, w: 24, h: 18 }],
   dark: {
     ambient: 0.52,
@@ -393,7 +407,7 @@ export const SILENT_WATCH: ZoneArt = {
     { kind: 'tall_grass', x: 80, y: 150, seed: 7 },
     { kind: 'dead_tree', x: 170, y: 160, seed: 4 },
   ],
-  dprops: [d('rubble', 60, 200), d('rubble', 160, 250), d('rubble', 80, 400), d('statue', 110, 40)],
+  dprops: [d('rubble', 60, 216), d('rubble', 160, 250), d('rubble', 80, 400), d('statue', 110, 40)],
   patches: [{ material: 'stairs', x: 22, y: 22, w: 24, h: 18 }],
   dark: { ambient: 0.72, shade: [0.86, 0.9, 0.98] },
   next: ['vasenoire'],

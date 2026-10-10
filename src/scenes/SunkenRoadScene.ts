@@ -80,7 +80,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2a3a3a');
     // The causeway, the bog and the drowned ruins are drawn by the game
     // (world/zones/terresNoyees.ts).
-    paintZone(this, SUNKEN_ROAD);
+    const painted = paintZone(this, SUNKEN_ROAD);
 
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Relais des chasseurs', '→ Vasenoire']);
 
@@ -89,6 +89,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25, 'villager_wanderer');
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
+    painted.follow(this.player);
     this.physics.add.collider(this.player, this.refugee.sprite);
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);

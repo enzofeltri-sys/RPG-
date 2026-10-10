@@ -90,7 +90,7 @@ export class FieldScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
     // Ground, stream, bridge and decor drawn by the game (world/zones/field.ts).
-    paintZone(this, FIELD);
+    const painted = paintZone(this, FIELD);
 
     // A bit of grazing livestock — pure ambiance, south bank only (river
     // colliders aren't set up yet at this point, so keep clear of the
@@ -101,6 +101,7 @@ export class FieldScene extends Phaser.Scene {
     ];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
+    painted.follow(this.player);
     this.sheep.forEach((s) => this.physics.add.collider(this.player, s.sprite));
     this.addRiver();
 

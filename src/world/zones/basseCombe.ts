@@ -64,6 +64,7 @@ export const BASSE_COMBE: ZoneArt<'thibault' | 'solange' | 'fauvette'> = {
     { x: 170, y: 322, w: 16, h: 7 },
   ],
   meadow: { n: 16, seed: 21 },
+  ambience: { chickens: [[150, 386], [166, 392], [100, 372]] },
   next: ['farm', 'valombre'],
   preview: {
     hero: [120, 300],

@@ -75,7 +75,7 @@ export const VALOMBRE: ZoneArt<'bertrand' | 'ombeline' | 'forge' | 'inn'> = {
     { kind: 'bench', x: 206, y: 286 },
     // The smithy: water trough, a barrel, a hay cart on the road.
     { kind: 'trough', x: 136, y: 392 },
-    { kind: 'barrel', x: 228, y: 390 },
+    { kind: 'barrel', x: 234, y: 394 },
     { kind: 'wagon_cart', x: 300, y: 404, seed: 2 },
     // The inn: barrels and a crate by the wall, a bench at the door.
     { kind: 'barrel', x: 376, y: 496 },
@@ -99,6 +99,8 @@ export const VALOMBRE: ZoneArt<'bertrand' | 'ombeline' | 'forge' | 'inn'> = {
     { x: 360, y: 503, w: 16, h: 7 },
   ],
   meadow: { n: 34, seed: 3 },
+  ambience: { chickens: [[150, 226], [166, 236], [94, 232]] },
+  walkers: [{ look: 'porter', path: [[254, 60], [254, 260], [254, 460]] }],
   next: ['basse-combe'],
   preview: {
     hero: [240, 420],

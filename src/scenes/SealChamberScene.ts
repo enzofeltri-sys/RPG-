@@ -261,7 +261,7 @@ export class SealChamberScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Shrine', { x: 100, y: 70 });
+      this.scene.start('Shrine', { x: 100, y: 88 });
     });
   }
 }

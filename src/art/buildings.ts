@@ -37,6 +37,8 @@ export interface BuildingArt {
   wallX0: number;
   wallX1: number;
   doorX?: number;
+  // Where chimney smoke rises (picture coordinates), if it has a chimney.
+  smoke?: [number, number];
 }
 
 // ---------------------------------------------------------------- palette
@@ -377,25 +379,14 @@ function door(pm: Pixmap, cx: number, bottom: number, height: number, width: num
   pm.hline(x - 1, x + width, bottom + 2, FIELD[3]);
 }
 
-function chimney(pm: Pixmap, x: number, top: number, height: number): void {
+// A fieldstone chimney stack; returns where its smoke rises from (the
+// smoke itself is animated by the game, see world/ambience.ts).
+function chimney(pm: Pixmap, x: number, top: number, height: number): [number, number] {
   for (let y = top; y < top + height; y++) for (let i = 0; i < 6; i++) pm.set(x + i, y, fieldstone(x + i + 40, y));
   pm.hline(x - 1, x + 6, top, FIELD[3]);
   pm.hline(x - 1, x + 6, top + 1, FIELD[1]);
-  // Smoke: soft puffs drifting right.
-  const puffs: [number, number, number][] = [
-    [x + 2, top - 4, 3],
-    [x + 5, top - 8, 4],
-    [x + 9, top - 13, 5],
-  ];
-  puffs.forEach(([px, py, r]) => {
-    for (let j = -r; j <= r; j++) {
-      for (let i = -r; i <= r; i++) {
-        if (i * i + j * j > r * r) continue;
-        if (!pm.inside(px + i, py + j) || pm.filled(px + i, py + j)) continue;
-        pm.set(px + i, py + j, j < 0 ? [236, 234, 230] : [200, 200, 204], 120);
-      }
-    }
-  });
+  pm.hline(x + 1, x + 4, top, [40, 34, 38]); // the flue's dark mouth
+  return [x + 2.5, top - 1];
 }
 
 function woodpile(pm: Pixmap, x: number, bottom: number): void {
@@ -548,11 +539,11 @@ function villageHouse(w: number, h: number): BuildingArt {
   const doorX = Math.round((p.wx0 + p.wx1) / 2);
   door(pm, doorX, p.base, Math.min(19, p.base - p.wallTop - 3), 10, false, false);
   windowsRow(pm, p, p.wallTop + 8, doorX, 10, 7, 6, { shutters: SHUTTERS.blue, boxes: true });
-  chimney(pm, p.wx1 - 12, 8, 14);
+  const smoke = chimney(pm, p.wx1 - 12, 8, 14);
   gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles', true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 // A plank barn with its gable to the yard: big braced double doors, a
@@ -641,11 +632,11 @@ function stoneCottage(w: number, h: number): BuildingArt {
   door(pm, doorX, p.base, Math.min(19, p.base - p.wallTop - 3), 10, true, true);
   windowsRow(pm, p, p.wallTop + 8, doorX, 10, 6, 6, { shutters: SHUTTERS.red, boxes: true });
   ivy(pm, p.wx0 + 2, p.wallTop + 4, p.base, 5);
-  chimney(pm, p.wx0 + 8, 10, 12);
+  const smoke = chimney(pm, p.wx0 + 8, 10, 12);
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'thatch');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 function inn(w: number, h: number): BuildingArt {
@@ -674,11 +665,11 @@ function inn(w: number, h: number): BuildingArt {
   const lx = doorX - 10;
   pm.set(lx, split + 2, IRON[2]);
   for (let j = 3; j < 7; j++) for (let i = -1; i <= 1; i++) pm.set(lx + i, split + j, j === 3 || j === 6 ? IRON[3] : WARM[1]);
-  chimney(pm, p.wx0 + 10, 8, 12);
+  const smoke = chimney(pm, p.wx0 + 10, 8, 12);
   gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles', true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 // The dim back wall seen inside an open shed, optionally lit by a warm
@@ -779,11 +770,11 @@ function forge(w: number, h: number): BuildingArt {
   pm.set(doorX - 1, p.wallTop + 4, IRON[2]);
   pm.set(doorX + 1, p.wallTop + 4, IRON[2]);
   pm.set(doorX, p.wallTop + 5, IRON[2]);
-  chimney(pm, hx + 3, 4, 16);
+  const smoke = chimney(pm, hx + 3, 4, 16);
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 function banner(pm: Pixmap, x: number, top: number, len: number): void {
@@ -1023,11 +1014,11 @@ function townHouse(w: number, h: number): BuildingArt {
   const SH = [SHUTTERS.blue, SHUTTERS.green, SHUTTERS.red, SHUTTERS.ochre][v];
   windowsRow(pm, p, p.wallTop + 6, -100, 0, 6, 7, { shutters: SH, boxes: v !== 2 });
   shopSign(pm, doorLeft ? doorX + 5 : doorX - 15, split + 1, (['boot', 'loaf', 'key', 'cup'] as const)[v]);
-  if (v === 1 || v === 3) chimney(pm, p.wx1 - 14, 6, 14);
+  const smoke = v === 1 || v === 3 ? chimney(pm, p.wx1 - 14, 6, 14) : undefined;
   gableRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, v === 2 ? 'tiles' : 'slate', true);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 // A merchant's house all in cut stone: a tiled hip roof, a striped awning
@@ -1248,10 +1239,10 @@ function lodge(w: number, h: number): BuildingArt {
   }
   window(pm, p.wx0 + 5, p.wallTop + 7, 5, 5, true);
   hipRoof(pm, 0, p.W - 4, 2, p.wallTop + 2, 'shingles');
-  chimney(pm, p.wx0 + 8, 1, 8);
+  const smoke = chimney(pm, p.wx0 + 8, 1, 8);
   finish(pm);
   castShadow(pm, 4);
-  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX };
+  return { pm, anchorX: Math.round(p.W / 2) - 2, anchorY: p.base, wallX0: p.wx0, wallX1: p.wx1, doorX, smoke };
 }
 
 // A hut of the drowned lands, raised on stilts over the bog: grey plank

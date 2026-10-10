@@ -56,6 +56,20 @@ function shapeDist(s: GroundShape, x: number, y: number): number {
   return (Math.sqrt(nx * nx + ny * ny) - 1) * Math.min(s.w, s.h) * 0.5;
 }
 
+// The material at a point, from the shapes alone (no wobble or fraying):
+// for checks such as "is this prop standing in the water".
+export function materialAt(spec: GroundSpec, x: number, y: number): GroundMaterial {
+  let m = spec.base;
+  for (const s of spec.shapes ?? []) if (shapeDist(s, x, y) < 0) m = s.material;
+  return m;
+}
+
+// Whether a point is on one of the zone's paths (a road, a lane), as
+// opposed to a broad paved area or a clearing.
+export function onPath(spec: GroundSpec, x: number, y: number): boolean {
+  return (spec.shapes ?? []).some((s) => s.kind === 'path' && s.material !== 'water' && s.material !== 'bog' && shapeDist(s, x, y) < 0);
+}
+
 // ------------------------------------------------------------ materials
 
 export const GRASS = ramp([96, 156, 70]);

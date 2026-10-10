@@ -87,7 +87,7 @@ export class RoadScene extends Phaser.Scene {
     this.physics.add.existing(this.guard, true);
 
     // Ambient traveler, clear of both the guard and the wagon decorations.
-    this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30, 'villager_wanderer');
+    this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30, 'villager_wanderer', 10);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     painted.follow(this.player);

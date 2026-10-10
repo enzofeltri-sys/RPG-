@@ -95,9 +95,9 @@ export class FieldScene extends Phaser.Scene {
     // Sheep grazing in their pasture (world/zones/field.ts: fenced on all
     // four sides, a gate on the road side) — pure ambiance.
     this.sheep = [
-      new Wanderer(this, 166, 244, 0xd8cbb0, 18, 'sheep'),
-      new Wanderer(this, 196, 268, 0xc8bba0, 12, 'sheep'),
-      new Wanderer(this, 134, 270, 0xd8cbb0, 10, 'sheep'),
+      new Wanderer(this, 166, 244, 0xd8cbb0, 18, 'sheep', 8),
+      new Wanderer(this, 196, 266, 0xc8bba0, 12, 'sheep', 5),
+      new Wanderer(this, 136, 270, 0xd8cbb0, 6, 'sheep', 4),
     ];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

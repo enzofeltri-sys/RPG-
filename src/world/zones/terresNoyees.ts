@@ -1,7 +1,7 @@
 import type { GroundSpec } from '../../art/ground';
 import type { PropSpot, ZoneArt } from '../zonePlan';
 import { Keepout, woods } from './scatterDecor';
-import { FOUR_24, THREE_24, THREE_30, d, enclosure } from './dungeonKit';
+import { FOUR_24, THREE_24, THREE_30, d, enclosure, dress } from './dungeonKit';
 
 // Les Terres Noyées: the drowned delta. Each zone keeps its scene's layout
 // (exits, NPCs, encounter spots) and gets its own look.
@@ -138,7 +138,7 @@ export const VASENOIRE: ZoneArt<'hutA' | 'hutB' | 'hutC' | 'hutD'> = {
   preview: {
     hero: [120, 220],
     npcs: [
-      ['vasenoire_local_yenn', 170, 190],
+      ['vasenoire_local_yenn', 152, 192],
       ['vasenoire_local_toma', 70, 260],
     ],
   },
@@ -193,7 +193,7 @@ export const CLANDESTINE_DOCK: ZoneArt<'store'> = {
 // Les Ruines englouties: halls of a drowned town, knee-deep in water over
 // their slabs, mossy walls, broken columns, light falling through the
 // fallen vault; stairs down to the brotherhood's tomb top left.
-export const SUNKEN_RUINS: ZoneArt = {
+export const SUNKEN_RUINS: ZoneArt = dress({
   key: 'sunken-ruins',
   ground: {
     w: 220,
@@ -230,12 +230,12 @@ export const SUNKEN_RUINS: ZoneArt = {
   },
   next: ['sunken-road'],
   preview: { hero: [70, 300], gate: ['rubble', 110, 190, 220] },
-};
+}, 'flooded');
 
 // Le Sanctuaire scellé: the founders' sanctuary under the quay. Carved
 // stone and pale runes, statues on guard, the intact rune seal across the
 // nave, the sealed reserve at the end; a stair up to the seekers' camp.
-export const SEALED_SANCTUARY: ZoneArt = {
+export const SEALED_SANCTUARY: ZoneArt = dress({
   key: 'sealed-sanctuary',
   ground: {
     w: 220,
@@ -264,12 +264,12 @@ export const SEALED_SANCTUARY: ZoneArt = {
   dark: { ambient: 0.4, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }, { x: 110, y: 200, r: 60, kind: 'magic' }] },
   next: ['clandestine-dock'],
   preview: { hero: [70, 300], gate: ['runes', 110, 190, 220] },
-};
+}, 'crypt');
 
 // Le Camp des Chercheurs: the shard seekers camped in a vault. Tents and a
 // fire on the flagstones, crates of loot, a table covered with maps,
 // shelves barricading the way to their archivist.
-export const SHARD_SEEKERS_CAMP: ZoneArt = {
+export const SHARD_SEEKERS_CAMP: ZoneArt = dress({
   key: 'shard-seekers-camp',
   ground: {
     w: 220,
@@ -303,12 +303,12 @@ export const SHARD_SEEKERS_CAMP: ZoneArt = {
   dark: { ambient: 0.46, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }, { x: 160, y: 290, r: 60, kind: 'fire' }] },
   next: ['sealed-sanctuary'],
   preview: { hero: [70, 300], gate: ['shelves', 110, 190, 220] },
-};
+}, 'camp');
 
 // Le Tombeau de la confrérie: the founding brotherhood's tomb. Piers full
 // of niches, rows of sarcophagi, knights in stone, the sealed funeral
 // slab; the way down to the broken sleep top left.
-export const BROTHERHOOD_TOMB: ZoneArt = {
+export const BROTHERHOOD_TOMB: ZoneArt = dress({
   key: 'brotherhood-tomb',
   ground: {
     w: 220,
@@ -341,12 +341,12 @@ export const BROTHERHOOD_TOMB: ZoneArt = {
   dark: { ambient: 0.38, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }] },
   next: ['sunken-ruins'],
   preview: { hero: [70, 300], gate: ['slab', 110, 190, 220] },
-};
+}, 'crypt');
 
 // Le Sommeil brisé: what the theft disturbed under the tomb. A cave
 // split open, red light welling up from the cracks, broken tombs and
 // bones, a gaping fissure across the way.
-export const BROKEN_SLEEP: ZoneArt = {
+export const BROKEN_SLEEP: ZoneArt = dress({
   key: 'broken-sleep',
   ground: {
     w: 220,
@@ -371,13 +371,13 @@ export const BROKEN_SLEEP: ZoneArt = {
   dark: { ambient: 0.36, lights: [{ x: 110, y: 440, r: 60, kind: 'cold' }, { x: 110, y: 186, r: 60, kind: 'fire' }], shade: [0.96, 0.82, 0.8] },
   next: ['brotherhood-tomb'],
   preview: { hero: [70, 300], gate: ['rift', 110, 190, 220] },
-};
+}, 'cave');
 
 // La Vigie silencieuse: a ruined watch post of the founding brotherhood,
 // up the delta. Its courtyard open to a grey sky, grass between the
 // slabs, broken walls (the scene's blocks), the fallen portcullis, the
 // stair up to the top of the watch; a stair down to the wards' heart.
-export const SILENT_WATCH: ZoneArt = {
+export const SILENT_WATCH: ZoneArt = dress({
   key: 'silent-watch',
   ground: {
     w: 220,
@@ -410,12 +410,12 @@ export const SILENT_WATCH: ZoneArt = {
   dark: { ambient: 0.72, shade: [0.86, 0.9, 0.98] },
   next: ['vasenoire'],
   preview: { hero: [70, 300], gate: ['portcullis', 110, 190, 220] },
-};
+}, 'flooded');
 
 // Le Cœur du réseau: the chamber under the watch where the wards met. A
 // ring of standing stones round a dead rune circle, carved walls whose
 // runes have gone dark, the nameless heart at the end.
-export const WARD_CORE: ZoneArt = {
+export const WARD_CORE: ZoneArt = dress({
   key: 'ward-core',
   ground: {
     w: 220,
@@ -435,4 +435,4 @@ export const WARD_CORE: ZoneArt = {
   dark: { ambient: 0.34, lights: [{ x: 110, y: 440, r: 60, kind: 'cold' }], shade: [0.84, 0.86, 1] },
   next: ['silent-watch'],
   preview: { hero: [70, 300], gate: ['runes', 110, 190, 220] },
-};
+}, 'crypt');

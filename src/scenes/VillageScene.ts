@@ -93,7 +93,7 @@ export class VillageScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
 
     // Ambient villagers, clear of every building/zone/signpost.
-    this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15, 'villager_wanderer'), new Wanderer(this, 400, 150, 0x7a8a6a, 25, 'villager_wanderer')];
+    this.villagers = [new Wanderer(this, 50, 280, 0x8a7a5a, 15, 'villager_wanderer', 10), new Wanderer(this, 400, 150, 0x7a8a6a, 25, 'villager_wanderer', 12)];
 
     // Kept well clear of every other fixed point here — see the
     // POST_GAME_STAGES comment above for why he stays quiet until the main

@@ -69,7 +69,7 @@ export class VasenoireScene extends Phaser.Scene {
 
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
-    this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
+    this.yenn = this.add.rectangle(152, 192, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 24);
     this.physics.add.existing(this.yenn, true);
 

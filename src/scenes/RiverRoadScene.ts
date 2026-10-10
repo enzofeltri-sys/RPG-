@@ -75,7 +75,7 @@ export class RiverRoadScene extends Phaser.Scene {
     addSignpost(this, WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 60, ['← Faubourg des quais', '→ Relais des chasseurs']);
 
     // Ambient fisherman, clear of the signpost and the water patch.
-    this.fisherman = new Wanderer(this, 90, 200, 0x6a8a9a, 25, 'villager_wanderer');
+    this.fisherman = new Wanderer(this, 90, 200, 0x6a8a9a, 25, 'villager_wanderer', 8);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.fisherman.sprite);

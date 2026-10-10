@@ -1,5 +1,5 @@
 import type { ZoneArt } from '../zonePlan';
-import { FOUR_24, d, enclosure } from './dungeonKit';
+import { FOUR_24, d, enclosure, dress } from './dungeonKit';
 
 // The start region's deepest places, opened late in the story: the
 // Watchers' lodge and its archives under the shrine, the depths under the
@@ -9,7 +9,7 @@ import { FOUR_24, d, enclosure } from './dungeonKit';
 // on a plank floor, beams holding up the roof (the scene's blocks), a
 // door shut for generations, the round table at the end; stairs down to
 // the rite's archives top left.
-export const WATCHERS_LODGE: ZoneArt = {
+export const WATCHERS_LODGE: ZoneArt = dress({
   key: 'watchers-lodge',
   ground: {
     w: 220,
@@ -38,12 +38,12 @@ export const WATCHERS_LODGE: ZoneArt = {
   dark: { ambient: 0.48, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }, { x: 160, y: 14, r: 70, kind: 'fire' }] },
   next: ['shrine'],
   preview: { hero: [70, 300], gate: ['door', 110, 190, 220] },
-};
+}, 'lodge');
 
 // Les Archives du Rite: the instructions of the sealing rite. Old carved
 // stone, shelves locked with chains, lecterns and candles; stairs down to
 // the sealed annex top right.
-export const RITE_ARCHIVE: ZoneArt = {
+export const RITE_ARCHIVE: ZoneArt = dress({
   key: 'rite-archive',
   ground: {
     w: 220,
@@ -69,11 +69,11 @@ export const RITE_ARCHIVE: ZoneArt = {
   dark: { ambient: 0.44, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }] },
   next: ['watchers-lodge'],
   preview: { hero: [70, 300], gate: ['shelves', 110, 190, 220] },
-};
+}, 'archive');
 
 // L'Annexe scellée: shelves behind a ward at the far end of the rite's
 // archives, the Order's register on its lectern in a circle of runes.
-export const RITE_ANNEX: ZoneArt = {
+export const RITE_ANNEX: ZoneArt = dress({
   key: 'rite-annex',
   ground: {
     w: 220,
@@ -97,12 +97,12 @@ export const RITE_ANNEX: ZoneArt = {
   dark: { ambient: 0.38, lights: [{ x: 110, y: 440, r: 60, kind: 'cold' }] },
   next: ['rite-archive'],
   preview: { hero: [70, 300], gate: ['runes', 110, 190, 220] },
-};
+}, 'archive');
 
 // Sous le Sceau originel: the heart of the rite, under the Seal's own
 // chamber. A great hall of carved stone, the barrier of the rite across
 // it, the Seal's heart in its circle between braziers and columns.
-export const SANCTUARY_DEPTHS: ZoneArt = {
+export const SANCTUARY_DEPTHS: ZoneArt = dress({
   key: 'sanctuary-depths',
   ground: {
     w: 220,
@@ -132,12 +132,12 @@ export const SANCTUARY_DEPTHS: ZoneArt = {
   dark: { ambient: 0.34, lights: [{ x: 110, y: 440, r: 60, kind: 'cold' }, { x: 110, y: 196, r: 50, kind: 'magic' }] },
   next: ['shrine'],
   preview: { hero: [70, 300], gate: ['runes', 110, 190, 220] },
-};
+}, 'crypt');
 
 // La Faille du Sceau: the rift behind the Seal's chamber, at the source of
 // it all. A cave split open, crystals growing from the walls, light
 // frozen across the way, the source glowing at the end.
-export const SEAL_DEPTHS: ZoneArt = {
+export const SEAL_DEPTHS: ZoneArt = dress({
   key: 'seal-depths',
   ground: {
     w: 220,
@@ -172,4 +172,4 @@ export const SEAL_DEPTHS: ZoneArt = {
   },
   next: ['seal-chamber'],
   preview: { hero: [70, 300], gate: ['light', 110, 190, 220] },
-};
+}, 'cave');

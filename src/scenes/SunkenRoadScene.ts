@@ -86,7 +86,7 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     // Odren, a refugee wandering clear of the signpost and the water patch —
     // side-quest giver for this region's second ambient threat.
-    this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25, 'villager_wanderer');
+    this.refugee = new Wanderer(this, 90, 200, 0x7a7a6a, 25, 'villager_wanderer', 4);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     painted.follow(this.player);

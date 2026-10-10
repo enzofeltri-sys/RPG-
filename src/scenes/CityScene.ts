@@ -100,7 +100,7 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(this.merchantNpc, true);
 
     // A couple of ambient citizens.
-    this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15, 'villager_wanderer'), new Wanderer(this, 150, 420, 0x8a7a8a, 20, 'villager_wanderer')];
+    this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15, 'villager_wanderer', 8), new Wanderer(this, 150, 420, 0x8a7a8a, 20, 'villager_wanderer', 8)];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.buildings);

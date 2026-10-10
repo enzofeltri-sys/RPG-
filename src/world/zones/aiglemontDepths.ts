@@ -1,5 +1,5 @@
 import type { ZoneArt } from '../zonePlan';
-import { FOUR_24, THREE_30, d, enclosure } from './dungeonKit';
+import { FOUR_24, THREE_30, d, enclosure, dress } from './dungeonKit';
 
 // The dungeons of Aiglemont and its surroundings. Most share one layout
 // (220 x 420: two encounters, a gate at y 190, the boss at the top, a
@@ -9,7 +9,7 @@ import { FOUR_24, THREE_30, d, enclosure } from './dungeonKit';
 // Les Catacombes d'Aiglemont: the processional aisle under the city, piers
 // full of burial niches, tombs and bone heaps, the Guardian's hall at the
 // end with its rune circle between two braziers.
-export const CATACOMBS: ZoneArt = {
+export const CATACOMBS: ZoneArt = dress({
   key: 'catacombs',
   ground: {
     w: 220,
@@ -74,13 +74,13 @@ export const CATACOMBS: ZoneArt = {
   },
   next: ['city'],
   preview: { hero: [110, 440], gate: ['portcullis', 110, 220, 220] },
-};
+}, 'crypt');
 
 // Les Archives scellées: a reading hall behind the mages' tower. Stone
 // floor with a worn red runner, bookcases (the scene's two blocks) and
 // shelves along the walls, lecterns and heaps of scrolls; the sealed
 // shelf at the far end; the stair down to the Watchers' vault, top left.
-export const ARCHIVES: ZoneArt = {
+export const ARCHIVES: ZoneArt = dress({
   key: 'archives',
   ground: {
     w: 220,
@@ -115,12 +115,12 @@ export const ARCHIVES: ZoneArt = {
   dark: { ambient: 0.5, lights: [{ x: 110, y: 320, r: 80, kind: 'cold' }] },
   next: ['city'],
   preview: { hero: [110, 160] },
-};
+}, 'archive');
 
 // La Voûte des Veilleurs: older than the archives above it. Carved stone
 // with runes, statues of watchers, collapsed shelves across the way, the
 // last shelf glowing at the far end.
-export const WATCHERS_VAULT: ZoneArt = {
+export const WATCHERS_VAULT: ZoneArt = dress({
   key: 'watchers-vault',
   ground: {
     w: 220,
@@ -155,12 +155,12 @@ export const WATCHERS_VAULT: ZoneArt = {
   dark: { ambient: 0.4, lights: [{ x: 110, y: 440, r: 80, kind: 'cold' }] },
   next: ['archives'],
   preview: { hero: [110, 300], gate: ['rubble', 110, 190, 220] },
-};
+}, 'archive');
 
 // L'Entrepôt abandonné: the smugglers' storehouse. Plank floor, crates
 // stacked to the beams (the scene's blocks), the captain's desk at the
 // back, a trapdoor top right down to the guild's records.
-export const WAREHOUSE: ZoneArt = {
+export const WAREHOUSE: ZoneArt = dress({
   key: 'warehouse',
   ground: {
     w: 220,
@@ -198,12 +198,12 @@ export const WAREHOUSE: ZoneArt = {
   dark: { ambient: 0.48, lights: [{ x: 110, y: 440, r: 80, kind: 'cold' }] },
   next: ['faubourg'],
   preview: { hero: [110, 300], gate: ['crates', 110, 190, 220] },
-};
+}, 'camp');
 
 // Les Registres de la Guilde: the merchants' notarial records under the
 // warehouse. Shelves locked with chains, ledgers on tables, the register
 // of successions on its lectern.
-export const GUILD_ARCHIVE: ZoneArt = {
+export const GUILD_ARCHIVE: ZoneArt = dress({
   key: 'guild-archive',
   ground: {
     w: 220,
@@ -231,12 +231,12 @@ export const GUILD_ARCHIVE: ZoneArt = {
   dark: { ambient: 0.46, lights: [{ x: 110, y: 440, r: 80, kind: 'cold' }] },
   next: ['warehouse'],
   preview: { hero: [110, 300], gate: ['shelves', 110, 190, 220] },
-};
+}, 'archive');
 
 // La Crypte des Aînés: the family crypt under the sealed house. Tomb piers
 // with niches, sarcophagi, knights in stone keeping watch, a sealed slab
 // across the way, the stair down to the third altar top right.
-export const ANCESTRAL_CRYPT: ZoneArt = {
+export const ANCESTRAL_CRYPT: ZoneArt = dress({
   key: 'ancestral-crypt',
   ground: {
     w: 220,
@@ -269,11 +269,11 @@ export const ANCESTRAL_CRYPT: ZoneArt = {
   dark: { ambient: 0.4, lights: [{ x: 110, y: 440, r: 80, kind: 'cold' }] },
   next: ['city'],
   preview: { hero: [110, 300], gate: ['slab', 110, 190, 220] },
-};
+}, 'crypt');
 
 // Le Troisième Autel: deeper still, older, carved with runes that wake.
 // The altar of the rite at the far end in its rune circle.
-export const THIRD_ALTAR: ZoneArt = {
+export const THIRD_ALTAR: ZoneArt = dress({
   key: 'third-altar',
   ground: {
     w: 220,
@@ -302,12 +302,12 @@ export const THIRD_ALTAR: ZoneArt = {
   dark: { ambient: 0.36, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }] },
   next: ['ancestral-crypt'],
   preview: { hero: [110, 300], gate: ['slab', 110, 190, 220] },
-};
+}, 'crypt');
 
 // La Chapelle engloutie: a chapel under the old quays, half flooded.
 // Mossy masonry, standing water, broken pillars, rubble across the nave,
 // daylight falling through the cracked vault.
-export const SUNKEN_CHAPEL: ZoneArt = {
+export const SUNKEN_CHAPEL: ZoneArt = dress({
   key: 'sunken-chapel',
   ground: {
     w: 220,
@@ -355,11 +355,11 @@ export const SUNKEN_CHAPEL: ZoneArt = {
   },
   next: ['faubourg'],
   preview: { hero: [110, 300], gate: ['rubble', 110, 190, 220] },
-};
+}, 'flooded');
 
 // La Racine corrompue: under the corrupted grove, the root that fed it.
 // A cave of earth and roots, glowing pods, cracks bleeding violet light.
-export const CORRUPTED_ROOT: ZoneArt = {
+export const CORRUPTED_ROOT: ZoneArt = dress({
   key: 'corrupted-root',
   ground: {
     w: 220,
@@ -393,7 +393,7 @@ export const CORRUPTED_ROOT: ZoneArt = {
   dark: { ambient: 0.42, lights: [{ x: 110, y: 440, r: 70, kind: 'cold' }], shade: [0.86, 0.8, 0.96] },
   next: ['blighted-grove'],
   preview: { hero: [110, 300], gate: ['roots', 110, 190, 220] },
-};
+}, 'roots');
 
 // La Tanière des marais: the lair in the reeds north of the outpost. Mud
 // and standing water, banks of reeds (the scene's blocks), dead trees, a

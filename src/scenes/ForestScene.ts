@@ -115,7 +115,7 @@ export class ForestScene extends Phaser.Scene {
     ]);
 
     // A shy bit of wildlife — clear of both zones and the signpost.
-    this.deer = new Wanderer(this, 150, 220, 0x9a7a52, 35, 'deer');
+    this.deer = new Wanderer(this, 150, 222, 0x9a7a52, 35, 'deer', 12);
 
     this.player = createPlayer(this, this.spawnX ?? 40, this.spawnY ?? WORLD_HEIGHT / 2);
     painted.follow(this.player);

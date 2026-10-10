@@ -108,7 +108,7 @@ export class HamletScene extends Phaser.Scene {
     // Purely ambient — makes the hamlet read as lived-in rather than a
     // backdrop. Small patrol range, kept clear of the x=120 centerline and
     // every building/zone.
-    this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20, 'villager_wanderer');
+    this.villager = new Wanderer(this, 70, 150, 0x8a7a5a, 20, 'villager_wanderer', 10);
 
     // Kept well clear of every other fixed point here (buildings at
     // (50,90)/(190,90)/(190,300), chest at (150,330), mentor at (150,130)) —

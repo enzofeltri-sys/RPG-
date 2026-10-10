@@ -1,11 +1,12 @@
 import type { PropSpot, ZoneArt } from '../zonePlan';
+import { dress } from './dungeonKit';
 
 // The start region's dark places. Each keeps its scene's layout (wall
 // blocks, gate, encounters, boss) and gets its own look and light.
 
 // La Grotte: a natural cave between the forest and Valombre. Rock masses
 // line the walls, glowing crystals and a lava vent give the only light.
-export const CAVE: ZoneArt = {
+export const CAVE: ZoneArt = dress({
   key: 'cave',
   ground: {
     w: 220,
@@ -61,11 +62,11 @@ export const CAVE: ZoneArt = {
   },
   next: ['valombre', 'forest'],
   preview: { hero: [110, 230] },
-};
+}, 'cave');
 
 // Le Repaire du Loup: a cave den. Rock pillars (the scene's wall blocks),
 // a barricade the pack defends, bones and a straw nest at the back.
-export const WOLF_DEN: ZoneArt = {
+export const WOLF_DEN: ZoneArt = dress({
   key: 'wolf-den',
   ground: {
     w: 220,
@@ -115,11 +116,11 @@ export const WOLF_DEN: ZoneArt = {
   },
   next: ['field'],
   preview: { hero: [110, 360], gate: ['barricade', 110, 190, 220] },
-};
+}, 'cave');
 
 // Le Vieux Puits: the flooded chamber at the bottom of the old well. Mossy
 // brick, damp floor, a pool under the shaft where daylight falls in.
-export const OLD_WELL: ZoneArt = {
+export const OLD_WELL: ZoneArt = dress({
   key: 'old-well',
   ground: {
     w: 220,
@@ -161,7 +162,7 @@ export const OLD_WELL: ZoneArt = {
   },
   next: ['forest'],
   preview: { hero: [110, 230] },
-};
+}, 'cave');
 
 // Gravestones in rows where the scene has its (solid) grave blocks.
 function graves(blocks: [number, number][]): PropSpot[] {
@@ -223,7 +224,7 @@ export const FORGOTTEN_GRAVE: ZoneArt<'crypt'> = {
 // La Chambre du Scellement: the hall where the seal was first made, deep
 // under the shrine. Carved pillars with glowing runes, a veil of runes
 // across the way, the seal circle at the back.
-export const SEAL_CHAMBER: ZoneArt = {
+export const SEAL_CHAMBER: ZoneArt = dress({
   key: 'seal-chamber',
   ground: {
     w: 220,
@@ -262,4 +263,4 @@ export const SEAL_CHAMBER: ZoneArt = {
   },
   next: ['shrine'],
   preview: { hero: [110, 260], gate: ['runes', 110, 190, 220] },
-};
+}, 'crypt');

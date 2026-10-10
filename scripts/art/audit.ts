@@ -9,7 +9,7 @@
 
 import { readFileSync } from 'fs';
 import { materialAt, onPath } from '../../src/art/ground';
-import { buildingArt, dpropArt, dpropOffGround, propArt } from '../../src/world/zonePlan';
+import { buildingArt, dpropArt, dpropOffGround, obstacles, propArt } from '../../src/world/zonePlan';
 import { ALL_ZONES } from '../../src/world/zones';
 import type { Pixmap } from '../../src/art/pixmap';
 
@@ -142,6 +142,24 @@ for (const art of ALL_ZONES) {
       if ((m === 'water' || m === 'bog') && o.kind !== 'boss' && o.kind !== 'encounter') say(`scene ${o.kind} at ${o.x},${o.y} stands in ${m}`);
     });
   }
+  // Passers-by on their fixed rounds don't walk through solid decor.
+  const solid = obstacles(art);
+  (art.walkers ?? []).forEach((w) => {
+    for (let i = 1; i < w.path.length; i++) {
+      const [ax, ay] = w.path[i - 1];
+      const [bx, by] = w.path[i];
+      const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 2);
+      const hit = solid.find((o) => {
+        for (let k = 0; k <= n; k++) {
+          const x = ax + ((bx - ax) * k) / n;
+          const y = ay + ((by - ay) * k) / n;
+          if (Math.abs(x - o.x) < o.w / 2 + 5 && Math.abs(y - o.y) < o.h / 2 + 2) return true;
+        }
+        return false;
+      });
+      if (hit) say(`${w.look}'s round crosses an obstacle at ${Math.round(hit.x)},${Math.round(hit.y)}`);
+    }
+  });
   if (found.length) {
     console.log(`\n== ${art.key}${scene ? ` (${scene.scene})` : ''}`);
     found.forEach((f) => console.log('  ' + f));

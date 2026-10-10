@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { attachSpriteOverlay, syncSpriteOverlay } from './spriteOverlay';
+import { zoneObstacles } from '../world/zoneArt';
 
 const WANDER_SPEED = 18;
 const APPEARANCE_SIZE = 24;
@@ -23,6 +24,7 @@ export class Wanderer {
   private last = 0;
   private fleeing = 0; // seconds since it bolted; 0 while it wanders
   private fleeDir = 1;
+  private colliding = false;
   gone = false;
 
   // The area is range to either side of (x, y), rangeY above and below
@@ -55,6 +57,8 @@ export class Wanderer {
     this.fleeing = 0.001;
     this.fleeDir = this.sprite.x >= fromX ? 1 : -1;
     this.pause = 0;
+    // Through the undergrowth: nothing stops a bolting animal.
+    this.sprite.body.checkCollision.none = true;
   }
 
   private pickTarget(): void {
@@ -80,6 +84,13 @@ export class Wanderer {
     const dt = this.last ? Math.min(now - this.last, 100) / 1000 : 0;
     this.last = now;
     if (this.gone) return;
+    // The zone's decor and buildings stop it (painted before the scene's
+    // people are set up, but looked up here to not depend on the order).
+    if (!this.colliding) {
+      this.colliding = true;
+      const walls = zoneObstacles(this.scene);
+      if (walls.length) this.scene.physics.add.collider(this.sprite, walls);
+    }
     if (this.fleeing) {
       this.fleeing += dt;
       this.sprite.body.setVelocity(WANDER_SPEED * 5 * this.fleeDir, 0);

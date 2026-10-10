@@ -161,8 +161,8 @@ const ROAD_PROPS: PropSpot[] = [
   { kind: 'tree', x: 300, y: 118, seed: 8 },
   { kind: 'bush', x: 190, y: 140, seed: 9 },
   // Milestones.
-  { kind: 'milestone', x: 60, y: 132, seed: 1 },
-  { kind: 'milestone', x: 420, y: 134, seed: 2 },
+  { kind: 'milestone', x: 60, y: 148, seed: 1 },
+  { kind: 'milestone', x: 420, y: 148, seed: 2 },
   // Hedges and trees along the road, the fields with their fences.
   { kind: 'bush', x: 300, y: 214, seed: 1 },
   { kind: 'bush', x: 330, y: 196, seed: 2 },
@@ -216,7 +216,7 @@ export const ROAD: ZoneArt = {
     { x: 72, y: 290, len: 24 },
   ],
   meadow: { n: 36, seed: 211 },
-  walkers: [{ look: 'porter', path: [[20, 114], [120, 148], [200, 188], [240, 192], [280, 188], [360, 150], [460, 114]] }],
+  walkers: [{ look: 'porter', path: ROAD_POINTS.slice(1, -1).map(([x, y]): [number, number] => [x, y - 3]) }],
   next: ['city', 'valombre'],
   preview: {
     hero: [240, 230],

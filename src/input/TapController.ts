@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { MoveTarget, PlayerSprite, SPEED } from '../entities/player';
+import { findPath } from './pathfind';
 
 const DEFAULT_RADIUS = 20;
 // How much closer to the target counts as "real" progress, as opposed to
@@ -43,11 +44,14 @@ export function addSceneInteractable(scene: Phaser.Scene, item: Interactable): v
 }
 
 // Replaces the old joystick + "Action" button: tap empty ground to walk
-// there, tap an NPC/object to walk toward it and trigger it on arrival. No
-// real pathfinding, but a target on the far side of an obstacle no longer
-// just grinds the player into it forever either — see maybeSidestep().
+// there, tap an NPC/object to walk toward it and trigger it on arrival. The
+// way is found around whatever is solid (input/pathfind.ts); when there is
+// none, he walks straight and the sidestep fallback below keeps him from
+// grinding into an obstacle forever.
 export class TapController {
   private moveTarget: MoveTarget | null = null;
+  // The way there: waypoints still ahead, the last one the place to stop.
+  private path: MoveTarget[] = [];
   private enabled = true;
   private interactables: Interactable[] = [];
   private stuckTime = 0;
@@ -126,17 +130,27 @@ export class TapController {
     this.enabled = enabled;
     if (!enabled) {
       this.moveTarget = null;
+      this.path = [];
       this.pendingInteractable = null;
       this.resetObstacleState();
     }
   }
 
+  // The next waypoint (called each frame before moving the player):
+  // passed ones are dropped a little before reaching them, so the walk
+  // flows through the corners and only the last one counts as arriving.
   getMoveTarget(): MoveTarget | null {
-    return this.moveTarget;
+    if (!this.moveTarget) return null;
+    while (this.path.length > 1 && Phaser.Math.Distance.Between(this.player.x, this.player.y, this.path[0].x, this.path[0].y) < 6) {
+      this.path.shift();
+      this.resetObstacleState();
+    }
+    return this.path[0] ?? this.moveTarget;
   }
 
   clearMoveTarget(): void {
     this.moveTarget = null;
+    this.path = [];
     this.pendingInteractable = null;
     this.resetObstacleState();
   }
@@ -154,13 +168,7 @@ export class TapController {
   // frame's velocity again when a sidestep is in progress (see below).
   update(delta: number): void {
     if (this.pendingInteractable) {
-      const distance = Phaser.Math.Distance.Between(
-        this.player.x,
-        this.player.y,
-        this.pendingInteractable.x,
-        this.pendingInteractable.y,
-      );
-      if (distance < (this.pendingInteractable.radius ?? DEFAULT_RADIUS)) {
+      if (this.inReach(this.pendingInteractable)) {
         const interactable = this.pendingInteractable;
         this.pendingInteractable = null;
         this.moveTarget = null;
@@ -180,7 +188,8 @@ export class TapController {
       return;
     }
 
-    const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.moveTarget.x, this.moveTarget.y);
+    const goal = this.path[0] ?? this.moveTarget;
+    const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, goal.x, goal.y);
     if (distance < this.bestDistance - PROGRESS_EPSILON) {
       // Genuinely closing in on the target — not just sideways drift while
       // still pinned against the same obstacle.
@@ -198,10 +207,26 @@ export class TapController {
         // Tried going around a few times and still can't make progress —
         // treat it as unreachable rather than shuffling forever.
         this.moveTarget = null;
+        this.path = [];
         this.pendingInteractable = null;
         this.resetObstacleState();
       }
     }
+  }
+
+  // Close enough to use it: within its radius, or right up against the
+  // solid thing it stands on (a house's wall can keep him farther from the
+  // house's center than its radius).
+  private inReach(t: Interactable): boolean {
+    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, t.x, t.y) < (t.radius ?? DEFAULT_RADIUS)) return true;
+    const b = this.player.body;
+    const touch = new Phaser.Geom.Rectangle(b.x - 2, b.y - 2, b.width + 4, b.height + 4);
+    for (const s of this.scene.physics.world.staticBodies.entries) {
+      if (!s.enable || s.checkCollision.none) continue;
+      const r = new Phaser.Geom.Rectangle(s.x, s.y, s.width, s.height);
+      if (r.contains(t.x, t.y) && Phaser.Geom.Intersects.RectangleToRectangle(r, touch)) return true;
+    }
+    return false;
   }
 
   // Picks a direction perpendicular to whichever way the body actually
@@ -255,9 +280,8 @@ export class TapController {
       // before the sidestep, which the sidestep itself may not have
       // improved on directly (it moved sideways, not toward the target).
       this.stuckTime = 0;
-      if (this.moveTarget) {
-        this.bestDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.moveTarget.x, this.moveTarget.y);
-      }
+      const goal = this.path[0] ?? this.moveTarget;
+      if (goal) this.bestDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, goal.x, goal.y);
     }
   }
 
@@ -275,6 +299,9 @@ export class TapController {
 
     if (hit) {
       this.moveTarget = { x: hit.x, y: hit.y };
+      // Up to beside it, then toward it until in range (it may well be
+      // solid itself: he never "arrives" on it, the range check fires).
+      this.path = [...(this.route(hit.x, hit.y) ?? []), { x: hit.x, y: hit.y }];
       // Fires from update() once the player is actually within range —
       // already-in-range taps resolve on the very next frame.
       this.pendingInteractable = hit;
@@ -283,7 +310,13 @@ export class TapController {
 
     this.pendingInteractable = null;
     this.moveTarget = { x: world.x, y: world.y };
+    this.path = this.route(world.x, world.y) ?? [];
   };
+
+  private route(x: number, y: number): MoveTarget[] | null {
+    if (!this.player.body) return null;
+    return findPath(this.scene, this.player, x, y);
+  }
 
   private destroy = (): void => {
     this.scene.input.off('pointerdown', this.handlePointerDown);

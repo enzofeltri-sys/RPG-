@@ -6,7 +6,7 @@
 import { BuildingArt, BuildingKind, GateKind, WallStyle, renderBuilding } from '../art/buildings';
 import { GroundSpec } from '../art/ground';
 import { Blocker, GroundJob, GroundOp } from '../art/groundJob';
-import { RGB } from '../art/pixmap';
+import { Pixmap, RGB } from '../art/pixmap';
 import { DungeonPropKind, PatchKind, PropArt, PropKind, renderDungeonProp, renderProp } from '../art/props';
 import { PROP_SETTLE, TuftSpot, fringe, softenBase, tuftsAround, vary } from '../art/settle';
 import type { AmbienceSpec, Walker } from './ambience';
@@ -144,6 +144,73 @@ export function dpropArt(kind: DungeonPropKind): ReturnType<typeof renderDungeon
     dpropArts.set(kind, a);
   }
   return a;
+}
+
+// ----------------------------------------------------------- collision
+
+// What can be walked over (grass, flowers, small stones, things lying
+// flat) and what stops people at its foot.
+const WALK_OVER = new Set<PropKind>([
+  'tall_grass', 'flowers', 'rock_small', 'mushroom', 'fern', 'reeds', 'herb_patch', 'rowboat',
+  'crystal_glow', 'treasure_chest_closed', 'treasure_chest_open', 'signpost',
+]);
+const SOLID_DPROPS = new Set<DungeonPropKind>([
+  'sarcophagus', 'pillar', 'brazier', 'urn', 'bookshelf', 'lectern', 'statue', 'table', 'round_table',
+  'bed', 'hearth', 'dining_table', 'counter', 'loom', 'pots', 'cat_basket',
+]);
+
+// Half-width of what touches the ground: the widest opaque run in the few
+// rows just above the anchor.
+export function footRadius(pm: Pixmap, anchorY: number): number {
+  let best = 0;
+  for (let y = Math.max(0, anchorY - 3); y <= Math.min(pm.h - 1, anchorY); y++) {
+    let x0 = -1;
+    let x1 = -1;
+    for (let x = 0; x < pm.w; x++) {
+      if (pm.data[(y * pm.w + x) * 4 + 3] !== 255) continue;
+      if (x0 < 0) x0 = x;
+      x1 = x;
+    }
+    if (x0 >= 0) best = Math.max(best, (x1 - x0 + 1) / 2);
+  }
+  return Math.max(2, best);
+}
+
+export interface Obstacle {
+  x: number; // center
+  y: number;
+  w: number;
+  h: number;
+}
+
+// A box at the foot of a thing standing at (x, y): a little narrower than
+// what touches the ground, a few pixels deep, so people brush past the
+// edges of a canopy but not through a trunk.
+function footBox(pm: Pixmap, anchorY: number, x: number, y: number): Obstacle {
+  const w = Math.max(4, Math.min(44, Math.round(footRadius(pm, anchorY) * 2 * 0.8)));
+  const h = Math.max(3, Math.min(10, Math.round(w * 0.4)));
+  return { x, y: y - h / 2 + 1, w, h };
+}
+
+// Everything in a zone that people can't walk through, besides its walls
+// and buildings: decor at its foot, fences, dry-stone walls, palisades.
+export function obstacles(art: ZoneArt): Obstacle[] {
+  const out: Obstacle[] = [];
+  (art.props ?? []).forEach((p, idx) => {
+    if (WALK_OVER.has(p.kind)) return;
+    const a = propArt(p.kind, p.seed ?? idx + 1);
+    out.push(footBox(a.pm, a.anchorY, p.x, p.y));
+  });
+  (art.dprops ?? []).forEach((d) => {
+    if (!SOLID_DPROPS.has(d.kind)) return;
+    const a = dpropArt(d.kind);
+    out.push(footBox(a.pm, a.anchorY, d.x, d.y));
+  });
+  (art.fences ?? []).forEach((f) => out.push(f.vertical ? { x: f.x, y: f.y, w: 4, h: f.len } : { x: f.x, y: f.y - 2, w: f.len, h: 4 }));
+  (art.ironFences ?? []).forEach((f) => out.push({ x: f.x, y: f.y - 2, w: f.len, h: 4 }));
+  (art.stoneWalls ?? []).forEach((f) => out.push({ x: f.x, y: f.y - 3, w: f.len, h: 6 }));
+  (art.palisades ?? []).forEach((f) => out.push({ x: f.x, y: f.y - 4, w: f.len, h: 8 }));
+  return out;
 }
 
 // --------------------------------------------------------------- layout

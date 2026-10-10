@@ -5,7 +5,7 @@ import { GateKind, renderBarrier, renderWallBlock } from '../art/buildings';
 import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
-import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, fencePosts, lightMap, plan, step } from './zonePlan';
+import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, fencePosts, lightMap, obstacles, plan, step } from './zonePlan';
 import { Ambience } from './ambience';
 
 export type { BuildingSpot, PropSpot, ZoneArt, ZoneLight } from './zonePlan';
@@ -116,6 +116,13 @@ export interface PaintedZone {
   follow(target: { x: number; y: number }): void;
 }
 
+// What the zone painted last in each scene makes solid, for the scene's
+// other moving people.
+const zoneObstacleBodies = new WeakMap<Phaser.Scene, Phaser.GameObjects.Rectangle[]>();
+export function zoneObstacles(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
+  return zoneObstacleBodies.get(scene) ?? [];
+}
+
 export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   const job = jobFor(art);
   // Until the ground arrives (first visit only), a plain base color.
@@ -168,12 +175,22 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   });
   // Walls and obstacles the zone itself makes solid (side walls, water,
   // a fountain: things the scene doesn't know about).
+  // Decor stops people at its foot (zonePlan.obstacles).
   const solids: Phaser.GameObjects.Rectangle[] = [];
-  [...(art.walls ?? []).filter((wl) => wl.solid), ...(art.solids ?? [])].forEach((b) => {
+  [...(art.walls ?? []).filter((wl) => wl.solid), ...(art.solids ?? []), ...obstacles(art)].forEach((b) => {
     const rect = scene.add.rectangle(b.x, b.y, b.w, b.h).setVisible(false);
     scene.physics.add.existing(rect, true);
     solids.push(rect);
   });
+  // The people of the scene (entities/wanderer.ts) keep out of those and
+  // of the buildings, which the scenes only make solid for the hero.
+  const forOthers = [...solids];
+  Object.values<BuildingSpot>(art.buildings ?? {}).forEach((b) => {
+    const rect = scene.add.rectangle(b.x, b.y, b.w, b.h).setVisible(false);
+    scene.physics.add.existing(rect, true);
+    forOthers.push(rect);
+  });
+  zoneObstacleBodies.set(scene, forOthers);
   (art.walls ?? []).forEach((wl, idx) => {
     const a = renderWallBlock(wl.w, wl.h, { niches: wl.niches, face: wl.face, seed: 61 + idx, style: wl.style });
     const key = pixmapTexture(scene, `wall-${art.key}-${idx}`, a.pm);

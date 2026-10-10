@@ -11,10 +11,10 @@ import { heroLook } from '../../src/art/heroLook';
 import { NPC_LOOKS } from '../../src/art/npcLooks';
 import { runGroundJob } from '../../src/art/groundJob';
 import { GateKind, renderBarrier, renderWallBlock } from '../../src/art/buildings';
-import { renderBridge, renderFence, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../../src/art/props';
+import { renderBridge, renderFence, renderFencePost, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../../src/art/props';
 import { renderTuft, softenBase } from '../../src/art/settle';
 import { Pixmap } from '../../src/art/pixmap';
-import { BAYER, ZoneArt, buildingArt, dpropArt, dpropDepth, dpropOffGround, lightMap, plan, propArt } from '../../src/world/zonePlan';
+import { BAYER, ZoneArt, buildingArt, dpropArt, dpropDepth, dpropOffGround, fencePosts, lightMap, plan, propArt } from '../../src/world/zonePlan';
 import { ALL_ZONES } from '../../src/world/zones';
 import { encodePng } from './png';
 
@@ -37,6 +37,13 @@ function render(art: ZoneArt): Pixmap {
     at(a.pm, p.x - a.anchorX, p.y - a.anchorY, p.y - 8);
   });
   (art.fences ?? []).forEach((f) => {
+    if (f.vertical) {
+      fencePosts(f).forEach((py, i, all) => {
+        const a = renderFencePost(i ? py - all[i - 1] : 0);
+        at(softenBase(a.pm, a.anchorY), f.x - a.anchorX, py - a.anchorY, py - 8);
+      });
+      return;
+    }
     const a = renderFence(f.len);
     at(softenBase(a.pm, a.anchorY), f.x - a.anchorX, f.y - a.anchorY, f.y - 8);
   });

@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
 import { GroundJob, GroundResult, runGroundJob } from '../art/groundJob';
-import { renderBridge, renderFence, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../art/props';
+import { renderBridge, renderFence, renderFencePost, renderFlowerBed, renderIronFence, renderPalisade, renderPatch, renderStoneWall } from '../art/props';
 import { GateKind, renderBarrier, renderWallBlock } from '../art/buildings';
 import { renderTuft, softenBase } from '../art/settle';
 import { FEET_TO_DEPTH, pixmapTexture, placeBuilding, placeProp } from './drawnArt';
 import { ALL_ZONES } from './zones';
-import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, lightMap, plan, step } from './zonePlan';
+import { BuildingSpot, ZoneArt, zoneMargin, buildingArt, dpropArt, dpropDepth, dpropOffGround, fencePosts, lightMap, plan, step } from './zonePlan';
 import { Ambience } from './ambience';
 
 export type { BuildingSpot, PropSpot, ZoneArt, ZoneLight } from './zonePlan';
@@ -124,6 +124,15 @@ export function paintZone(scene: Phaser.Scene, art: ZoneArt): PaintedZone {
   Object.values<BuildingSpot>(art.buildings ?? {}).forEach((b) => placeBuilding(scene, b.kind, b.x, b.y, b.w, b.h));
   (art.props ?? []).forEach((p, idx) => placeProp(scene, p.kind, p.x, p.y, p.seed ?? idx + 1));
   (art.fences ?? []).forEach((f) => {
+    if (f.vertical) {
+      fencePosts(f).forEach((py, i, all) => {
+        const up = i ? py - all[i - 1] : 0;
+        const a = renderFencePost(up);
+        const key = pixmapTexture(scene, `fencepost-${up}`, softenBase(a.pm, a.anchorY));
+        scene.add.image(Math.round(f.x - a.anchorX), Math.round(py - a.anchorY), key).setOrigin(0, 0).setDepth(py - FEET_TO_DEPTH);
+      });
+      return;
+    }
     const a = renderFence(f.len);
     const key = pixmapTexture(scene, `fence-${f.len}`, softenBase(a.pm, a.anchorY));
     scene.add.image(Math.round(f.x - a.anchorX), Math.round(f.y - a.anchorY), key).setOrigin(0, 0).setDepth(f.y - FEET_TO_DEPTH);

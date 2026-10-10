@@ -178,7 +178,8 @@ export class ArchivesScene extends Phaser.Scene {
     const y = 60;
     if (this.clearedMonsterIds.has(TREASURE_MONSTER_ID + y)) return;
 
-    this.add.rectangle(x, y, 40, 40, 0x4a3f5a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    const marker = this.add.rectangle(x, y, 40, 40, 0x4a3f5a, 0.85).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, `monster-${TREASURE_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${TREASURE_MONSTER_ID}.png`, 32);
 
     const zone = this.add.zone(x, y, 40, 40);
     this.physics.add.existing(zone, true);

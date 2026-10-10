@@ -140,6 +140,18 @@ export const NPC_LOOKS: Record<string, Look> = {
     quiver: true,
     skin: TAN,
   },
+  // The scout who watches the goblin camp from the edge of the woods.
+  forest_scout: {
+    race: 'human',
+    head: { shape: 'hood', mat: OLIVE_CLOTH },
+    chest: { shape: 'leather', mat: DARK_LEATHER },
+    legs: { shape: 'pants', mat: LEATHER },
+    boots,
+    gloves: { shape: 'bracers', mat: DARK_LEATHER },
+    cape: { shape: 'cape', mat: OLIVE_CLOTH },
+    main: { shape: 'spear', mat: WOOD },
+    hair: AUBURN,
+  },
   informant_faubourg: {
     race: 'halfling',
     head: { shape: 'hood', mat: CHARCOAL },

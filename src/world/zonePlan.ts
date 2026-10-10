@@ -60,7 +60,9 @@ export interface ZoneArt<B extends string = string> {
   ground: GroundSpec;
   buildings?: Record<B, BuildingSpot>;
   props?: PropSpot[];
-  fences?: { x: number; y: number; len: number }[];
+  // Wooden fences; a vertical one runs north-south, len long, centered on
+  // (x, y).
+  fences?: { x: number; y: number; len: number; vertical?: boolean }[];
   stoneWalls?: { x: number; y: number; len: number }[];
   palisades?: { x: number; y: number; len: number }[];
   beds?: { x: number; y: number; w: number; h: number }[];
@@ -158,6 +160,13 @@ export function zoneMargin(art: ZoneArt): [number, number] {
 // Trodden earth only shows on soft ground (not on a paved town).
 const SOFT = new Set(['grass', 'forest', 'dirt', 'sand', 'marsh', 'blight', 'cave', 'mud']);
 
+// Where the posts of a north-south fence stand (their feet, top to bottom).
+export function fencePosts(f: { y: number; len: number }): number[] {
+  const n = Math.max(1, Math.round(f.len / 8));
+  const y0 = Math.round(f.y - f.len / 2);
+  return Array.from({ length: n + 1 }, (_, i) => y0 + Math.round((i * f.len) / n));
+}
+
 export function plan(art: ZoneArt): GroundJob {
   const ops: GroundOp[] = [];
   const soft = SOFT.has(art.ground.base);
@@ -186,6 +195,11 @@ export function plan(art: ZoneArt): GroundJob {
     blockers.push({ kind: 'circle', x: p.x, y: p.y, r: 20 });
   });
   (art.fences ?? []).forEach((f, idx) => {
+    if (f.vertical) {
+      fencePosts(f).forEach((py, i) => tufts.push(...tuftsAround(f.x, py, 2, idx * 3 + i, 1)));
+      blockers.push({ kind: 'rect', x0: f.x - 8, y0: f.y - f.len / 2 - 12, x1: f.x + 8, y1: f.y + f.len / 2 + 12 });
+      return;
+    }
     const x0 = f.x - Math.round(f.len / 2);
     ops.push({ op: 'occlude', x0, x1: x0 + f.len - 1, y: Math.round(f.y + 1), depth: 2, strength: 0.3 });
     for (let px = 1; px < f.len - 1; px += 8) tufts.push(...tuftsAround(x0 + px + 1, f.y, 2, idx * 3 + px, 1));

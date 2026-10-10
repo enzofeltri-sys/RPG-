@@ -55,8 +55,6 @@ const SUNKEN_ROAD_PROPS: PropSpot[] = [
   // The drowned ruins (where the scene had them).
   { kind: 'sunken_ruin', x: 70, y: 96, seed: 1 },
   { kind: 'sunken_ruin', x: 140, y: 66, seed: 2 },
-  { kind: 'sunken_ruin', x: 316, y: 346, seed: 3 },
-  { kind: 'sunken_ruin', x: 236, y: 376, seed: 4 },
   { kind: 'sunken_ruin', x: 190, y: 262, seed: 5 },
   { kind: 'sunken_ruin', x: 230, y: 92, seed: 6 },
   { kind: 'ruin_pillar', x: 256, y: 330, seed: 1 },

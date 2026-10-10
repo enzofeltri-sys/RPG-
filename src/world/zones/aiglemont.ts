@@ -207,11 +207,12 @@ export const ROAD: ZoneArt = {
     [{ x: 0, y: 300, w: 140, h: 100 }, 7, 24, [['tree', 3], ['pine', 3], ['bush', 2]], 213, 6],
     [{ x: 380, y: 320, w: 100, h: 80 }, 6, 24, [['pine', 3], ['tree', 2], ['bush', 2]], 214, 6],
     [{ x: 250, y: 330, w: 130, h: 70 }, 4, 26, [['tree', 2], ['bush', 2], ['rock_small', 1]], 215, 6],
+    // Wayside growth: hedges, tall grass and flowers along the verges.
+    [{ x: 0, y: 4, w: 480, h: 396 }, 26, 24, [['bush', 2], ['flower_bush', 2], ['tall_grass', 5], ['flowers', 5], ['rock_small', 1]], 216, 4],
   ])],
   fences: [
-    { x: 300, y: 248, len: 56 },
-    { x: 362, y: 310, len: 40 },
-    { x: 180, y: 298, len: 48 },
+    { x: 325, y: 248, len: 112 },
+    { x: 180, y: 298, len: 82 },
     { x: 72, y: 290, len: 24 },
   ],
   meadow: { n: 36, seed: 211 },

@@ -92,12 +92,12 @@ export class FieldScene extends Phaser.Scene {
     // Ground, stream, bridge and decor drawn by the game (world/zones/field.ts).
     const painted = paintZone(this, FIELD);
 
-    // A bit of grazing livestock — pure ambiance, south bank only (river
-    // colliders aren't set up yet at this point, so keep clear of the
-    // gather nodes/zones instead of relying on them for placement).
+    // Sheep grazing in their pasture (world/zones/field.ts: fenced on all
+    // four sides, a gate on the road side) — pure ambiance.
     this.sheep = [
-      new Wanderer(this, 220, 280, 0xd8cbb0, 25, 'sheep'),
-      new Wanderer(this, 350, 320, 0xc8bba0, 20, 'sheep'),
+      new Wanderer(this, 166, 244, 0xd8cbb0, 18, 'sheep'),
+      new Wanderer(this, 196, 268, 0xc8bba0, 12, 'sheep'),
+      new Wanderer(this, 134, 270, 0xd8cbb0, 10, 'sheep'),
     ];
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);

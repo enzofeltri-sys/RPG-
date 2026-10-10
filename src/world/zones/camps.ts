@@ -99,7 +99,11 @@ const BANDIT_CAMP_PROPS: PropSpot[] = [
   { kind: 'wagon_cart', x: 210, y: 236, seed: 5 },
   { kind: 'barrel', x: 30, y: 210 },
   { kind: 'barrel', x: 38, y: 214 },
-  { kind: 'lamppost', x: 106, y: 72 },
+  // More of the band: a tent at the back, firewood, a rack of pelts.
+  { kind: 'tent', x: 34, y: 98, seed: 3 },
+  { kind: 'woodpile', x: 228, y: 96 },
+  { kind: 'pelt_rack', x: 50, y: 228, seed: 2 },
+  { kind: 'barrel', x: 226, y: 206 },
 ];
 
 export const BANDIT_CAMP: ZoneArt = {
@@ -118,6 +122,11 @@ export const BANDIT_CAMP: ZoneArt = {
     [{ x: 0, y: 10, w: 260, h: 390 }, 16, 32, [['tree', 3], ['pine', 2], ['big_tree', 1]], 82, 80],
     [{ x: 0, y: 10, w: 260, h: 390 }, 16, 22, [['bush', 3], ['rock_small', 2], ['stump', 2], ['boulder_large', 1]], 83, 40],
   ])],
+  // Fire baskets either side of the stockade gate where the chief waits.
+  dprops: [
+    { kind: 'brazier', x: 104, y: 52 },
+    { kind: 'brazier', x: 156, y: 52 },
+  ],
   palisades: [
     { x: 50, y: 36, len: 80 },
     { x: 210, y: 36, len: 80 },

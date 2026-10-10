@@ -200,7 +200,8 @@ export class SanctuaryDepthsScene extends Phaser.Scene {
   private addBossZone(): void {
     const x = WORLD_WIDTH / 2;
     const y = 70;
-    this.add.rectangle(x, y, 50, 50, 0x140a1a, 0.9).setStrokeStyle(2, 0xe8d9b5);
+    const marker = this.add.rectangle(x, y, 50, 50, 0x140a1a, 0.9).setStrokeStyle(2, 0xe8d9b5);
+    void attachSpriteOverlay(this, marker, `monster-${BOSS_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${BOSS_MONSTER_ID}.png`, 40);
 
     const zone = this.add.zone(x, y, 50, 50);
     this.physics.add.existing(zone, true);

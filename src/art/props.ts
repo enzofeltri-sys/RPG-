@@ -2182,11 +2182,12 @@ function sunkenRuin(seed: number): PropArt {
       pm.set(x, y, c);
     }
   }
-  // An arch's opening.
+  // An arch's opening, open to the bog behind: a free-standing ruin, not
+  // a doorway into anything.
   for (let y = 14; y <= base; y++) for (let x = 9; x <= 16; x++) {
     const ax = (x - 12.5) / 3.5;
     if (y < 18 && ax * ax + ((y - 18) / 4) ** 2 > 1) continue;
-    pm.set(x, y, y > base - 4 ? [44, 64, 52] : [30, 30, 36]);
+    pm.set(x, y, [0, 0, 0], 0);
   }
   if (rnd() < 0.7) pm.set(5, top(5) - 1, MOSS[1]);
   outlineOpaque(pm);
@@ -2422,6 +2423,29 @@ export function renderProp(kind: PropKind, seed = 1): PropArt {
 
 export function renderFence(len: number): PropArt {
   return fence(len);
+}
+
+// One post of a fence running north-south, with its rails going back up
+// to the post before it (railUp pixels higher; 0 for the first post).
+// Each post is its own picture so people sort in front of or behind it.
+export function renderFencePost(railUp: number): PropArt {
+  const pm = new Pixmap(5, railUp + 20);
+  const base = railUp + 18;
+  if (railUp) {
+    for (let y = 6; y <= railUp + 12; y++) {
+      pm.set(1, y, lit(WOOD_GREY, 0.6 + (hash2(1, y >> 2, 43) - 0.5) * 0.4));
+      pm.set(2, y, lit(WOOD_GREY, -0.3));
+    }
+  }
+  const lean = hash2(railUp, 1, 41) < 0.3 ? 1 : 0;
+  for (let y = railUp + 3 + lean; y <= base; y++) {
+    pm.set(1, y, lit(WOOD_GREY, 0.45));
+    pm.set(2, y, lit(WOOD_GREY, -0.1 + (hash2(railUp, y >> 2, 42) < 0.2 ? -0.4 : 0)));
+    pm.set(3, y, lit(WOOD_GREY, -0.7));
+  }
+  pm.set(2, railUp + 2 + lean, WOOD_GREY[1]);
+  outlineOpaque(pm);
+  return { pm, anchorX: 2, anchorY: base };
 }
 
 export function renderStoneWall(len: number, seed = 1): PropArt {

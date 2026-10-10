@@ -27,6 +27,21 @@ export interface Interactable {
   onTap: () => void;
 }
 
+// Things a scene's helpers add on their own (a signpost to read), so the
+// scene doesn't have to list them: kept per scene for its current run and
+// appended after the scene's own interactables (those win in an overlap).
+const sceneExtras = new WeakMap<Phaser.Scene, Interactable[]>();
+
+export function addSceneInteractable(scene: Phaser.Scene, item: Interactable): void {
+  let list = sceneExtras.get(scene);
+  if (!list) {
+    list = [];
+    sceneExtras.set(scene, list);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => sceneExtras.delete(scene));
+  }
+  list.push(item);
+}
+
 // Replaces the old joystick + "Action" button: tap empty ground to walk
 // there, tap an NPC/object to walk toward it and trigger it on arrival. No
 // real pathfinding, but a target on the far side of an obstacle no longer
@@ -65,8 +80,8 @@ export class TapController {
   }
 
   setInteractables(list: Interactable[]): void {
-    this.interactables = list;
-    this.warnOnOverlaps(list);
+    this.interactables = [...list, ...(sceneExtras.get(this.scene) ?? [])];
+    this.warnOnOverlaps(this.interactables);
   }
 
   // handlePointerDown resolves a tap to the FIRST interactable within its

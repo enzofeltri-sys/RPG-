@@ -13,7 +13,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -68,7 +68,6 @@ export class RiverRoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#5f9a46');
-    addZoneTitle(this, 'Route fluviale');
     // The road, the river (solid) and its banks are drawn by the game
     // (world/zones/aiglemont.ts).
     const painted = paintZone(this, RIVER_ROAD);
@@ -98,10 +97,10 @@ export class RiverRoadScene extends Phaser.Scene {
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('HunterOutpost', { x: 40, y: 150 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Faubourg', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(
       0.5,
     );
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Relais →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);

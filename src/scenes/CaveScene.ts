@@ -12,7 +12,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const CHEST_ID = 'cave_chest_1';
 
@@ -76,7 +76,6 @@ export class CaveScene extends Phaser.Scene {
   async create(): Promise<void> {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#20202a');
-    addZoneTitle(this, 'Grotte');
     // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
     const painted = paintZone(this, CAVE);
 
@@ -104,11 +103,11 @@ export class CaveScene extends Phaser.Scene {
     this.physics.add.existing(northZone, true);
     this.physics.add.overlap(this.player, northZone, () => this.leaveTo('Village', { x: 240, y: 60 }));
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
-    addCrispText(this, WORLD_WIDTH / 2, 22, 'Valombre ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 22, '↑', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -155,10 +154,6 @@ export class CaveScene extends Phaser.Scene {
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x4a2a4a, 0.8).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, 'monster-cave_spider', `${import.meta.env.BASE_URL}sprites/monsters/cave_spider.png`, 26);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);
     this.physics.add.existing(zone, true);
@@ -166,7 +161,6 @@ export class CaveScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(encounter.id);
       this.startCombat();

@@ -11,7 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 260;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -72,14 +72,12 @@ export class GoblinCampScene extends Phaser.Scene {
     this.dialog = undefined;
     this.cameras.main.setBackgroundColor('#2a3a24');
 
-    addZoneTitle(this, 'Camp de gobelins');
 
     // Ground, huts or tents, fire and decor drawn by the game (world/zones/camps.ts).
     paintZone(this, GOBLIN_CAMP);
 
     this.scout = this.add.rectangle(190, 185, 14, 20, 0x3a5a3a).setStrokeStyle(1, 0x0b0c10);
     this.physics.add.existing(this.scout, true);
-    addCrispText(this, 190, 165, 'Éclaireuse', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.scout);
@@ -100,7 +98,7 @@ export class GoblinCampScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveCamp());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -247,10 +245,6 @@ export class GoblinCampScene extends Phaser.Scene {
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x3a4a2a, 0.8).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, 'monster-goblin_brute', `${import.meta.env.BASE_URL}sprites/monsters/goblin_brute.png`, 26);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);
     this.physics.add.existing(zone, true);
@@ -258,7 +252,6 @@ export class GoblinCampScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(encounter.id);
       this.startCombat('goblin_brute');
@@ -275,18 +268,12 @@ export class GoblinCampScene extends Phaser.Scene {
     const y = 30;
     const marker = this.add.rectangle(x, y, 34, 34, 0x2a3a20, 0.85).setStrokeStyle(2, 0xe8d9b5);
     void attachSpriteOverlay(this, marker, 'monster-goblin_chief', `${import.meta.env.BASE_URL}sprites/monsters/goblin_chief.png`, 34);
-    const label = addCrispText(this, x, y - 26, 'Chef des gobelins', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 34, 34);
     this.physics.add.existing(zone, true);
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(LEADER_ZONE_ID);
       this.startCombat('goblin_chief');

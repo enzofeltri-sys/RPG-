@@ -11,7 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
@@ -75,14 +75,12 @@ export class FaubourgScene extends Phaser.Scene {
     // basin (solid either side of its footbridge), shacks and storehouse.
     const painted = paintZone(this, FAUBOURG);
 
-    addZoneTitle(this, 'Le Faubourg des quais');
 
     // Off the x=130 centerline (spawn sits on it), same lesson as every other
     // location this session.
     this.informant = this.add.rectangle(190, 185, 14, 20, 0x5a6a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.informant, 'npc-informant_faubourg', `${import.meta.env.BASE_URL}sprites/npc/informant_faubourg.png`, 24);
     this.physics.add.existing(this.informant, true);
-    addCrispText(this, 190, 165, 'Renn', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.informant);
@@ -109,7 +107,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveFaubourg());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -120,7 +118,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.physics.add.existing(warehouseZone, true);
     this.physics.add.overlap(this.player, warehouseZone, () => this.enterWarehouse());
 
-    addCrispText(this, WORLD_WIDTH / 2, 30, 'Entrepôt ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 30, '↑', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -131,7 +129,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.physics.add.existing(riverZone, true);
     this.physics.add.overlap(this.player, riverZone, () => this.enterRiverRoad());
 
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Route fluviale →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -144,7 +142,7 @@ export class FaubourgScene extends Phaser.Scene {
     const chapelZone = this.add.zone(10, 200, 20, 320);
     this.physics.add.existing(chapelZone, true);
     this.physics.add.overlap(this.player, chapelZone, () => this.enterSunkenChapel());
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Chapelle engloutie', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -293,10 +291,6 @@ export class FaubourgScene extends Phaser.Scene {
   private addEncounterZone(encounter: EncounterMarker): void {
     const marker = this.add.rectangle(encounter.x, encounter.y, 26, 26, 0x3a4a5a, 0.8).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, 'monster-smuggler_thug', `${import.meta.env.BASE_URL}sprites/monsters/smuggler_thug.png`, 26);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 26, 26);
     this.physics.add.existing(zone, true);
@@ -304,7 +298,6 @@ export class FaubourgScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedEncounterIds.add(encounter.id);
       this.startCombat();
@@ -357,7 +350,7 @@ export class FaubourgScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('City', { x: 500, y: 240 });
+      this.scene.start('City', { x: 484, y: 250 });
     });
   }
 }

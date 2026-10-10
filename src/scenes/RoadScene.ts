@@ -10,7 +10,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -75,7 +75,6 @@ export class RoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#5f9a46');
-    addZoneTitle(this, 'Route commerciale');
     // The road, the caravan's halt, fields and woods are drawn by the game
     // (world/zones/aiglemont.ts).
     paintZone(this, ROAD);
@@ -86,7 +85,6 @@ export class RoadScene extends Phaser.Scene {
     this.guard = this.add.rectangle(150, 60, 14, 20, 0x5a5a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.guard, 'npc-guard_generic', `${import.meta.env.BASE_URL}sprites/npc/guard_generic.png`, 24);
     this.physics.add.existing(this.guard, true);
-    addCrispText(this, 150, 40, 'Garde de caravane', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Ambient traveler, clear of both the guard and the wagon decorations.
     this.traveler = new Wanderer(this, 320, 60, 0x6a7a5a, 30, 'villager_wanderer');
@@ -112,10 +110,10 @@ export class RoadScene extends Phaser.Scene {
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('City', { x: 40, y: 280 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Valombre', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(
       0.5,
     );
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Aiglemont →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -127,7 +125,7 @@ export class RoadScene extends Phaser.Scene {
     const waystationZone = this.add.zone(240, 15, 40, 20);
     this.physics.add.existing(waystationZone, true);
     this.physics.add.overlap(this.player, waystationZone, () => this.enterCorruptedWaystation());
-    addCrispText(this, 240, 28, 'Vieille halte ↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 240, 28, '↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     // Local const (not `this.traveler.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would
@@ -208,18 +206,12 @@ export class RoadScene extends Phaser.Scene {
     const y = 250;
     const marker = this.add.rectangle(x, y, 34, 34, 0x4a3a2a, 0.85).setStrokeStyle(2, 0xe8d9b5);
     void attachSpriteOverlay(this, marker, 'monster-corrupted_boar_alpha', `${import.meta.env.BASE_URL}sprites/monsters/corrupted_boar_alpha.png`, 34);
-    const label = addCrispText(this, x, y - 26, 'Sanglier alpha', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 34, 34);
     this.physics.add.existing(zone, true);
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(ALPHA_ZONE_ID);
       this.startEncounter('corrupted_boar_alpha');

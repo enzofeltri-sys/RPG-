@@ -14,7 +14,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
-import { EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -78,7 +78,6 @@ export class SunkenRoadScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#2a3a3a');
-    addZoneTitle(this, 'Route engloutie');
     // The causeway, the bog and the drowned ruins are drawn by the game
     // (world/zones/terresNoyees.ts).
     paintZone(this, SUNKEN_ROAD);
@@ -102,14 +101,14 @@ export class SunkenRoadScene extends Phaser.Scene {
 
     const westZone = this.add.zone(10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
     this.physics.add.existing(westZone, true);
-    this.physics.add.overlap(this.player, westZone, () => this.leaveTo('HunterOutpost', { x: 200, y: 150 }));
+    this.physics.add.overlap(this.player, westZone, () => this.leaveTo('HunterOutpost', { x: 186, y: 150 }));
 
     const eastZone = this.add.zone(WORLD_WIDTH - 10, WORLD_HEIGHT / 2, 20, WORLD_HEIGHT);
     this.physics.add.existing(eastZone, true);
     this.physics.add.overlap(this.player, eastZone, () => this.leaveTo('Vasenoire', { x: 40, y: 150 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Relais', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Vasenoire →', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -123,7 +122,7 @@ export class SunkenRoadScene extends Phaser.Scene {
     const ruinsEntrance = this.add.zone(280, 355, 40, 40);
     this.physics.add.existing(ruinsEntrance, true);
     this.physics.add.overlap(this.player, ruinsEntrance, () => this.enterSunkenRuins());
-    addCrispText(this, 280, 335, 'Ruines ↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 280, 335, '↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     // Local const (not `this.refugee.sprite` inline) so the getters below
     // are plain closures — an object literal's get x()/get y() would

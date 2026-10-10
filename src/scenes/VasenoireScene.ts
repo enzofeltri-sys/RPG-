@@ -12,7 +12,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const RUINS_QUEST_ID = 'vasenoire_ruins';
 const RUINS_LEADER_QUEST_ID = 'vasenoire_ruins_leader';
@@ -66,30 +66,25 @@ export class VasenoireScene extends Phaser.Scene {
     // The town on stilts is drawn by the game (world/zones/terresNoyees.ts).
     paintZone(this, VASENOIRE);
 
-    addZoneTitle(this, 'Vasenoire');
 
     // Off the x=120 spawn-to-exit centerline, same lesson as every other
     // NPC placement this project.
     this.yenn = this.add.rectangle(170, 190, 14, 20, 0x6a5a4a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.yenn, 'npc-vasenoire_local_yenn', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_yenn.png`, 24);
     this.physics.add.existing(this.yenn, true);
-    addCrispText(this, 170, 170, 'Yenn', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Collision boxes for the stall and the forge (both drawn by the game).
     this.merchantStall = this.add.rectangle(50, 170, 28, 22).setVisible(false);
     this.physics.add.existing(this.merchantStall, true);
-    addCrispText(this, 50, 156, 'Étal', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.forge = this.add.rectangle(190, 230, 32, 26).setVisible(false);
     this.physics.add.existing(this.forge, true);
-    addCrispText(this, 190, 214, 'Forge', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Clear of the hut/forge footprints — see MarshLairScene's ENCOUNTERS
     // comment for why every placement in this project double-checks this.
     this.toma = this.add.rectangle(70, 260, 14, 20, 0x5a6a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.toma, 'npc-vasenoire_local_toma', `${import.meta.env.BASE_URL}sprites/npc/vasenoire_local_toma.png`, 24);
     this.physics.add.existing(this.toma, true);
-    addCrispText(this, 70, 240, 'Toma', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 30);
     this.physics.add.collider(this.player, this.yenn);
@@ -115,7 +110,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveVasenoire());
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Terres Noyées', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -128,7 +123,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(dockZone, true);
     this.physics.add.overlap(this.player, dockZone, () => this.leaveToClandestineDock());
 
-    addCrispText(this, WORLD_WIDTH / 2, 24, 'Quai clandestin ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 24, '↑', {
       fontSize: '8px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -140,7 +135,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.physics.add.existing(upstreamZone, true);
     this.physics.add.overlap(this.player, upstreamZone, () => this.enterSilentWatch());
 
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Passage discret →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -561,7 +556,7 @@ export class VasenoireScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('SunkenRoad', { x: WORLD_WIDTH - 40, y: 150 });
+      this.scene.start('SunkenRoad', { x: 360, y: 150 });
     });
   }
 }

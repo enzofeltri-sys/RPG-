@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TapController, Interactable } from '../input/TapController';
 import { createPlayer, updatePlayerMovement, PlayerSprite, setPlayerAppearance } from '../entities/player';
 import { attachSpriteOverlay } from '../entities/spriteOverlay';
-import { BuildingSpot, buildingTop, paintZone } from '../world/zoneArt';
+import { BuildingSpot, paintZone } from '../world/zoneArt';
 import { CITY } from '../world/zones/aiglemont';
 import { Wanderer } from '../entities/wanderer';
 import { Character } from '../game/character';
@@ -13,7 +13,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton, showBanner } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 520;
 const WORLD_HEIGHT = 480;
@@ -77,15 +77,11 @@ export class CityScene extends Phaser.Scene {
     // keeps every building's collision box.
     const painted = paintZone(this, CITY);
 
-    addZoneTitle(this, 'Aiglemont');
 
     const b = CITY.buildings!;
     this.addBuilding(b.garrison);
-    addCrispText(this, b.garrison.x, buildingTop(b.garrison) - 2, 'Caserne', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
     this.addBuilding(b.tower);
-    addCrispText(this, b.tower.x, buildingTop(b.tower) - 2, 'Tour des Mages', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
     this.addBuilding(b.market);
-    addCrispText(this, b.market.x, buildingTop(b.market) - 2, 'Marché', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5, 1);
     // The town houses around the square.
     [b.nw, b.n, b.ne, b.w, b.sw, b.sMid, b.e, b.crypt, b.se].forEach((spot) => this.addBuilding(spot));
 
@@ -94,17 +90,14 @@ export class CityScene extends Phaser.Scene {
     this.captain = this.add.rectangle(150, 190, 14, 20, 0x6a5a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.captain, 'npc-city_captain', `${import.meta.env.BASE_URL}sprites/npc/city_captain.png`, 24);
     this.physics.add.existing(this.captain, true);
-    addCrispText(this, 150, 170, 'Capitaine Bregan', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.mage = this.add.rectangle(400, 220, 14, 20, 0x4a3a7a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.mage, 'npc-city_mage', `${import.meta.env.BASE_URL}sprites/npc/city_mage.png`, 24);
     this.physics.add.existing(this.mage, true);
-    addCrispText(this, 400, 200, 'Mage Sélène', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.merchantNpc = this.add.rectangle(280, 260, 14, 20, 0x7a3a5a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.merchantNpc, 'npc-merchant_generic', `${import.meta.env.BASE_URL}sprites/npc/merchant_generic.png`, 24);
     this.physics.add.existing(this.merchantNpc, true);
-    addCrispText(this, 280, 240, 'Marchand', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // A couple of ambient citizens.
     this.citizens = [new Wanderer(this, 500, 300, 0x7a7a8a, 15, 'villager_wanderer'), new Wanderer(this, 150, 420, 0x8a7a8a, 20, 'villager_wanderer')];
@@ -129,7 +122,7 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(westZone, true);
     this.physics.add.overlap(this.player, westZone, () => this.leaveCity());
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Route commerciale', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -141,7 +134,7 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(catacombsZone, true);
     this.physics.add.overlap(this.player, catacombsZone, () => this.enterCatacombs());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Catacombes ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -152,7 +145,7 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(faubourgZone, true);
     this.physics.add.overlap(this.player, faubourgZone, () => this.enterFaubourg());
 
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Faubourg des quais →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -164,7 +157,7 @@ export class CityScene extends Phaser.Scene {
     this.physics.add.existing(archivesZone, true);
     this.physics.add.overlap(this.player, archivesZone, () => this.enterArchives());
 
-    addCrispText(this, WORLD_WIDTH / 2, 30, 'Archives scellées ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 30, '↑', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -177,7 +170,7 @@ export class CityScene extends Phaser.Scene {
     const cryptZone = this.add.zone(470, 400, 30, 20);
     this.physics.add.existing(cryptZone, true);
     this.physics.add.overlap(this.player, cryptZone, () => this.enterAncestralCrypt());
-    addCrispText(this, 470, 413, 'Ruelle oubliée ↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 470, 413, '↓', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     const interactables: Interactable[] = [
       { x: this.captain.x, y: this.captain.y, radius: 24, onTap: () => this.talkToCaptain() },

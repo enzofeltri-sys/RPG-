@@ -11,7 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment. Low-stakes and short like Le vieux
@@ -69,7 +69,6 @@ export class ArchivesScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#241f2e');
 
-    addZoneTitle(this, 'Les Archives scellées');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     // Ground, walls, decor and light drawn by the game (world/zones/aiglemontDepths.ts).
@@ -94,7 +93,7 @@ export class ArchivesScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveArchives());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -105,7 +104,7 @@ export class ArchivesScene extends Phaser.Scene {
     const vaultZone = this.add.zone(20, 15, 40, 20);
     this.physics.add.existing(vaultZone, true);
     this.physics.add.overlap(this.player, vaultZone, () => this.enterWatchersVault());
-    addCrispText(this, 20, 28, 'Voûte ↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 20, 28, '↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 250, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
@@ -161,10 +160,6 @@ export class ArchivesScene extends Phaser.Scene {
       .rectangle(encounter.x, encounter.y, 28, 28, 0x3a2a4a, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
     this.physics.add.existing(zone, true);
@@ -172,7 +167,6 @@ export class ArchivesScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
       this.startCombat(encounter.monsterId);
@@ -185,11 +179,6 @@ export class ArchivesScene extends Phaser.Scene {
     if (this.clearedMonsterIds.has(TREASURE_MONSTER_ID + y)) return;
 
     this.add.rectangle(x, y, 40, 40, 0x4a3f5a, 0.85).setStrokeStyle(2, 0xe8d9b5);
-    addCrispText(this, x, y - 30, 'Rayonnage scellé', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 40, 40);
     this.physics.add.existing(zone, true);

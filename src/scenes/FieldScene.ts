@@ -19,7 +19,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 480;
 const WORLD_HEIGHT = 480;
@@ -89,7 +89,6 @@ export class FieldScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#3a5a3a');
-    addZoneTitle(this, 'Le Champ');
     // Ground, stream, bridge and decor drawn by the game (world/zones/field.ts).
     paintZone(this, FIELD);
 
@@ -130,24 +129,24 @@ export class FieldScene extends Phaser.Scene {
     this.physics.add.existing(banditCampZone, true);
     this.physics.add.overlap(this.player, banditCampZone, () => this.enterBanditCamp());
 
-    addCrispText(this, WORLD_WIDTH / 2, 30, 'Repaire du Loup ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 30, '↑', {
       fontSize: '11px',
       ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Retour au hameau ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
 
-    addCrispText(this, WORLD_WIDTH - 20, 340, 'Forêt →', {
+    addCrispText(this, WORLD_WIDTH - 20, 340, '→', {
       fontSize: '10px',
       ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
 
-    addCrispText(this, 20, 300, '← Camp de bandits', {
+    addCrispText(this, 20, 300, '←', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -162,9 +161,6 @@ export class FieldScene extends Phaser.Scene {
       '← Camp de bandits',
     ]);
 
-    GATHER_NODES.forEach((node) => {
-      addCrispText(this, node.x, node.y - 16, node.label, { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
-    });
 
     const interactables: Interactable[] = [
       ...GATHER_NODES.map((node) => ({
@@ -291,7 +287,7 @@ export class FieldScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('BanditCamp', { x: 130, y: 180 });
+      this.scene.start('BanditCamp', { x: 130, y: 360 });
     });
   }
 

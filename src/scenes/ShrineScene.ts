@@ -12,7 +12,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 // Large enough to fill the portrait canvas (216x384) at every camera
 // position — see HamletScene's WORLD_HEIGHT comment for why a smaller world
@@ -89,20 +89,17 @@ export class ShrineScene extends Phaser.Scene {
     this.loreIndex = 0;
     this.cameras.main.setBackgroundColor('#3a3a4a');
 
-    addZoneTitle(this, 'Le petit sanctuaire');
 
     // Shrine altar + standing stones, purely decorative.
     // Ground, altar, columns, standing stones and grove drawn by the game
     // (world/zones/shrine.ts).
     paintZone(this, SHRINE);
 
-    addCrispText(this, 100, 22, 'Autel', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     // Off the x=100 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hermit = this.add.rectangle(140, 100, 14, 20, 0x9a8a6a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.hermit, 'npc-shrine_hermit', `${import.meta.env.BASE_URL}sprites/npc/shrine_hermit.png`, 24);
     this.physics.add.existing(this.hermit, true);
-    addCrispText(this, 140, 80, 'Ermite', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.hermit);
@@ -119,7 +116,7 @@ export class ShrineScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveShrine());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -166,7 +163,6 @@ export class ShrineScene extends Phaser.Scene {
       if (getMainQuestStage(this.character) === 'awaiting_meeting') {
         this.silhouette = this.add.rectangle(100, 25, 12, 20, 0x2a2a3a).setStrokeStyle(1, 0xe8d9b5);
     void attachSpriteOverlay(this, this.silhouette, 'npc-mysterious_silhouette', `${import.meta.env.BASE_URL}sprites/npc/mysterious_silhouette.png`, 24);
-        addCrispText(this, 100, 10, 'Silhouette', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
         this.tapControl.setInteractables([
           ...this.baseInteractables,
           { x: 100, y: 25, radius: 20, onTap: () => this.meetSilhouette() },
@@ -179,7 +175,6 @@ export class ShrineScene extends Phaser.Scene {
       // this was placed with that check in mind, not just eyeballed.
       if (FINAL_RITE_STAGES.includes(getMainQuestStage(this.character))) {
         this.add.rectangle(180, 340, 14, 22, 0x2a1a3a).setStrokeStyle(1, 0xe8d9b5);
-        addCrispText(this, 180, 322, 'Faille du rite', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
         this.tapControl.setInteractables([
           ...this.baseInteractables,
           { x: 180, y: 340, radius: 20, onTap: () => this.handleRiteFissure() },

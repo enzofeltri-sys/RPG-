@@ -11,7 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 // Small and short on purpose — the low-stakes counterpart to Dungeon/Catacombs:
 // no gate, no boss, just a couple of easy fights and a guaranteed (but modest)
@@ -70,7 +70,6 @@ export class OldWellScene extends Phaser.Scene {
     // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
     const painted = paintZone(this, OLD_WELL);
 
-    addZoneTitle(this, 'Le vieux puits');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     painted.follow(this.player);
@@ -93,7 +92,7 @@ export class OldWellScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveOldWell());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -152,10 +151,6 @@ export class OldWellScene extends Phaser.Scene {
       .rectangle(encounter.x, encounter.y, 28, 28, encounter.color, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
     this.physics.add.existing(zone, true);
@@ -163,7 +158,6 @@ export class OldWellScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
       this.startCombat(encounter.monsterId);
@@ -176,11 +170,6 @@ export class OldWellScene extends Phaser.Scene {
     if (this.clearedMonsterIds.has(TREASURE_MONSTER_ID + y)) return;
 
     // The pool at the bottom of the well is drawn by paintZone().
-    addCrispText(this, x, y - 30, 'Fond du puits', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 40, 40);
     this.physics.add.existing(zone, true);

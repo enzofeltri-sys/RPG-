@@ -1,15 +1,20 @@
 import type { ReturnSceneKey } from '../ui/returnContext';
 import type { MainQuestStage } from './mainQuest';
 
-// Schematic, not to-scale — the map exists to show relative position and
-// point toward active quests, not to double as a real overworld layout.
-// Split into tabs (see MapScene) purely to fit each region's node count on
-// screen without needing a scrollable/pannable canvas.
-export type MapRegion = 'start' | 'aiglemont' | 'terresnoyees';
+// Schematic, not to-scale, but true to the world: a place reached by a
+// zone's east exit sits to its east on the map, its north exit to its
+// north, and so on (x/y only order the places on a grid, see MapScene).
+// Dungeons hang next to their entrance, deeper rooms further along. Split
+// into tabs to fit each region's places on screen: the start region's
+// outdoors, the depths under its shrine, Aiglemont, the drowned lands.
+export type MapRegion = 'start' | 'sanctuaire' | 'aiglemont' | 'terresnoyees';
 
 export interface MapLocation {
   key: ReturnSceneKey;
   label: string;
+  // Shorter name under the marker when the full one doesn't fit; the full
+  // name shows when the place is tapped.
+  short?: string;
   region: MapRegion;
   x: number;
   y: number;
@@ -17,114 +22,114 @@ export interface MapLocation {
 
 export const MAP_LOCATIONS: MapLocation[] = [
   // Région de départ
-  { key: 'Hamlet', label: 'Basse-Combe', region: 'start', x: 40, y: 55 },
-  { key: 'Farm', label: 'Ferme', region: 'start', x: 100, y: 55 },
-  { key: 'Shrine', label: 'Sanctuaire', region: 'start', x: 160, y: 55 },
-  { key: 'Field', label: 'Le Champ', region: 'start', x: 40, y: 110 },
-  { key: 'Dungeon', label: 'Repaire du Loup', region: 'start', x: 100, y: 110 },
-  { key: 'BanditCamp', label: 'Camp bandits', region: 'start', x: 160, y: 110 },
-  { key: 'Forest', label: 'Forêt', region: 'start', x: 40, y: 165 },
-  { key: 'GoblinCamp', label: 'Camp gobelins', region: 'start', x: 100, y: 165 },
-  { key: 'OldWell', label: 'Vieux puits', region: 'start', x: 160, y: 165 },
-  { key: 'Cave', label: 'Grotte', region: 'start', x: 40, y: 220 },
-  { key: 'Village', label: 'Valombre', region: 'start', x: 100, y: 220 },
+  { key: 'Hamlet', label: 'Basse-Combe', region: 'start', x: 80, y: 220 },
+  { key: 'Farm', label: 'Ferme', region: 'start', x: 40, y: 165 },
+  { key: 'Shrine', label: 'Sanctuaire', region: 'start', x: 160, y: 165 },
+  { key: 'Field', label: 'Le Champ', short: 'Champ', region: 'start', x: 80, y: 165 },
+  { key: 'Dungeon', label: 'Repaire du Loup', short: 'Repaire', region: 'start', x: 80, y: 110 },
+  { key: 'BanditCamp', label: 'Camp bandits', short: 'Bandits', region: 'start', x: 40, y: 110 },
+  { key: 'Forest', label: 'Forêt', region: 'start', x: 120, y: 165 },
+  { key: 'GoblinCamp', label: 'Camp gobelins', short: 'Gobelins', region: 'start', x: 120, y: 110 },
+  { key: 'OldWell', label: 'Vieux puits', short: 'Puits', region: 'start', x: 120, y: 220 },
+  { key: 'Cave', label: 'Grotte', region: 'start', x: 160, y: 110 },
+  { key: 'Village', label: 'Valombre', region: 'start', x: 160, y: 55 },
 
   // Aiglemont et alentours (Actes 2+)
-  { key: 'Road', label: 'Route commerciale', region: 'aiglemont', x: 40, y: 55 },
-  { key: 'City', label: 'Aiglemont', region: 'aiglemont', x: 100, y: 55 },
-  { key: 'Catacombs', label: 'Catacombes', region: 'aiglemont', x: 160, y: 55 },
-  { key: 'Archives', label: 'Archives scellées', region: 'aiglemont', x: 40, y: 110 },
-  { key: 'Faubourg', label: 'Faubourg', region: 'aiglemont', x: 100, y: 110 },
-  { key: 'Warehouse', label: 'Entrepôt', region: 'aiglemont', x: 160, y: 110 },
-  { key: 'RiverRoad', label: 'Route fluviale', region: 'aiglemont', x: 40, y: 165 },
-  { key: 'HunterOutpost', label: 'Relais chasseurs', region: 'aiglemont', x: 100, y: 165 },
-  { key: 'MarshLair', label: 'Tanière marais', region: 'aiglemont', x: 160, y: 165 },
+  { key: 'Road', label: 'Route commerciale', short: 'Route', region: 'aiglemont', x: 40, y: 165 },
+  { key: 'City', label: 'Aiglemont', region: 'aiglemont', x: 80, y: 165 },
+  { key: 'Catacombs', label: 'Catacombes', region: 'aiglemont', x: 80, y: 220 },
+  { key: 'Archives', label: 'Archives scellées', short: 'Archives', region: 'aiglemont', x: 80, y: 110 },
+  { key: 'Faubourg', label: 'Faubourg', region: 'aiglemont', x: 120, y: 110 },
+  { key: 'Warehouse', label: 'Entrepôt', region: 'aiglemont', x: 120, y: 55 },
+  { key: 'RiverRoad', label: 'Route fluviale', short: 'Route fluviale', region: 'aiglemont', x: 160, y: 110 },
+  { key: 'HunterOutpost', label: 'Relais chasseurs', short: 'Relais', region: 'aiglemont', x: 200, y: 110 },
+  { key: 'MarshLair', label: 'Tanière marais', short: 'Tanière', region: 'aiglemont', x: 200, y: 55 },
 
   // Terres Noyées (Acte 2)
-  { key: 'SunkenRoad', label: 'Route engloutie', region: 'terresnoyees', x: 70, y: 55 },
-  { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 140, y: 55 },
-  { key: 'SunkenRuins', label: 'Ruines englouties', region: 'terresnoyees', x: 70, y: 110 },
-  { key: 'ClandestineDock', label: 'Quai clandestin', region: 'terresnoyees', x: 140, y: 110 },
-  { key: 'SealedSanctuary', label: 'Sanctuaire scellé', region: 'terresnoyees', x: 140, y: 165 },
-  { key: 'ShardSeekersCamp', label: 'Camp des Chercheurs', region: 'terresnoyees', x: 140, y: 220 },
-  { key: 'BrotherhoodTomb', label: 'Tombeau de la confrérie', region: 'terresnoyees', x: 70, y: 165 },
+  { key: 'SunkenRoad', label: 'Route engloutie', short: 'Chaussée', region: 'terresnoyees', x: 40, y: 220 },
+  { key: 'Vasenoire', label: 'Vasenoire', region: 'terresnoyees', x: 80, y: 220 },
+  { key: 'SunkenRuins', label: 'Ruines englouties', short: 'Ruines', region: 'terresnoyees', x: 40, y: 275 },
+  { key: 'ClandestineDock', label: 'Quai clandestin', short: 'Quai', region: 'terresnoyees', x: 80, y: 165 },
+  { key: 'SealedSanctuary', label: 'Sanctuaire scellé', short: 'Sanctuaire', region: 'terresnoyees', x: 80, y: 110 },
+  { key: 'ShardSeekersCamp', label: 'Camp des Chercheurs', short: 'Camp', region: 'terresnoyees', x: 80, y: 55 },
+  { key: 'BrotherhoodTomb', label: 'Tombeau de la confrérie', short: 'Tombeau', region: 'terresnoyees', x: 80, y: 275 },
 
   // Première zone corrompue en dehors des Terres Noyées — la contamination
   // du tombeau remonte vers l'Aiglemont.
-  { key: 'BlightedGrove', label: 'Bosquet corrompu', region: 'aiglemont', x: 100, y: 220 },
+  { key: 'BlightedGrove', label: 'Bosquet corrompu', short: 'Bosquet', region: 'aiglemont', x: 200, y: 165 },
 
   // Le site originel du scellement, révélé caché sous le petit sanctuaire
   // de la région de départ.
-  { key: 'SealChamber', label: 'Chambre du Scellement', region: 'start', x: 160, y: 220 },
+  { key: 'SealChamber', label: 'Chambre du Scellement', short: 'Chambre du Sceau', region: 'sanctuaire', x: 80, y: 165 },
 
   // Un poste d'observation de la confrérie fondatrice, en amont du delta —
   // le passage discret que la silhouette du sanctuaire empruntait.
-  { key: 'SilentWatch', label: 'Vigie silencieuse', region: 'terresnoyees', x: 200, y: 55 },
+  { key: 'SilentWatch', label: 'Vigie silencieuse', short: 'Vigie', region: 'terresnoyees', x: 120, y: 220 },
 
   // Une chambre plus profonde sous la Vigie silencieuse elle-même, jamais
   // mentionnée dans les textes retrouvés jusqu'ici.
-  { key: 'WardCore', label: 'Cœur du réseau', region: 'terresnoyees', x: 200, y: 110 },
+  { key: 'WardCore', label: 'Cœur du réseau', short: 'Cœur', region: 'terresnoyees', x: 120, y: 165 },
 
   // Une voûte scellée sous les Archives d'Aiglemont — la première fois que
   // l'Ordre des Veilleurs est nommé comme tel dans le jeu.
-  { key: 'WatchersVault', label: 'Voûte des Veilleurs', region: 'aiglemont', x: 40, y: 220 },
+  { key: 'WatchersVault', label: 'Voûte des Veilleurs', short: 'Voûte', region: 'aiglemont', x: 40, y: 55 },
 
   // Une chambre plus profonde encore sous le tombeau de la confrérie
   // fondatrice, jamais atteinte lors du pillage de fin d'Acte 2 — ce que le
   // vol de l'éclat majeur a réellement dérangé.
-  { key: 'BrokenSleep', label: 'Le Sommeil brisé', region: 'terresnoyees', x: 70, y: 220 },
+  { key: 'BrokenSleep', label: 'Le Sommeil brisé', short: 'Sommeil brisé', region: 'terresnoyees', x: 120, y: 275 },
 
   // Ce que corruption_heart n'était qu'un symptôme de, sous le bosquet
   // corrompu — jamais atteint quand ce cœur a été vaincu.
-  { key: 'CorruptedRoot', label: 'La Racine corrompue', region: 'aiglemont', x: 160, y: 220 },
+  { key: 'CorruptedRoot', label: 'La Racine corrompue', short: 'Racine', region: 'aiglemont', x: 200, y: 220 },
 
   // Une fissure trouvée derrière la chambre du primordial_guardian
   // lui-même, à la source de toute la chaîne théorisée par Sélène.
-  { key: 'SealDepths', label: 'La Faille du Sceau', region: 'start', x: 200, y: 220 },
+  { key: 'SealDepths', label: 'La Faille du Sceau', short: 'Faille', region: 'sanctuaire', x: 80, y: 110 },
 
   // La loge où l'Ordre des Veilleurs se réunissait autrefois, révélée par
   // les marques gravées sur le fragment laissé au joueur.
-  { key: 'WatchersLodge', label: 'La Loge des Veilleurs', region: 'start', x: 200, y: 165 },
+  { key: 'WatchersLodge', label: 'La Loge des Veilleurs', short: 'Loge', region: 'sanctuaire', x: 120, y: 165 },
 
   // Ce que la loge gardait de plus précieux : les instructions du rite de
   // scellement lui-même, plus profondes que la table ronde.
-  { key: 'RiteArchive', label: 'Les Archives du Rite', region: 'start', x: 200, y: 110 },
+  { key: 'RiteArchive', label: 'Les Archives du Rite', short: 'Archives du Rite', region: 'sanctuaire', x: 120, y: 110 },
 
   // Des rayonnages scellés au fond des Archives du Rite, inaccessibles
   // jusqu'à ce que la confiance rendue à la silhouette en lève le ward.
-  { key: 'RiteAnnex', label: "L'Annexe scellée", region: 'start', x: 200, y: 55 },
+  { key: 'RiteAnnex', label: "L'Annexe scellée", short: 'Annexe', region: 'sanctuaire', x: 120, y: 55 },
 
   // Un vieux cimetière à l'écart de Valombre, que les enfants évitent sans
   // qu'on ait besoin de le leur dire — jamais relié à un nom jusqu'à ce
   // qu'un prénom sorti d'une légende y ramène l'enquête.
-  { key: 'ForgottenGrave', label: 'Le Vieux Cimetière', region: 'start', x: 100, y: 275 },
+  { key: 'ForgottenGrave', label: 'Le Vieux Cimetière', short: 'Cimetière', region: 'start', x: 120, y: 55 },
 
   // Une maison scellée du vieux quartier d'Aiglemont, jamais reliée à un
   // nom jusqu'à ce que le registre de l'Ordre en révèle un.
-  { key: 'AncestralCrypt', label: 'La Crypte des Aînés', region: 'aiglemont', x: 200, y: 55 },
+  { key: 'AncestralCrypt', label: 'La Crypte des Aînés', short: 'Crypte', region: 'aiglemont', x: 40, y: 220 },
 
   // Les registres notariaux de la guilde des marchands, sous l'entrepôt du
   // Faubourg — la seule trace civile d'une transmission de titre.
-  { key: 'GuildArchive', label: 'Les Registres de la Guilde', region: 'aiglemont', x: 200, y: 110 },
+  { key: 'GuildArchive', label: 'Les Registres de la Guilde', short: 'Registres', region: 'aiglemont', x: 160, y: 55 },
 
   // Une vieille halte à l'écart de la route commerciale, où la corruption
   // ressurgit soudainement — comme si elle réagissait à l'approche de la
   // silhouette.
-  { key: 'CorruptedWaystation', label: 'La Halte corrompue', region: 'aiglemont', x: 200, y: 165 },
+  { key: 'CorruptedWaystation', label: 'La Halte corrompue', short: 'Halte', region: 'aiglemont', x: 40, y: 110 },
 
   // Une chapelle engloutie sous les vieux quais du Faubourg, bâtie à la
   // même époque que le Sceau originel — le premier second site confirmé
   // d'un rite pensé pour plusieurs mains à plusieurs endroits.
-  { key: 'SunkenChapel', label: 'La Chapelle engloutie', region: 'aiglemont', x: 200, y: 220 },
+  { key: 'SunkenChapel', label: 'La Chapelle engloutie', short: 'Chapelle', region: 'aiglemont', x: 80, y: 55 },
 
   // Le troisième et dernier site du rite, plus profond encore que la
   // Crypte des Aînés elle-même — jamais cherché faute d'y avoir pensé.
-  { key: 'ThirdAltar', label: 'Le Troisième Autel', region: 'aiglemont', x: 100, y: 275 },
+  { key: 'ThirdAltar', label: 'Le Troisième Autel', short: '3e Autel', region: 'aiglemont', x: 40, y: 275 },
 
   // Le site principal du rite — sous la chambre du Sceau elle-même,
   // au-delà même de ce que primordial_guardian gardait. Ouvert uniquement
   // le soir venu, quand les trois sites doivent tenir en même temps.
-  { key: 'SanctuaryDepths', label: 'Sous le Sceau originel', region: 'start', x: 160, y: 275 },
+  { key: 'SanctuaryDepths', label: 'Sous le Sceau originel', short: 'Sous le Sceau', region: 'sanctuaire', x: 40, y: 165 },
 ];
 
 export const MAP_CONNECTIONS: [ReturnSceneKey, ReturnSceneKey][] = [

@@ -10,7 +10,7 @@ import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addSignpost } from '../ui/signpost';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 400;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -102,7 +102,6 @@ export class ForestScene extends Phaser.Scene {
     this.distanceWalked = 0;
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#24401f');
-    addZoneTitle(this, 'Forêt');
 
     // Ground, woods and trails drawn by the game (world/zones/forest.ts).
     paintZone(this, FOREST);
@@ -147,24 +146,24 @@ export class ForestScene extends Phaser.Scene {
     // Optional detour, a branch off the main west-east road.
     const goblinCampZone = this.add.zone(200, 10, 100, 20);
     this.physics.add.existing(goblinCampZone, true);
-    this.physics.add.overlap(this.player, goblinCampZone, () => this.leaveTo('GoblinCamp', { x: 130, y: 180 }));
+    this.physics.add.overlap(this.player, goblinCampZone, () => this.leaveTo('GoblinCamp', { x: 130, y: 360 }));
 
     // Another optional, low-stakes detour — no quest attached, see OldWellScene.
     const oldWellZone = this.add.zone(200, WORLD_HEIGHT - 10, 100, 20);
     this.physics.add.existing(oldWellZone, true);
     this.physics.add.overlap(this.player, oldWellZone, () => this.leaveTo('OldWell', { x: 110, y: 260 }));
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Champ', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Grotte →', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', { fontSize: '10px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
-    addCrispText(this, 200, 30, 'Camp de gobelins ↑', {
+    addCrispText(this, 200, 30, '↑', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
     }).setOrigin(0.5);
-    addCrispText(this, 200, WORLD_HEIGHT - 22, 'Vieux puits ↓', {
+    addCrispText(this, 200, WORLD_HEIGHT - 22, '↓', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -265,10 +264,6 @@ export class ForestScene extends Phaser.Scene {
       `${import.meta.env.BASE_URL}sprites/monsters/${marker.monsterId}.png`,
       26,
     );
-    const label = addCrispText(this, marker.x, marker.y - 22, marker.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(marker.x, marker.y, 26, 26);
     this.physics.add.existing(zone, true);
@@ -276,7 +271,6 @@ export class ForestScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       shape.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterMarkerIds.add(marker.id);
       this.startMonsterCombat(marker.monsterId);

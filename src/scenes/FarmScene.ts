@@ -11,7 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 const WORLD_WIDTH = 220;
 // Tall enough to fill the portrait canvas at every camera position — see
@@ -71,7 +71,6 @@ export class FarmScene extends Phaser.Scene {
     this.rollNextEncounterThreshold();
     this.cameras.main.setBackgroundColor('#4a5a2a');
 
-    addZoneTitle(this, 'La ferme isolée');
 
     // Farmhouse + crop rows, purely decorative.
     // Ground, buildings and decor drawn by the game (world/zones/farm.ts);
@@ -86,7 +85,6 @@ export class FarmScene extends Phaser.Scene {
     this.farmer = this.add.rectangle(170, 100, 14, 20, 0x8a6a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.farmer, 'npc-farmer_generic', `${import.meta.env.BASE_URL}sprites/npc/farmer_generic.png`, 24);
     this.physics.add.existing(this.farmer, true);
-    addCrispText(this, 170, 80, 'Fermière', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     this.physics.add.collider(this.player, this.farmer);
@@ -105,7 +103,7 @@ export class FarmScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveFarm());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -168,18 +166,12 @@ export class FarmScene extends Phaser.Scene {
     const y = 320;
     const marker = this.add.rectangle(x, y, 30, 30, 0x3a2a1f, 0.85).setStrokeStyle(2, 0xe8d9b5);
     void attachSpriteOverlay(this, marker, 'monster-rat_king', `${import.meta.env.BASE_URL}sprites/monsters/rat_king.png`, 30);
-    const label = addCrispText(this, x, y - 24, 'Roi des rats', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 30, 30);
     this.physics.add.existing(zone, true);
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(KING_ZONE_ID);
       this.startEncounter('rat_king');

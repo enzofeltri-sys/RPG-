@@ -12,7 +12,7 @@ import { SaveManager } from '../save/SaveManager';
 import { playQuestComplete } from '../ui/sound';
 import { addCrispText } from '../ui/text';
 import { DialogBox, DialogButton } from '../ui/dialog';
-import { EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
+import { EXIT_TEXT } from '../ui/kit';
 
 // Wide enough to fill the portrait canvas at every camera position — see
 // HamletScene's WORLD_HEIGHT comment.
@@ -59,13 +59,11 @@ export class HunterOutpostScene extends Phaser.Scene {
     // (world/zones/aiglemont.ts).
     paintZone(this, HUNTER_OUTPOST);
 
-    addZoneTitle(this, 'Relais des chasseurs');
 
     // Off the x=110 spawn-to-exit centerline, same lesson as every other camp/NPC.
     this.hunter = this.add.rectangle(160, 190, 14, 20, 0x5a6a3a).setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, this.hunter, 'npc-hunter_outpost', `${import.meta.env.BASE_URL}sprites/npc/hunter_outpost.png`, 24);
     this.physics.add.existing(this.hunter, true);
-    addCrispText(this, 160, 170, 'Chasseuse', { fontSize: '8px', ...WORLD_TEXT }).setOrigin(0.5);
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT / 2);
     this.physics.add.collider(this.player, this.hunter);
@@ -86,7 +84,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.existing(westZone, true);
     this.physics.add.overlap(this.player, westZone, () => this.leaveOutpost());
 
-    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '← Route fluviale', {
+    addCrispText(this, 30, WORLD_HEIGHT / 2 - 20, '←', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -98,7 +96,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.existing(marshLairZone, true);
     this.physics.add.overlap(this.player, marshLairZone, () => this.enterMarshLair());
 
-    addCrispText(this, WORLD_WIDTH / 2, 30, 'Tanière des marais ↑', {
+    addCrispText(this, WORLD_WIDTH / 2, 30, '↑', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -110,7 +108,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.existing(sunkenRoadZone, true);
     this.physics.add.overlap(this.player, sunkenRoadZone, () => this.enterSunkenRoad());
 
-    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, 'Terres Noyées →', {
+    addCrispText(this, WORLD_WIDTH - 30, WORLD_HEIGHT / 2 - 20, '→', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',
@@ -122,7 +120,7 @@ export class HunterOutpostScene extends Phaser.Scene {
     this.physics.add.existing(blightedGroveZone, true);
     this.physics.add.overlap(this.player, blightedGroveZone, () => this.enterBlightedGrove());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30, 'Bosquet corrompu ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 30, '↓', {
       fontSize: '9px',
       ...EXIT_TEXT,
       align: 'center',

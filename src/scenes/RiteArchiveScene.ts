@@ -11,8 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
-import type { PixelText } from '../ui/pixelFont';
+import { EXIT_TEXT } from '../ui/kit';
 
 const CHEST_ID = 'ritearchive_chest_1';
 
@@ -57,7 +56,6 @@ export class RiteArchiveScene extends Phaser.Scene {
   private clearedMonsterIds = new Set<string>();
   private gate?: Phaser.GameObjects.Rectangle;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
-  private gateLabel?: PixelText;
   private gateArt?: Phaser.GameObjects.Image;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
@@ -80,7 +78,6 @@ export class RiteArchiveScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.cameras.main.setBackgroundColor('#302818');
 
-    addZoneTitle(this, 'Les Archives du Rite');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     // Ground, walls, decor and light drawn by the game (world/zones/startDepths.ts).
@@ -109,7 +106,7 @@ export class RiteArchiveScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveArchive());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -121,7 +118,7 @@ export class RiteArchiveScene extends Phaser.Scene {
     const annexZone = this.add.zone(200, 15, 40, 20);
     this.physics.add.existing(annexZone, true);
     this.physics.add.overlap(this.player, annexZone, () => this.enterRiteAnnex());
-    addCrispText(this, 200, 28, 'Rayonnages ↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 200, 28, '↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
@@ -181,17 +178,12 @@ export class RiteArchiveScene extends Phaser.Scene {
     this.gateArt = placeBarrier(this, 'shelves', WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Rayonnages verrouillés', {
-      fontSize: '8px',
-      ...WORLD_TEXT,
-    }).setOrigin(0.5);
   }
 
   private openGateIfCleared(): void {
     if (this.clearedMonsterIds.size < ENCOUNTERS.length) return;
     this.gateCollider?.destroy();
     this.gate?.destroy();
-    this.gateLabel?.destroy();
     this.gateArt?.destroy();
   }
 
@@ -200,10 +192,6 @@ export class RiteArchiveScene extends Phaser.Scene {
       .rectangle(encounter.x, encounter.y, 28, 28, 0x423722, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
     this.physics.add.existing(zone, true);
@@ -211,7 +199,6 @@ export class RiteArchiveScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
       this.openGateIfCleared();
@@ -224,11 +211,6 @@ export class RiteArchiveScene extends Phaser.Scene {
     const y = 70;
     const marker = this.add.rectangle(x, y, 50, 50, 0x1e1810, 0.85).setStrokeStyle(2, 0xe8d9b5);
     void attachSpriteOverlay(this, marker, `monster-${BOSS_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${BOSS_MONSTER_ID}.png`, 40);
-    addCrispText(this, x, y - 36, 'Le dernier rayonnage', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 50, 50);
     this.physics.add.existing(zone, true);
@@ -272,7 +254,7 @@ export class RiteArchiveScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('WatchersLodge', { x: 30, y: 30 });
+      this.scene.start('WatchersLodge', { x: 30, y: 44 });
     });
   }
 

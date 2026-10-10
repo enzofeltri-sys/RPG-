@@ -11,8 +11,7 @@ import { SaveManager } from '../save/SaveManager';
 import { CharacterSheetPanel } from '../ui/CharacterSheetPanel';
 import { addCrispText } from '../ui/text';
 import { showBanner } from '../ui/dialog';
-import { DANGER_TEXT, EXIT_TEXT, WORLD_TEXT, addZoneTitle } from '../ui/kit';
-import type { PixelText } from '../ui/pixelFont';
+import { EXIT_TEXT } from '../ui/kit';
 
 const CHEST_ID = 'sealchamber_chest_1';
 
@@ -57,7 +56,6 @@ export class SealChamberScene extends Phaser.Scene {
   private gate?: Phaser.GameObjects.Rectangle;
   private gateArt?: Phaser.GameObjects.Image;
   private gateCollider?: Phaser.Physics.Arcade.Collider;
-  private gateLabel?: PixelText;
   private character!: Character;
   private chest!: Phaser.GameObjects.Rectangle;
   private spawnX?: number;
@@ -81,7 +79,6 @@ export class SealChamberScene extends Phaser.Scene {
     // Ground, walls, decor and light drawn by the game (world/zones/underground.ts).
     const painted = paintZone(this, SEAL_CHAMBER);
 
-    addZoneTitle(this, 'Chambre du Scellement');
 
     this.player = createPlayer(this, this.spawnX ?? WORLD_WIDTH / 2, this.spawnY ?? WORLD_HEIGHT - 40);
     painted.follow(this.player);
@@ -108,7 +105,7 @@ export class SealChamberScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     this.physics.add.overlap(this.player, exitZone, () => this.leaveChamber());
 
-    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, 'Sortie ↓', {
+    addCrispText(this, WORLD_WIDTH / 2, WORLD_HEIGHT - 22, '↓', {
       fontSize: '10px',
       ...EXIT_TEXT,
     }).setOrigin(0.5);
@@ -119,7 +116,7 @@ export class SealChamberScene extends Phaser.Scene {
     const depthsZone = this.add.zone(200, 15, 40, 20);
     this.physics.add.existing(depthsZone, true);
     this.physics.add.overlap(this.player, depthsZone, () => this.enterSealDepths());
-    addCrispText(this, 200, 28, 'Faille ↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
+    addCrispText(this, 200, 28, '↑', { fontSize: '8px', ...EXIT_TEXT }).setOrigin(0.5);
 
     this.chest = this.add.rectangle(170, 380, 18, 14, 0x8a6a2a).setStrokeStyle(1, 0x2e1f10);
     void attachSpriteOverlay(this, this.chest, 'decor-treasure_chest_closed', `${import.meta.env.BASE_URL}sprites/decor/treasure_chest_closed.png`, 16);
@@ -179,10 +176,6 @@ export class SealChamberScene extends Phaser.Scene {
     this.gateArt = placeBarrier(this, 'runes', WORLD_WIDTH / 2, GATE_Y, WORLD_WIDTH);
     this.physics.add.existing(this.gate, true);
     this.gateCollider = this.physics.add.collider(this.player, this.gate);
-    this.gateLabel = addCrispText(this, WORLD_WIDTH / 2, GATE_Y - 16, 'Runes du Sceau originel', {
-      fontSize: '8px',
-      ...WORLD_TEXT,
-    }).setOrigin(0.5);
   }
 
   private openGateIfCleared(): void {
@@ -190,7 +183,6 @@ export class SealChamberScene extends Phaser.Scene {
     this.gateCollider?.destroy();
     this.gate?.destroy();
     this.gateArt?.destroy();
-    this.gateLabel?.destroy();
   }
 
   private addEncounterZone(encounter: EncounterMarker): void {
@@ -198,10 +190,6 @@ export class SealChamberScene extends Phaser.Scene {
       .rectangle(encounter.x, encounter.y, 28, 28, 0x3a3450, 0.8)
       .setStrokeStyle(1, 0x0b0c10);
     void attachSpriteOverlay(this, marker, `monster-${encounter.monsterId}`, `${import.meta.env.BASE_URL}sprites/monsters/${encounter.monsterId}.png`, 28);
-    const label = addCrispText(this, encounter.x, encounter.y - 22, encounter.label, {
-      fontSize: '8px',
-      ...DANGER_TEXT,
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(encounter.x, encounter.y, 28, 28);
     this.physics.add.existing(zone, true);
@@ -209,7 +197,6 @@ export class SealChamberScene extends Phaser.Scene {
     const overlap = this.physics.add.overlap(this.player, zone, () => {
       overlap.destroy();
       marker.destroy();
-      label.destroy();
       zone.destroy();
       this.clearedMonsterIds.add(encounter.monsterId + encounter.y);
       this.openGateIfCleared();
@@ -222,11 +209,6 @@ export class SealChamberScene extends Phaser.Scene {
     const y = 70;
     const marker = this.add.rectangle(x, y, 50, 50, 0x1f1a30, 0.85).setStrokeStyle(2, 0xe8d9b5);
     void attachSpriteOverlay(this, marker, `monster-${BOSS_MONSTER_ID}`, `${import.meta.env.BASE_URL}sprites/monsters/${BOSS_MONSTER_ID}.png`, 40);
-    addCrispText(this, x, y - 36, 'Cœur du Sceau', {
-      fontSize: '9px',
-      ...DANGER_TEXT,
-      align: 'center',
-    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, 50, 50);
     this.physics.add.existing(zone, true);

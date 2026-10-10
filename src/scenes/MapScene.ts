@@ -9,21 +9,23 @@ import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, panelText, pr
 import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, centerFrame } from '../ui/screen';
 
 const REGIONS: { id: MapRegion; label: string }[] = [
-  { id: 'start', label: 'Région 1' },
+  { id: 'start', label: 'Départ' },
+  { id: 'sanctuaire', label: 'Sceau' },
   { id: 'aiglemont', label: 'Aiglemont' },
-  { id: 'terresnoyees', label: 'Terres Noyées' },
+  { id: 'terresnoyees', label: 'Noyées' },
 ];
 
 const MAP_TOP = 60;
 const MAP_H = 222;
 const QUEST_INK = '#3260b0';
 
-// worldMap.ts places locations on a loose grid (x 40..200, y 55..275) that
-// later additions squeezed: each region is spread evenly over the parchment
-// from its own distinct columns and rows, so labels keep their room.
+// worldMap.ts places each region's locations on a grid of columns and
+// rows: each region is spread evenly over the parchment from its own
+// distinct columns and rows, labels wrapped to the room between columns.
 interface Layout {
   x: (loc: MapLocation) => number;
   y: (loc: MapLocation) => number;
+  labelWidth: number;
 }
 
 function regionLayout(locations: MapLocation[]): Layout {
@@ -34,9 +36,14 @@ function regionLayout(locations: MapLocation[]): Layout {
     const t = values.length > 1 ? i / (values.length - 1) : 0.5;
     return Math.round((from + (to - from) * t) / 2) * 2;
   };
-  const sx = spread(xs, SCREEN_LEFT + 28, SCREEN_LEFT + SCREEN_INNER_W - 28);
-  const sy = spread(ys, MAP_TOP + 18, MAP_TOP + MAP_H - 40);
-  return { x: (l) => sx(l.x), y: (l) => sy(l.y) };
+  const margin = xs.length >= 5 ? 22 : 30;
+  const sx = spread(xs, SCREEN_LEFT + margin, SCREEN_LEFT + SCREEN_INNER_W - margin);
+  const sy = spread(ys, MAP_TOP + 18, MAP_TOP + MAP_H - 48);
+  const gap = xs.length > 1 ? (SCREEN_INNER_W - margin * 2) / (xs.length - 1) : 60;
+  // With many columns, every other one sits a little lower so neighbouring
+  // names don't run into each other.
+  const stagger = (l: MapLocation) => (xs.length >= 5 && xs.indexOf(l.x) % 2 === 1 ? 12 : 0);
+  return { x: (l) => sx(l.x), y: (l) => sy(l.y) + stagger(l), labelWidth: Math.min(40, Math.floor(gap) - 2) };
 }
 
 // Carte in UI style A: a parchment map per region with dotted roads, a red
@@ -144,9 +151,9 @@ export class MapScene extends Phaser.Scene {
       }
       // A parchment patch under each label so roads pass beneath the text.
       const backdrop = this.add.graphics();
-      const label = panelText(this, x, y + size / 2 + 6, loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
+      const label = panelText(this, x, y + size / 2 + 6, loc.short ?? loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
         align: 'center',
-        wordWrap: { width: 40 },
+        wordWrap: { width: layout.labelWidth },
       }).setOrigin(0.5, 0);
       backdrop.fillStyle(PAL.Q, 1).fillRect(Math.round(label.x - label.width / 2) - 1, label.y, Math.ceil(label.width) + 2, Math.ceil(label.height));
       this.add

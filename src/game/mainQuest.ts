@@ -168,6 +168,11 @@ const STAGE_ORDER: Record<MainQuestStage, number> = {
   ending_ascension: 114,
 };
 
+// How far the story has gone, as a number (see STAGE_ORDER).
+export function storyIndex(character: Character): number {
+  return STAGE_ORDER[getMainQuestStage(character)];
+}
+
 const ACT1_COMPLETE_INDEX = STAGE_ORDER.act1_complete;
 const ACT2_COMPLETE_INDEX = STAGE_ORDER.act2_complete;
 

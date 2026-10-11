@@ -69,6 +69,8 @@ const VALOMBRE_PROPS: PropSpot[] = [
   { kind: 'crate', x: 394, y: 494 },
   { kind: 'bench', x: 318, y: 506 },
   { kind: 'lamppost', x: 222, y: 448 },
+  // The passage stone, across the road from the square.
+  { kind: 'waystone', x: 186, y: 254 },
   // The well.
   { kind: 'well', x: 291, y: 560, seed: 1 },
 ];
@@ -94,6 +96,7 @@ const VALOMBRE_KEEP: Keepout = {
     [240, 312, 16], [240, 60, 22], [420, 550, 22], [240, 600, 22], // signpost, arrivals
     [94, 559, 46], [291, 556, 26], // pond, well
     [290, 275, 78], // the square
+    [186, 254, 22], [186, 272, 16], // passage stone, arrival
   ],
 };
 

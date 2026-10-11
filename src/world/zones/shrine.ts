@@ -16,6 +16,8 @@ const SHRINE_PROPS: PropSpot[] = [
   // The hermit's corner: a bench and a woodpile under a tree.
   { kind: 'bench', x: 170, y: 116 },
   { kind: 'woodpile', x: 196, y: 140 },
+  // The Watchers' passage stone, below the terrace.
+  { kind: 'waystone', x: 160, y: 168 },
   // The sacred grove around.
   { kind: 'big_tree', x: 18, y: 54, seed: 4 },
   { kind: 'big_tree', x: 200, y: 66, seed: 6 },
@@ -35,6 +37,7 @@ const SHRINE_KEEP: Keepout = {
   spots: [
     [102, 62, 56], // the altar's terrace
     [140, 100, 18], [170, 116, 16], // the hermit, his bench
+    [160, 168, 22], [160, 186, 16], // passage stone, arrival
     [70, 232, 14], [150, 292, 14], [90, 352, 14], // standing stones
     [110, 360, 22], [180, 300, 20], [100, 88, 20], [150, 260, 20], // arrivals
   ],

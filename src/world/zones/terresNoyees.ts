@@ -120,6 +120,8 @@ export const VASENOIRE: ZoneArt<'hutA' | 'hutB' | 'hutC' | 'hutD'> = {
     { kind: 'lamppost', x: 132, y: 166 },
     { kind: 'lamppost', x: 106, y: 260 },
     { kind: 'crate', x: 30, y: 200 },
+    // The passage stone, on the firm ground by the stall.
+    { kind: 'waystone', x: 96, y: 222 },
     { kind: 'sacks', x: 84, y: 196 },
     { kind: 'swamp_tree', x: 14, y: 40, seed: 1 },
     { kind: 'swamp_tree', x: 228, y: 30, seed: 2 },

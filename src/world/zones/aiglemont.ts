@@ -47,6 +47,8 @@ export const CITY: ZoneArt<
     { kind: 'fountain', x: 262, y: 214, seed: 1 },
     // The square: trees in planters, benches, lamps.
     { kind: 'planter', x: 186, y: 176, seed: 2 },
+    // The Watchers' passage stone, on the square.
+    { kind: 'waystone', x: 222, y: 186 },
     { kind: 'planter', x: 338, y: 182, seed: 3 },
     { kind: 'bench', x: 214, y: 232 },
     { kind: 'bench', x: 318, y: 226 },
@@ -100,7 +102,7 @@ export const CITY: ZoneArt<
   },
   walkers: [
     { look: 'townsman', path: [[16, 272], [120, 268], [200, 242], [320, 242], [420, 256], [496, 252]] },
-    { look: 'townswoman', path: [[258, 14], [258, 140], [220, 176], [178, 226]] },
+    { look: 'townswoman', path: [[258, 14], [258, 150], [296, 176], [298, 204]] },
     { look: 'burgher', path: [[300, 238], [360, 236], [420, 248], [424, 276]] },
   ],
   // The fountain's basin and the well's ring.
@@ -414,6 +416,7 @@ const OUTPOST_KEEP: Keepout = {
     [190, 40, 20],
     [40, 150, 20],
     [186, 150, 20],
+    [40, 212, 22], [40, 230, 16], // passage stone, arrival
   ],
 };
 
@@ -426,6 +429,8 @@ const HUNTER_OUTPOST_PROPS: PropSpot[] = [
   { kind: 'woodpile', x: 186, y: 128 },
   { kind: 'stump', x: 84, y: 194, seed: 3 },
   { kind: 'barrel', x: 126, y: 124 },
+  // The passage stone at the clearing's west edge.
+  { kind: 'waystone', x: 40, y: 212 },
   // The marsh edge, the sickened south.
   { kind: 'reeds', x: 176, y: 28, seed: 1 },
   { kind: 'reeds', x: 204, y: 62, seed: 2 },

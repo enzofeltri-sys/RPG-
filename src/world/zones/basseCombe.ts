@@ -33,6 +33,8 @@ const HAMLET_PROPS: PropSpot[] = [
   { kind: 'pine', x: 226, y: 384, seed: 6 },
   { kind: 'rock_small', x: 60, y: 372, seed: 3 },
   { kind: 'stump', x: 200, y: 372, seed: 1 },
+  // The passage stone, by the east lane.
+  { kind: 'waystone', x: 160, y: 196 },
   // The well, a bucket-worn stone by it.
   { kind: 'well', x: 195, y: 222, seed: 2 },
   { kind: 'rock_small', x: 176, y: 228, seed: 5 },
@@ -56,6 +58,7 @@ const HAMLET_KEEP: Keepout = {
     [40, 140, 20], [120, 40, 20], [200, 140, 20], [120, 370, 20], // arrivals
     [195, 216, 26], [35, 186, 24], [160, 357, 30], // well, gardens
     [150, 389, 22], [100, 372, 14], // hens
+    [160, 196, 22], [160, 214, 16], // passage stone, arrival
   ],
 };
 

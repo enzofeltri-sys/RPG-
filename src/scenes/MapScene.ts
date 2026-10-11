@@ -5,6 +5,7 @@ import { getMainQuestStage } from '../game/mainQuest';
 import { MAP_LOCATIONS, MAP_CONNECTIONS, MAIN_QUEST_LOCATION, QUEST_LOCATIONS, MapLocation, MapRegion, ZONE_LEVEL } from '../game/worldMap';
 import { ReturnContext, ReturnSceneKey, returnSceneStartData } from '../ui/returnContext';
 import { SaveManager } from '../save/SaveManager';
+import { TRAVEL_FROM, Waystone, awakeWaystones } from '../game/waystones';
 import { INK, KitButton, PAL, addPanel, addScreenPanel, buttonRow, panelText, preloadUiKit } from '../ui/kit';
 import { SCREEN_INNER_W, SCREEN_LEFT, actionRow, detailPanel, centerFrame } from '../ui/screen';
 
@@ -48,7 +49,9 @@ function regionLayout(locations: MapLocation[]): Layout {
 
 // Carte in UI style A: a parchment map per region with dotted roads, a red
 // marker where the hero stands and blue ones where a quest leads; tapping a
-// place shows its monsters' level.
+// place shows its monsters' level. Awake passage stones carry a rune; from
+// outdoors (or from a stone) the Carte turns to travel: tap a stone's
+// place, then Voyager.
 export class MapScene extends Phaser.Scene {
   private character!: Character;
   private returnScene: ReturnSceneKey = 'Village';
@@ -56,16 +59,22 @@ export class MapScene extends Phaser.Scene {
   private returnY?: number;
   private region: MapRegion = 'start';
   private selected?: ReturnSceneKey;
+  private travel = false;
 
   constructor() {
     super('Map');
   }
 
-  init(data: ReturnContext): void {
+  init(data: ReturnContext & { travel?: boolean }): void {
     this.returnScene = data?.returnScene ?? 'Village';
     this.returnX = data?.x;
     this.returnY = data?.y;
     this.selected = undefined;
+    this.travel = !!data?.travel && TRAVEL_FROM.has(this.returnScene);
+  }
+
+  private stones(): Map<ReturnSceneKey, Waystone> {
+    return new Map(awakeWaystones(this.character).map((w) => [w.scene, w]));
   }
 
   preload(): void {
@@ -96,7 +105,8 @@ export class MapScene extends Phaser.Scene {
   private render(): void {
     this.children.removeAll(true);
     addScreenPanel(this);
-    panelText(this, this.scale.width / 2, 14, 'Carte', 12).setOrigin(0.5, 0);
+    panelText(this, this.scale.width / 2, 14, this.travel ? 'Voyage' : 'Carte', 12).setOrigin(0.5, 0);
+    const stones = this.stones();
     buttonRow(REGIONS.length, SCREEN_LEFT, SCREEN_INNER_W).forEach(({ x, w }, i) => {
       const region = REGIONS[i];
       new KitButton(this, x, 34, w, 20, region.label, {
@@ -149,6 +159,14 @@ export class MapScene extends Phaser.Scene {
       if (loc.key === this.selected) {
         markers.fillStyle(PAL.o, 1).fillRect(x - size / 2 - 4, y + size / 2 + 4, size + 8, 2);
       }
+      // An awake passage stone: a small blue rune at the marker's corner.
+      if (stones.has(loc.key)) {
+        const rx = x + size / 2 + 1;
+        const ry = y - size / 2 - 5;
+        markers.fillStyle(PAL.k, 1).fillRect(rx - 1, ry - 1, 6, 8);
+        markers.fillStyle(0x8cd6fa, 1).fillRect(rx, ry, 4, 6);
+        markers.fillStyle(0xeefaff, 1).fillRect(rx + 1, ry + 1, 2, 2);
+      }
       // A parchment patch under each label so roads pass beneath the text.
       const backdrop = this.add.graphics();
       const label = panelText(this, x, y + size / 2 + 6, loc.short ?? loc.label, 7, current ? INK.danger : quest ? QUEST_INK : INK.text, {
@@ -168,6 +186,39 @@ export class MapScene extends Phaser.Scene {
 
     const loc = locations.find((l) => l.key === this.selected);
     const top = MAP_TOP + MAP_H + 4;
+    const stone = loc && stones.get(loc.key);
+    if (this.travel) {
+      if (loc) {
+        const here = loc.key === this.returnScene;
+        detailPanel(
+          this,
+          { text: loc.label, color: INK.text },
+          [stone ? { text: here ? 'Tu es déjà ici.' : 'Une pierre de passage éveillée.', color: here ? INK.danger : QUEST_INK } : { text: 'Aucune pierre éveillée ici.', color: INK.soft }],
+          top,
+          340 - top,
+        );
+      } else {
+        detailPanel(
+          this,
+          { text: 'Pierres de passage', color: INK.text },
+          [
+            { text: `${stones.size} pierre${stones.size > 1 ? 's' : ''} éveillée${stones.size > 1 ? 's' : ''}.`, color: INK.soft },
+            { text: 'Touche un lieu marqué d’une rune.', color: INK.soft },
+          ],
+          top,
+          340 - top,
+        );
+      }
+      actionRow(this, [
+        { label: 'Retour', onClick: () => this.goBack() },
+        {
+          label: 'Voyager',
+          disabled: !stone || loc?.key === this.returnScene,
+          onClick: () => stone && this.travelTo(stone),
+        },
+      ]);
+      return;
+    }
     if (loc) {
       const level = ZONE_LEVEL[loc.key];
       const lines = [
@@ -175,6 +226,7 @@ export class MapScene extends Phaser.Scene {
       ];
       if (loc.key === this.returnScene) lines.push({ text: 'Tu es ici.', color: INK.danger });
       if (quests.has(loc.key)) lines.push({ text: 'Une quête en cours mène ici.', color: QUEST_INK });
+      if (stone) lines.push({ text: 'Une pierre de passage éveillée.', color: QUEST_INK });
       detailPanel(this, { text: loc.label, color: INK.text }, lines, top, 340 - top);
     } else {
       detailPanel(
@@ -182,13 +234,35 @@ export class MapScene extends Phaser.Scene {
         { text: 'Légende', color: INK.text },
         [
           { text: 'Rouge : tu es ici. Bleu : une quête.', color: INK.soft },
-          { text: 'Touche un lieu : niveau des monstres.', color: INK.soft },
+          { text: 'Rune : pierre éveillée. Touche un lieu.', color: INK.soft },
         ],
         top,
         340 - top,
       );
     }
-    actionRow(this, [{ label: 'Retour', onClick: () => this.goBack() }]);
+    const canTravel = TRAVEL_FROM.has(this.returnScene) && stones.size > 0;
+    actionRow(this, [
+      { label: 'Retour', onClick: () => this.goBack() },
+      ...(canTravel
+        ? [
+            {
+              label: 'Voyager',
+              onClick: () => {
+                this.travel = true;
+                this.selected = undefined;
+                this.render();
+              },
+            },
+          ]
+        : []),
+    ]);
+  }
+
+  private travelTo(stone: Waystone): void {
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start(stone.scene, { x: stone.arrive[0], y: stone.arrive[1] });
+    });
   }
 
   private goBack(): void {

@@ -1055,6 +1055,79 @@ function standingStone(seed: number): PropArt {
   return { pm, anchorX: 9, anchorY: base };
 }
 
+// A passage stone of the Watchers: a dressed menhir on a low plinth, a
+// circle of runes carved in its face. The runes' grooves are kept so the
+// awake stone can light exactly them (renderWaystoneRunes).
+const WAYSTONE_W = 20;
+const WAYSTONE_H = 40;
+const WAYSTONE_BASE = 37;
+function waystoneGrooves(): [number, number][] {
+  const out: [number, number][] = [];
+  const cx = 10;
+  const cy = 17;
+  const seen = new Set<string>();
+  const add = (x: number, y: number) => {
+    const k = `${x},${y}`;
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push([x, y]);
+    }
+  };
+  // The ring.
+  for (let a = 0; a < Math.PI * 2; a += 0.12) add(Math.round(cx + Math.cos(a) * 4.2), Math.round(cy + Math.sin(a) * 4.6));
+  // Four runes on the ring, a mark at the heart.
+  add(cx, cy - 7);
+  add(cx, cy - 8);
+  add(cx, cy + 7);
+  add(cx - 1, cy + 8);
+  add(cx + 1, cy + 8);
+  add(cx - 5, cy - 2);
+  add(cx - 5, cy - 3);
+  add(cx + 4, cy + 2);
+  add(cx + 4, cy + 3);
+  add(cx, cy);
+  add(cx, cy - 1);
+  add(cx - 1, cy);
+  add(cx + 1, cy);
+  // A line of script below.
+  for (const x of [6, 8, 9, 11, 12, 14]) add(x, 29);
+  return out;
+}
+
+function waystone(): PropArt {
+  const pm = new Pixmap(WAYSTONE_W, WAYSTONE_H);
+  const base = WAYSTONE_BASE;
+  groundShadow(pm, 11, base, 9, 2);
+  const MEN = ramp([132, 134, 140], 0.4);
+  // The plinth: two flat slabs.
+  for (let y = base - 3; y <= base; y++) {
+    for (let x = 1; x <= 18; x++) pm.set(x, y, lit(STONE, (y === base - 3 ? 0.5 : -0.2) + (x === 18 ? -0.5 : 0) + (hash2(x >> 2, y, 501) - 0.5) * 0.4));
+  }
+  // The stone, tapering a little, its top rounded.
+  for (let y = 3; y <= base - 4; y++) {
+    const t = (y - 3) / (base - 7);
+    const hw = Math.round(5 + t * 1.5 - (y < 5 ? 2 : y < 6 ? 1 : 0));
+    for (let x = 10 - hw; x <= 9 + hw; x++) {
+      const nx = (x - 9.5) / hw;
+      let c = lit(MEN, -nx * 0.8 + 0.1 + (y < 6 ? 0.4 : 0) + (noise(x, y, 3, 502) - 0.5) * 0.35);
+      if (noise(x, y, 4, 503) > 0.72) c = mix(c, [150, 170, 120], 0.4); // lichen
+      if (y > base - 8) c = mix(c, MOSS[3], 0.3);
+      pm.set(x, y, c);
+    }
+  }
+  waystoneGrooves().forEach(([x, y]) => pm.filled(x, y) && pm.set(x, y, MEN[4]));
+  outlineOpaque(pm);
+  return { pm, anchorX: 10, anchorY: base };
+}
+
+// The awake stone's runes alone (same frame and anchor as the stone): a
+// pale blue light filling the grooves.
+export function renderWaystoneRunes(): PropArt {
+  const pm = new Pixmap(WAYSTONE_W, WAYSTONE_H);
+  waystoneGrooves().forEach(([x, y], i) => pm.set(x, y, i % 5 === 0 ? [236, 250, 255] : [140, 214, 250]));
+  return { pm, anchorX: 10, anchorY: WAYSTONE_BASE };
+}
+
 // A broken column of a fallen sanctuary, ivy climbing it.
 function ruinPillar(seed: number): PropArt {
   const pm = new Pixmap(16, 40);
@@ -2293,7 +2366,8 @@ export type PropKind =
   | 'black_well'
   | 'swamp_tree'
   | 'sunken_ruin'
-  | 'smithy';
+  | 'smithy'
+  | 'waystone';
 
 export function renderProp(kind: PropKind, seed = 1): PropArt {
   switch (kind) {
@@ -2362,6 +2436,8 @@ export function renderProp(kind: PropKind, seed = 1): PropArt {
       return stump(seed);
     case 'altar':
       return altar();
+    case 'waystone':
+      return waystone();
     case 'standing_stone':
       return standingStone(seed);
     case 'ruin_pillar':

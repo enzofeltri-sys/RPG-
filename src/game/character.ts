@@ -68,6 +68,9 @@ export interface Character {
   mainQuestStage?: MainQuestStage;
   // Keyed by chest id (see chest.ts) — presence means opened, never re-rolls.
   openedChests: Record<string, boolean>;
+  // Passage stones woken by the hero's mark (zone keys, see waystones.ts);
+  // undefined on older saves.
+  waystones?: string[];
   // The Village shop's rotating stock — undefined until the first visit,
   // then regenerated on a real-world timer (see merchantStock.ts). Older
   // saves may still have the pre-entries `{ items: Item[] }` shape —

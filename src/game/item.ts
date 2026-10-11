@@ -2418,6 +2418,16 @@ export const CLASS_MAIN_WEAPONS: Record<string, WeaponType[]> = {
   rogue: ['dagger'],
 };
 
+// What the icon drawer needs to know of every item (art/itemIcons.ts).
+export function itemIconSpecs(): { baseId: string; name: string; category: ItemCategory; weaponType?: WeaponType; tier?: number; stat?: string }[] {
+  return TEMPLATES.map((t) => {
+    // The stat the item gives most of (by its middle roll), for its gem.
+    const rolls = Object.entries(t.baseStatRolls) as [string, StatRoll][];
+    const stat = rolls.sort((a, b) => b[1][1] - a[1][1])[0]?.[0];
+    return { baseId: t.baseId, name: t.name, category: t.category, weaponType: t.weaponType, tier: t.tier ?? (t.signature ? 3 : undefined), stat };
+  });
+}
+
 export function templateCategory(baseId: string): ItemCategory | undefined {
   return TEMPLATES.find((t) => t.baseId === baseId)?.category;
 }

@@ -284,11 +284,13 @@ function wolfPortrait(): MonsterArt {
   const fur = (x: number, y: number) => (noise(x * 0.8, y * 2, 2, 61) - 0.5) * 0.45;
   const deep = ramp([62, 58, 74], 0.5);
   // Far legs and tail first.
-  part(body, [[27, 40], [31, 40], [31, 55], [32, 57], [27, 57], [27, 50]], deep, { round: 2, tex: fur });
-  part(body, [[44, 38], [50, 36], [49, 46], [46, 51], [48, 56], [43, 57], [43, 50], [45, 44]], deep, { round: 2, tex: fur });
-  part(body, [[58, 25], [66, 20], [71, 19], [70, 24], [65, 29], [60, 31]], FUR_DARK, { round: 3, tex: fur });
+  part(body, [[27, 40], [31, 40], [30, 48], [31, 55], [33, 57], [27, 57], [27, 50]], deep, { round: 2, tex: fur });
+  part(body, [[43, 33], [50, 32], [51, 40], [48, 46], [49, 54], [51, 57], [45, 57], [45, 49], [44, 43]], deep, { round: 2, tex: fur });
+  // The tail hangs low, bushy, its tip pale.
+  part(body, [[56, 24], [62, 25], [67, 29], [69, 36], [68, 43], [64, 47], [63, 40], [60, 33], [56, 29]], FUR_DARK, { round: 4, tex: fur });
+  part(body, [[63, 41], [68, 41], [67, 45], [64, 47]], FUR_LIGHT, { round: 2, tex: fur });
   // The body: chest forward, back, haunch, belly tucked.
-  part(body, [[15, 31], [21, 24], [30, 21], [42, 20], [52, 21], [59, 24], [62, 30], [60, 38], [53, 41], [44, 40], [34, 42], [25, 45], [18, 42]], FUR_DARK, { round: 7, tex: fur });
+  part(body, [[15, 31], [21, 24], [30, 21], [42, 21], [52, 22], [59, 25], [61, 31], [58, 37], [50, 37], [43, 35], [35, 38], [27, 44], [18, 42]], FUR_DARK, { round: 7, tex: fur });
   // Hackles: a jagged ridge of fur along the neck and back.
   for (let x = 20; x <= 44; x += 3) {
     const top = x < 30 ? 24 - (x - 20) * 0.3 : 21;
@@ -297,36 +299,41 @@ function wolfPortrait(): MonsterArt {
   // Ruff and chest.
   part(body, [[14, 31], [20, 26], [25, 30], [24, 42], [18, 44], [14, 40]], FUR_LIGHT, { round: 4, tex: fur });
   // Near legs: shoulder, foreleg, paw; thigh, hock, paw.
-  part(body, [[18, 38], [25, 39], [24, 49], [25, 55], [27, 57], [19, 58], [19, 50]], FUR_DARK, { round: 3, tex: fur });
-  part(body, [[50, 32], [61, 31], [60, 41], [55, 47], [57, 55], [59, 57], [51, 58], [51, 50], [53, 43]], FUR_DARK, { round: 4, tex: fur });
+  part(body, [[18, 37], [25, 37], [24, 47], [23, 52], [25, 56], [27, 58], [19, 58], [19, 52], [18, 46]], FUR_DARK, { round: 3, tex: fur });
+  // The hind leg: thigh, the knee forward, the hock back, the paw under.
+  part(body, [[50, 28], [60, 28], [62, 34], [61, 42], [58, 48], [57, 55], [59, 58], [51, 58], [52, 55], [53, 49], [52, 44], [48, 38]], FUR_DARK, { round: 4, tex: fur });
   for (const x of [19, 51]) for (const dx of [1, 3, 5, 7]) body.set(x + dx, 58, [232, 228, 216]);
   // Head: low and forward, ears back, jaws open.
-  part(body, [[11, 14], [13, 6], [17, 13]], FUR_DARK, { round: 1, bias: 0.1 });
-  part(body, [[16, 14], [20, 7], [22, 15]], deep, { round: 1 });
-  part(body, [[24, 25], [21, 16], [15, 12], [9, 13], [5, 16], [1, 20], [0, 23], [4, 25], [11, 26], [17, 28], [22, 31]], FUR_DARK, { round: 4, tex: fur });
-  part(body, [[1, 20], [6, 18], [11, 21], [11, 26], [4, 25], [0, 23]], FUR_LIGHT, { round: 2, bias: 0.15 }); // muzzle
-  part(body, [[4, 28], [12, 28], [18, 31], [13, 34], [6, 31]], FUR_DARK, { round: 2, bias: -0.1 }); // lower jaw
-  // Mouth: gums and teeth.
-  for (let x = 3; x <= 16; x++) {
-    body.set(x, 26, [56, 16, 28]);
-    body.set(x, 27, [120, 36, 52]);
+  part(body, [[11, 14], [12, 3], [17, 12]], FUR_DARK, { round: 1.5, bias: 0.1 });
+  part(body, [[16, 13], [19, 4], [22, 14]], deep, { round: 1.5 });
+  body.set(13, 7, [120, 70, 80]); // inside the ear
+  // Skull, the stop at the brow, a long muzzle narrowing to the nose.
+  part(body, [[24, 25], [22, 16], [17, 11], [11, 12], [8, 15], [2, 18], [0, 20], [1, 22], [6, 24], [12, 25], [18, 28], [22, 31]], FUR_DARK, { round: 4, tex: fur });
+  part(body, [[1, 19], [7, 17], [11, 19], [11, 24], [5, 24], [0, 22]], FUR_LIGHT, { round: 2, bias: 0.15 }); // muzzle
+  part(body, [[3, 26], [12, 26], [18, 29], [13, 32], [6, 29]], FUR_DARK, { round: 2, bias: -0.1 }); // lower jaw, dropped
+  // Mouth: gums and teeth, the fangs longer.
+  for (let x = 2; x <= 16; x++) {
+    body.set(x, 24, [56, 16, 28]);
+    body.set(x, 25, [120, 36, 52]);
   }
-  for (const x of [4, 8, 12, 15]) body.set(x, 26, [246, 240, 226]);
-  for (const x of [6, 10, 14]) body.set(x, 27, [246, 240, 226]);
+  for (const x of [4, 8, 12, 15]) body.set(x, 24, [246, 240, 226]);
+  for (const x of [6, 10, 14]) body.set(x, 25, [246, 240, 226]);
   body.set(4, 25, [246, 240, 226]);
-  body.set(0, 21, [24, 18, 24]);
-  body.set(1, 21, [24, 18, 24]);
-  body.set(0, 20, [70, 64, 76]);
-  body.hline(10, 13, 17, FUR_DARK[4]); // brow
+  body.set(5, 26, [246, 240, 226]);
+  body.set(0, 19, [24, 18, 24]);
+  body.set(1, 19, [24, 18, 24]);
+  body.set(0, 18, [70, 64, 76]);
+  body.hline(9, 13, 16, FUR_DARK[4]); // brow
+  for (const [x, y] of [[4, 21], [6, 21], [8, 22]] as [number, number][]) body.set(x, y, FUR_DARK[3]); // a snarl's wrinkles
   // Corruption: veins of violet light across shoulder and flank.
   crack(body, [[30, 26], [34, 30], [32, 35], [36, 39]], BLIGHT_GLOW);
   crack(body, [[44, 25], [48, 29], [53, 28]], BLIGHT_GLOW);
   crack(body, [[19, 33], [22, 37]], BLIGHT_GLOW);
   body.outline(OUTLINE);
-  halo(body, 12.5, 18.5, 4.5, EMBER_EYE, 150);
-  body.set(12, 18, [255, 236, 210]);
-  body.set(13, 18, EMBER_EYE);
-  body.set(11, 18, [160, 30, 30]);
+  halo(body, 12.5, 17.5, 4.5, EMBER_EYE, 150);
+  body.set(12, 17, [255, 236, 210]);
+  body.set(13, 17, EMBER_EYE);
+  body.set(11, 17, [160, 30, 30]);
   halo(body, 33, 31, 7, BLIGHT_GLOW, 70);
   const pm = new Pixmap(W, H);
   shadow(pm, 38, 58, 30, 3);

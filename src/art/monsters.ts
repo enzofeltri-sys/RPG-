@@ -5,15 +5,13 @@
 // for now (combat shows it at twice the size).
 
 import { OUTLINE, Pixmap, RGB, Ramp, hash2, lit, mix, noise, ramp } from './pixmap';
+import { LIGHT as L, part } from './shape';
 
 export interface MonsterArt {
   pm: Pixmap;
   anchorX: number; // feet
   anchorY: number;
 }
-
-// Light from the top left, a little in front.
-const L: [number, number, number] = [-0.45, -0.65, 0.62];
 
 // A shaded ovoid: the sphere's normal against the light picks the tone.
 function blob(pm: Pixmap, cx: number, cy: number, rx: number, ry: number, r: Ramp, bias = 0, tex?: (x: number, y: number) => number): void {
@@ -251,6 +249,157 @@ function corruptedSentinel(): MonsterArt {
     pm.set(20, 17, BLIGHT_GLOW);
   });
 }
+
+// ------------------------------------------------------ combat portraits
+// The same monsters, large and detailed, for the combat screen (shown at
+// about 64-72 game pixels): more shading steps, texture, a rim of light,
+// glowing eyes with a halo.
+
+function halo(pm: Pixmap, cx: number, cy: number, r: number, c: RGB, alpha: number): void {
+  for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) {
+    for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
+      const d = Math.hypot(x - cx, y - cy) / r;
+      if (d >= 1 || !pm.inside(x, y)) continue;
+      const base = pm.get(x, y);
+      const k = (1 - d) * (1 - d) * (alpha / 255);
+      if (base) pm.set(x, y, mix(base, c, k));
+      else pm.set(x, y, c, Math.round(k * 255));
+    }
+  }
+}
+
+function crack(pm: Pixmap, pts: [number, number][], c: RGB): void {
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+    for (let k = 0; k <= n; k++) pm.set(Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n), c);
+  }
+}
+
+function wolfPortrait(): MonsterArt {
+  const W = 72;
+  const H = 60;
+  const body = new Pixmap(W, H);
+  const fur = (x: number, y: number) => (noise(x * 0.8, y * 2, 2, 61) - 0.5) * 0.45;
+  const deep = ramp([62, 58, 74], 0.5);
+  // Far legs and tail first.
+  part(body, [[27, 40], [31, 40], [31, 55], [32, 57], [27, 57], [27, 50]], deep, { round: 2, tex: fur });
+  part(body, [[44, 38], [50, 36], [49, 46], [46, 51], [48, 56], [43, 57], [43, 50], [45, 44]], deep, { round: 2, tex: fur });
+  part(body, [[58, 25], [66, 20], [71, 19], [70, 24], [65, 29], [60, 31]], FUR_DARK, { round: 3, tex: fur });
+  // The body: chest forward, back, haunch, belly tucked.
+  part(body, [[15, 31], [21, 24], [30, 21], [42, 20], [52, 21], [59, 24], [62, 30], [60, 38], [53, 41], [44, 40], [34, 42], [25, 45], [18, 42]], FUR_DARK, { round: 7, tex: fur });
+  // Hackles: a jagged ridge of fur along the neck and back.
+  for (let x = 20; x <= 44; x += 3) {
+    const top = x < 30 ? 24 - (x - 20) * 0.3 : 21;
+    part(body, [[x, top + 2], [x + 1.5, top - 3], [x + 3, top + 2]], FUR_DARK, { round: 1, bias: 0.2 });
+  }
+  // Ruff and chest.
+  part(body, [[14, 31], [20, 26], [25, 30], [24, 42], [18, 44], [14, 40]], FUR_LIGHT, { round: 4, tex: fur });
+  // Near legs: shoulder, foreleg, paw; thigh, hock, paw.
+  part(body, [[18, 38], [25, 39], [24, 49], [25, 55], [27, 57], [19, 58], [19, 50]], FUR_DARK, { round: 3, tex: fur });
+  part(body, [[50, 32], [61, 31], [60, 41], [55, 47], [57, 55], [59, 57], [51, 58], [51, 50], [53, 43]], FUR_DARK, { round: 4, tex: fur });
+  for (const x of [19, 51]) for (const dx of [1, 3, 5, 7]) body.set(x + dx, 58, [232, 228, 216]);
+  // Head: low and forward, ears back, jaws open.
+  part(body, [[11, 14], [13, 6], [17, 13]], FUR_DARK, { round: 1, bias: 0.1 });
+  part(body, [[16, 14], [20, 7], [22, 15]], deep, { round: 1 });
+  part(body, [[24, 25], [21, 16], [15, 12], [9, 13], [5, 16], [1, 20], [0, 23], [4, 25], [11, 26], [17, 28], [22, 31]], FUR_DARK, { round: 4, tex: fur });
+  part(body, [[1, 20], [6, 18], [11, 21], [11, 26], [4, 25], [0, 23]], FUR_LIGHT, { round: 2, bias: 0.15 }); // muzzle
+  part(body, [[4, 28], [12, 28], [18, 31], [13, 34], [6, 31]], FUR_DARK, { round: 2, bias: -0.1 }); // lower jaw
+  // Mouth: gums and teeth.
+  for (let x = 3; x <= 16; x++) {
+    body.set(x, 26, [56, 16, 28]);
+    body.set(x, 27, [120, 36, 52]);
+  }
+  for (const x of [4, 8, 12, 15]) body.set(x, 26, [246, 240, 226]);
+  for (const x of [6, 10, 14]) body.set(x, 27, [246, 240, 226]);
+  body.set(4, 25, [246, 240, 226]);
+  body.set(0, 21, [24, 18, 24]);
+  body.set(1, 21, [24, 18, 24]);
+  body.set(0, 20, [70, 64, 76]);
+  body.hline(10, 13, 17, FUR_DARK[4]); // brow
+  // Corruption: veins of violet light across shoulder and flank.
+  crack(body, [[30, 26], [34, 30], [32, 35], [36, 39]], BLIGHT_GLOW);
+  crack(body, [[44, 25], [48, 29], [53, 28]], BLIGHT_GLOW);
+  crack(body, [[19, 33], [22, 37]], BLIGHT_GLOW);
+  body.outline(OUTLINE);
+  halo(body, 12.5, 18.5, 4.5, EMBER_EYE, 150);
+  body.set(12, 18, [255, 236, 210]);
+  body.set(13, 18, EMBER_EYE);
+  body.set(11, 18, [160, 30, 30]);
+  halo(body, 33, 31, 7, BLIGHT_GLOW, 70);
+  const pm = new Pixmap(W, H);
+  shadow(pm, 38, 58, 30, 3);
+  pm.blit(body, 0, 0);
+  return { pm, anchorX: 38, anchorY: 58 };
+}
+
+function sentinelPortrait(): MonsterArt {
+  const W = 56;
+  const H = 72;
+  const body = new Pixmap(W, H);
+  const stone = (x: number, y: number) => {
+    const c = cellNoise(x, y);
+    return c;
+  };
+  const shaft = ramp([124, 88, 56]);
+  // Legs: stone pillars, iron greaves and feet.
+  part(body, [[16, 46], [25, 46], [24, 64], [26, 69], [13, 69], [15, 63]], SENTINEL_STONE, { round: 3, tex: stone });
+  part(body, [[31, 46], [40, 46], [41, 63], [43, 69], [30, 69], [32, 64]], SENTINEL_STONE, { round: 3, tex: stone, bias: -0.15 });
+  part(body, [[14, 58], [25, 58], [25, 63], [14, 63]], SENTINEL_IRON, { round: 2 });
+  part(body, [[31, 58], [42, 58], [42, 63], [31, 63]], SENTINEL_IRON, { round: 2, bias: -0.1 });
+  // Torso: a broad block narrowing to the waist, a belt of iron.
+  part(body, [[12, 22], [44, 22], [42, 38], [38, 48], [18, 48], [14, 38]], SENTINEL_STONE, { round: 6, tex: stone });
+  part(body, [[15, 42], [41, 42], [40, 46], [16, 46]], SENTINEL_IRON, { round: 2 });
+  // Pauldrons.
+  part(body, [[3, 22], [8, 15], [17, 15], [20, 22], [16, 28], [5, 28]], SENTINEL_IRON, { round: 4, bias: 0.1 });
+  part(body, [[36, 22], [39, 15], [48, 15], [53, 22], [51, 28], [40, 28]], SENTINEL_IRON, { round: 4, bias: -0.05 });
+  // Arms.
+  part(body, [[5, 27], [13, 27], [12, 42], [6, 42]], SENTINEL_STONE, { round: 3, tex: stone });
+  part(body, [[43, 27], [51, 27], [50, 42], [44, 42]], SENTINEL_STONE, { round: 3, tex: stone, bias: -0.2 });
+  // The halberd: shaft across, axe blade and spike at the top.
+  limb(body, 3, 63, 49, 7, 2, shaft, 0.1);
+  part(body, [[44, 3], [51, 1], [55, 5], [54, 12], [48, 13], [46, 8]], SENTINEL_IRON, { round: 2, bias: 0.2 });
+  part(body, [[48, 2], [50, -1], [52, 3]], SENTINEL_IRON, { round: 1, bias: 0.4 });
+  // Fists closing on the shaft.
+  part(body, [[5, 41], [13, 41], [13, 47], [5, 47]], SENTINEL_STONE, { round: 2, tex: stone });
+  part(body, [[43, 41], [51, 41], [51, 47], [43, 47]], SENTINEL_STONE, { round: 2, tex: stone, bias: -0.2 });
+  // Head: a great helm with its crest and slit.
+  part(body, [[20, 20], [19, 9], [23, 4], [33, 4], [37, 9], [36, 20]], SENTINEL_IRON, { round: 4, bias: 0.05 });
+  part(body, [[27, 4], [28, 0], [29, 4]], SENTINEL_IRON, { round: 1, bias: 0.3 });
+  body.hline(21, 35, 12, [20, 18, 26]);
+  body.hline(22, 34, 13, [20, 18, 26]);
+  body.vline(28, 14, 19, SENTINEL_IRON[3]);
+  // Moss in the joints.
+  for (const [x, y] of [[16, 47], [17, 48], [39, 47], [14, 30], [41, 34], [25, 23]] as [number, number][]) body.set(x, y, [92, 134, 70]);
+  // Corruption creeping from the core.
+  crack(body, [[31, 30], [35, 26], [39, 24]], BLIGHT_GLOW);
+  crack(body, [[25, 35], [21, 39]], BLIGHT_GLOW);
+  body.outline(OUTLINE);
+  for (const x of [24, 32]) {
+    halo(body, x + 0.5, 12.5, 4, RUNE, 150);
+    body.set(x, 12, [230, 250, 255]);
+  }
+  halo(body, 28, 32, 7, RUNE, 130);
+  for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0, 2], [0, -2], [2, 0], [-2, 0]] as [number, number][]) body.set(28 + dx, 32 + dy, dx === 0 && dy === 0 ? [240, 252, 255] : RUNE);
+  const pm = new Pixmap(W, H);
+  shadow(pm, 28, 69, 20, 3);
+  pm.blit(body, 0, 0);
+  return { pm, anchorX: 28, anchorY: 69 };
+}
+
+// Dressed stone: blocks with dark joints.
+function cellNoise(x: number, y: number): number {
+  const by = Math.floor(y / 5);
+  const bx = Math.floor((x + (by % 2) * 3) / 7);
+  const joint = y % 5 === 0 || (x + (by % 2) * 3) % 7 === 0;
+  return joint ? -0.45 : (hash2(bx, by, 72) - 0.5) * 0.35;
+}
+
+export const MONSTER_PORTRAITS: Record<string, () => MonsterArt> = {
+  corrupted_wolf: wolfPortrait,
+  corrupted_sentinel: sentinelPortrait,
+};
 
 export const DRAWN_MONSTERS: Record<string, () => MonsterArt> = {
   corrupted_wolf: corruptedWolf,

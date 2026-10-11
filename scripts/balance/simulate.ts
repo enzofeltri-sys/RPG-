@@ -12,13 +12,14 @@
 
 import { CharClass, Character, allocateStatPoint, createCharacter, grantXp } from '../../src/game/character';
 import { CombatEngine } from '../../src/game/combatEngine';
-import { EquipSlot, Item, ItemStats, WeaponType, rollLootItem } from '../../src/game/item';
+import { EquipSlot, Item, ItemCategory, ItemStats, LOOT_ODDS, WeaponType, rewardItem, rollLootItem } from '../../src/game/item';
 import { BOSS_WEIGHTS, MONSTER_TUNING, createMonster, standardMonsterAttack, standardMonsterHp } from '../../src/game/monster';
 import { ZONE_LEVEL } from '../../src/game/worldMap';
 import { DIFFICULTY_RULES, Difficulty } from '../../src/game/difficulty';
 import type { ReturnSceneKey } from '../../src/ui/returnContext';
 import { handRule, handSlotAccepts } from '../../src/game/weapons';
 import { monsterKit } from '../../src/game/monsterKit';
+import { mainQuestXpThrough, storyStageOfBoss } from '../../src/game/mainQuest';
 import { learnTalent, learnBlocker, talentPointsAvailable, toggleEquipSkill } from '../../src/game/talents';
 
 interface Zone {
@@ -93,14 +94,40 @@ function spawn(zone: Zone, id: string) {
 }
 
 // Player level on entering each zone, and when reaching its boss.
+// XP from the story and the side quests, not just from kills: the main
+// quest's rewards paid out by the time the zone's story boss is fought
+// (side dungeons: by the last story zone before them), and the side
+// quests' spread over the first two regions.
+const SIDE_QUEST_XP = 2145;
+function questXpBefore(z: number): number {
+  let story = 0;
+  for (let k = z; k >= 0; k--) {
+    const boss = ZONES[k].boss;
+    const stage = boss ? storyStageOfBoss(boss) : undefined;
+    if (stage) {
+      story = mainQuestXpThrough(stage);
+      break;
+    }
+  }
+  const side = Math.round(SIDE_QUEST_XP * Math.min(1, z / 18));
+  return story + side;
+}
+
 export function levelAt(): { enter: number; boss: number }[] {
   const probe = createCharacter('human', 'warrior');
-  return ZONES.map((zone) => {
-    const enter = probe.level;
+  let monsterXp = 0;
+  const levelOf = (xp: number) => {
+    const c = createCharacter('human', 'warrior');
+    grantXp(c, xp);
+    return c.level;
+  };
+  return ZONES.map((zone, z) => {
+    const enter = levelOf(monsterXp + questXpBefore(z));
     const fights = [...zone.regulars, ...zone.regulars.slice(0, EXTRA_FIGHTS_PER_ZONE)];
-    fights.forEach((id) => grantXp(probe, spawn(zone, id).xpReward));
-    const boss = probe.level;
-    if (zone.boss) grantXp(probe, spawn(zone, zone.boss).xpReward);
+    fights.forEach((id) => (monsterXp += spawn(zone, id).xpReward));
+    const boss = levelOf(monsterXp + questXpBefore(z));
+    if (zone.boss) monsterXp += spawn(zone, zone.boss).xpReward;
+    void probe;
     return { enter, boss };
   });
 }
@@ -199,15 +226,18 @@ function considerLoot(cls: CharClass, equipment: Partial<Record<EquipSlot, Item>
 // One playthrough's gear: every fight rolls loot with the game's own odds
 // (see CombatScene.victory); chests, the shop and crafting are left out, so
 // this is a slightly under-geared player.
+const REWARD_SLOTS: ItemCategory[] = ['weapon', 'shield', 'helmet', 'chest', 'legs', 'boots', 'gloves', 'ring', 'amulet'];
+
 function gearProgression(cls: CharClass): Partial<Record<EquipSlot, Item>>[] {
   const equipment: Partial<Record<EquipSlot, Item>> = { ...createCharacter('human', cls).equipment };
-  return ZONES.map((zone) => {
+  return ZONES.map((zone, z) => {
     const fights = zone.regulars.length + EXTRA_FIGHTS_PER_ZONE;
-    for (let i = 0; i < fights; i++) considerLoot(cls, equipment, rollLootItem({ tier: zone.tier }));
+    for (let i = 0; i < fights; i++) considerLoot(cls, equipment, rollLootItem({ ...LOOT_ODDS.regular, tier: zone.tier }));
+    // About one quest reward per zone (main story + side quests), made for
+    // the class and of the zone's palier (mainQuest.ts / quest.ts).
+    considerLoot(cls, equipment, rewardItem(cls, REWARD_SLOTS[z % REWARD_SLOTS.length], zone.tier, zone.tier === 1 ? 'rare' : 'epic'));
     const beforeBoss = { ...equipment };
-    if (zone.boss) {
-      considerLoot(cls, equipment, rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15, tier: zone.tier }));
-    }
+    if (zone.boss) considerLoot(cls, equipment, rollLootItem({ ...LOOT_ODDS.boss, tier: zone.tier }));
     return beforeBoss;
   });
 }
@@ -387,6 +417,9 @@ function newStats(): FightStats {
 const RUNS = Number(process.argv.find((a) => a.startsWith('--runs='))?.slice(7) ?? 150);
 const DETAIL = process.argv.includes('--detail');
 const DIFFICULTY = (process.argv.find((a) => a.startsWith('--difficulty='))?.slice(13) ?? 'normal') as Difficulty;
+// With --boss-floor, the boss win target is the weakest class's rate.
+const BOSS_FLOOR = process.argv.includes('--boss-floor');
+const BOSS_WIN = Number(process.argv.find((a) => a.startsWith('--boss-win='))?.slice(11) ?? 0.6);
 const BOSS_TURNS = Number(process.argv.find((a) => a.startsWith('--boss-turns='))?.slice(13) ?? 11);
 const REGULAR_TURNS = Number(process.argv.find((a) => a.startsWith('--turns='))?.slice(8) ?? 5);
 
@@ -570,10 +603,17 @@ function tuneBosses(): void {
   });
   const run = (zi: number, scale: { hp: number; attack: number }) => {
     const st = newStats();
+    const byClass = new Map<CharClass, FightStats>();
     samples.forEach(({ cls, gear }) => {
+      const cs = byClass.get(cls) ?? newStats();
+      byClass.set(cls, cs);
+      const before = st.wins;
       fight(buildCharacter(cls, levels[zi].boss, gear[zi], ZONES[zi]), ZONES[zi], ZONES[zi].boss!, true, st, scale);
+      cs.fights += 1;
+      cs.wins += st.wins - before;
     });
-    return { win: st.wins / st.fights, turns: st.turns / st.fights };
+    const minWin = Math.min(...[...byClass.values()].map((c) => c.wins / c.fights));
+    return { win: BOSS_FLOOR ? minWin : st.wins / st.fights, turns: st.turns / st.fights };
   };
   const search = (lo: number, hi: number, f: (x: number) => number, target: number, increasing: boolean) => {
     for (let i = 0; i < 8; i++) {
@@ -589,7 +629,7 @@ function tuneBosses(): void {
     let h = 1;
     let a = 1;
     for (let round = 0; round < 2; round++) {
-      a = search(0.3, 3, (x) => run(zi, { hp: h, attack: x }).win, 0.6, false);
+      a = search(0.3, 3, (x) => run(zi, { hp: h, attack: x }).win, BOSS_WIN, false);
       h = search(0.3, 4, (x) => run(zi, { hp: x, attack: a }).turns, BOSS_TURNS, true);
     }
     const check = run(zi, { hp: h, attack: a });
@@ -601,7 +641,15 @@ function tuneBosses(): void {
   console.log('\nconst BOSS_WEIGHT = {\n' + lines.join('\n') + '\n};');
 }
 
-if (process.argv.includes('--measure')) measure();
+// The hero's level at each zone (entering / at the boss) against the
+// level its monsters are set to.
+function levels(): void {
+  const lv = levelAt();
+  ZONES.forEach((z, i) => console.log(`${z.name.padEnd(26)} monstres ${String(ZONE_LEVEL[z.scene]).padStart(2)}  héros ${lv[i].enter} -> ${lv[i].boss}`));
+}
+
+if (process.argv.includes('--levels')) levels();
+else if (process.argv.includes('--measure')) measure();
 else if (process.argv.includes('--tune-bosses')) tuneBosses();
 else if (process.argv.includes('--tune')) tune();
 else main();

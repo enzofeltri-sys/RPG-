@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { glow } from '../art/critters';
 import { renderWaystoneRunes } from '../art/props';
+import type { Character } from '../game/character';
 import { WAYSTONE_BY_ZONE, isWaystoneAwake, wakeWaystone } from '../game/waystones';
 import { addSceneInteractable } from '../input/TapController';
 import { SaveManager } from '../save/SaveManager';
@@ -12,7 +13,8 @@ const GLOW_DEPTH = 805; // above the light map of dark zones, like ambience.ts
 
 // The live side of a zone's passage stone (its picture is one of the
 // zone's props): the runes light up once it's awake, tapping it wakes it
-// the first time, then opens the Carte to travel.
+// the first time; after that a tap restores the hero when hurt, and opens
+// the Carte to travel otherwise.
 export function setupWaystone(scene: Phaser.Scene, art: ZoneArt): void {
   const stone = WAYSTONE_BY_ZONE.get(art.key);
   const spot = (art.props ?? []).find((p) => p.kind === 'waystone');
@@ -61,8 +63,10 @@ export function setupWaystone(scene: Phaser.Scene, art: ZoneArt): void {
     onTap: async () => {
       if (busy) return;
       busy = true;
-      const save = await SaveManager.load();
-      const character = save?.character;
+      // The scene's own character when it has one (it saves it later on:
+      // changing only the stored copy would be overwritten), else the save.
+      const own = (scene as unknown as { character?: Character }).character;
+      const character = own ?? (await SaveManager.load())?.character;
       if (!character || !scene.scene.isActive()) {
         busy = false;
         return;
@@ -79,6 +83,16 @@ export function setupWaystone(scene: Phaser.Scene, art: ZoneArt): void {
         return;
       }
       if (!awake) breathe();
+      // An awake stone also restores: a place to rest in every region.
+      if (character.hp < character.maxHp || character.mp < character.maxMp) {
+        character.hp = character.maxHp;
+        character.mp = character.maxMp;
+        await SaveManager.saveCharacter(character);
+        scene.cameras.main.flash(200, 140, 210, 255);
+        showBanner(scene, 'La pierre vous apaise : forces restaurées.', 1800);
+        busy = false;
+        return;
+      }
       const player = (scene as unknown as { player?: { x: number; y: number } }).player;
       scene.scene.start('Map', { returnScene: scene.scene.key, x: player?.x, y: player?.y, travel: true });
     },

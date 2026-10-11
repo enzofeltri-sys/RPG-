@@ -1,14 +1,8 @@
 import { Character } from './character';
-import { Item, RARITY_LABELS, rollLootItem } from './item';
+import { Item, LOOT_ODDS, RARITY_LABELS, rollLootItem } from './item';
 import { ReturnSceneKey } from '../ui/returnContext';
 import { DUNGEON_LOOT_TIER } from './worldMap';
 
-// Chests always yield something, with better rare/epic odds than a random
-// monster kill — finding one off the beaten path (abandoned houses, dungeon
-// corners) is meant to feel like a solid reward for exploring, distinct from
-// combat loot.
-const CHEST_RARE_CHANCE = 0.35;
-const CHEST_EPIC_CHANCE = 0.08;
 
 export function isChestOpened(character: Character, chestId: string): boolean {
   return Boolean(character.openedChests[chestId]);
@@ -22,7 +16,7 @@ export function openChest(character: Character, chestId: string, scene: ReturnSc
   if (character.openedChests[chestId]) return null;
   character.openedChests[chestId] = true;
   const tier = DUNGEON_LOOT_TIER[scene] ?? 1;
-  const loot = rollLootItem({ guaranteed: true, rareChance: CHEST_RARE_CHANCE, epicChance: CHEST_EPIC_CHANCE, tier });
+  const loot = rollLootItem({ ...LOOT_ODDS.chest, tier });
   if (loot) character.inventory.push(loot);
   return loot;
 }

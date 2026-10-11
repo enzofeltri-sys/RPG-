@@ -32,7 +32,7 @@ export const DIFFICULTY_RULES: Record<Difficulty, DifficultyRules> = {
 };
 
 // Share of max HP recovered after every victory (all modes).
-export const VICTORY_HEAL = 0.25;
+export const VICTORY_HEAL = 0.35;
 
 export function difficultyOf(character: Character): Difficulty {
   return character.difficulty ?? 'normal';

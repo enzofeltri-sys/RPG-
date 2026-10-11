@@ -2094,30 +2094,32 @@ export interface ItemSet {
   bonuses: ItemSetBonus[];
 }
 
+// Bonuses sized for their palier: a full set is worth about one more good
+// item of that point of the story, so assembling one is a real choice.
 export const ITEM_SETS: ItemSet[] = [
   {
     id: 'watchers_order',
     label: "Ordre des Veilleurs",
     baseIds: ['watchtower_helm', 'eternal_watch_greaves', 'last_watcher_boots'],
     bonuses: [
-      { pieces: 2, stats: { armor: 2 } },
-      { pieces: 3, stats: { vitality: 3 } },
+      { pieces: 2, stats: { armor: 6, vitality: 4 } },
+      { pieces: 3, stats: { vitality: 8, armor: 4 } },
     ],
   },
   {
     id: 'blighted_grove',
     label: 'Bosquet corrompu',
     baseIds: ['purified_breastplate', 'corrupted_root_gloves'],
-    bonuses: [{ pieces: 2, stats: { vitality: 2, armor: 1 } }],
+    bonuses: [{ pieces: 2, stats: { vitality: 7, armor: 5 } }],
   },
   {
     id: 'aiglemont_garrison',
     label: "Garnison d'Aiglemont",
     baseIds: ['bregan_seal', 'garrison_blade', 'garrison_helm', 'garrison_cuirass'],
     bonuses: [
-      { pieces: 2, stats: { armor: 2 } },
-      { pieces: 3, stats: { vitality: 2 } },
-      { pieces: 4, stats: { strength: 2, armor: 2 } },
+      { pieces: 2, stats: { armor: 4 } },
+      { pieces: 3, stats: { vitality: 5 } },
+      { pieces: 4, stats: { strength: 5, armor: 4 } },
     ],
   },
   {
@@ -2125,8 +2127,8 @@ export const ITEM_SETS: ItemSet[] = [
     label: 'Passage des ombres',
     baseIds: ['last_refuge_legs', 'hidden_path_boots', 'silent_smith_gloves'],
     bonuses: [
-      { pieces: 2, stats: { agility: 2 } },
-      { pieces: 3, stats: { vitality: 2, agility: 2 } },
+      { pieces: 2, stats: { agility: 6 } },
+      { pieces: 3, stats: { vitality: 5, agility: 6 } },
     ],
   },
   {
@@ -2134,9 +2136,9 @@ export const ITEM_SETS: ItemSet[] = [
     label: "Ensemble de l'artisan",
     baseIds: ['artisan_blade', 'artisan_amulet', 'artisan_ring', 'artisan_gloves'],
     bonuses: [
-      { pieces: 2, stats: { armor: 2 } },
-      { pieces: 3, stats: { vitality: 3 } },
-      { pieces: 4, stats: { strength: 2, intelligence: 2, agility: 2 } },
+      { pieces: 2, stats: { armor: 4 } },
+      { pieces: 3, stats: { vitality: 6 } },
+      { pieces: 4, stats: { strength: 4, intelligence: 4, agility: 4 } },
     ],
   },
 ];
@@ -2406,6 +2408,66 @@ export function lootableTemplates(tier: 1 | 2 | 3): { baseId: string; category: 
   return LOOTABLE_TEMPLATES_BY_TIER[tier].map((t) => ({ baseId: t.baseId, category: t.category, weaponType: t.weaponType }));
 }
 
+// Weapons each class wields in its main hand — quest rewards (mainQuest.ts)
+// are picked to fit the one receiving them.
+export const CLASS_MAIN_WEAPONS: Record<string, WeaponType[]> = {
+  warrior: ['sword', 'axe', 'greatsword', 'greataxe'],
+  mage: ['staff'],
+  cleric: ['staff'],
+  archer: ['bow'],
+  rogue: ['dagger'],
+};
+
+export function templateCategory(baseId: string): ItemCategory | undefined {
+  return TEMPLATES.find((t) => t.baseId === baseId)?.category;
+}
+
+export function templateTier(baseId: string): 1 | 2 | 3 | undefined {
+  return TEMPLATES.find((t) => t.baseId === baseId)?.tier;
+}
+
+// Whether this class makes use of the item (weapons and off-hands only
+// matter; armor and jewels suit everyone).
+export function fitsClass(charClass: string, baseId: string): boolean {
+  const t = TEMPLATES.find((x) => x.baseId === baseId);
+  if (!t) return false;
+  if (t.category === 'weapon') {
+    if (t.weaponType === 'tome') return charClass === 'mage' || charClass === 'cleric';
+    return !!t.weaponType && (CLASS_MAIN_WEAPONS[charClass] ?? []).includes(t.weaponType);
+  }
+  if (t.category === 'shield') return charClass === 'warrior';
+  if (t.category === 'offhand') return charClass === 'rogue' || charClass === 'warrior';
+  return true;
+}
+
+export function isLootable(baseId: string): boolean {
+  const t = TEMPLATES.find((x) => x.baseId === baseId);
+  return !!t && !t.signature && !t.craftOnly && t.tier !== undefined;
+}
+
+// A reward of this kind (slot) from a palier's pool, made for this class:
+// a weapon it wields, a shield only for those who carry one (a tome for
+// casters, an off-hand blade for rogues, an amulet for archers, whose bow
+// takes both hands).
+export function rewardItem(charClass: string, category: ItemCategory, tier: 1 | 2 | 3, rarity: Rarity): Item {
+  const wanted = (t: ItemTemplate): boolean => {
+    if (category === 'weapon') return t.category === 'weapon' && !!t.weaponType && (CLASS_MAIN_WEAPONS[charClass] ?? []).includes(t.weaponType);
+    if (category === 'shield') {
+      if (charClass === 'warrior') return t.category === 'shield';
+      if (charClass === 'mage' || charClass === 'cleric') return t.weaponType === 'tome';
+      if (charClass === 'rogue') return t.category === 'offhand';
+      return t.category === 'amulet';
+    }
+    return t.category === category;
+  };
+  for (let k = tier; k >= 1; k--) {
+    const pool = LOOTABLE_TEMPLATES_BY_TIER[k as 1 | 2 | 3].filter(wanted);
+    if (pool.length) return createItem(pool[Math.floor(Math.random() * pool.length)].baseId, rarity);
+  }
+  const fallback = LOOTABLE_TEMPLATES_BY_TIER[tier].filter((t) => t.category === category);
+  return createItem((fallback[0] ?? LOOTABLE_TEMPLATES_BY_TIER[tier][0]).baseId, rarity);
+}
+
 export interface CraftableItemInfo {
   baseId: string;
   name: string;
@@ -2430,9 +2492,23 @@ export function getCraftableItems(): CraftableItemInfo[] {
 // odds. Which named items can come up is now segmented by `tier` (see
 // DUNGEON_LOOT_TIER) so power actually follows story progression, not just
 // difficulty chances.
+// The loot odds of each source, shared by combat (CombatScene), chests
+// (chest.ts) and the balancing simulator. A regular kill drops something
+// now and then; elites, bosses and chests always do, and better.
+export const LOOT_ODDS = {
+  regular: { rareChance: 0.25 },
+  guaranteedMinor: { guaranteed: true, rareChance: 0.3 },
+  elite: { guaranteed: true, rareChance: 0.5, epicChance: 0.15 },
+  legendary: { guaranteed: true, rareChance: 0.25, epicChance: 0.5, legendaryChance: 0.05 },
+  boss: { guaranteed: true, rareChance: 0.45, epicChance: 0.4, legendaryChance: 0.05 },
+  chest: { guaranteed: true, rareChance: 0.45, epicChance: 0.25, legendaryChance: 0.03 },
+} satisfies Record<string, LootOptions>;
+// How often a regular kill drops an item at all.
+export const REGULAR_DROP_CHANCE = 0.3;
+
 export function rollLootItem(options: LootOptions = {}): Item | null {
   const { guaranteed = false, rareChance = 0.2, epicChance = 0, legendaryChance = 0, tier = 1 } = options;
-  if (!guaranteed && Math.random() > 0.4) return null;
+  if (!guaranteed && Math.random() > REGULAR_DROP_CHANCE) return null;
   const pool = LOOTABLE_TEMPLATES_BY_TIER[tier];
   const template = pool[Math.floor(Math.random() * pool.length)];
   const roll = Math.random();

@@ -13,15 +13,20 @@ export interface WeaponProfile {
   crit: number;
   // Staff and tome attacks are spells (Intelligence, spell bonuses).
   spell: boolean;
+  // Share of the scaling stat added to a hit, when not the default
+  // (WEAPON_STAT_SCALING / SPELL_STAT_SCALING): strength weapons and
+  // daggers lean harder on their stat, as fighters have fewer multiplying
+  // skills than casters.
+  statScaling?: number;
 }
 
 export const WEAPON_PROFILES: Record<WeaponType, WeaponProfile> = {
-  dagger: { label: 'Dague', scaling: 'agility', min: 2, max: 4, crit: 0.07, spell: false },
-  sword: { label: 'Épée', scaling: 'strength', min: 3, max: 6, crit: 0.05, spell: false },
-  axe: { label: 'Hache', scaling: 'strength', min: 2, max: 9, crit: 0, spell: false },
+  dagger: { label: 'Dague', scaling: 'agility', min: 2, max: 4, crit: 0.07, spell: false, statScaling: 0.6 },
+  sword: { label: 'Épée', scaling: 'strength', min: 3, max: 6, crit: 0.05, spell: false, statScaling: 0.68 },
+  axe: { label: 'Hache', scaling: 'strength', min: 2, max: 9, crit: 0, spell: false, statScaling: 0.68 },
   bow: { label: 'Arc', scaling: 'agility', min: 4, max: 8, crit: 0, spell: false },
-  greatsword: { label: 'Épée à deux mains', scaling: 'strength', min: 6, max: 11, crit: 0, spell: false },
-  greataxe: { label: 'Grande hache', scaling: 'strength', min: 5, max: 13, crit: 0, spell: false },
+  greatsword: { label: 'Épée à deux mains', scaling: 'strength', min: 6, max: 11, crit: 0, spell: false, statScaling: 0.65 },
+  greataxe: { label: 'Grande hache', scaling: 'strength', min: 5, max: 13, crit: 0, spell: false, statScaling: 0.65 },
   staff: { label: 'Bâton', scaling: 'intelligence', min: 3, max: 6, crit: 0, spell: true },
   tome: { label: 'Tome', scaling: 'intelligence', min: 2, max: 5, crit: 0, spell: true },
 };

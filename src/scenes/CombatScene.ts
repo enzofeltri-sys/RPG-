@@ -4,7 +4,7 @@ import { addMeadowBackdrop } from '../ui/backdrop';
 import { centerFrame } from '../ui/screen';
 import { CLASSES, Character, grantXp } from '../game/character';
 import { Monster, EncounterTier, createMonster } from '../game/monster';
-import { Item, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
+import { Item, LOOT_ODDS, Rarity, RARITY_LABELS, rollLootItem, createItem } from '../game/item';
 import { advanceQuestsOnDefeat } from '../game/quest';
 import { advanceMainQuestOnBossDefeat } from '../game/mainQuest';
 import { ConsumableId } from '../game/consumable';
@@ -44,31 +44,32 @@ const TIER_APPEARANCE_MESSAGE: Record<EncounterTier, string> = {
 
 // A hard-dungeon boss can grant its own exclusive item on top of the normal
 // loot roll — a guaranteed, always-the-same "special reward" distinct from
-// the random pool (see item.ts's `signature` flag on ItemTemplate).
+// the random pool (see item.ts's `signature` flag on ItemTemplate), and
+// legendary: a unique item must stand above what drops at random.
 const SIGNATURE_REWARDS: Record<string, { baseId: string; rarity: Rarity }> = {
-  fallen_guardian: { baseId: 'guardian_amulet', rarity: 'epic' },
-  shard_warden: { baseId: 'shard_pendant', rarity: 'epic' },
-  seeker_archivist: { baseId: 'seeker_signet', rarity: 'epic' },
-  corruption_heart: { baseId: 'purified_breastplate', rarity: 'epic' },
-  primordial_guardian: { baseId: 'sealed_blade', rarity: 'epic' },
-  watchtower_guardian: { baseId: 'watchtower_helm', rarity: 'epic' },
-  unnamed_vestige: { baseId: 'eternal_watch_greaves', rarity: 'epic' },
-  last_watcher: { baseId: 'last_watcher_boots', rarity: 'epic' },
-  broken_sleeper: { baseId: 'broken_sleep_aegis', rarity: 'epic' },
-  blight_root: { baseId: 'corrupted_root_gloves', rarity: 'epic' },
+  fallen_guardian: { baseId: 'guardian_amulet', rarity: 'legendary' },
+  shard_warden: { baseId: 'shard_pendant', rarity: 'legendary' },
+  seeker_archivist: { baseId: 'seeker_signet', rarity: 'legendary' },
+  corruption_heart: { baseId: 'purified_breastplate', rarity: 'legendary' },
+  primordial_guardian: { baseId: 'sealed_blade', rarity: 'legendary' },
+  watchtower_guardian: { baseId: 'watchtower_helm', rarity: 'legendary' },
+  unnamed_vestige: { baseId: 'eternal_watch_greaves', rarity: 'legendary' },
+  last_watcher: { baseId: 'last_watcher_boots', rarity: 'legendary' },
+  broken_sleeper: { baseId: 'broken_sleep_aegis', rarity: 'legendary' },
+  blight_root: { baseId: 'corrupted_root_gloves', rarity: 'legendary' },
   // Added so every equip slot has at least 2 signature items (see item.ts) —
   // assigned to existing Acte 2/3 bosses that had no unique reward yet, no
   // new dungeon needed. Still a guaranteed drop on a specific hard-dungeon
   // boss kill, same farm gate as every other signature item (re-enterable
   // dungeons mean it's re-farmable, not a one-shot).
-  smuggler_captain: { baseId: 'garrison_blade', rarity: 'epic' },
-  ruins_delver: { baseId: 'garrison_helm', rarity: 'epic' },
-  demon_envoy: { baseId: 'garrison_cuirass', rarity: 'epic' },
-  blight_sentinel: { baseId: 'last_refuge_legs', rarity: 'epic' },
-  sunken_warden: { baseId: 'hidden_path_boots', rarity: 'epic' },
-  ancestor_warden: { baseId: 'silent_smith_gloves', rarity: 'epic' },
-  seal_echo: { baseId: 'garrison_offhand_dagger', rarity: 'epic' },
-  oath_guardian: { baseId: 'last_refuge_hatchet', rarity: 'epic' },
+  smuggler_captain: { baseId: 'garrison_blade', rarity: 'legendary' },
+  ruins_delver: { baseId: 'garrison_helm', rarity: 'legendary' },
+  demon_envoy: { baseId: 'garrison_cuirass', rarity: 'legendary' },
+  blight_sentinel: { baseId: 'last_refuge_legs', rarity: 'legendary' },
+  sunken_warden: { baseId: 'hidden_path_boots', rarity: 'legendary' },
+  ancestor_warden: { baseId: 'silent_smith_gloves', rarity: 'legendary' },
+  seal_echo: { baseId: 'garrison_offhand_dagger', rarity: 'legendary' },
+  oath_guardian: { baseId: 'last_refuge_hatchet', rarity: 'legendary' },
 };
 
 // A low-stakes optional dungeon's final encounter always drops something —
@@ -546,15 +547,16 @@ export class CombatScene extends Phaser.Scene {
     this.character.gold += goldReward;
 
     const lootTier = DUNGEON_LOOT_TIER[this.returnScene] ?? 1;
-    const loot: Item | null = this.monster.isBoss
-      ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15, tier: lootTier })
+    const odds = this.monster.isBoss
+      ? LOOT_ODDS.boss
       : this.monster.tier === 'legendary'
-        ? rollLootItem({ guaranteed: true, rareChance: 0.25, epicChance: 0.5, legendaryChance: 0.05, tier: lootTier })
+        ? LOOT_ODDS.legendary
         : this.monster.tier === 'elite'
-          ? rollLootItem({ guaranteed: true, rareChance: 0.5, epicChance: 0.15, tier: lootTier })
+          ? LOOT_ODDS.elite
           : GUARANTEED_LOOT_MONSTER_IDS.has(this.monster.id)
-            ? rollLootItem({ guaranteed: true, rareChance: 0.3, tier: lootTier })
-            : rollLootItem({ tier: lootTier });
+            ? LOOT_ODDS.guaranteedMinor
+            : LOOT_ODDS.regular;
+    const loot: Item | null = rollLootItem({ ...odds, tier: lootTier });
     if (loot) {
       this.character.inventory.push(loot);
     }

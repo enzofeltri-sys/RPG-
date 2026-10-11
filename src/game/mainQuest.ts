@@ -1,5 +1,5 @@
 import { Character, grantXp } from './character';
-import { Rarity, createItem } from './item';
+import { Rarity, createItem, fitsClass, isLootable, rewardItem, templateCategory, templateTier } from './item';
 
 // The single, story-critical quest thread (Acte 1 of DESIGN.md's trame
 // principale) — deliberately not built on the generic QUESTS engine in
@@ -263,13 +263,33 @@ const STAGE_REWARDS: Partial<Record<MainQuestStage, StageReward>> = {
   ending_ascension: { xp: 1000, itemBaseId: 'shadow_scepter', itemRarity: 'legendary' },
 };
 
+// The palier a stage belongs to (same boundaries as getStoryTier).
+function stageTier(stage: MainQuestStage): 1 | 2 | 3 {
+  const index = STAGE_ORDER[stage];
+  if (index < ACT1_COMPLETE_INDEX) return 1;
+  if (index < ACT2_COMPLETE_INDEX) return 2;
+  return 3;
+}
+
+// The item a stage hands out: unique items as they are; an ordinary one
+// (named above by its kind, e.g. leather_chest = a chest piece) drawn from
+// the palier the story has reached, and made for the hero's class — so a
+// reward late in the story is never weaker than what the monsters drop.
+export function stageRewardItem(character: Character, stage: MainQuestStage, baseId: string, rarity: Rarity) {
+  const category = templateCategory(baseId);
+  if (!category || !isLootable(baseId)) return createItem(baseId, rarity);
+  // A named item that already suits the hero and the moment stays itself.
+  if (fitsClass(character.class, baseId) && (templateTier(baseId) ?? 1) >= stageTier(stage)) return createItem(baseId, rarity);
+  return rewardItem(character.class, category, stageTier(stage), rarity);
+}
+
 export function advanceMainQuestStage(character: Character, next: MainQuestStage): void {
   character.mainQuestStage = next;
   const reward = STAGE_REWARDS[next];
   if (reward) {
     grantXp(character, reward.xp);
     if (reward.itemBaseId && reward.itemRarity) {
-      character.inventory.push(createItem(reward.itemBaseId, reward.itemRarity));
+      character.inventory.push(stageRewardItem(character, next, reward.itemBaseId, reward.itemRarity));
     }
   }
 }
@@ -305,6 +325,17 @@ const BOSS_TRANSITIONS: Record<string, { fromStage: MainQuestStage; toStage: Mai
   ancestor_warden: { fromStage: 'third_site_lead', toStage: 'third_site_reached' },
   demon_king_echo: { fromStage: 'rite_night', toStage: 'rite_climax' },
 };
+
+// For the balancing simulator: the XP the story has paid out once it has
+// reached this stage, and the stage at which a story boss is fought.
+export function mainQuestXpThrough(stage: MainQuestStage): number {
+  const index = STAGE_ORDER[stage];
+  return (Object.keys(STAGE_REWARDS) as MainQuestStage[]).filter((s) => STAGE_ORDER[s] <= index).reduce((sum, s) => sum + (STAGE_REWARDS[s]?.xp ?? 0), 0);
+}
+
+export function storyStageOfBoss(monsterId: string): MainQuestStage | undefined {
+  return BOSS_TRANSITIONS[monsterId]?.fromStage;
+}
 
 export function advanceMainQuestOnBossDefeat(character: Character, monsterId: string): boolean {
   const transition = BOSS_TRANSITIONS[monsterId];

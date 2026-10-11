@@ -189,7 +189,7 @@ export type PlayerStatuses = Partial<Record<PlayerStatusId, ActiveStatus>>;
 const PLAYER_BLIND_MISS = 0.25;
 const PLAYER_WEAKENED_MULTIPLIER = 0.75;
 const MONSTER_EVASION = 0.15;
-const THORNS_SHARE = 0.15;
+const THORNS_SHARE = 0.05;
 const MONSTER_REGEN = 0.05;
 const BOSS_ENRAGE_MULTIPLIER = 1.3;
 const PHASE2_ATTACK_MULTIPLIER = 1.15;
@@ -507,7 +507,7 @@ export class CombatEngine {
   private damageParts(spell: boolean, weapon?: Item): { core: number; elemental: number } {
     const stats = this.stats();
     const profile = spell ? this.spellProfile() : weaponProfile(weapon ?? this.attackWeapon());
-    const scaling = profile.spell ? SPELL_STAT_SCALING : WEAPON_STAT_SCALING;
+    const scaling = profile.statScaling ?? (profile.spell ? SPELL_STAT_SCALING : WEAPON_STAT_SCALING);
     const core = this.randInt(profile.min, profile.max) + Math.floor(stats[profile.scaling] * scaling);
     const elemental = GEAR_ELEMENTS.reduce(
       (sum, [stat, element]) => sum + stats[stat] * this.elementMultiplier(element),
@@ -526,7 +526,7 @@ export class CombatEngine {
       const affinity = RACES[this.character.race].weaponAffinity ?? [];
       if (type && affinity.includes(type)) m *= 1.1;
     } else {
-      m *= 1 + 0.08 * this.rank('arcane_power') + 0.08 * this.rank('fervor');
+      m *= 1 + 0.08 * this.rank('arcane_power') + 0.05 * this.rank('fervor');
       if (this.hasTome()) m *= 1 + TOME_SPELL_BONUS;
       if (this.fx.overload > 0) m *= 1.2;
     }

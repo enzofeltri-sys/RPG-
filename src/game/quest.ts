@@ -1,5 +1,6 @@
 import { Character, grantXp } from './character';
-import { Rarity, createItem } from './item';
+import { Rarity, createItem, fitsClass, isLootable, rewardItem, templateCategory, templateTier } from './item';
+import { DUNGEON_LOOT_TIER, QUEST_LOCATIONS } from './worldMap';
 
 export type QuestState = 'active' | 'completed' | 'turned_in';
 
@@ -269,6 +270,18 @@ export function advanceQuestsOnDefeat(character: Character, monsterId: string): 
   return justCompleted;
 }
 
+// The item a side quest hands out: of the palier of the place it's given
+// in, and made for the hero's class (the reward named in QUESTS gives its
+// kind: leather_chest = a chest piece).
+function questRewardItem(character: Character, questId: string, baseId: string, rarity: Rarity) {
+  const category = templateCategory(baseId);
+  if (!category || !isLootable(baseId)) return createItem(baseId, rarity);
+  const location = QUEST_LOCATIONS[questId];
+  const tier = (location && DUNGEON_LOOT_TIER[location]) || 1;
+  if (fitsClass(character.class, baseId) && (templateTier(baseId) ?? 1) >= tier) return createItem(baseId, rarity);
+  return rewardItem(character.class, category, tier, rarity);
+}
+
 // Grants the reward and marks the quest turned in; no-op (returns false) if
 // the quest isn't actually completed yet.
 export function turnInQuest(character: Character, questId: string): boolean {
@@ -278,7 +291,7 @@ export function turnInQuest(character: Character, questId: string): boolean {
 
   grantXp(character, quest.reward.xp);
   if (quest.reward.itemBaseId && quest.reward.itemRarity) {
-    character.inventory.push(createItem(quest.reward.itemBaseId, quest.reward.itemRarity));
+    character.inventory.push(questRewardItem(character, questId, quest.reward.itemBaseId, quest.reward.itemRarity));
   }
   current.state = 'turned_in';
   return true;

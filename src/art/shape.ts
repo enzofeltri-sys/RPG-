@@ -1,7 +1,7 @@
 // Shapes with volume, shared by the monsters and the item icons: a
 // polygon filled and shaded as if bevelled, light from the top left.
 
-import { Pixmap, Ramp, lit } from './pixmap';
+import { Pixmap, Ramp, hash2, lit, noise } from './pixmap';
 
 // Light from the top left, a little in front.
 export const LIGHT: [number, number, number] = [-0.45, -0.65, 0.62];
@@ -57,6 +57,62 @@ export function part(pm: Pixmap, pts: Pt[], r: Ramp, o: PartOpts = {}): void {
       const nl = Math.hypot(nx, ny, nz);
       const level = ((nx * L[0] + ny * L[1] + nz * L[2]) / nl) * 1.4 - 0.55 + (o.bias ?? 0) + (o.tex ? o.tex(x, y) : 0) - (cy - Math.min(...ys)) / (Math.max(...ys) - Math.min(...ys) + 1) * 0.25;
       pm.set(x, y, lit(r, level));
+    }
+  }
+}
+
+// Fur: the same volume as part(), but the tones break into clumps
+// streaked along the way the fur lies (`dir`, radians, 0 = to the right,
+// π/2 = down), and tufts poke out past the edge in that direction, so the
+// coat reads as hair rather than as a smooth, inflated shape.
+export interface FurOpts {
+  round?: number;
+  bias?: number;
+  dir?: number;
+  clump?: number; // how strongly the clumps break the shading
+  tufts?: number; // 0..1, how many tufts stick out
+  seed?: number;
+}
+export function furPart(pm: Pixmap, pts: Pt[], r: Ramp, o: FurOpts = {}): void {
+  const round = o.round ?? 4;
+  const dir = o.dir ?? Math.PI / 2;
+  const cd = Math.cos(dir);
+  const sd = Math.sin(dir);
+  const seed = o.seed ?? 7;
+  const clump = o.clump ?? 0.4;
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const minY = Math.min(...ys);
+  const spanY = Math.max(...ys) - minY + 1;
+  const h = (x: number, y: number) => (inside(pts, x, y) ? Math.sqrt(Math.min(1, edgeDist(pts, x, y) / round)) : 0);
+  const streak = (x: number, y: number) => {
+    const u = x * cd + y * sd;
+    const v = -x * sd + y * cd;
+    return noise(u * 0.22, v * 1.5, 1.1, seed) - 0.5;
+  };
+  const levelAt = (x: number, y: number) => {
+    const gx = h(x + 1, y) - h(x - 1, y);
+    const gy = h(x, y + 1) - h(x, y - 1);
+    const nl = Math.hypot(gx, gy, 0.9);
+    return ((-gx * L[0] - gy * L[1] + 0.9 * L[2]) / nl) * 1.3 - 0.5 + (o.bias ?? 0) - ((y - minY) / spanY) * 0.3 + streak(x, y) * clump * 2;
+  };
+  const x0 = Math.floor(Math.min(...xs)) - 2;
+  const x1 = Math.ceil(Math.max(...xs)) + 2;
+  const y0 = Math.floor(minY) - 2;
+  const y1 = Math.ceil(Math.max(...ys)) + 2;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const cx = x + 0.5;
+      const cy = y + 0.5;
+      if (inside(pts, cx, cy)) {
+        pm.set(x, y, lit(r, levelAt(cx, cy)));
+        continue;
+      }
+      // A tuft: just outside, with the coat behind it along the fur.
+      const t = o.tufts ?? 0.5;
+      if (t > 0 && edgeDist(pts, cx, cy) < 1.6 && inside(pts, cx - cd * 2, cy - sd * 2) && hash2(x, y, seed) < t) {
+        pm.set(x, y, lit(r, levelAt(cx - cd * 2, cy - sd * 2) - 0.3));
+      }
     }
   }
 }

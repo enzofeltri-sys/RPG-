@@ -454,8 +454,15 @@ function cellNoise(x: number, y: number): number {
   return joint ? -0.45 : (hash2(bx, by, 72) - 0.5) * 0.35;
 }
 
+// Every combat portrait drawn so far, for the design previews.
 export const MONSTER_PORTRAITS: Record<string, () => MonsterArt> = {
   corrupted_wolf: wolfPortrait,
+  corrupted_sentinel: sentinelPortrait,
+};
+
+// The ones combat shows (the others still use their painted image until
+// their drawing is approved).
+export const COMBAT_PORTRAITS: Record<string, () => MonsterArt> = {
   corrupted_sentinel: sentinelPortrait,
 };
 

@@ -1,10 +1,32 @@
 import Phaser from 'phaser';
+import { renderItemIcon, type IconSpec } from '../art/itemIcons';
+import { itemIconSpecs } from '../game/item';
+import { pixmapTexture } from '../world/drawnArt';
 
-// The 199 item icons were generated via SpriteCook early in the project
-// (see spritecook-assets-items*.json) but never actually wired into any
-// UI — every screen showing items still fell back to categoryIcon()'s
-// text/emoji badge. Same on-demand load pattern as spriteOverlay.ts, but
-// for a plain UI image rather than something overlaid on a physics shape.
+// Item icons are drawn by the game (art/itemIcons.ts), one per item, at
+// the size the bag and the shops show them (24 px) and at the buttons'
+// size (16 px), so neither is ever resampled.
+let specs: Map<string, IconSpec> | undefined;
+function specOf(baseId: string): IconSpec | undefined {
+  specs ??= new Map(itemIconSpecs().map((s) => [s.baseId, s]));
+  return specs.get(baseId);
+}
+
+const BUTTON_SIZE = 16;
+
+// The icon's texture key (`item-icon-<id>`, its button size under
+// `item-icon-<id>-px16`), drawn the first time it's asked for; undefined
+// for an id with no item behind it.
+export function itemIconTexture(scene: Phaser.Scene, baseId: string): string | undefined {
+  const key = `item-icon-${baseId}`;
+  if (scene.textures.exists(key)) return key;
+  const spec = specOf(baseId);
+  if (!spec) return undefined;
+  pixmapTexture(scene, `${key}-px${BUTTON_SIZE}`, renderItemIcon(spec, BUTTON_SIZE));
+  return pixmapTexture(scene, key, renderItemIcon(spec));
+}
+
+// PNG icons (the consumables) loaded on demand.
 async function loadIconTexture(scene: Phaser.Scene, cacheKey: string, url: string): Promise<string | undefined> {
   if (!scene.textures.exists(cacheKey)) {
     await new Promise<void>((resolve) => {
@@ -25,13 +47,9 @@ export async function attachItemIcon(
   y: number,
   size: number,
 ): Promise<Phaser.GameObjects.Image | undefined> {
-  const key = await loadIconTexture(
-    scene,
-    `item-icon-${baseId}`,
-    `${import.meta.env.BASE_URL}sprites/items/${baseId}.png`,
-  );
+  const key = itemIconTexture(scene, baseId);
   if (!key) return undefined;
-  return scene.add.image(x, y, key).setDisplaySize(size, size);
+  return scene.add.image(x, y, size === BUTTON_SIZE ? `${key}-px${size}` : key).setDisplaySize(size, size);
 }
 
 // Two hand-picked icons (a plain and a "+"-badged potion) from the Shikashi
@@ -54,30 +72,26 @@ export async function attachConsumableIcon(
   return scene.add.image(x, y, key).setDisplaySize(size, size);
 }
 
-// Loads every listed item icon in one pass, so a screen that redraws itself
-// can then place them synchronously (missing files are simply skipped).
+// Draws every listed item icon now, so a screen that redraws itself can
+// then place them synchronously (ids with no item are simply skipped).
 export async function preloadItemIcons(scene: Phaser.Scene, baseIds: string[]): Promise<void> {
-  const missing = [...new Set(baseIds)].filter((id) => !scene.textures.exists(`item-icon-${id}`));
-  if (missing.length === 0) return;
-  await new Promise<void>((resolve) => {
-    missing.forEach((id) => scene.load.image(`item-icon-${id}`, `${import.meta.env.BASE_URL}sprites/items/${id}.png`));
-    scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
-    scene.load.start();
-  });
+  new Set(baseIds).forEach((id) => itemIconTexture(scene, id));
 }
 
-// The icon at (cx, cy) fitted in a size×size square, if it loaded.
+// The icon at (cx, cy) fitted in a size×size square, if it exists.
 export function placeItemIcon(scene: Phaser.Scene, baseId: string, cx: number, cy: number, size: number): Phaser.GameObjects.Image | undefined {
-  const key = `item-icon-${baseId}`;
-  if (!scene.textures.exists(key)) return undefined;
-  return scene.add.image(cx, cy, crispIcon(scene, key, size));
+  const key = itemIconTexture(scene, baseId);
+  if (!key) return undefined;
+  const native = scene.textures.get(key).getSourceImage().width;
+  return scene.add.image(cx, cy, native === size ? key : size === BUTTON_SIZE ? `${key}-px${size}` : crispIcon(scene, key, size));
 }
 
-// The big painted icons (60–76 px) squeezed into 24 px by nearest-pixel
-// sampling look noisy. This redraws one at its real display size as a
-// pixel icon: trimmed, each target pixel the average of the source pixels
-// it covers, a hard silhouette (no half-transparent edge) and a dark
-// outline like the rest of the game's art. Once per icon and size.
+// Big painted images (the monsters', 50–250 px) squeezed into a few dozen
+// pixels by nearest-pixel sampling look noisy. This redraws one at its
+// real display size as a pixel icon: trimmed, each target pixel the
+// average of the source pixels it covers, a hard silhouette (no
+// half-transparent edge) and a dark outline like the rest of the game's
+// art. Once per image and size.
 export function crispIcon(scene: Phaser.Scene, key: string, size: number): string {
   const outKey = `${key}-px${size}`;
   if (scene.textures.exists(outKey)) return outKey;

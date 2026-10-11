@@ -19,6 +19,8 @@ import { ChipRow, INK, KitBar, KitButton, PAL, addPanel, drawPanel, panelText, p
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
 import { heroLook } from '../art/heroLook';
+import { COMBAT_PORTRAITS } from '../art/monsters';
+import { pixmapTexture } from '../world/drawnArt';
 import type { PixelText } from '../ui/pixelFont';
 
 // Reuses the same colors as item rarity (RARITY_COLORS) so the player reads
@@ -190,7 +192,7 @@ export class CombatScene extends Phaser.Scene {
   // sprite this encounter needs.
   preload(): void {
     const id = this.monsterId ?? 'corrupted_wolf';
-    this.load.image(`monster-${id}`, `${import.meta.env.BASE_URL}sprites/monsters/${id}.png`);
+    if (!COMBAT_PORTRAITS[id]) this.load.image(`monster-${id}`, `${import.meta.env.BASE_URL}sprites/monsters/${id}.png`);
     preloadUiKit(this);
   }
 
@@ -213,7 +215,7 @@ export class CombatScene extends Phaser.Scene {
     );
     this.engine = new CombatEngine(this.character, this.monster);
     const shownKey = `monster-${shownId}`;
-    if (!this.textures.exists(shownKey)) {
+    if (!COMBAT_PORTRAITS[shownId] && !this.textures.exists(shownKey)) {
       await new Promise<void>((resolve) => {
         this.load.image(shownKey, `${import.meta.env.BASE_URL}sprites/monsters/${shownId}.png`);
         this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
@@ -241,7 +243,14 @@ export class CombatScene extends Phaser.Scene {
       this.add.ellipse(MONSTER_CENTER.x, MONSTER_CENTER.y, 84, 84, TIER_ENEMY_TINT[this.monster.tier], 0.35);
     }
     const monsterKey = `monster-${this.monster.id}`;
-    if (this.textures.exists(monsterKey)) {
+    const portrait = COMBAT_PORTRAITS[this.monster.id]?.();
+    if (portrait) {
+      // Drawn by the game at its display size, standing on the bottom of
+      // the monster's square.
+      this.add
+        .image(MONSTER_CENTER.x, MONSTER_CENTER.y + MONSTER_SIZE / 2, pixmapTexture(this, `${monsterKey}-portrait`, portrait.pm))
+        .setOrigin(portrait.anchorX / portrait.pm.w, portrait.anchorY / portrait.pm.h);
+    } else if (this.textures.exists(monsterKey)) {
       // The painted monster redrawn at its display size (sharp pixels).
       this.add.image(MONSTER_CENTER.x, MONSTER_CENTER.y, crispIcon(this, monsterKey, MONSTER_SIZE));
     } else {

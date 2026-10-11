@@ -2,12 +2,12 @@
 // Usage: esbuild-bundle, then node out.mjs <png> [all | category,category…]
 import { writeFileSync } from 'fs';
 import { encodePng } from './png';
-import { renderItemIcon, ICON } from '../../src/art/itemIcons';
+import { renderItemIcon, ICON_PX as ICON } from '../../src/art/itemIcons';
 import { itemIconSpecs } from '../../src/game/item';
 const all = itemIconSpecs();
 const cats = process.argv[3] && process.argv[3] !== 'all' ? process.argv[3].split(',') : null;
 const pick = cats ? all.filter((s) => cats.includes(s.category) || cats.includes(s.weaponType ?? '')) : process.argv[3] === 'all' ? all : ['short_sword','iron_sword','leather_helmet','leather_chest','wooden_shield','simple_ring','simple_amulet','leather_boots','leather_gloves','leather_legs'].map((id)=>all.find((s)=>s.baseId===id)!).filter(Boolean).concat(all.filter((s)=>s.tier===2).slice(0,8), all.filter((s)=>s.tier===3).slice(0,14));
-const Z = 4, cols = 8, cell = ICON * Z + 8;
+const Z = 3, cols = 8, cell = ICON * Z + 8;
 const rows = Math.ceil(pick.length / cols);
 const W = cols * cell, H = rows * cell;
 const out = new Uint8ClampedArray(W * H * 4);

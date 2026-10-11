@@ -3,10 +3,61 @@
 // object (a sword from its blade, guard, grip and pommel; a boot from its
 // height, cuff and toe…) that itemIcons.ts puts together per item.
 
-import { Pixmap, RGB, Ramp, lit, mix, ramp } from './pixmap';
+import { OUTLINE, Pixmap, RGB, Ramp, lit, mix, ramp } from './pixmap';
 import { Pt, part } from './shape';
 
+// Items are designed on an 18-pixel grid (ICON) and drawn at 24 pixels
+// (ICON_PX), the size the bag and the shops show them at: the shapes
+// (polygons, discs, bars, rings) are traced at the full 24, so they gain
+// detail rather than being blown up; single pixels placed by hand land on
+// the matching block of the finer grid.
 export const ICON = 18;
+export const ICON_PX = 24;
+
+export class IconCanvas extends Pixmap {
+  // The same pixels, addressed at the real resolution.
+  readonly raw: Pixmap;
+  readonly k: number;
+
+  constructor(size = ICON_PX) {
+    super(size, size);
+    this.k = size / ICON;
+    this.raw = new Pixmap(size, size);
+    (this.raw as unknown as { data: Uint8ClampedArray }).data = this.data;
+  }
+
+  private span(v: number): [number, number] {
+    const i = Math.round(v);
+    return [Math.floor(i * this.k), Math.max(Math.floor(i * this.k) + 1, Math.floor((i + 1) * this.k))];
+  }
+
+  private at(v: number): number {
+    return Math.floor((Math.round(v) + 0.5) * this.k);
+  }
+
+  set(x: number, y: number, c: RGB, alpha = 255): void {
+    const [x0, x1] = this.span(x);
+    const [y0, y1] = this.span(y);
+    for (let ry = y0; ry < y1; ry++) for (let rx = x0; rx < x1; rx++) this.raw.set(rx, ry, c, alpha);
+  }
+
+  filled(x: number, y: number): boolean {
+    return this.raw.filled(this.at(x), this.at(y));
+  }
+
+  get(x: number, y: number): RGB | undefined {
+    return this.raw.get(this.at(x), this.at(y));
+  }
+
+  outline(c: RGB = OUTLINE): void {
+    this.raw.outline(c);
+  }
+}
+
+// The surface to trace on, and the scale from the design grid to it.
+function real(pm: Pixmap): [Pixmap, number] {
+  return pm instanceof IconCanvas ? [pm.raw, pm.k] : [pm, 1];
+}
 
 export interface IconSpec {
   baseId: string;
@@ -129,65 +180,85 @@ export function materials(spec: IconSpec): Materials {
 
 // ------------------------------------------------------------ helpers
 
+// One fine pixel at a design point (at 24 px, a quarter finer than a
+// design pixel: lines and dots drawn with it come out crisp and thin).
 export function px(pm: Pixmap, x: number, y: number, c: RGB, alpha = 255): void {
-  pm.set(Math.round(x), Math.round(y), c, alpha);
+  const [p, k] = real(pm);
+  p.set(Math.round((x + 0.5) * k - 0.5), Math.round((y + 0.5) * k - 0.5), c, alpha);
 }
 
-// A straight run from (x0, y0) to (x1, y1), w pixels thick, lit along its
-// width (light from the top left).
+// A straight run from (x0, y0) to (x1, y1), w design pixels thick, lit
+// along its width (light from the top left).
 export function bar(pm: Pixmap, x0: number, y0: number, x1: number, y1: number, w: number, r: Ramp, bias = 0): void {
-  const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2));
-  const nx = -(y1 - y0);
-  const ny = x1 - x0;
+  const [p, k] = real(pm);
+  const ax = (x0 + 0.5) * k - 0.5;
+  const ay = (y0 + 0.5) * k - 0.5;
+  const bx = (x1 + 0.5) * k - 0.5;
+  const by = (y1 + 0.5) * k - 0.5;
+  const ww = Math.max(1, Math.round(w * k));
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) * 2));
+  const nx = -(by - ay);
+  const ny = bx - ax;
   const nl = Math.hypot(nx, ny) || 1;
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    for (let k = 0; k < w; k++) {
-      const side = w === 1 ? 0 : (k / (w - 1)) * 2 - 1;
-      const x = x0 + (x1 - x0) * t + (nx / nl) * (side * (w - 1)) / 2;
-      const y = y0 + (y1 - y0) * t + (ny / nl) * (side * (w - 1)) / 2;
-      px(pm, x, y, lit(r, -side * 0.7 + bias));
+    for (let j = 0; j < ww; j++) {
+      const side = ww === 1 ? 0 : (j / (ww - 1)) * 2 - 1;
+      const x = ax + (bx - ax) * t + (nx / nl) * (side * (ww - 1)) / 2;
+      const y = ay + (by - ay) * t + (ny / nl) * (side * (ww - 1)) / 2;
+      p.set(Math.round(x), Math.round(y), lit(r, -side * 0.7 + bias));
     }
   }
 }
 
 export function disc(pm: Pixmap, cx: number, cy: number, rx: number, ry: number, r: Ramp, bias = 0): void {
-  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
-    for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
-      const dx = (x + 0.5 - cx) / rx;
-      const dy = (y + 0.5 - cy) / ry;
+  const [p, k] = real(pm);
+  const kx = cx * k;
+  const ky = cy * k;
+  const krx = rx * k;
+  const kry = ry * k;
+  for (let y = Math.floor(ky - kry); y <= Math.ceil(ky + kry); y++) {
+    for (let x = Math.floor(kx - krx); x <= Math.ceil(kx + krx); x++) {
+      const dx = (x + 0.5 - kx) / krx;
+      const dy = (y + 0.5 - ky) / kry;
       const d = dx * dx + dy * dy;
       if (d > 1) continue;
-      pm.set(x, y, lit(r, -dx * 0.5 - dy * 0.7 + Math.sqrt(1 - d) * 0.4 - 0.1 + bias));
+      p.set(x, y, lit(r, -dx * 0.5 - dy * 0.7 + Math.sqrt(1 - d) * 0.4 - 0.1 + bias));
     }
   }
 }
 
 // A thin ring (an ellipse's edge), lit from the top left.
 export function hoop(pm: Pixmap, cx: number, cy: number, rx: number, ry: number, r: Ramp, thick = 1, bias = 0): void {
-  for (let a = 0; a < Math.PI * 2; a += 0.04) {
-    for (let k = 0; k < thick; k++) {
-      const x = cx + Math.cos(a) * (rx - k * 0.9);
-      const y = cy + Math.sin(a) * (ry - k * 0.9);
-      px(pm, x - 0.5, y - 0.5, lit(r, -Math.cos(a) * 0.4 - Math.sin(a) * 0.6 - k * 0.4 + bias));
+  const [p, k] = real(pm);
+  const n = Math.max(1, Math.round(thick * k));
+  for (let a = 0; a < Math.PI * 2; a += 0.03) {
+    for (let j = 0; j < n; j++) {
+      const x = cx * k + Math.cos(a) * (rx * k - j * 0.9);
+      const y = cy * k + Math.sin(a) * (ry * k - j * 0.9);
+      p.set(Math.floor(x - 0.5 * k + 0.5), Math.floor(y - 0.5 * k + 0.5), lit(r, -Math.cos(a) * 0.4 - Math.sin(a) * 0.6 - (j / n) * 0.8 + bias));
     }
   }
 }
 
+// A cut stone with its glint, its top left corner on design pixel (x, y).
 export function gemAt(pm: Pixmap, x: number, y: number, c: RGB): void {
-  pm.set(x, y, mix(c, [255, 255, 255], 0.5));
-  pm.set(x + 1, y, mix(c, [20, 20, 40], 0.2));
-  pm.set(x, y + 1, mix(c, [20, 20, 40], 0.35));
-  pm.set(x + 1, y + 1, mix(c, [20, 20, 40], 0.55));
+  const [p, k] = real(pm);
+  const n = Math.max(2, Math.round(2 * k));
+  const x0 = Math.round(x * k);
+  const y0 = Math.round(y * k);
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) p.set(x0 + i, y0 + j, mix(c, [20, 20, 40], ((i + j) / (2 * n - 2)) * 0.55));
+  p.set(x0, y0, mix(c, [255, 255, 255], 0.55));
 }
 
 export function glint(pm: Pixmap, x: number, y: number, c: RGB = [255, 255, 255]): void {
-  pm.set(x, y, c);
+  px(pm, x, y, c);
 }
 
 // A polygon with volume (shape.ts), with an edge that suits small icons.
 export function poly(pm: Pixmap, pts: Pt[], r: Ramp, bias = 0, round = 1.6): void {
-  part(pm, pts, r, { round, bias: bias + 0.15 });
+  const [p, k] = real(pm);
+  part(p, k === 1 ? pts : pts.map(([x, y]) => [x * k, y * k] as Pt), r, { round: round * k, bias: bias + 0.15 });
 }
 
 // Clears what's under a mask (a notch, a cut-out).
@@ -195,14 +266,38 @@ export function erase(pm: Pixmap, x: number, y: number): void {
   pm.set(x, y, [0, 0, 0], 0);
 }
 
-// Runs of pixels on what's already drawn: stitching, rivets, runes…
+// Single pixels on what's already drawn: stitching, rivets, runes…
 export function dots(pm: Pixmap, pts: [number, number][], c: RGB, onlyFilled = true): void {
-  for (const [x, y] of pts) if (!onlyFilled || pm.filled(x, y)) pm.set(x, y, c);
+  for (const [x, y] of pts) if (!onlyFilled || pm.filled(x, y)) px(pm, x, y, c);
 }
 
-// Lights up the tone of everything drawn in a region by `amount` (+/-).
-export function tint(pm: Pixmap, c: RGB, k: number, keep: (x: number, y: number) => boolean = () => true): void {
-  for (let y = 0; y < ICON; y++) for (let x = 0; x < ICON; x++) if (pm.filled(x, y) && keep(x, y)) pm.set(x, y, mix(pm.get(x, y)!, c, k));
+// Every drawn pixel at the full resolution, given in design coordinates
+// (x, y, fractional) and in fine ones (fx, fy): patterns (mail, quilting,
+// weave, stripes) are laid on the fine grid so they stay even.
+export function paint(pm: Pixmap, f: (x: number, y: number, c: RGB, fx: number, fy: number) => RGB | undefined): void {
+  const [p, k] = real(pm);
+  for (let fy = 0; fy < p.h; fy++) for (let fx = 0; fx < p.w; fx++) {
+    const c = p.get(fx, fy);
+    if (!c) continue;
+    const out = f((fx + 0.5) / k - 0.5, (fy + 0.5) / k - 0.5, c, fx, fy);
+    if (out) p.set(fx, fy, out);
+  }
+}
+
+// Shifts the tone of everything drawn (where `keep` says) towards c.
+export function tint(pm: Pixmap, c: RGB, amount: number, keep: (x: number, y: number) => boolean = () => true): void {
+  paint(pm, (x, y, col) => (keep(x, y) ? mix(col, c, amount) : undefined));
+}
+
+// A frame around everything drawn (in `within`): the rim of a shield.
+export function rimOf(pm: Pixmap, r: Ramp): void {
+  const [p, k] = real(pm);
+  const edge: [number, number][] = [];
+  for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+    if (!p.filled(x, y)) continue;
+    if (!p.filled(x - 1, y) || !p.filled(x + 1, y) || !p.filled(x, y - 1) || !p.filled(x, y + 1) || (k > 1.2 && (!p.filled(x - 2, y) || !p.filled(x, y - 2) || !p.filled(x + 2, y) || !p.filled(x, y + 2)))) edge.push([x, y]);
+  }
+  for (const [x, y] of edge) p.set(x, y, lit(r, (9 * k - x) * 0.07 / k + (9 * k - y) * 0.05 / k + 0.15));
 }
 
 // --------------------------------------------------- the diagonal frame
@@ -494,21 +589,12 @@ export function book(pm: Pixmap, cover: Ramp, corners?: Ramp, pages: RGB = [236,
 export function heater(pm: Pixmap, face: Ramp, rim?: Ramp): void {
   const pts: Pt[] = [[2.5, 2], [15.5, 2], [15.5, 8], [14, 12], [9, 16.6], [4, 12], [2.5, 8]];
   poly(pm, pts, face, 0.1, 2.4);
-  if (rim) {
-    for (let y = 2; y <= 16; y++) for (let x = 2; x <= 16; x++) {
-      if (!pm.filled(x, y)) continue;
-      const edge = !pm.filled(x - 1, y) || !pm.filled(x + 1, y) || !pm.filled(x, y - 1) || !pm.filled(x, y + 1);
-      if (edge) pm.set(x, y, lit(rim, (9 - x) * 0.08 + (9 - y) * 0.05 + 0.1));
-    }
-  }
+  if (rim) rimOf(pm, rim);
 }
 
 export function kite(pm: Pixmap, face: Ramp, rim?: Ramp): void {
   poly(pm, [[3, 3], [9, 1], [15, 3], [14.5, 9], [9, 17], [3.5, 9]], face, 0.1, 2.4);
-  if (rim) for (let y = 1; y <= 17; y++) for (let x = 2; x <= 16; x++) {
-    if (!pm.filled(x, y)) continue;
-    if (!pm.filled(x - 1, y) || !pm.filled(x + 1, y) || !pm.filled(x, y - 1) || !pm.filled(x, y + 1)) pm.set(x, y, lit(rim, (9 - x) * 0.08 + (9 - y) * 0.05 + 0.1));
-  }
+  if (rim) rimOf(pm, rim);
 }
 
 export function roundShield(pm: Pixmap, face: Ramp, rim: Ramp, r = 7.4): void {

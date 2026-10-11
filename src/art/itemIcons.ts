@@ -9,12 +9,12 @@
 import { OUTLINE, Pixmap, RGB, lit, mix, ramp } from './pixmap';
 import {
   BONE, BRONZE, CLOTH_BLUE, CLOTH_GREEN, CLOTH_GREY, CLOTH_PURPLE, CLOTH_RED, DARK, DARK_LEATHER, DARK_WOOD, EMBER, GOLD, HOLY, ICE,
-  ICON, IRON, IconSpec, LEATHER, LINEN, MARSH, MITHRIL, Materials, REED, RUST, SHADOW, SILVER, STAR, STEEL, VIOLET, WOOD,
-  axeOf, band, bar, book, glint, bootOf, bowOf, chain, diag, disc, dome, dots, erase, gemAt, gloveOf, has, heater, hoodOf, hoop, inFrame, kite,
+  ICON, ICON_PX, IRON, IconCanvas, IconSpec, LEATHER, LINEN, MARSH, MITHRIL, Materials, REED, RUST, SHADOW, SILVER, STAR, STEEL, VIOLET, WOOD,
+  axeOf, band, bar, book, glint, paint, bootOf, bowOf, chain, diag, disc, dome, dots, erase, gemAt, gloveOf, has, heater, hoodOf, hoop, inFrame, kite,
   materials, orb, poly, px, robeOf, roundShield, shaft, skirt, sword, tint, torso, trousers,
 } from './iconKit';
 
-export { ICON };
+export { ICON, ICON_PX };
 export type { IconSpec };
 
 type Draw = (pm: Pixmap, m: Materials) => void;
@@ -452,7 +452,7 @@ const SHIELDS: Record<string, Draw> = {
   // Round, of planks, an iron rim and boss.
   wooden_shield: (pm) => {
     roundShield(pm, WOOD, IRON);
-    for (const x of [6, 9, 12]) for (let y = 3; y <= 15; y++) if (pm.filled(x, y) && pm.get(x, y)![0] > 90) pm.set(x, y, lit(WOOD, -0.55));
+    paint(pm, (x, y, _c, fx) => ((x - 9) ** 2 + (y - 9) ** 2 < 36 && fx % 4 === 0 ? lit(WOOD, -0.55) : undefined));
     disc(pm, 9, 9, 2, 2, IRON, 0.3);
   },
   buckler: (pm) => {
@@ -481,10 +481,7 @@ const SHIELDS: Record<string, Draw> = {
   // Woven reeds on a hoop.
   marsh_buckler: (pm) => {
     roundShield(pm, REED, DARK_WOOD, 6.6);
-    for (let y = 3; y <= 15; y++) for (let x = 3; x <= 15; x++) {
-      const c = pm.get(x, y);
-      if (c && (x - 9) ** 2 + (y - 9) ** 2 < 28 && (Math.floor(x / 2) + Math.floor(y / 2)) % 2) pm.set(x, y, mix(c, [60, 50, 30], 0.3));
-    }
+    paint(pm, (x, y, c, fx, fy) => ((x - 9) ** 2 + (y - 9) ** 2 < 30 && (Math.floor(fx / 2) + Math.floor(fy / 2)) % 2 ? mix(c, [60, 50, 30], 0.3) : undefined));
     disc(pm, 9, 9, 1.6, 1.6, MARSH, 0.3);
   },
   steel_tower_shield: (pm) => {
@@ -498,10 +495,7 @@ const SHIELDS: Record<string, Draw> = {
   // Round, painted in a smuggler's stripes, dented.
   smuggler_shield: (pm) => {
     roundShield(pm, WOOD, IRON);
-    for (let y = 2; y <= 16; y++) for (let x = 2; x <= 16; x++) {
-      if ((x - 9) ** 2 + (y - 9) ** 2 > 36) continue;
-      if (Math.floor((x + y) / 3) % 2) pm.set(x, y, lit(CLOTH_RED, 0.3 - (y - 2) * 0.05));
-    }
+    paint(pm, (x, y, _c, fx, fy) => ((x - 9) ** 2 + (y - 9) ** 2 <= 36 && Math.floor((fx + fy) / 4) % 2 ? lit(CLOTH_RED, 0.3 - (y - 2) * 0.05) : undefined));
     disc(pm, 9, 9, 1.8, 1.8, IRON, 0.3);
     dots(pm, [[12, 5], [13, 6]], [50, 34, 30]);
   },
@@ -662,11 +656,11 @@ const CHESTS: Record<string, Draw> = {
   padded_vest: (pm) => {
     const pad = ramp([180, 156, 116], 0.5);
     torso(pm, pad, 2);
-    for (let y = 5; y <= 15; y++) for (let x = 2; x <= 16; x++) if (pm.filled(x, y) && ((y % 3 === 0) || (x % 3 === 0 && y > 5))) pm.set(x, y, mix(pm.get(x, y)!, pad[4], 0.35));
+    paint(pm, (_x, y, c, fx, fy) => (y > 4 && (fy % 4 === 0 || (fx % 4 === 2 && y > 5)) ? mix(c, pad[4], 0.35) : undefined));
   },
   light_chainmail: (pm) => {
     torso(pm, IRON, 2);
-    for (let y = 3; y <= 16; y++) for (let x = 2; x <= 16; x++) if (pm.filled(x, y) && (x + y) % 2 === 0) pm.set(x, y, mix(pm.get(x, y)!, IRON[4], 0.45));
+    paint(pm, (_x, _y, c, fx, fy) => ((fx + fy) % 2 === 0 ? mix(c, IRON[4], 0.45) : undefined));
     pm.hline(5, 13, 16, LEATHER[2]);
   },
   // A plain linen robe with a rope belt.
@@ -678,7 +672,7 @@ const CHESTS: Record<string, Draw> = {
   // Mail under a blue tabard with gold trim.
   guard_chest: (pm) => {
     torso(pm, STEEL);
-    for (let y = 3; y <= 16; y++) for (let x = 2; x <= 16; x++) if (pm.filled(x, y) && (x + y) % 2 === 0) pm.set(x, y, mix(pm.get(x, y)!, STEEL[4], 0.4));
+    paint(pm, (_x, _y, c, fx, fy) => ((fx + fy) % 2 === 0 ? mix(c, STEEL[4], 0.4) : undefined));
     poly(pm, [[6, 4.5], [8, 6], [10, 6], [12, 4.5], [12.4, 16], [5.6, 16]], CLOTH_BLUE, 0.1, 1.6);
     for (let y = 6; y <= 16; y++) {
       pm.set(6, y, GOLD[2]);
@@ -786,7 +780,7 @@ const LEGS: Record<string, Draw> = {
   // Wrapped tight with bands of cloth.
   marsh_leggings: (pm) => {
     trousers(pm, MARSH, DARK_LEATHER, 0.6);
-    for (let y = 7; y <= 15; y += 2) for (let x = 3; x <= 15; x++) if (pm.filled(x, y) && x !== 9) pm.set(x, y + ((x % 3) ? 0 : 0), mix(pm.get(x, y)!, REED[1], 0.5));
+    paint(pm, (_x, y, c, fx, fy) => (y > 6 && (fy + Math.floor(fx / 3)) % 3 === 0 ? mix(c, REED[1], 0.5) : undefined));
   },
   steel_legs: (pm) => {
     trousers(pm, STEEL, DARK_LEATHER);
@@ -806,7 +800,7 @@ const LEGS: Record<string, Draw> = {
   },
   shadow_leggings: (pm) => {
     trousers(pm, ramp([70, 60, 84], 0.4), DARK, 0.6);
-    for (let y = 8; y <= 15; y += 2) for (let x = 3; x <= 15; x++) if (pm.filled(x, y) && (x + y) % 3 === 0) pm.set(x, y, DARK[3]);
+    paint(pm, (_x, y, c, fx, fy) => (y > 7 && (fy + Math.floor(fx / 2)) % 3 === 0 ? mix(c, DARK[4], 0.5) : undefined));
   },
   mithril_legs: (pm) => {
     trousers(pm, MITHRIL, GOLD);
@@ -849,7 +843,8 @@ const BOOTS: Record<string, Draw> = {
   // Low shoes, a little wing at the heel.
   swift_boots: (pm) => {
     bootOf(pm, ramp([170, 120, 74]), { top: 8, heel: false });
-    for (let k = 0; k < 3; k++) bar(pm, 4 - k * 0.6, 10 + k, 1 - k * 0.4, 7 + k * 1.2, 1, ramp([236, 236, 244], 0.3), 0.3 - k * 0.2);
+    poly(pm, [[4.6, 9.6], [2.6, 7], [0.4, 6.4], [1.4, 8.2], [0.6, 9.4], [2, 10.4], [1.4, 11.6], [4.4, 12]], ramp([236, 236, 244], 0.3), 0.2, 1);
+    dots(pm, [[2, 8], [2, 10]], [190, 190, 206]);
   },
   // Iron-capped, hobnailed.
   iron_boots: (pm) => {
@@ -902,7 +897,7 @@ const BOOTS: Record<string, Draw> = {
   shadow_boots: (pm) => {
     const r = ramp([70, 60, 84], 0.4);
     bootOf(pm, r, { top: 4, heel: false, toe: 'point', sole: [40, 34, 46] });
-    for (let y = 5; y <= 10; y += 2) for (let x = 4; x <= 11; x++) if (pm.filled(x, y) && (x + y) % 2) pm.set(x, y, r[3]);
+    paint(pm, (_x, y, _c, fx, fy) => (y > 4 && y < 11 && (fy + Math.floor(fx / 2)) % 3 === 0 ? r[3] : undefined));
   },
   mithril_boots: (pm) => {
     bootOf(pm, MITHRIL, { top: 3, toe: 'point' });
@@ -976,7 +971,7 @@ const GLOVES: Record<string, Draw> = {
   corrupted_root_gloves: (pm) => {
     const bark = ramp([110, 80, 56]);
     gloveOf(pm, bark, ramp([80, 60, 44]));
-    for (let y = 3; y <= 15; y += 2) for (let x = 4; x <= 13; x++) if (pm.filled(x, y) && (x + y) % 3 === 0) pm.set(x, y, bark[4]);
+    paint(pm, (_x, _y, _c, fx, fy) => ((fx * 2 + fy) % 5 === 0 ? bark[4] : undefined));
     dots(pm, [[13, 4], [14, 3]], MARSH[1], false);
     dots(pm, [[7, 10], [8, 11], [9, 11], [10, 12]], [196, 96, 236]);
   },
@@ -1249,10 +1244,6 @@ function motifs(pm: Pixmap, spec: IconSpec): void {
     const at = spots.find(([x, y]) => [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => !filled(x + dx, y + dy))) ?? spots[0];
     for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) pm.set(at[0] + dx, at[1] + dy, dx || dy ? STAR : [235, 250, 255]);
   }
-  // L'Ombre: wisps of smoke curling off it.
-  if (has(spec, 'ombre')) {
-    for (const [x, y] of [[1, 5], [2, 4], [2, 6], [16, 13], [15, 14], [16, 15]] as [number, number][]) if (!filled(x, y)) pm.set(x, y, [150, 110, 200], 170);
-  }
   // Mithril: a glint on the first edge the light meets.
   if (has(spec, 'mithril')) {
     outer: for (let s = 2; s < ICON * 2; s++) for (let x = 0; x <= s; x++) {
@@ -1267,14 +1258,18 @@ function motifs(pm: Pixmap, spec: IconSpec): void {
 
 // --------------------------------------------------------------- render
 
-export function renderItemIcon(spec: IconSpec): Pixmap {
-  const pm = new Pixmap(ICON, ICON);
+export function renderItemIcon(spec: IconSpec, size = ICON_PX): Pixmap {
+  const pm = new IconCanvas(size);
   const m = materials(spec);
   const draw = FORMS[spec.baseId];
   if (draw) draw(pm, m);
   else classic(pm, spec, m);
   motifs(pm, spec);
   pm.outline(OUTLINE);
+  // L'Ombre: wisps of smoke curling off it, over the outline.
+  if (has(spec, 'ombre')) {
+    for (const [x, y, a] of [[1, 5, 200], [1.6, 4.2, 150], [2.2, 3.4, 110], [16, 13, 200], [15.4, 14, 150], [16.4, 14.8, 110]] as [number, number, number][]) if (!pm.filled(x, y)) px(pm, x, y, [170, 130, 220], a);
+  }
   return pm;
 }
 

@@ -25,11 +25,11 @@ const BLACK_CLOTH = ramp([58, 54, 64], 0.4);
 const cloth = (x: number, y: number) => (noise(x * 1.6, y * 0.4, 2, 5) - 0.5) * 0.35;
 const worn = (x: number, y: number) => (noise(x, y, 2.5, 9) - 0.5) * 0.4;
 
-type Weapon = 'sword' | 'dagger' | 'cutlass' | 'club' | 'pick' | 'greatsword' | 'none';
-type Offhand = 'torch' | 'dagger' | 'book' | 'pistol' | 'none';
+export type Weapon = 'sword' | 'dagger' | 'cutlass' | 'club' | 'pick' | 'greatsword' | 'mace' | 'hammer' | 'staff' | 'spear' | 'none';
+export type Offhand = 'torch' | 'dagger' | 'book' | 'pistol' | 'lantern' | 'none';
 type Head = 'bare' | 'hood' | 'horned' | 'tricorn' | 'greathelm' | 'bandana';
 
-interface Figure {
+export interface Figure {
   skin?: Ramp;
   legs: Ramp;
   boots: Ramp;
@@ -50,6 +50,8 @@ interface Figure {
   arms?: Ramp; // sleeves (else the body's colour)
   bracers?: Ramp;
   pauldrons?: Ramp;
+  horns?: Ramp; // on a great helm
+  crest?: Ramp; // a plume or fin along a great helm
   extra?: (b: ScaledCanvas) => void; // drawn last, before the glow
   glow?: (b: ScaledCanvas) => void;
 }
@@ -62,7 +64,7 @@ const lightWorn = (x: number, y: number) => worn(x, y) + side(x);
 // A fighter's stance, turned a little towards the hero (our left): the near
 // leg forward, the far one braced behind, the weapon arm raised, the off
 // hand ready. The near side of the body is the bigger.
-function figure(k: number, f: Figure): ReturnType<Portrait> {
+export function figure(k: number, f: Figure): ReturnType<Portrait> {
   const b = canvas(W, H, k);
   const P = (pts: Pt[], r: Ramp, round = 3, bias = 0, tex: (x: number, y: number) => number = lightCloth) => part(b, pts, r, { round, bias, tex });
   const skin = f.skin ?? SKIN;
@@ -188,6 +190,11 @@ function head(b: ScaledCanvas, f: Figure, skin: Ramp): void {
       b.hline(22, 32, 12, [16, 12, 22]);
       for (let y = 3; y <= 21; y++) if (y !== 11 && y !== 12) b.set(25, y, r[0]);
       for (const [x, y] of [[29, 15], [31, 15], [29, 17], [31, 17]] as [number, number][]) b.set(x, y, [16, 12, 22]);
+      if (f.horns) {
+        tube(b, [[21, 7], [16, 5], [13.6, 0.6], [15, -2]], (t) => 2 - t * 1.3, f.horns);
+        tube(b, [[33.6, 7], [38.6, 5], [41, 0.6], [39.6, -2]], (t) => 1.8 - t * 1.2, f.horns, { bias: -0.15 });
+      }
+      if (f.crest) part(b, [[25, 3], [24, -1], [27, -2], [31, 0], [33, 4], [30, 3]], f.crest, { round: 1.2, bias: 0.1 });
       break;
     }
   }
@@ -221,6 +228,23 @@ function weapon(b: ScaledCanvas, w: Weapon, r: Ramp): void {
       tube(b, [[10.4, 44], [8, 32], [5, 18]], (t) => 1.4 + t * 2.4, WOOD, { bias: 0.15 });
       for (const [x, y] of [[3, 19], [7, 18], [4, 24], [8, 23], [5, 28]] as [number, number][]) b.set(x, y, IRON[0]);
       break;
+    case 'mace':
+      tube(b, [[10.4, 45], [8.6, 33], [7.4, 25]], () => 1.2, WOOD, { bias: 0.1 });
+      part(b, [[3.6, 20], [7, 16.6], [10.6, 18.6], [11, 24], [7.6, 27], [4, 25]], r, { round: 2, bias: 0.15 });
+      for (const [x, y] of [[3, 19], [7, 15], [11, 18], [11.6, 24], [3, 25]] as [number, number][]) b.set(x, y, r[0]);
+      break;
+    case 'hammer':
+      tube(b, [[10.6, 47], [8.6, 33], [7, 20]], () => 1.3, r, { bias: 0.1 });
+      part(b, [[0.6, 15], [13.6, 13], [14, 21], [1, 23]], r, { round: 2.2, bias: 0.15 });
+      break;
+    case 'staff':
+      tube(b, [[11, 60], [10, 44], [8.4, 26], [7.6, 14]], () => 1.2, WOOD, { bias: 0.1 });
+      break;
+    case 'spear':
+      tube(b, [[12, 64], [10, 44], [7.6, 20], [6.6, 8]], () => 1.1, WOOD, { bias: 0.1 });
+      part(b, [[5, 9], [6.2, 0], [8.4, 9], [6.8, 12]], r, { round: 1.2, bias: 0.25 });
+      part(b, [[3.6, 11], [10, 10], [10, 12], [3.6, 13]], r, { round: 1, bias: 0.1 });
+      break;
     case 'pick':
       tube(b, [[10.4, 46], [8.6, 32], [7.6, 22]], () => 1.1, WOOD, { bias: 0.1 });
       tube(b, [[0.6, 26], [7.6, 21.6], [15, 21], [17, 23]], (t) => 1.5 - Math.abs(t - 0.45) * 1.4, IRON, { bias: 0.25 });
@@ -244,6 +268,11 @@ function offhand(b: ScaledCanvas, o: Offhand): void {
       P([[36, 39], [45, 37.6], [46, 49], [37, 50.4]], ramp([110, 50, 50], 0.5), 1.4, 0.05);
       P([[45, 38], [46.4, 38], [47, 49], [46, 49]], ramp([230, 220, 196], 0.5), 0.5, 0.1);
       dotsAt(b, [[41, 43], [40, 44], [41, 45], [42, 44]], GOLD[1]);
+      break;
+    case 'lantern':
+      tube(b, [[38, 46], [40, 49]], () => 0.6, IRON);
+      P([[38, 49], [43, 49], [43, 56], [38, 56]], IRON, 1, 0.1);
+      P([[39, 50.4], [42, 50.4], [42, 55], [39, 55]], ramp([255, 220, 140], 0.3), 1, 0.4);
       break;
     case 'pistol':
       P([[37, 44], [47, 41.6], [47.4, 44], [39, 46.4]], IRON, 1, 0.15);

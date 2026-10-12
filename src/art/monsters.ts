@@ -18,9 +18,11 @@ export function hasDrawnMonster(id: string): boolean {
   return id in PORTRAITS;
 }
 
-// The combat portrait (shown at its own size, about 64-72 game pixels).
+// The combat portrait (shown at its own size, about 64-72 game pixels;
+// the smallest creatures traced a little larger so they still read).
+const COMBAT_SCALE_OF: Record<string, number> = { field_rat: 1.4, cave_rat: 1.2, archive_wisp: 1.15 };
 export function monsterPortrait(id: string): MonsterArt | undefined {
-  return PORTRAITS[id]?.(1);
+  return PORTRAITS[id]?.(COMBAT_SCALE_OF[id] ?? 1);
 }
 
 // The sprite on the map: the same drawing traced small, at the scale that

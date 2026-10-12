@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { crispIcon } from '../entities/itemIcon';
 import { addMeadowBackdrop } from '../ui/backdrop';
 import { centerFrame } from '../ui/screen';
 import { CLASSES, Character, grantXp } from '../game/character';
@@ -19,7 +18,7 @@ import { ChipRow, INK, KitBar, KitButton, PAL, addPanel, drawPanel, panelText, p
 import { playHit, playVictory, playLevelUp, playDefeat } from '../ui/sound';
 import { HERO_FEET_Y, HERO_FRAME_H, heroTextures, idleFrame } from '../entities/heroSprite';
 import { heroLook } from '../art/heroLook';
-import { hasDrawnMonster, monsterPortrait } from '../art/monsters';
+import { monsterPortrait } from '../art/monsters';
 import { pixmapTexture } from '../world/drawnArt';
 import type { PixelText } from '../ui/pixelFont';
 
@@ -185,14 +184,9 @@ export class CombatScene extends Phaser.Scene {
     this.menuView = 'main';
   }
 
-  // Runs after init() (so this.monsterId is already set) and before
-  // create() — Phaser guarantees the texture is ready by the time create()
-  // reads it. Falls back to the wolf (random Field encounters) to match the same
-  // fallback used below, so preload and create never disagree on which
-  // sprite this encounter needs.
+  // The monsters are drawn by the game (art/monsters.ts) when shown; only
+  // the interface kit needs loading.
   preload(): void {
-    const id = this.monsterId ?? 'corrupted_wolf';
-    if (!hasDrawnMonster(id)) this.load.image(`monster-${id}`, `${import.meta.env.BASE_URL}sprites/monsters/${id}.png`);
     preloadUiKit(this);
   }
 
@@ -214,14 +208,6 @@ export class CombatScene extends Phaser.Scene {
       DIFFICULTY_RULES[difficultyOf(this.character)],
     );
     this.engine = new CombatEngine(this.character, this.monster);
-    const shownKey = `monster-${shownId}`;
-    if (!hasDrawnMonster(shownId) && !this.textures.exists(shownKey)) {
-      await new Promise<void>((resolve) => {
-        this.load.image(shownKey, `${import.meta.env.BASE_URL}sprites/monsters/${shownId}.png`);
-        this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
-        this.load.start();
-      });
-    }
 
     addMeadowBackdrop(this);
 
@@ -250,13 +236,9 @@ export class CombatScene extends Phaser.Scene {
       this.add
         .image(MONSTER_CENTER.x, MONSTER_CENTER.y + MONSTER_SIZE / 2, pixmapTexture(this, `${monsterKey}-portrait`, portrait.pm))
         .setOrigin(portrait.anchorX / portrait.pm.w, portrait.anchorY / portrait.pm.h);
-    } else if (this.textures.exists(monsterKey)) {
-      // The painted monster redrawn at its display size (sharp pixels).
-      this.add.image(MONSTER_CENTER.x, MONSTER_CENTER.y, crispIcon(this, monsterKey, MONSTER_SIZE));
     } else {
-      // Missing sprite (shouldn't happen for a real monster id, but keeps a
-      // fresh id added to monster.ts without matching art from crashing the
-      // scene instead of just looking plain).
+      // No drawing yet (a fresh id added to monster.ts before its art):
+      // plain, rather than crashing the scene.
       this.add.rectangle(MONSTER_CENTER.x, MONSTER_CENTER.y, 64, 64, TIER_ENEMY_TINT[this.monster.tier]);
     }
 

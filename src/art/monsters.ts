@@ -20,12 +20,22 @@ export function monsterPortrait(id: string): MonsterArt | undefined {
   return PORTRAITS[id]?.(1);
 }
 
-// The sprite on the map: the same drawing traced `height` pixels tall
-// (about a figure's height there; a boss stands taller).
-export function monsterMapSprite(id: string, height: number): MonsterArt | undefined {
-  const draw = PORTRAITS[id];
-  if (!draw) return undefined;
-  return draw(height / draw(1).pm.h);
+// The sprite on the map: the same drawing traced small, at the scale that
+// makes the creature its true size next to the hero (a man-sized monster
+// about as tall as him, a rat a fraction of that).
+const MAP_SCALE = 0.38;
+const MAP_SCALE_OF: Record<string, number> = {
+  field_rat: 0.3,
+  cave_rat: 0.36,
+  rat_king: 0.42,
+  cave_spider: 0.34,
+  marsh_serpent: 0.34,
+  marsh_matriarch: 0.34,
+  corrupted_boar: 0.36,
+  corrupted_boar_alpha: 0.36,
+};
+export function monsterMapSprite(id: string): MonsterArt | undefined {
+  return PORTRAITS[id]?.(MAP_SCALE_OF[id] ?? MAP_SCALE);
 }
 
 export const DRAWN_MONSTER_IDS = Object.keys(PORTRAITS);

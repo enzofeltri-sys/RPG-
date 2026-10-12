@@ -4,7 +4,7 @@
 // pass (outline, light, shadow).
 
 import { OUTLINE, Pixmap, RGB, Ramp, hash2, lit, mix, noise, ramp } from '../pixmap';
-import { ScaledCanvas } from '../shape';
+import { ScaledCanvas, real } from '../shape';
 
 export interface MonsterArt {
   pm: Pixmap;
@@ -97,7 +97,7 @@ export function blightPatches(pm: Pixmap, w: number, h: number, threshold = 0.66
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const c = pm.get(x, y);
     if (!c || !keep(x, y)) continue;
-    const n = noise(x * 0.45, y * 1.7, 4, seed) + (noise(x * 0.6, y * 2, 1.5, seed + 1) - 0.5) * 0.3;
+    const n = noise(x * 0.8, y * 1.2, 4, seed) + (noise(x, y * 1.4, 1.5, seed + 1) - 0.5) * 0.3;
     if (n > threshold) {
       const lum = (c[0] + c[1] + c[2]) / 3;
       pm.set(x, y, lum > 140 ? blight[1] : lum > 110 ? blight[2] : lum > 85 ? blight[3] : blight[4]);
@@ -125,4 +125,68 @@ export function finish(
   shadow(pm, ...ground);
   pm.blit(body, 0, 0);
   return { pm, anchorX: Math.round(feet[0] * body.k), anchorY: Math.round(feet[1] * body.k) };
+}
+
+// A tube along a path (a serpent's body, a tail, a spider's leg): discs
+// stamped from the first point to the last, each shaded like a sphere, so
+// the tube rounds off and a later stretch passes over an earlier one.
+// `width(t)` is the radius along the way (t in 0..1); `belly` colours the
+// side facing down the path's right-hand normal; `pattern(along, across)`
+// shifts the light (scales, bands).
+export interface TubeOpts {
+  bias?: number;
+  belly?: Ramp;
+  bellySide?: 1 | -1;
+  pattern?: (along: number, across: number) => number;
+}
+export function tube(target: Pixmap, design: [number, number][], width: (t: number) => number, r: Ramp, o: TubeOpts = {}): void {
+  const [pm, k] = real(target);
+  const pts = smooth(design.map(([x, y]) => [x * k, y * k] as [number, number]));
+  const lens = [0];
+  for (let i = 1; i < pts.length; i++) lens.push(lens[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const total = lens[lens.length - 1] || 1;
+  const step = 0.5;
+  let seg = 0;
+  for (let d = 0; d <= total; d += step) {
+    while (seg < pts.length - 2 && lens[seg + 1] < d) seg++;
+    const f = (d - lens[seg]) / (lens[seg + 1] - lens[seg] || 1);
+    const x = pts[seg][0] + (pts[seg + 1][0] - pts[seg][0]) * f;
+    const y = pts[seg][1] + (pts[seg + 1][1] - pts[seg][1]) * f;
+    const tx = (pts[seg + 1][0] - pts[seg][0]) / (lens[seg + 1] - lens[seg] || 1);
+    const ty = (pts[seg + 1][1] - pts[seg][1]) / (lens[seg + 1] - lens[seg] || 1);
+    const rad = Math.max(0.5, width(d / total) * k);
+    for (let py = Math.floor(y - rad); py <= Math.ceil(y + rad); py++) {
+      for (let px = Math.floor(x - rad); px <= Math.ceil(x + rad); px++) {
+        const dx = (px + 0.5 - x) / rad;
+        const dy = (py + 0.5 - y) / rad;
+        const dd = dx * dx + dy * dy;
+        if (dd > 1) continue;
+        const across = dx * -ty + dy * tx; // -1..1 across the tube
+        let level = -dx * 0.55 - dy * 0.75 + Math.sqrt(1 - dd) * 0.45 - 0.15 + (o.bias ?? 0);
+        if (o.pattern) level += o.pattern(d / k, across);
+        const ramp = o.belly && across * (o.bellySide ?? 1) > 0.45 ? o.belly : r;
+        pm.set(px, py, lit(ramp, level));
+      }
+    }
+  }
+}
+
+// A path smoothed through its points (Catmull-Rom), finely sampled.
+function smooth(p: [number, number][]): [number, number][] {
+  if (p.length < 3) return p;
+  const out: [number, number][] = [];
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[Math.max(0, i - 1)];
+    const p1 = p[i];
+    const p2 = p[i + 1];
+    const p3 = p[Math.min(p.length - 1, i + 2)];
+    for (let s = 0; s < 1; s += 0.125) {
+      const s2 = s * s;
+      const s3 = s2 * s;
+      const c = (a: number, b: number, cc: number, dd: number) => 0.5 * (2 * b + (-a + cc) * s + (2 * a - 5 * b + 4 * cc - dd) * s2 + (-a + 3 * b - 3 * cc + dd) * s3);
+      out.push([c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  out.push(p[p.length - 1]);
+  return out;
 }

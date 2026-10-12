@@ -69,14 +69,12 @@ export function npcSprite(scene: Phaser.Scene, id: string, target: Phaser.GameOb
   return sprite;
 }
 
-// A monster waiting on the map: its drawing traced at about the size its
-// spot was given (a boss's spot is bigger), standing at the spot's centre
-// plus half its size, so the feet sit where the old picture's bottom was.
+// A monster waiting on the map: its drawing traced at its size on the map,
+// standing at the bottom of the spot the old picture filled.
 function monsterSprite(scene: Phaser.Scene, id: string, target: Phaser.GameObjects.Shape, displaySize: number): Phaser.GameObjects.Image | undefined {
-  const height = Math.round(displaySize * 0.9);
-  const art = monsterMapSprite(id, height);
+  const art = monsterMapSprite(id);
   if (!art) return undefined;
-  const key = pixmapTexture(scene, `monster-${id}-map${height}`, art.pm);
+  const key = pixmapTexture(scene, `monster-${id}-map`, art.pm);
   const feetY = target.y + displaySize / 2 - 2;
   return scene.add
     .image(target.x, feetY, key)

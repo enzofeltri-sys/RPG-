@@ -14,7 +14,7 @@ const doll = (look: Look) => { const pm = new Pixmap(DOLL_W, DOLL_H); pm.data.se
 const items: [string, Pixmap][] = [
   ['héros', doll(heroLook(createCharacter('human', 'warrior')))],
   ['bandit', doll(bandit)],
-  ...((process.argv[4] ? process.argv[4].split(',') : DRAWN_MONSTER_IDS).map((id) => [id, monsterMapSprite(id, 25)!.pm] as [string, Pixmap])),
+  ...((process.argv[4] ? process.argv[4].split(',') : DRAWN_MONSTER_IDS).map((id) => [id, monsterMapSprite(id)!.pm] as [string, Pixmap])),
 ];
 const scale = Number(process.argv[3] ?? 4);
 const cellW = 44 * scale, cellH = 46 * scale;

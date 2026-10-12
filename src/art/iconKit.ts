@@ -3,8 +3,8 @@
 // object (a sword from its blade, guard, grip and pommel; a boot from its
 // height, cuff and toe…) that itemIcons.ts puts together per item.
 
-import { OUTLINE, Pixmap, RGB, Ramp, lit, mix, ramp } from './pixmap';
-import { Pt, part } from './shape';
+import { Pixmap, RGB, Ramp, lit, mix, ramp } from './pixmap';
+import { Pt, ScaledCanvas, part, real } from './shape';
 
 // Items are designed on an 18-pixel grid (ICON) and drawn at 24 pixels
 // (ICON_PX), the size the bag and the shops show them at: the shapes
@@ -14,49 +14,10 @@ import { Pt, part } from './shape';
 export const ICON = 18;
 export const ICON_PX = 24;
 
-export class IconCanvas extends Pixmap {
-  // The same pixels, addressed at the real resolution.
-  readonly raw: Pixmap;
-  readonly k: number;
-
+export class IconCanvas extends ScaledCanvas {
   constructor(size = ICON_PX) {
-    super(size, size);
-    this.k = size / ICON;
-    this.raw = new Pixmap(size, size);
-    (this.raw as unknown as { data: Uint8ClampedArray }).data = this.data;
+    super(ICON, ICON, size / ICON);
   }
-
-  private span(v: number): [number, number] {
-    const i = Math.round(v);
-    return [Math.floor(i * this.k), Math.max(Math.floor(i * this.k) + 1, Math.floor((i + 1) * this.k))];
-  }
-
-  private at(v: number): number {
-    return Math.floor((Math.round(v) + 0.5) * this.k);
-  }
-
-  set(x: number, y: number, c: RGB, alpha = 255): void {
-    const [x0, x1] = this.span(x);
-    const [y0, y1] = this.span(y);
-    for (let ry = y0; ry < y1; ry++) for (let rx = x0; rx < x1; rx++) this.raw.set(rx, ry, c, alpha);
-  }
-
-  filled(x: number, y: number): boolean {
-    return this.raw.filled(this.at(x), this.at(y));
-  }
-
-  get(x: number, y: number): RGB | undefined {
-    return this.raw.get(this.at(x), this.at(y));
-  }
-
-  outline(c: RGB = OUTLINE): void {
-    this.raw.outline(c);
-  }
-}
-
-// The surface to trace on, and the scale from the design grid to it.
-function real(pm: Pixmap): [Pixmap, number] {
-  return pm instanceof IconCanvas ? [pm.raw, pm.k] : [pm, 1];
 }
 
 export interface IconSpec {
@@ -257,8 +218,7 @@ export function glint(pm: Pixmap, x: number, y: number, c: RGB = [255, 255, 255]
 
 // A polygon with volume (shape.ts), with an edge that suits small icons.
 export function poly(pm: Pixmap, pts: Pt[], r: Ramp, bias = 0, round = 1.6): void {
-  const [p, k] = real(pm);
-  part(p, k === 1 ? pts : pts.map(([x, y]) => [x * k, y * k] as Pt), r, { round: round * k, bias: bias + 0.15 });
+  part(pm, pts, r, { round, bias: bias + 0.15 });
 }
 
 // Clears what's under a mask (a notch, a cut-out).

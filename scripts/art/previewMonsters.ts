@@ -1,8 +1,9 @@
-// Preview of the monsters drawn by the game (art/monsters.ts) beside the
-// hero, for design reviews. Usage: esbuild-bundle, then node out.mjs <png> [scale]
+// Preview of the monsters' map sprites (art/monsters.ts) beside the hero
+// and a bandit, on grass, for design reviews.
+// Usage: esbuild-bundle, then node out.mjs <png> [scale] [id,id…]
 import { writeFileSync } from 'fs';
 import { encodePng } from './png';
-import { renderMonster } from '../../src/art/monsters';
+import { DRAWN_MONSTER_IDS, monsterMapSprite } from '../../src/art/monsters';
 import { DOLL_H, DOLL_W, Look, renderFrame, LEATHER, DARK_LEATHER, IRON, CHARCOAL } from '../../src/art/heroDoll';
 import { heroLook } from '../../src/art/heroLook';
 import { createCharacter } from '../../src/game/character';
@@ -13,7 +14,7 @@ const doll = (look: Look) => { const pm = new Pixmap(DOLL_W, DOLL_H); pm.data.se
 const items: [string, Pixmap][] = [
   ['héros', doll(heroLook(createCharacter('human', 'warrior')))],
   ['bandit', doll(bandit)],
-  ...(['corrupted_wolf', 'bog_wraith', 'blight_spawn', 'corrupted_sentinel'].map((id) => [id, renderMonster(id)!.pm] as [string, Pixmap])),
+  ...((process.argv[4] ? process.argv[4].split(',') : DRAWN_MONSTER_IDS).map((id) => [id, monsterMapSprite(id, 25)!.pm] as [string, Pixmap])),
 ];
 const scale = Number(process.argv[3] ?? 4);
 const cellW = 44 * scale, cellH = 46 * scale;

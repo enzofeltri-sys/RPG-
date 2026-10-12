@@ -19,7 +19,7 @@ export async function attachSpriteOverlay(
 ): Promise<void> {
   // Things the game now draws itself (buildings, decor, people): built on
   // the spot, sized and anchored by their own art rather than displaySize.
-  const drawn = drawnOverlay(scene, target, textureKey);
+  const drawn = drawnOverlay(scene, target, textureKey, displaySize);
   if (drawn) {
     (target.getData('appearanceImage') as Phaser.GameObjects.GameObject | undefined)?.destroy();
     target.setData('appearanceImage', drawn);

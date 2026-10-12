@@ -26,8 +26,8 @@ const cloth = (x: number, y: number) => (noise(x * 1.6, y * 0.4, 2, 5) - 0.5) * 
 const worn = (x: number, y: number) => (noise(x, y, 2.5, 9) - 0.5) * 0.4;
 
 export type Weapon = 'sword' | 'dagger' | 'cutlass' | 'club' | 'pick' | 'greatsword' | 'mace' | 'hammer' | 'staff' | 'spear' | 'none';
-export type Offhand = 'torch' | 'dagger' | 'book' | 'pistol' | 'lantern' | 'none';
-type Head = 'bare' | 'hood' | 'horned' | 'tricorn' | 'greathelm' | 'bandana';
+export type Offhand = 'torch' | 'dagger' | 'book' | 'pistol' | 'lantern' | 'shield' | 'none';
+type Head = 'bare' | 'hood' | 'horned' | 'tricorn' | 'greathelm' | 'bandana' | 'skull';
 
 export interface Figure {
   skin?: Ramp;
@@ -183,6 +183,21 @@ function head(b: ScaledCanvas, f: Figure, skin: Ramp): void {
       for (let x = 15; x <= 39; x++) if (b.filled(x, 8) && !b.filled(x, 9)) b.set(x, 8, GOLD[1]);
       break;
     }
+    case 'skull': {
+      // A skull, turned to our left, under an old open helm.
+      const bone = ramp([214, 206, 182], 0.5);
+      P([[22, 9], [24, 4.4], [29, 3], [33, 5.4], [34, 11], [33, 16], [30.6, 18], [30, 22], [25, 22], [24.6, 18], [22, 16], [21, 13]], bone, 3, 0.1);
+      // Deep sockets, the nose hole, the teeth, the cheekbones' shadow.
+      for (const [cx, cy] of [[23, 11], [29, 11]] as [number, number][]) for (let dy = -1; dy <= 2; dy++) for (let dx = -2; dx <= 1; dx++) if (Math.abs(dx + 0.5) + Math.abs(dy - 0.5) < 3) b.set(cx + dx, cy + dy, [24, 18, 22]);
+      dotsAt(b, [[25, 14], [26, 14], [25, 15], [26, 15]], [24, 18, 22]);
+      dotsAt(b, [[22, 15], [23, 16], [31, 15], [30, 16]], bone[3]);
+      for (const x of [24, 25, 26, 27, 28, 29]) {
+        b.set(x, 18, x % 2 ? bone[0] : [40, 30, 30]);
+        b.set(x, 19, x % 2 ? [40, 30, 30] : bone[1]);
+      }
+      if (f.headR) P([[20.6, 8], [21.4, 4], [25, 1], [31, 1.2], [34.6, 4], [34.6, 8], [33, 6.4], [23, 6.4]], f.headR, 3, 0.1);
+      break;
+    }
     case 'greathelm': {
       const r = f.headR ?? IRON;
       P([[20.6, 22], [20, 8], [23, 2.6], [31, 2.6], [34.4, 8], [34, 22]], r, 4, 0.05);
@@ -253,6 +268,8 @@ function weapon(b: ScaledCanvas, w: Weapon, r: Ramp): void {
   }
 }
 
+const f_shield = ramp([110, 112, 124], 0.4);
+const f_shieldFace = ramp([92, 84, 70], 0.5);
 function offhand(b: ScaledCanvas, o: Offhand): void {
   const P = (pts: Pt[], r: Ramp, round = 1.5, bias = 0) => part(b, pts, r, { round, bias });
   // The far hand is at about (38, 45).
@@ -268,6 +285,10 @@ function offhand(b: ScaledCanvas, o: Offhand): void {
       P([[36, 39], [45, 37.6], [46, 49], [37, 50.4]], ramp([110, 50, 50], 0.5), 1.4, 0.05);
       P([[45, 38], [46.4, 38], [47, 49], [46, 49]], ramp([230, 220, 196], 0.5), 0.5, 0.1);
       dotsAt(b, [[41, 43], [40, 44], [41, 45], [42, 44]], GOLD[1]);
+      break;
+    case 'shield':
+      P([[33, 34], [46, 32], [47, 46], [40.4, 54], [34, 47]], f_shield, 3, 0);
+      P([[34.6, 35.4], [44.8, 33.8], [45.6, 45.6], [40.4, 52], [35.4, 46.4]], f_shieldFace, 2.5, 0.05);
       break;
     case 'lantern':
       tube(b, [[38, 46], [40, 49]], () => 0.6, IRON);

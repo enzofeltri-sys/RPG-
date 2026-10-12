@@ -5,13 +5,14 @@
 
 import { BEAST_PORTRAITS } from './monsters/beasts';
 import { CONSTRUCT_PORTRAITS } from './monsters/constructs';
+import { DEMON_PORTRAITS } from './monsters/demons';
 import { HUMANOID_PORTRAITS } from './monsters/humanoids';
 import { SPIRIT_PORTRAITS } from './monsters/spirits';
 import type { MonsterArt, Portrait } from './monsters/kit';
 
 export type { MonsterArt };
 
-const PORTRAITS: Record<string, Portrait> = { ...BEAST_PORTRAITS, ...HUMANOID_PORTRAITS, ...CONSTRUCT_PORTRAITS, ...SPIRIT_PORTRAITS };
+const PORTRAITS: Record<string, Portrait> = { ...BEAST_PORTRAITS, ...HUMANOID_PORTRAITS, ...CONSTRUCT_PORTRAITS, ...SPIRIT_PORTRAITS, ...DEMON_PORTRAITS };
 
 export function hasDrawnMonster(id: string): boolean {
   return id in PORTRAITS;
